@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>First-Implementation</name>
+	<name>gcc-Linux-Implementation</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -14,16 +14,4 @@
 	<natures>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
-	<linkedResources>
-		<link>
-			<name>Tasm</name>
-			<type>2</type>
-			<location>C:/Tasm 1.4/Tasm</location>
-		</link>
-		<link>
-			<name>asm programs</name>
-			<type>2</type>
-			<location>C:/asm programs</location>
-		</link>
-	</linkedResources>
 </projectDescription>
