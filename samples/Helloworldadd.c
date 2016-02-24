@@ -8,6 +8,8 @@ int foo(int x)
 return k;
 }
 
+void find_keyshares();
+
 
 int main()
 {
@@ -34,7 +36,9 @@ int main()
 	n=foo2(n);
 	printf("n=%d\n",n);
 
-	printf("main is at %ld\n", main);
+	printf("main is at %p\n", main);
+	//find_keyshares();
+
 
 	return 0;
 }
@@ -43,8 +47,20 @@ int main()
 
 int foo2(int x)
 {
- int k;
- k=x+3;
- 
-return k;
+	int k;
+	k=x+3;
+	 
+	return k;
 }
+
+/*
+void find_keyshares()
+{
+   long a= foo;
+   long b= main;
+   long c=foo2;
+   long d=find_keyshares;
+
+   printf("a=%p b=%p c=%p d=%p\n",a,b,c,d);
+
+}*/

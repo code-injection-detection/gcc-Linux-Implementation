@@ -27,7 +27,7 @@ foo:
 .LC1:
 	.string	"n=%d\n"
 .LC2:
-	.string	"main is at %ld\n"
+	.string	"main is at %p\n"
 	.text
 	.globl	main
 	.type	main, @function
