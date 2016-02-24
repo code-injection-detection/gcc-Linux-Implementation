@@ -14,7 +14,7 @@ public class Secure_Assembly {
 	
 	public static void main(String[] args) throws Exception
 	{
-		String filename = "C:/asm programs/add2.asm";
+		String filename = "/home/menoobs/workspace/virus_detection/gcc-Linux-Implementation/samples/Helloworldadd.s";
 		Scanner sc = new Scanner(new File(filename));
 		ArrayList<String> list = new ArrayList<String>();
 		sc.useDelimiter("\n");
@@ -36,7 +36,7 @@ public class Secure_Assembly {
 			line = removeNewlines(line);
 			//System.out.println(removeSpaces(line));
 			list.add(line);
-			if (removeSpaces(line).indexOf(".code")!=-1)
+			if (removeSpaces(line).indexOf(".cfi_startproc")!=-1)
 			{
 				//System.out.println("I found the beginning of code");
 				break;
@@ -59,7 +59,7 @@ public class Secure_Assembly {
 				//System.out.println("I see an empty line");
 				continue;
 			}
-			if (removeSpaces(line).startsWith("end"))
+			if (removeSpaces(line).startsWith(".cfi_endproc"))
 			{
 				//System.out.println("I came to end");
 				list.add(line);
@@ -69,11 +69,11 @@ public class Secure_Assembly {
 			//if we have exhausted the group of commands, we need to add a jump and nops, and a label after them
 			if (i == num_of_grouped_orig_instr)
 			{
-				list.add(" jmp " + ulabel + label_counter);
+				list.add(" jmp " + "." + ulabel + label_counter);
 				for (int j = 0; j < num_of_interleaved_nops; j++)
 					list.add("NOP");
 				//list.add(ulabel + label_counter + ": " + line);   
-				list.add(ulabel + label_counter + ": " );          //we are just adding the label, not any command
+				list.add("."+ ulabel + label_counter + ": " );          //we are just adding the label, not any command
 				//System.out.println(line);
 				i = 0;
 				label_counter++;
@@ -95,7 +95,7 @@ public class Secure_Assembly {
 		// This write the modified lines into a new ASM
 		// You can use TASM to compile this ASM into machine code
 		String finalfile = "";
-		String newfilename = filename.substring(0,filename.length()-4) + "_sec.asm";
+		String newfilename = filename.substring(0,filename.length()-2) + "_sec.s";
 		System.out.println(newfilename);
 		BufferedWriter bw = new BufferedWriter(new FileWriter(newfilename));
 		for (String line: list)
