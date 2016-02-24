@@ -11,6 +11,7 @@ public class Secure_Machine_Code {
 	{
 		String filename = new File("samples/Helloworldadd_sec").getAbsolutePath();
 		String newfilename = filename.substring(0,filename.length()-3)+"ksec";
+		Runtime r = Runtime.getRuntime();
 		//int n = 2;
 		
 		int num_of_keys = 5; //this should be equal to the number of nops we insert in Secure_Assembly.java (now that we assume that 1 NOP = 1key)
@@ -65,6 +66,8 @@ public class Secure_Machine_Code {
 	    
 	    fw.write(arr);
 	    fw.flush();
+	    Process p = r.exec("chmod +x " + newfilename );
+	    p.waitFor();
 	    byte t = (byte)0xeb;
 		System.out.println(randomByte() + " "+(t == 107 )+" "+t);
 	}

@@ -1,6 +1,6 @@
 CC=gcc
 PG= #-pg
-FLAGS= # -static
+FLAGS= -O0 # -static
 
 all: Helloworldadd.s Helloworldadd Helloworldadd_sec
 
