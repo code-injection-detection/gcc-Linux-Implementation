@@ -30,7 +30,7 @@ main:
 	addl	%eax, -12(%rbp)
 	addl	$1, -8(%rbp)
 .L2:
-	cmpl	$5, -8(%rbp)
+	cmpl	$500000000, -8(%rbp)
 	jle	.L3
 	movl	-12(%rbp), %eax
 	movl	%eax, %esi

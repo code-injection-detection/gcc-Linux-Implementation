@@ -9,8 +9,8 @@ import java.io.*;
 public class Secure_Machine_Code {
 	public static void main(String[] args) throws Exception
 	{
-		String filename = "C:/asm programs/add2_sec.exe";
-		String newfilename = filename.substring(0,filename.length()-7)+"ksec.exe";
+		String filename = new File("samples/Helloworldadd_sec").getAbsolutePath();
+		String newfilename = filename.substring(0,filename.length()-3)+"ksec";
 		//int n = 2;
 		
 		int num_of_keys = 5; //this should be equal to the number of nops we insert in Secure_Assembly.java (now that we assume that 1 NOP = 1key)
@@ -38,7 +38,7 @@ public class Secure_Machine_Code {
 	    int n = arr.length;
 	    for(int i=0;i<n-(2+num_of_keys);i++)
 	    {
-	    	if(arr[i]==-21 && (arr[i+1] == (byte)(num_of_keys+1)) && k_nops_after_us(num_of_keys,arr,i)) // int -21 = jmp opcode, and the arr[i+1] has to be the offset (number of nops + 1 ) , and we have to have num_of_keys NOPs after us
+	    	if(arr[i]==-21 && (arr[i+1] == (byte)(num_of_keys)) && k_nops_after_us(num_of_keys,arr,i)) // int -21 = jmp opcode, and the arr[i+1] has to be the offset (number of nops + 1 ) , and we have to have num_of_keys NOPs after us
 	    	{
 	    		for(int j=0;j<num_of_keys;j++)
 	    		{

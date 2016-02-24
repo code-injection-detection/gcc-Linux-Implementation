@@ -11,260 +11,264 @@ main:
 NOP
 NOP
 	pushq	%rbp
- jmp .unique0
+ jmp .UNIQUE0
 NOP
 NOP
 NOP
 NOP
 NOP
-.unique0: 
+.UNIQUE0: 
 	.cfi_def_cfa_offset 16
- jmp .unique1
+ jmp .UNIQUE1
 NOP
 NOP
 NOP
 NOP
 NOP
-.unique1: 
+.UNIQUE1: 
 	.cfi_offset 6, -16
- jmp .unique2
+ jmp .UNIQUE2
 NOP
 NOP
 NOP
 NOP
 NOP
-.unique2: 
+.UNIQUE2: 
 	movq	%rsp, %rbp
- jmp .unique3
+ jmp .UNIQUE3
 NOP
 NOP
 NOP
 NOP
 NOP
-.unique3: 
+.UNIQUE3: 
 	.cfi_def_cfa_register 6
- jmp .unique4
+ jmp .UNIQUE4
 NOP
 NOP
 NOP
 NOP
 NOP
-.unique4: 
+.UNIQUE4: 
 	subq	$16, %rsp
- jmp .unique5
+ jmp .UNIQUE5
 NOP
 NOP
 NOP
 NOP
 NOP
-.unique5: 
+.UNIQUE5: 
 	movl	$1, -12(%rbp)
- jmp .unique6
+ jmp .UNIQUE6
 NOP
 NOP
 NOP
 NOP
 NOP
-.unique6: 
+.UNIQUE6: 
 	movl	$2, -4(%rbp)
- jmp .unique7
+ jmp .UNIQUE7
 NOP
 NOP
 NOP
 NOP
 NOP
-.unique7: 
+.UNIQUE7: 
 	addl	$1, -4(%rbp)
- jmp .unique8
+ jmp .UNIQUE8
 NOP
 NOP
 NOP
 NOP
 NOP
-.unique8: 
+.UNIQUE8: 
 	addl	$1, -4(%rbp)
- jmp .unique9
+ jmp .UNIQUE9
 NOP
 NOP
 NOP
 NOP
 NOP
-.unique9: 
+.UNIQUE9: 
 	subl	$1, -4(%rbp)
- jmp .unique10
+ jmp .UNIQUE10
 NOP
 NOP
 NOP
 NOP
 NOP
-.unique10: 
+.UNIQUE10: 
 	movl	-4(%rbp), %eax
- jmp .unique11
+ jmp .UNIQUE11
 NOP
 NOP
 NOP
 NOP
 NOP
-.unique11: 
+.UNIQUE11: 
 	addl	%eax, -12(%rbp)
- jmp .unique12
+ jmp .UNIQUE12
 NOP
 NOP
 NOP
 NOP
 NOP
-.unique12: 
+.UNIQUE12: 
 	addl	$2, -12(%rbp)
- jmp .unique13
+ jmp .UNIQUE13
 NOP
 NOP
 NOP
 NOP
 NOP
-.unique13: 
+.UNIQUE13: 
 	addl	$1, -4(%rbp)
- jmp .unique14
+ jmp .UNIQUE14
 NOP
 NOP
 NOP
 NOP
 NOP
-.unique14: 
+.UNIQUE14: 
 	movl	$1, -8(%rbp)
- jmp .unique15
+ jmp .UNIQUE15
 NOP
 NOP
 NOP
 NOP
 NOP
-.unique15: 
+.UNIQUE15: 
 	jmp	.L2
- jmp .unique16
+ jmp .UNIQUE16
 NOP
 NOP
 NOP
 NOP
 NOP
-.unique16: 
+.UNIQUE16: 
 .L3:
- jmp .unique17
+ jmp .UNIQUE17
 NOP
 NOP
 NOP
 NOP
 NOP
-.unique17: 
+.UNIQUE17: 
 	movl	-4(%rbp), %eax
- jmp .unique18
+ jmp .UNIQUE18
 NOP
 NOP
 NOP
 NOP
 NOP
-.unique18: 
+.UNIQUE18: 
 	addl	%eax, -12(%rbp)
- jmp .unique19
+ jmp .UNIQUE19
 NOP
 NOP
 NOP
 NOP
 NOP
-.unique19: 
+.UNIQUE19: 
 	addl	$1, -8(%rbp)
- jmp .unique20
+ jmp .UNIQUE20
 NOP
 NOP
 NOP
 NOP
 NOP
-.unique20: 
+.UNIQUE20: 
 .L2:
- jmp .unique21
+ jmp .UNIQUE21
 NOP
 NOP
 NOP
 NOP
 NOP
-.unique21: 
-	cmpl	$5, -8(%rbp)
- jmp .unique22
+.UNIQUE21: 
+	cmpl	$500000000, -8(%rbp)
+ jmp .UNIQUE22
 NOP
 NOP
 NOP
 NOP
 NOP
-.unique22: 
+.UNIQUE22: 
 	jle	.L3
- jmp .unique23
+ jmp .UNIQUE23
 NOP
 NOP
 NOP
 NOP
 NOP
-.unique23: 
+.UNIQUE23: 
 	movl	-12(%rbp), %eax
- jmp .unique24
+ jmp .UNIQUE24
 NOP
 NOP
 NOP
 NOP
 NOP
-.unique24: 
+.UNIQUE24: 
 	movl	%eax, %esi
- jmp .unique25
+ jmp .UNIQUE25
 NOP
 NOP
 NOP
 NOP
 NOP
-.unique25: 
+.UNIQUE25: 
 	movl	$.LC0, %edi
- jmp .unique26
+ jmp .UNIQUE26
 NOP
 NOP
 NOP
 NOP
 NOP
-.unique26: 
+.UNIQUE26: 
 	movl	$0, %eax
- jmp .unique27
+ jmp .UNIQUE27
 NOP
 NOP
 NOP
 NOP
 NOP
-.unique27: 
+.UNIQUE27: 
 	call	printf
- jmp .unique28
+ jmp .UNIQUE28
 NOP
 NOP
 NOP
 NOP
 NOP
-.unique28: 
+.UNIQUE28: 
 	movl	$0, %eax
- jmp .unique29
+ jmp .UNIQUE29
 NOP
 NOP
 NOP
 NOP
 NOP
-.unique29: 
+.UNIQUE29: 
 	leave
- jmp .unique30
+ jmp .UNIQUE30
 NOP
 NOP
 NOP
 NOP
 NOP
-.unique30: 
+.UNIQUE30: 
 	.cfi_def_cfa 7, 8
- jmp .unique31
+ jmp .UNIQUE31
 NOP
 NOP
 NOP
 NOP
 NOP
-.unique31: 
+.UNIQUE31: 
 	ret
 	.cfi_endproc
+.LFE0:
+	.size	main, .-main
+	.ident	"GCC: (Ubuntu 4.8.4-2ubuntu1~14.04.1) 4.8.4"
+	.section	.note.GNU-stack,"",@progbits

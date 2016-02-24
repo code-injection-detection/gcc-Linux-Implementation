@@ -16,7 +16,7 @@ int main()
 	k+=2;
 	i++;
 
-	for (j=1;j<=5;j++)
+	for (j=1;j<=500000000;j++)
 	  k+=i;
 	
  	printf("K=%d\n",k);

@@ -14,11 +14,11 @@ public class Secure_Assembly {
 	
 	public static void main(String[] args) throws Exception
 	{
-		String filename = "/home/menoobs/workspace/virus_detection/gcc-Linux-Implementation/samples/Helloworldadd.s";
+		String filename = new File("samples/Helloworldadd.s").getAbsolutePath();
 		Scanner sc = new Scanner(new File(filename));
 		ArrayList<String> list = new ArrayList<String>();
 		sc.useDelimiter("\n");
-		String ulabel = "unique";
+		String ulabel = "UNIQUE";
 		// the num_of_grouped_orig_instr is the number of original instructions per keyshare
 		// the num_of_interleaved_nops is the number of bytes in a keyshare (note: a NOP is 1 byte)
 		// i and label_counter are just counting variables, not too important
@@ -26,6 +26,7 @@ public class Secure_Assembly {
 		int label_counter = 0;
 		int i = 0;
 		int  num_of_interleaved_nops = 5;   //this should be equal to the number of keys we use in Secure_Machine_Code.java (now that we assume that 1 NOP = 1key)
+		boolean reached_end=false;
 		
 		// This puts the file into the ArrayList and looks for the start of the code
 		// which is ".code"
@@ -59,11 +60,20 @@ public class Secure_Assembly {
 				//System.out.println("I see an empty line");
 				continue;
 			}
+			
+			if (reached_end)
+			{
+				list.add(line);
+				continue;
+			}
+			
 			if (removeSpaces(line).startsWith(".cfi_endproc"))
 			{
 				//System.out.println("I came to end");
 				list.add(line);
-				break;
+				reached_end = true;
+				continue;
+				//break;
 			}
 			
 			//if we have exhausted the group of commands, we need to add a jump and nops, and a label after them
