@@ -2,19 +2,24 @@ CC=gcc
 PG= #-pg 
 FLAGS= -O0
 
-ifeq ($(MAKECMDGOALS),static)
+ifeq ($(filter-out secure,$(MAKECMDGOALS)),static)
  FLAGS+=  -static
 endif
 
-#Call with simply typing "make" to produce first executable. Secure it with Java and the run "make" again for the second executable.
+#Call with simply typing "make" to produce first executable. Secure it with Java and the run "make secure" again for the second executable.
 #Then you can add keyshares to the second executable.
 
-#If you type "make static", static linking is activated
+#If you type "make static [secure]", static linking is activated
+
+
+default: Helloworldadd.s Helloworldadd
+
+secure: Helloworldadd_sec
 
 all: Helloworldadd.s Helloworldadd Helloworldadd_sec
 
 
-static: all
+static: default
 	
 
 Helloworldadd.s: Helloworldadd.c
