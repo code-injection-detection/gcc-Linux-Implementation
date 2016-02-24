@@ -17,6 +17,7 @@ public class Secure_Assembly {
 		String filename = new File("samples/Helloworldadd.s").getAbsolutePath();
 		Scanner sc = new Scanner(new File(filename));
 		ArrayList<String> list = new ArrayList<String>();
+		ArrayList<String> function_names = new ArrayList<String>();
 		sc.useDelimiter("\n");
 		String ulabel = "UNIQUE";
 		// the num_of_grouped_orig_instr is the number of original instructions per keyshare
@@ -26,33 +27,108 @@ public class Secure_Assembly {
 		int label_counter = 0;
 		int i = 0;
 		int  num_of_interleaved_nops = 5;   //this should be equal to the number of keys we use in Secure_Machine_Code.java (now that we assume that 1 NOP = 1key)
-		boolean reached_end=false;
 		
-		// This puts the file into the ArrayList and looks for the start of the code
-		// which is ".code"
+
 		
+		//we parse the file once to find the functions
 		while (sc.hasNext())
 		{
 			String line = sc.next();
 			line = removeNewlines(line);
-			//System.out.println(removeSpaces(line));
-			list.add(line);
-			if (removeSpaces(line).indexOf(".cfi_startproc")!=-1)
+			
+			if (removeSpaces(line).indexOf("@function")!=-1)
+			{ //find name of function
+				int end = removeSpaces(line).indexOf("@function") - 1;
+				int start = removeSpaces(line).indexOf(".type") +5;
+				String fun_name=removeSpaces(line).substring(start,end);
+				function_names.add(fun_name);
+				System.out.println(fun_name);
+			
+			}
+		}
+		sc.close();
+		
+		// This puts the file into the ArrayList and looks for the start of the code
+		// which is ".cfi_startproc". This, for every function.
+		
+		sc = new Scanner(new File(filename));
+		sc.useDelimiter("\n");
+		
+		for (String fun:function_names)
+		{	
+			while (sc.hasNext())
 			{
-				//System.out.println("I found the beginning of code");
-				break;
-			}			
+				String line = sc.next();
+				line = removeNewlines(line);
+				//System.out.println(removeSpaces(line));
+				list.add(line);
+				
+							
+				if (removeSpaces(line).indexOf(".cfi_startproc")!=-1)
+				{
+					//System.out.println("I found the beginning of the function");
+					break;
+				}			
+				
+			}
+			
+			// Adding these NOPs help identify the beginning of code for the Secure_Machine_code program
+			list.add("NOP");
+			list.add("NOP");
+			
+			// This inserts the jumps and NOPs in the code.
+			// It breaks at the end of the code ("end")
+			while(sc.hasNext())
+			{
+				boolean reached_end_of_function=false;
+				String line = sc.next();
+				line = removeNewlines(line);
+				if (removeSpaces(line) == "")
+				{
+					//System.out.println("I see an empty line");
+					continue;
+				}
+				
+				if (reached_end_of_function)
+				{
+					list.add(line);
+					break;
+				}
+				
+				if (removeSpaces(line).startsWith(".cfi_endproc"))
+				{
+					//System.out.println("I came to end");
+					list.add(line);
+					reached_end_of_function = true;
+					//continue;
+					break;
+				}
+				
+				//if we have exhausted the group of commands, we need to add a jump and nops, and a label after them
+				if (i == num_of_grouped_orig_instr)
+				{
+					list.add(" jmp " + "." + ulabel + label_counter);
+					for (int j = 0; j < num_of_interleaved_nops; j++)
+						list.add("NOP");
+					//list.add(ulabel + label_counter + ": " + line);   
+					list.add("."+ ulabel + label_counter + ": " );          //we are just adding the label, not any command
+					//System.out.println(line);
+					i = 0;
+					label_counter++;
+					//continue;
+				}
+				
+				list.add(line);  //the default behavior is the program to add the next command
+				i++;
+				
+				//System.out.println(line);
+			}
 			
 		}
 		
-		// Adding these NOPs help identify the beginning of code for the Secure_Machine_code program
-		list.add("NOP");
-		list.add("NOP");
-		
-		// This inserts the jumps and NOPs in the code.
-		// It breaks at the end of the code ("end")
-		while(sc.hasNext())
+		while (sc.hasNext())
 		{
+			//Add the last lines
 			String line = sc.next();
 			line = removeNewlines(line);
 			if (removeSpaces(line) == "")
@@ -60,40 +136,7 @@ public class Secure_Assembly {
 				//System.out.println("I see an empty line");
 				continue;
 			}
-			
-			if (reached_end)
-			{
-				list.add(line);
-				continue;
-			}
-			
-			if (removeSpaces(line).startsWith(".cfi_endproc"))
-			{
-				//System.out.println("I came to end");
-				list.add(line);
-				reached_end = true;
-				continue;
-				//break;
-			}
-			
-			//if we have exhausted the group of commands, we need to add a jump and nops, and a label after them
-			if (i == num_of_grouped_orig_instr)
-			{
-				list.add(" jmp " + "." + ulabel + label_counter);
-				for (int j = 0; j < num_of_interleaved_nops; j++)
-					list.add("NOP");
-				//list.add(ulabel + label_counter + ": " + line);   
-				list.add("."+ ulabel + label_counter + ": " );          //we are just adding the label, not any command
-				//System.out.println(line);
-				i = 0;
-				label_counter++;
-				//continue;
-			}
-			
-			list.add(line);  //the default behavior is the program to add the next command
-			i++;
-			
-			//System.out.println(line);
+			list.add(line); 
 		}
 		
 		
