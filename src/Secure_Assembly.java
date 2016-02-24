@@ -109,8 +109,7 @@ public class Secure_Assembly {
 				{
 					list.add(" jmp " + "." + ulabel + label_counter);
 					for (int j = 0; j < num_of_interleaved_nops; j++)
-						list.add("NOP");
-					//list.add(ulabel + label_counter + ": " + line);   
+						list.add("NOP"); 
 					list.add("."+ ulabel + label_counter + ": " );          //we are just adding the label, not any command
 					//System.out.println(line);
 					i = 0;
@@ -122,13 +121,13 @@ public class Secure_Assembly {
 				i++;
 				
 				//System.out.println(line);
-			}
+			  }
 			
 		}
 		
+		//Add the last lines
 		while (sc.hasNext())
 		{
-			//Add the last lines
 			String line = sc.next();
 			line = removeNewlines(line);
 			if (removeSpaces(line) == "")
