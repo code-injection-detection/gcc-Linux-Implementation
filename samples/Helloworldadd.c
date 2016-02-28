@@ -1,4 +1,10 @@
 #include <stdio.h>
+#include <stdlib.h>
+
+/*
+#define _GNU_SOURCE     
+#include <dlfcn.h>
+*/
 
 int foo(int x)
 {
@@ -37,7 +43,7 @@ int main()
 	printf("n=%d\n",n);
 
 	printf("main is at %p\n", main);
-	//find_keyshares();
+	find_keyshares();
 
 
 	return 0;
@@ -53,14 +59,67 @@ int foo2(int x)
 	return k;
 }
 
-/*
+
 void find_keyshares()
 {
+   int i; 
    long a= foo;
+   //long a2= &&foo_end;
    long b= main;
-   long c=foo2;
+   //long b2 = &&main_end;
+   long c=foo2;  
+   //long c2 = &&foo2_end;
    long d=find_keyshares;
+   //long d2=&&find_keyshares_end;
+   char* p;
+   unsigned char key1=0x0;
+   unsigned char key2=0x0;
+   unsigned char key3=0x0;
+   unsigned char key4=0x0;
+   unsigned char key5=0x0;
+   long fun_name;
 
    printf("a=%p b=%p c=%p d=%p\n",a,b,c,d);
+   
+  
+   
+   for (p=a;*p!=0xffffffC3 /*&& *p!=0xffffffCB*/;p++) //NEAR and FAR ret opcodes (except the ffffff)
+   {
+	   printf("%#04x ",*p);
+   }
+     printf("%#04x ",*p);
+     printf("\n\n\n");
+  
+  /* for (i=1;i<=4;i++)
+   {
+	   if (i==1) fun_name=a;
+	    if (i==2) fun_name=b;
+	    if (i==3) fun_name=c;
+	    if (i==4) fun_name=d;*/
+		//for (p=fun_name;*p!=0xffffffC3 /* && *p!=0xffffffCB*/;p++)
+		for (p=foo,i=0;i<193;p++)
+		{
+			if (*p==0xffffffEB && *(p+1)==0x5) //JMP 5
+			{ 
+			 printf("%#04x ",*(p+2));
+			 key1^=(char) *(p+2);
+			 key2^=(char) *(p+3); 
+			 key3^=(char) *(p+4);
+			 key4^=(char) *(p+5);
+			 key5^=(char) *(p+6);
+			 i++;
+				
+			}
+		}
+		
+  // }
 
-}*/
+   printf("\nkey1="); 
+   printf("%#04x\n",key1);
+   printf("key2=%#04x\n",key2);
+   printf("key3=%#04x\n",key3);
+   printf("key4=%#04x\n",key4);
+   printf("key5=%#04x\n",key5);
+
+   return;
+}

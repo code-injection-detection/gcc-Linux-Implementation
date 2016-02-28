@@ -14,7 +14,12 @@ public class Secure_Assembly {
 	
 	public static void main(String[] args) throws Exception
 	{
-		String filename = new File("samples/Helloworldadd.s").getAbsolutePath();
+		//use this if executing manually
+		//String filename = new File("samples/Helloworldadd.s").getAbsolutePath();
+		
+		//use this if executing with automate.sh in samples directory
+		String filename = new File("../samples/Helloworldadd.s").getAbsolutePath();
+		
 		Scanner sc = new Scanner(new File(filename));
 		ArrayList<String> list = new ArrayList<String>();
 		ArrayList<String> function_names = new ArrayList<String>();
@@ -104,6 +109,12 @@ public class Secure_Assembly {
 					break;
 				}
 				
+				if (removeSpaces(line).startsWith("."))
+				{
+					list.add(line);
+					continue;
+				}
+								
 				//if we have exhausted the group of commands, we need to add a jump and nops, and a label after them
 				if (i == num_of_grouped_orig_instr)
 				{
@@ -141,7 +152,7 @@ public class Secure_Assembly {
 		
 		for (String s: list)
 		{
-			System.out.println(s);
+			//System.out.println(s);
 		}
 		
 		// This write the modified lines into a new ASM

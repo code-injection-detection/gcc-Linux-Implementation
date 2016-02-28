@@ -9,9 +9,15 @@ import java.io.*;
 public class Secure_Machine_Code {
 	public static void main(String[] args) throws Exception
 	{
-		String filename = new File("samples/Helloworldadd_sec").getAbsolutePath();
+		//use this if executing manually
+		//String filename = new File("samples/Helloworldadd_sec").getAbsolutePath();
+		
+		//use this if executing with automate.sh in samples directory
+		String filename = new File("../samples/Helloworldadd_sec").getAbsolutePath();
+		
 		String newfilename = filename.substring(0,filename.length()-3)+"ksec";
 		Runtime r = Runtime.getRuntime();
+		int number_of_inserted_jmps=0;
 		//int n = 2;
 		
 		int num_of_keys = 5; //this should be equal to the number of nops we insert in Secure_Assembly.java (now that we assume that 1 NOP = 1key)
@@ -41,11 +47,14 @@ public class Secure_Machine_Code {
 	    {
 	    	if(arr[i]==-21 && (arr[i+1] == (byte)(num_of_keys)) && k_nops_after_us(num_of_keys,arr,i)) // int -21 = jmp opcode, and the arr[i+1] has to be the offset (number of nops + 1 ) , and we have to have num_of_keys NOPs after us
 	    	{
+				number_of_inserted_jmps++;
 	    		for(int j=0;j<num_of_keys;j++)
 	    		{
 	    			byte temp = randomByte();
 	    			keys[j].add(temp);
 	    			arr[i+2+j] = temp;
+	    			if (j==0)
+						System.out.printf("0x%02x ",temp);
 	    		}
 	    	}
 	    }
@@ -70,6 +79,7 @@ public class Secure_Machine_Code {
 	    p.waitFor();
 	    byte t = (byte)0xeb;
 		System.out.println(randomByte() + " "+(t == 107 )+" "+t);
+		System.out.println("Number of inserted jumps: "+number_of_inserted_jmps);
 	}
 	static byte xor(ArrayList<Byte> list)
 	{
