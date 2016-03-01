@@ -140,59 +140,61 @@ find_keyshares:
 	.cfi_offset 6, -16
 	movq	%rsp, %rbp
 	.cfi_def_cfa_register 6
-	subq	$64, %rsp
-	movl	$0, -44(%rbp)
-	movq	$foo, -32(%rbp)
-	movq	$main, -24(%rbp)
-	movq	$foo2, -16(%rbp)
-	movq	$find_keyshares, -8(%rbp)
-	movb	$0, -49(%rbp)
-	movb	$0, -48(%rbp)
-	movb	$0, -47(%rbp)
-	movb	$0, -46(%rbp)
-	movb	$0, -45(%rbp)
-	movq	-8(%rbp), %rsi
-	movq	-16(%rbp), %rcx
-	movq	-24(%rbp), %rdx
-	movq	-32(%rbp), %rax
+	subq	$80, %rsp
+	movl	$0, -60(%rbp)
+	movq	$foo, -48(%rbp)
+	movq	$main, -40(%rbp)
+	movq	$foo2, -32(%rbp)
+	movq	$find_keyshares, -24(%rbp)
+	movb	$0, -65(%rbp)
+	movb	$0, -64(%rbp)
+	movb	$0, -63(%rbp)
+	movb	$0, -62(%rbp)
+	movb	$0, -61(%rbp)
+	movq	$__executable_start, -16(%rbp)
+	movq	$__etext, -8(%rbp)
+	movq	-24(%rbp), %rsi
+	movq	-32(%rbp), %rcx
+	movq	-40(%rbp), %rdx
+	movq	-48(%rbp), %rax
 	movq	%rsi, %r8
 	movq	%rax, %rsi
 	movl	$.LC3, %edi
 	movl	$0, %eax
 	call	printf
-	movq	-32(%rbp), %rax
-	movq	%rax, -40(%rbp)
+	movq	-48(%rbp), %rax
+	movq	%rax, -56(%rbp)
 	jmp	.L10
 .L12:
-	movq	-40(%rbp), %rax
+	movq	-56(%rbp), %rax
 	movzbl	(%rax), %eax
 	movsbl	%al, %eax
 	movl	%eax, %esi
 	movl	$.LC4, %edi
 	movl	$0, %eax
 	call	printf
-	addq	$1, -40(%rbp)
+	addq	$1, -56(%rbp)
 .L10:
-	movq	-40(%rbp), %rax
+	movq	-56(%rbp), %rax
 	movzbl	(%rax), %eax
 	cmpb	$-61, %al
 	je	.L11
-	movq	-40(%rbp), %rax
+	movq	-56(%rbp), %rax
 	movzbl	(%rax), %eax
 	cmpb	$-53, %al
 	je	.L12
 .L11:
-	movq	-40(%rbp), %rax
+	movq	-56(%rbp), %rax
 	subq	$1, %rax
 	movzbl	(%rax), %eax
 	cmpb	$17, %al
 	jne	.L12
-	movq	-40(%rbp), %rax
+	movq	-56(%rbp), %rax
 	subq	$2, %rax
 	movzbl	(%rax), %eax
 	cmpb	$17, %al
 	jne	.L12
-	movq	-40(%rbp), %rax
+	movq	-56(%rbp), %rax
 	movzbl	(%rax), %eax
 	movsbl	%al, %eax
 	movl	%eax, %esi
@@ -201,20 +203,20 @@ find_keyshares:
 	call	printf
 	movl	$.LC5, %edi
 	call	puts
-	movq	$foo, -40(%rbp)
-	movl	$0, -44(%rbp)
+	movq	-16(%rbp), %rax
+	movq	%rax, -56(%rbp)
 	jmp	.L13
 .L15:
-	movq	-40(%rbp), %rax
+	movq	-56(%rbp), %rax
 	movzbl	(%rax), %eax
 	cmpb	$-21, %al
 	jne	.L14
-	movq	-40(%rbp), %rax
+	movq	-56(%rbp), %rax
 	addq	$1, %rax
 	movzbl	(%rax), %eax
 	cmpb	$5, %al
 	jne	.L14
-	movq	-40(%rbp), %rax
+	movq	-56(%rbp), %rax
 	addq	$2, %rax
 	movzbl	(%rax), %eax
 	movsbl	%al, %eax
@@ -222,66 +224,67 @@ find_keyshares:
 	movl	$.LC4, %edi
 	movl	$0, %eax
 	call	printf
-	movq	-40(%rbp), %rax
+	movq	-56(%rbp), %rax
 	addq	$2, %rax
 	movzbl	(%rax), %edx
-	movzbl	-49(%rbp), %eax
+	movzbl	-65(%rbp), %eax
 	xorl	%edx, %eax
-	movb	%al, -49(%rbp)
-	movq	-40(%rbp), %rax
+	movb	%al, -65(%rbp)
+	movq	-56(%rbp), %rax
 	addq	$3, %rax
 	movzbl	(%rax), %edx
-	movzbl	-48(%rbp), %eax
+	movzbl	-64(%rbp), %eax
 	xorl	%edx, %eax
-	movb	%al, -48(%rbp)
-	movq	-40(%rbp), %rax
+	movb	%al, -64(%rbp)
+	movq	-56(%rbp), %rax
 	addq	$4, %rax
 	movzbl	(%rax), %edx
-	movzbl	-47(%rbp), %eax
+	movzbl	-63(%rbp), %eax
 	xorl	%edx, %eax
-	movb	%al, -47(%rbp)
-	movq	-40(%rbp), %rax
+	movb	%al, -63(%rbp)
+	movq	-56(%rbp), %rax
 	addq	$5, %rax
 	movzbl	(%rax), %edx
-	movzbl	-46(%rbp), %eax
+	movzbl	-62(%rbp), %eax
 	xorl	%edx, %eax
-	movb	%al, -46(%rbp)
-	movq	-40(%rbp), %rax
+	movb	%al, -62(%rbp)
+	movq	-56(%rbp), %rax
 	addq	$6, %rax
 	movzbl	(%rax), %edx
-	movzbl	-45(%rbp), %eax
+	movzbl	-61(%rbp), %eax
 	xorl	%edx, %eax
-	movb	%al, -45(%rbp)
-	addl	$1, -44(%rbp)
+	movb	%al, -61(%rbp)
+	addl	$1, -60(%rbp)
 .L14:
-	addq	$1, -40(%rbp)
+	addq	$1, -56(%rbp)
 .L13:
-	cmpl	$207, -44(%rbp)
-	jle	.L15
+	movq	-56(%rbp), %rax
+	cmpq	-8(%rbp), %rax
+	jbe	.L15
 	movl	$.LC6, %edi
 	movl	$0, %eax
 	call	printf
-	movzbl	-49(%rbp), %eax
+	movzbl	-65(%rbp), %eax
 	movl	%eax, %esi
 	movl	$.LC7, %edi
 	movl	$0, %eax
 	call	printf
-	movzbl	-48(%rbp), %eax
+	movzbl	-64(%rbp), %eax
 	movl	%eax, %esi
 	movl	$.LC8, %edi
 	movl	$0, %eax
 	call	printf
-	movzbl	-47(%rbp), %eax
+	movzbl	-63(%rbp), %eax
 	movl	%eax, %esi
 	movl	$.LC9, %edi
 	movl	$0, %eax
 	call	printf
-	movzbl	-46(%rbp), %eax
+	movzbl	-62(%rbp), %eax
 	movl	%eax, %esi
 	movl	$.LC10, %edi
 	movl	$0, %eax
 	call	printf
-	movzbl	-45(%rbp), %eax
+	movzbl	-61(%rbp), %eax
 	movl	%eax, %esi
 	movl	$.LC11, %edi
 	movl	$0, %eax

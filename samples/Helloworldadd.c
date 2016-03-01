@@ -6,6 +6,11 @@
 #include <dlfcn.h>
 */
 
+
+extern char __executable_start;   //in order to find limits of .text section in ELF files.
+extern char __etext;
+
+
 int foo(int x)
 {
  int k;
@@ -79,6 +84,9 @@ void find_keyshares()
    unsigned char key5=0x0;
    long fun_name;
 
+   char* start_of_text=(char*)&__executable_start;  //we get the limits of .text section
+   char* end_of_text=(char*)&__etext;
+
    printf("a=%p b=%p c=%p d=%p\n",(void*)a,(void*)b,(void*)c,(void*)d);
    
   
@@ -90,6 +98,8 @@ void find_keyshares()
      printf("%#04x ",*p);
      printf("\n\n\n");
 
+
+   //implementation #1
   /*
    for (i=1;i<=4;i++)
    {
@@ -97,9 +107,14 @@ void find_keyshares()
 	    if (i==2) fun_name=b;
 	    if (i==3) fun_name=c;
 	    if (i==4) fun_name=d;
-		for (p=(char*)fun_name;!((*p==0xffffffC3 || *p!=0xffffffCB) && *(p-1)==(char)0x11 && *(p-2)==(char)0x11);p++)  //you should make sure you do not count when you meet 0xc3 in random places in the code
+		for (p=(char*)fun_name;!((*p==0xffffffC3 || *p!=0xffffffCB) && *(p-1)==(char)0x11 && *(p-2)==(char)0x11);p++)  //you should make sure you do not count when you meet 0xc3 in random places in the code, and be careful for many RETs!
 	*/
-		for (p=(char *)foo,k=0;k<208;p++)
+
+		//implementation #2
+		//for (p=(char *)foo,k=0;k<211;p++)   //if we hardcode number of jumps
+
+		//implementation #3
+		for (p=start_of_text;p<=end_of_text;p++)
 		{
 			if (*p==0xffffffEB && *(p+1)==0x5) //JMP 5
 			{ 
@@ -111,7 +126,9 @@ void find_keyshares()
 			 key5^=(char) *(p+6);
 			 k++;			
 			}
-		}	
+		}
+
+  //implementation #1
  /* } */
 
    printf("\nkey1="); 
