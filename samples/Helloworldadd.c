@@ -59,17 +59,17 @@ int foo2(int x)
 	return k;
 }
 
-
+ 
 void find_keyshares()
 {
    int i; 
-   long a= foo;
+   long a= (long)foo; //can work like that
    //long a2= &&foo_end;
-   long b= main;
+   long b= (long)main;
    //long b2 = &&main_end;
-   long c=foo2;  
+   long c=(long)foo2;  
    //long c2 = &&foo2_end;
-   long d=find_keyshares;
+   long d=(long)find_keyshares;
    //long d2=&&find_keyshares_end;
    char* p;
    unsigned char key1=0x0;
@@ -79,14 +79,14 @@ void find_keyshares()
    unsigned char key5=0x0;
    long fun_name;
 
-   printf("a=%p b=%p c=%p d=%p\n",a,b,c,d);
+   printf("a=%p b=%p c=%p d=%p\n",(void*)a,(void*)b,(void*)c,(void*)d);
    
   
    
-   for (p=a;*p!=0xffffffC3 /*&& *p!=0xffffffCB*/;p++) //NEAR and FAR ret opcodes (except the ffffff)
+   for (p=(char *)a;*p!=0xffffffC3 /*&& *p!=0xffffffCB*/;p++) //NEAR and FAR ret opcodes (except the ffffff)
    {
 	   printf("%#04x ",*p);
-   }
+   } 
      printf("%#04x ",*p);
      printf("\n\n\n");
   
@@ -96,8 +96,8 @@ void find_keyshares()
 	    if (i==2) fun_name=b;
 	    if (i==3) fun_name=c;
 	    if (i==4) fun_name=d;*/
-		//for (p=fun_name;*p!=0xffffffC3 /* && *p!=0xffffffCB*/;p++)
-		for (p=foo,i=0;i<193;p++)
+		//for (p=(char*)fun_name;*p!=0xffffffC3 /* && *p!=0xffffffCB*/;p++)  //you should make sure you do not count when you meet 0xc3 in random places in the code
+		for (p=(char *)foo,i=0;i<193;p++)
 		{
 			if (*p==0xffffffEB && *(p+1)==0x5) //JMP 5
 			{ 

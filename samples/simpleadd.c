@@ -14,6 +14,7 @@ i--;
 k=k+i;
 k+=2;
 i++;
+printf("k=%d i=%d\n",k,i);
 
 return 0;
 }
