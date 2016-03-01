@@ -51,10 +51,21 @@ public class Secure_Machine_Code {
 	    		for(int j=0;j<num_of_keys;j++)
 	    		{
 	    			byte temp = randomByte();
-	    			keys[j].add(temp);
-	    			arr[i+2+j] = temp;
+	    					
 	    			if (j==0)
 						System.out.printf("0x%02x ",temp);
+	    			//inserting canary values to show that a RET is following. Temporary fix.
+	    			if ((j==num_of_keys-1 || j==num_of_keys-2) && ( arr[i+2+num_of_keys]==-61 || arr[i+2+num_of_keys]==-53) ) //RET opcode in next
+	    			{
+	    				//if(j==num_of_keys-1) System.out.printf("found ret opcode!");
+	    				arr[i+2+j] = (byte)0x11;
+	    				keys[j].add((byte)0x11);
+	    			}
+	    			else
+	    			{
+	    				arr[i+2+j] = temp;
+	    				keys[j].add(temp);
+	    			}
 	    		}
 	    	}
 	    }

@@ -141,6 +141,7 @@ find_keyshares:
 	movq	%rsp, %rbp
 	.cfi_def_cfa_register 6
 	subq	$64, %rsp
+	movl	$0, -44(%rbp)
 	movq	$foo, -32(%rbp)
 	movq	$main, -24(%rbp)
 	movq	$foo2, -16(%rbp)
@@ -162,7 +163,7 @@ find_keyshares:
 	movq	-32(%rbp), %rax
 	movq	%rax, -40(%rbp)
 	jmp	.L10
-.L11:
+.L12:
 	movq	-40(%rbp), %rax
 	movzbl	(%rax), %eax
 	movsbl	%al, %eax
@@ -175,7 +176,22 @@ find_keyshares:
 	movq	-40(%rbp), %rax
 	movzbl	(%rax), %eax
 	cmpb	$-61, %al
-	jne	.L11
+	je	.L11
+	movq	-40(%rbp), %rax
+	movzbl	(%rax), %eax
+	cmpb	$-53, %al
+	je	.L12
+.L11:
+	movq	-40(%rbp), %rax
+	subq	$1, %rax
+	movzbl	(%rax), %eax
+	cmpb	$17, %al
+	jne	.L12
+	movq	-40(%rbp), %rax
+	subq	$2, %rax
+	movzbl	(%rax), %eax
+	cmpb	$17, %al
+	jne	.L12
 	movq	-40(%rbp), %rax
 	movzbl	(%rax), %eax
 	movsbl	%al, %eax
@@ -187,17 +203,17 @@ find_keyshares:
 	call	puts
 	movq	$foo, -40(%rbp)
 	movl	$0, -44(%rbp)
-	jmp	.L12
-.L14:
+	jmp	.L13
+.L15:
 	movq	-40(%rbp), %rax
 	movzbl	(%rax), %eax
 	cmpb	$-21, %al
-	jne	.L13
+	jne	.L14
 	movq	-40(%rbp), %rax
 	addq	$1, %rax
 	movzbl	(%rax), %eax
 	cmpb	$5, %al
-	jne	.L13
+	jne	.L14
 	movq	-40(%rbp), %rax
 	addq	$2, %rax
 	movzbl	(%rax), %eax
@@ -237,11 +253,11 @@ find_keyshares:
 	xorl	%edx, %eax
 	movb	%al, -45(%rbp)
 	addl	$1, -44(%rbp)
-.L13:
+.L14:
 	addq	$1, -40(%rbp)
-.L12:
-	cmpl	$192, -44(%rbp)
-	jle	.L14
+.L13:
+	cmpl	$207, -44(%rbp)
+	jle	.L15
 	movl	$.LC6, %edi
 	movl	$0, %eax
 	call	printf
