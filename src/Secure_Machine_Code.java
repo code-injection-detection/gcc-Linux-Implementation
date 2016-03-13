@@ -86,6 +86,7 @@ public class Secure_Machine_Code {
 	    
 	    fw.write(arr);
 	    fw.flush();
+	    /*Giving execute permissions*/
 	    Process p = r.exec("chmod +x " + newfilename );
 	    p.waitFor();
 	    byte t = (byte)0xeb;

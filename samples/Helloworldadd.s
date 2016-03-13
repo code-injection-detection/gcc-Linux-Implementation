@@ -113,21 +113,24 @@ foo2:
 	.section	.rodata
 .LC3:
 	.string	"a=%p b=%p c=%p d=%p\n"
+	.align 8
 .LC4:
-	.string	"%#04x "
+	.string	"start of .text=0x%lx, end of .text=0x%lx, init=0x%lx, fini=0x%lx\n"
 .LC5:
-	.string	"\n\n"
+	.string	"%#04x "
 .LC6:
-	.string	"\nkey1="
+	.string	"\n\n"
 .LC7:
-	.string	"%#04x\n"
+	.string	"\nkey1="
 .LC8:
-	.string	"key2=%#04x\n"
+	.string	"%#04x\n"
 .LC9:
-	.string	"key3=%#04x\n"
+	.string	"key2=%#04x\n"
 .LC10:
-	.string	"key4=%#04x\n"
+	.string	"key3=%#04x\n"
 .LC11:
+	.string	"key4=%#04x\n"
+.LC12:
 	.string	"key5=%#04x\n"
 	.text
 	.globl	find_keyshares
@@ -162,6 +165,15 @@ find_keyshares:
 	movl	$.LC3, %edi
 	movl	$0, %eax
 	call	printf
+	movl	$_fini, %esi
+	movl	$_init, %ecx
+	movl	$__etext, %edx
+	movl	$__executable_start, %eax
+	movq	%rsi, %r8
+	movq	%rax, %rsi
+	movl	$.LC4, %edi
+	movl	$0, %eax
+	call	printf
 	movq	-48(%rbp), %rax
 	movq	%rax, -56(%rbp)
 	jmp	.L10
@@ -170,7 +182,7 @@ find_keyshares:
 	movzbl	(%rax), %eax
 	movsbl	%al, %eax
 	movl	%eax, %esi
-	movl	$.LC4, %edi
+	movl	$.LC5, %edi
 	movl	$0, %eax
 	call	printf
 	addq	$1, -56(%rbp)
@@ -198,10 +210,10 @@ find_keyshares:
 	movzbl	(%rax), %eax
 	movsbl	%al, %eax
 	movl	%eax, %esi
-	movl	$.LC4, %edi
+	movl	$.LC5, %edi
 	movl	$0, %eax
 	call	printf
-	movl	$.LC5, %edi
+	movl	$.LC6, %edi
 	call	puts
 	movq	-16(%rbp), %rax
 	movq	%rax, -56(%rbp)
@@ -221,7 +233,7 @@ find_keyshares:
 	movzbl	(%rax), %eax
 	movsbl	%al, %eax
 	movl	%eax, %esi
-	movl	$.LC4, %edi
+	movl	$.LC5, %edi
 	movl	$0, %eax
 	call	printf
 	movq	-56(%rbp), %rax
@@ -261,32 +273,32 @@ find_keyshares:
 	movq	-56(%rbp), %rax
 	cmpq	-8(%rbp), %rax
 	jbe	.L15
-	movl	$.LC6, %edi
+	movl	$.LC7, %edi
 	movl	$0, %eax
 	call	printf
 	movzbl	-65(%rbp), %eax
 	movl	%eax, %esi
-	movl	$.LC7, %edi
+	movl	$.LC8, %edi
 	movl	$0, %eax
 	call	printf
 	movzbl	-64(%rbp), %eax
 	movl	%eax, %esi
-	movl	$.LC8, %edi
+	movl	$.LC9, %edi
 	movl	$0, %eax
 	call	printf
 	movzbl	-63(%rbp), %eax
 	movl	%eax, %esi
-	movl	$.LC9, %edi
+	movl	$.LC10, %edi
 	movl	$0, %eax
 	call	printf
 	movzbl	-62(%rbp), %eax
 	movl	%eax, %esi
-	movl	$.LC10, %edi
+	movl	$.LC11, %edi
 	movl	$0, %eax
 	call	printf
 	movzbl	-61(%rbp), %eax
 	movl	%eax, %esi
-	movl	$.LC11, %edi
+	movl	$.LC12, %edi
 	movl	$0, %eax
 	call	printf
 	nop
