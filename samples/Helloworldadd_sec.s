@@ -5735,9 +5735,30 @@ NOP
 	.cfi_endproc
 .LFE13:
 	.size	mem_test, .-mem_test
-	.globl	foo
-	.type	foo, @function
-foo:
+	.section	.rodata
+.LC25:
+	.string	"a=%p b=%p c=%p d=%p\n"
+	.align 8
+.LC26:
+	.string	"start of .text=0x%lx, end of .text=0x%lx, init=0x%lx, fini=0x%lx\n"
+.LC27:
+	.string	"\n\n"
+.LC28:
+	.string	"\nkey1="
+.LC29:
+	.string	"0x%02x\n"
+.LC30:
+	.string	"key2=0x%02x\n"
+.LC31:
+	.string	"key3=0x%02x\n"
+.LC32:
+	.string	"key4=0x%02x\n"
+.LC33:
+	.string	"key5=0x%02x\n"
+	.text
+	.globl	find_keyshares
+	.type	find_keyshares, @function
+find_keyshares:
 .LFB14:
 	.cfi_startproc
 NOP
@@ -5768,7 +5789,7 @@ NOP
 NOP
 NOP
 .UNIQUE683: 
-	movl	%edi, -20(%rbp)
+	subq	$80, %rsp
  jmp .UNIQUE684
 NOP
 NOP
@@ -5776,7 +5797,7 @@ NOP
 NOP
 NOP
 .UNIQUE684: 
-	movl	-20(%rbp), %eax
+	movl	$0, -60(%rbp)
  jmp .UNIQUE685
 NOP
 NOP
@@ -5784,7 +5805,7 @@ NOP
 NOP
 NOP
 .UNIQUE685: 
-	addl	$2, %eax
+	movq	$foo, -48(%rbp)
  jmp .UNIQUE686
 NOP
 NOP
@@ -5792,7 +5813,7 @@ NOP
 NOP
 NOP
 .UNIQUE686: 
-	movl	%eax, -4(%rbp)
+	movq	$main, -40(%rbp)
  jmp .UNIQUE687
 NOP
 NOP
@@ -5800,7 +5821,7 @@ NOP
 NOP
 NOP
 .UNIQUE687: 
-	movl	-4(%rbp), %eax
+	movq	$foo2, -32(%rbp)
  jmp .UNIQUE688
 NOP
 NOP
@@ -5808,8 +5829,7 @@ NOP
 NOP
 NOP
 .UNIQUE688: 
-	popq	%rbp
-	.cfi_def_cfa 7, 8
+	movq	$find_keyshares, -24(%rbp)
  jmp .UNIQUE689
 NOP
 NOP
@@ -5817,25 +5837,7 @@ NOP
 NOP
 NOP
 .UNIQUE689: 
-	ret
-	.cfi_endproc
-.LFE14:
-	.size	foo, .-foo
-	.section	.rodata
-.LC25:
-	.string	"K=%d\n"
-.LC26:
-	.string	"n=%d\n"
-.LC27:
-	.string	"main is at %p\n"
-	.text
-	.globl	main
-	.type	main, @function
-main:
-.LFB15:
-	.cfi_startproc
-NOP
-NOP
+	movb	$0, -65(%rbp)
  jmp .UNIQUE690
 NOP
 NOP
@@ -5843,9 +5845,7 @@ NOP
 NOP
 NOP
 .UNIQUE690: 
-	pushq	%rbp
-	.cfi_def_cfa_offset 16
-	.cfi_offset 6, -16
+	movb	$0, -64(%rbp)
  jmp .UNIQUE691
 NOP
 NOP
@@ -5853,8 +5853,7 @@ NOP
 NOP
 NOP
 .UNIQUE691: 
-	movq	%rsp, %rbp
-	.cfi_def_cfa_register 6
+	movb	$0, -63(%rbp)
  jmp .UNIQUE692
 NOP
 NOP
@@ -5862,7 +5861,7 @@ NOP
 NOP
 NOP
 .UNIQUE692: 
-	subq	$16, %rsp
+	movb	$0, -62(%rbp)
  jmp .UNIQUE693
 NOP
 NOP
@@ -5870,7 +5869,7 @@ NOP
 NOP
 NOP
 .UNIQUE693: 
-	movl	$1, -16(%rbp)
+	movb	$0, -61(%rbp)
  jmp .UNIQUE694
 NOP
 NOP
@@ -5878,7 +5877,7 @@ NOP
 NOP
 NOP
 .UNIQUE694: 
-	movl	$2, -8(%rbp)
+	movq	$__executable_start, -16(%rbp)
  jmp .UNIQUE695
 NOP
 NOP
@@ -5886,7 +5885,7 @@ NOP
 NOP
 NOP
 .UNIQUE695: 
-	addl	$1, -8(%rbp)
+	movq	$__etext, -8(%rbp)
  jmp .UNIQUE696
 NOP
 NOP
@@ -5894,7 +5893,7 @@ NOP
 NOP
 NOP
 .UNIQUE696: 
-	addl	$1, -8(%rbp)
+	movq	-24(%rbp), %rsi
  jmp .UNIQUE697
 NOP
 NOP
@@ -5902,7 +5901,7 @@ NOP
 NOP
 NOP
 .UNIQUE697: 
-	subl	$1, -8(%rbp)
+	movq	-32(%rbp), %rcx
  jmp .UNIQUE698
 NOP
 NOP
@@ -5910,7 +5909,7 @@ NOP
 NOP
 NOP
 .UNIQUE698: 
-	movl	-8(%rbp), %eax
+	movq	-40(%rbp), %rdx
  jmp .UNIQUE699
 NOP
 NOP
@@ -5918,7 +5917,7 @@ NOP
 NOP
 NOP
 .UNIQUE699: 
-	addl	%eax, -16(%rbp)
+	movq	-48(%rbp), %rax
  jmp .UNIQUE700
 NOP
 NOP
@@ -5926,7 +5925,7 @@ NOP
 NOP
 NOP
 .UNIQUE700: 
-	addl	$2, -16(%rbp)
+	movq	%rsi, %r8
  jmp .UNIQUE701
 NOP
 NOP
@@ -5934,7 +5933,7 @@ NOP
 NOP
 NOP
 .UNIQUE701: 
-	addl	$1, -8(%rbp)
+	movq	%rax, %rsi
  jmp .UNIQUE702
 NOP
 NOP
@@ -5942,7 +5941,7 @@ NOP
 NOP
 NOP
 .UNIQUE702: 
-	movl	$1, -12(%rbp)
+	movl	$.LC25, %edi
  jmp .UNIQUE703
 NOP
 NOP
@@ -5950,8 +5949,7 @@ NOP
 NOP
 NOP
 .UNIQUE703: 
-	jmp	.L66
-.L67:
+	movl	$0, %eax
  jmp .UNIQUE704
 NOP
 NOP
@@ -5959,7 +5957,7 @@ NOP
 NOP
 NOP
 .UNIQUE704: 
-	movl	-8(%rbp), %eax
+	call	printf
  jmp .UNIQUE705
 NOP
 NOP
@@ -5967,7 +5965,7 @@ NOP
 NOP
 NOP
 .UNIQUE705: 
-	addl	%eax, -16(%rbp)
+	movl	$_fini, %esi
  jmp .UNIQUE706
 NOP
 NOP
@@ -5975,8 +5973,7 @@ NOP
 NOP
 NOP
 .UNIQUE706: 
-	addl	$1, -12(%rbp)
-.L66:
+	movl	$_init, %ecx
  jmp .UNIQUE707
 NOP
 NOP
@@ -5984,7 +5981,7 @@ NOP
 NOP
 NOP
 .UNIQUE707: 
-	cmpl	$500000000, -12(%rbp)
+	movl	$__etext, %edx
  jmp .UNIQUE708
 NOP
 NOP
@@ -5992,7 +5989,7 @@ NOP
 NOP
 NOP
 .UNIQUE708: 
-	jle	.L67
+	movl	$__executable_start, %eax
  jmp .UNIQUE709
 NOP
 NOP
@@ -6000,7 +5997,7 @@ NOP
 NOP
 NOP
 .UNIQUE709: 
-	movl	-16(%rbp), %eax
+	movq	%rsi, %r8
  jmp .UNIQUE710
 NOP
 NOP
@@ -6008,7 +6005,7 @@ NOP
 NOP
 NOP
 .UNIQUE710: 
-	movl	%eax, %esi
+	movq	%rax, %rsi
  jmp .UNIQUE711
 NOP
 NOP
@@ -6016,7 +6013,7 @@ NOP
 NOP
 NOP
 .UNIQUE711: 
-	movl	$.LC25, %edi
+	movl	$.LC26, %edi
  jmp .UNIQUE712
 NOP
 NOP
@@ -6040,7 +6037,7 @@ NOP
 NOP
 NOP
 .UNIQUE714: 
-	movl	$5, %edi
+	movq	-48(%rbp), %rax
  jmp .UNIQUE715
 NOP
 NOP
@@ -6048,7 +6045,7 @@ NOP
 NOP
 NOP
 .UNIQUE715: 
-	call	foo
+	movq	%rax, -56(%rbp)
  jmp .UNIQUE716
 NOP
 NOP
@@ -6056,7 +6053,8 @@ NOP
 NOP
 NOP
 .UNIQUE716: 
-	movl	%eax, -4(%rbp)
+	jmp	.L64
+.L66:
  jmp .UNIQUE717
 NOP
 NOP
@@ -6064,7 +6062,7 @@ NOP
 NOP
 NOP
 .UNIQUE717: 
-	movl	-4(%rbp), %eax
+	movq	-56(%rbp), %rax
  jmp .UNIQUE718
 NOP
 NOP
@@ -6072,7 +6070,7 @@ NOP
 NOP
 NOP
 .UNIQUE718: 
-	movl	%eax, %edi
+	movzbl	(%rax), %eax
  jmp .UNIQUE719
 NOP
 NOP
@@ -6080,7 +6078,7 @@ NOP
 NOP
 NOP
 .UNIQUE719: 
-	movl	$0, %eax
+	movzbl	%al, %eax
  jmp .UNIQUE720
 NOP
 NOP
@@ -6088,7 +6086,7 @@ NOP
 NOP
 NOP
 .UNIQUE720: 
-	call	foo2
+	movl	%eax, %esi
  jmp .UNIQUE721
 NOP
 NOP
@@ -6096,7 +6094,7 @@ NOP
 NOP
 NOP
 .UNIQUE721: 
-	movl	%eax, -4(%rbp)
+	movl	$.LC3, %edi
  jmp .UNIQUE722
 NOP
 NOP
@@ -6104,7 +6102,7 @@ NOP
 NOP
 NOP
 .UNIQUE722: 
-	movl	-4(%rbp), %eax
+	movl	$0, %eax
  jmp .UNIQUE723
 NOP
 NOP
@@ -6112,7 +6110,7 @@ NOP
 NOP
 NOP
 .UNIQUE723: 
-	movl	%eax, %esi
+	call	printf
  jmp .UNIQUE724
 NOP
 NOP
@@ -6120,7 +6118,8 @@ NOP
 NOP
 NOP
 .UNIQUE724: 
-	movl	$.LC26, %edi
+	addq	$1, -56(%rbp)
+.L64:
  jmp .UNIQUE725
 NOP
 NOP
@@ -6128,7 +6127,7 @@ NOP
 NOP
 NOP
 .UNIQUE725: 
-	movl	$0, %eax
+	movq	-56(%rbp), %rax
  jmp .UNIQUE726
 NOP
 NOP
@@ -6136,7 +6135,7 @@ NOP
 NOP
 NOP
 .UNIQUE726: 
-	call	printf
+	movzbl	(%rax), %eax
  jmp .UNIQUE727
 NOP
 NOP
@@ -6144,7 +6143,7 @@ NOP
 NOP
 NOP
 .UNIQUE727: 
-	movl	$main, %esi
+	cmpb	$-61, %al
  jmp .UNIQUE728
 NOP
 NOP
@@ -6152,7 +6151,7 @@ NOP
 NOP
 NOP
 .UNIQUE728: 
-	movl	$.LC27, %edi
+	je	.L65
  jmp .UNIQUE729
 NOP
 NOP
@@ -6160,7 +6159,7 @@ NOP
 NOP
 NOP
 .UNIQUE729: 
-	movl	$0, %eax
+	movq	-56(%rbp), %rax
  jmp .UNIQUE730
 NOP
 NOP
@@ -6168,7 +6167,7 @@ NOP
 NOP
 NOP
 .UNIQUE730: 
-	call	printf
+	movzbl	(%rax), %eax
  jmp .UNIQUE731
 NOP
 NOP
@@ -6176,7 +6175,7 @@ NOP
 NOP
 NOP
 .UNIQUE731: 
-	movl	$0, %eax
+	cmpb	$-53, %al
  jmp .UNIQUE732
 NOP
 NOP
@@ -6184,7 +6183,8 @@ NOP
 NOP
 NOP
 .UNIQUE732: 
-	call	mem_test
+	je	.L66
+.L65:
  jmp .UNIQUE733
 NOP
 NOP
@@ -6192,7 +6192,7 @@ NOP
 NOP
 NOP
 .UNIQUE733: 
-	movl	$0, %eax
+	movq	-56(%rbp), %rax
  jmp .UNIQUE734
 NOP
 NOP
@@ -6200,8 +6200,7 @@ NOP
 NOP
 NOP
 .UNIQUE734: 
-	leave
-	.cfi_def_cfa 7, 8
+	subq	$1, %rax
  jmp .UNIQUE735
 NOP
 NOP
@@ -6209,17 +6208,7 @@ NOP
 NOP
 NOP
 .UNIQUE735: 
-	ret
-	.cfi_endproc
-.LFE15:
-	.size	main, .-main
-	.globl	foo2
-	.type	foo2, @function
-foo2:
-.LFB16:
-	.cfi_startproc
-NOP
-NOP
+	movzbl	(%rax), %eax
  jmp .UNIQUE736
 NOP
 NOP
@@ -6227,9 +6216,7 @@ NOP
 NOP
 NOP
 .UNIQUE736: 
-	pushq	%rbp
-	.cfi_def_cfa_offset 16
-	.cfi_offset 6, -16
+	cmpb	$17, %al
  jmp .UNIQUE737
 NOP
 NOP
@@ -6237,8 +6224,7 @@ NOP
 NOP
 NOP
 .UNIQUE737: 
-	movq	%rsp, %rbp
-	.cfi_def_cfa_register 6
+	jne	.L66
  jmp .UNIQUE738
 NOP
 NOP
@@ -6246,7 +6232,7 @@ NOP
 NOP
 NOP
 .UNIQUE738: 
-	movl	%edi, -20(%rbp)
+	movq	-56(%rbp), %rax
  jmp .UNIQUE739
 NOP
 NOP
@@ -6254,7 +6240,7 @@ NOP
 NOP
 NOP
 .UNIQUE739: 
-	movl	-20(%rbp), %eax
+	subq	$2, %rax
  jmp .UNIQUE740
 NOP
 NOP
@@ -6262,7 +6248,7 @@ NOP
 NOP
 NOP
 .UNIQUE740: 
-	addl	$3, %eax
+	movzbl	(%rax), %eax
  jmp .UNIQUE741
 NOP
 NOP
@@ -6270,7 +6256,7 @@ NOP
 NOP
 NOP
 .UNIQUE741: 
-	movl	%eax, -4(%rbp)
+	cmpb	$17, %al
  jmp .UNIQUE742
 NOP
 NOP
@@ -6278,7 +6264,7 @@ NOP
 NOP
 NOP
 .UNIQUE742: 
-	movl	-4(%rbp), %eax
+	jne	.L66
  jmp .UNIQUE743
 NOP
 NOP
@@ -6286,8 +6272,7 @@ NOP
 NOP
 NOP
 .UNIQUE743: 
-	popq	%rbp
-	.cfi_def_cfa 7, 8
+	movq	-56(%rbp), %rax
  jmp .UNIQUE744
 NOP
 NOP
@@ -6295,40 +6280,7 @@ NOP
 NOP
 NOP
 .UNIQUE744: 
-	ret
-	.cfi_endproc
-.LFE16:
-	.size	foo2, .-foo2
-	.section	.rodata
-.LC28:
-	.string	"a=%p b=%p c=%p d=%p\n"
-	.align 8
-.LC29:
-	.string	"start of .text=0x%lx, end of .text=0x%lx, init=0x%lx, fini=0x%lx\n"
-.LC30:
-	.string	"%#04x "
-.LC31:
-	.string	"\n\n"
-.LC32:
-	.string	"\nkey1="
-.LC33:
-	.string	"%#04x\n"
-.LC34:
-	.string	"key2=%#04x\n"
-.LC35:
-	.string	"key3=%#04x\n"
-.LC36:
-	.string	"key4=%#04x\n"
-.LC37:
-	.string	"key5=%#04x\n"
-	.text
-	.globl	find_keyshares
-	.type	find_keyshares, @function
-find_keyshares:
-.LFB17:
-	.cfi_startproc
-NOP
-NOP
+	movzbl	(%rax), %eax
  jmp .UNIQUE745
 NOP
 NOP
@@ -6336,9 +6288,7 @@ NOP
 NOP
 NOP
 .UNIQUE745: 
-	pushq	%rbp
-	.cfi_def_cfa_offset 16
-	.cfi_offset 6, -16
+	movzbl	%al, %eax
  jmp .UNIQUE746
 NOP
 NOP
@@ -6346,8 +6296,7 @@ NOP
 NOP
 NOP
 .UNIQUE746: 
-	movq	%rsp, %rbp
-	.cfi_def_cfa_register 6
+	movl	%eax, %esi
  jmp .UNIQUE747
 NOP
 NOP
@@ -6355,7 +6304,7 @@ NOP
 NOP
 NOP
 .UNIQUE747: 
-	subq	$80, %rsp
+	movl	$.LC3, %edi
  jmp .UNIQUE748
 NOP
 NOP
@@ -6363,7 +6312,7 @@ NOP
 NOP
 NOP
 .UNIQUE748: 
-	movl	$0, -60(%rbp)
+	movl	$0, %eax
  jmp .UNIQUE749
 NOP
 NOP
@@ -6371,7 +6320,7 @@ NOP
 NOP
 NOP
 .UNIQUE749: 
-	movq	$foo, -48(%rbp)
+	call	printf
  jmp .UNIQUE750
 NOP
 NOP
@@ -6379,7 +6328,7 @@ NOP
 NOP
 NOP
 .UNIQUE750: 
-	movq	$main, -40(%rbp)
+	movl	$.LC27, %edi
  jmp .UNIQUE751
 NOP
 NOP
@@ -6387,7 +6336,7 @@ NOP
 NOP
 NOP
 .UNIQUE751: 
-	movq	$foo2, -32(%rbp)
+	call	puts
  jmp .UNIQUE752
 NOP
 NOP
@@ -6395,7 +6344,7 @@ NOP
 NOP
 NOP
 .UNIQUE752: 
-	movq	$find_keyshares, -24(%rbp)
+	movq	-16(%rbp), %rax
  jmp .UNIQUE753
 NOP
 NOP
@@ -6403,7 +6352,7 @@ NOP
 NOP
 NOP
 .UNIQUE753: 
-	movb	$0, -65(%rbp)
+	movq	%rax, -56(%rbp)
  jmp .UNIQUE754
 NOP
 NOP
@@ -6411,7 +6360,8 @@ NOP
 NOP
 NOP
 .UNIQUE754: 
-	movb	$0, -64(%rbp)
+	jmp	.L67
+.L69:
  jmp .UNIQUE755
 NOP
 NOP
@@ -6419,7 +6369,7 @@ NOP
 NOP
 NOP
 .UNIQUE755: 
-	movb	$0, -63(%rbp)
+	movq	-56(%rbp), %rax
  jmp .UNIQUE756
 NOP
 NOP
@@ -6427,7 +6377,7 @@ NOP
 NOP
 NOP
 .UNIQUE756: 
-	movb	$0, -62(%rbp)
+	movzbl	(%rax), %eax
  jmp .UNIQUE757
 NOP
 NOP
@@ -6435,7 +6385,7 @@ NOP
 NOP
 NOP
 .UNIQUE757: 
-	movb	$0, -61(%rbp)
+	cmpb	$-21, %al
  jmp .UNIQUE758
 NOP
 NOP
@@ -6443,7 +6393,7 @@ NOP
 NOP
 NOP
 .UNIQUE758: 
-	movq	$__executable_start, -16(%rbp)
+	jne	.L68
  jmp .UNIQUE759
 NOP
 NOP
@@ -6451,7 +6401,7 @@ NOP
 NOP
 NOP
 .UNIQUE759: 
-	movq	$__etext, -8(%rbp)
+	movq	-56(%rbp), %rax
  jmp .UNIQUE760
 NOP
 NOP
@@ -6459,7 +6409,7 @@ NOP
 NOP
 NOP
 .UNIQUE760: 
-	movq	-24(%rbp), %rsi
+	addq	$1, %rax
  jmp .UNIQUE761
 NOP
 NOP
@@ -6467,7 +6417,7 @@ NOP
 NOP
 NOP
 .UNIQUE761: 
-	movq	-32(%rbp), %rcx
+	movzbl	(%rax), %eax
  jmp .UNIQUE762
 NOP
 NOP
@@ -6475,7 +6425,7 @@ NOP
 NOP
 NOP
 .UNIQUE762: 
-	movq	-40(%rbp), %rdx
+	cmpb	$5, %al
  jmp .UNIQUE763
 NOP
 NOP
@@ -6483,7 +6433,7 @@ NOP
 NOP
 NOP
 .UNIQUE763: 
-	movq	-48(%rbp), %rax
+	jne	.L68
  jmp .UNIQUE764
 NOP
 NOP
@@ -6491,7 +6441,7 @@ NOP
 NOP
 NOP
 .UNIQUE764: 
-	movq	%rsi, %r8
+	movq	-56(%rbp), %rax
  jmp .UNIQUE765
 NOP
 NOP
@@ -6499,7 +6449,7 @@ NOP
 NOP
 NOP
 .UNIQUE765: 
-	movq	%rax, %rsi
+	addq	$2, %rax
  jmp .UNIQUE766
 NOP
 NOP
@@ -6507,7 +6457,7 @@ NOP
 NOP
 NOP
 .UNIQUE766: 
-	movl	$.LC28, %edi
+	movzbl	(%rax), %eax
  jmp .UNIQUE767
 NOP
 NOP
@@ -6515,7 +6465,7 @@ NOP
 NOP
 NOP
 .UNIQUE767: 
-	movl	$0, %eax
+	movzbl	%al, %eax
  jmp .UNIQUE768
 NOP
 NOP
@@ -6523,7 +6473,7 @@ NOP
 NOP
 NOP
 .UNIQUE768: 
-	call	printf
+	movl	%eax, %esi
  jmp .UNIQUE769
 NOP
 NOP
@@ -6531,7 +6481,7 @@ NOP
 NOP
 NOP
 .UNIQUE769: 
-	movl	$_fini, %esi
+	movl	$.LC3, %edi
  jmp .UNIQUE770
 NOP
 NOP
@@ -6539,7 +6489,7 @@ NOP
 NOP
 NOP
 .UNIQUE770: 
-	movl	$_init, %ecx
+	movl	$0, %eax
  jmp .UNIQUE771
 NOP
 NOP
@@ -6547,7 +6497,7 @@ NOP
 NOP
 NOP
 .UNIQUE771: 
-	movl	$__etext, %edx
+	call	printf
  jmp .UNIQUE772
 NOP
 NOP
@@ -6555,7 +6505,7 @@ NOP
 NOP
 NOP
 .UNIQUE772: 
-	movl	$__executable_start, %eax
+	movq	-56(%rbp), %rax
  jmp .UNIQUE773
 NOP
 NOP
@@ -6563,7 +6513,7 @@ NOP
 NOP
 NOP
 .UNIQUE773: 
-	movq	%rsi, %r8
+	addq	$2, %rax
  jmp .UNIQUE774
 NOP
 NOP
@@ -6571,7 +6521,7 @@ NOP
 NOP
 NOP
 .UNIQUE774: 
-	movq	%rax, %rsi
+	movzbl	(%rax), %eax
  jmp .UNIQUE775
 NOP
 NOP
@@ -6579,7 +6529,7 @@ NOP
 NOP
 NOP
 .UNIQUE775: 
-	movl	$.LC29, %edi
+	movl	%eax, %edx
  jmp .UNIQUE776
 NOP
 NOP
@@ -6587,7 +6537,7 @@ NOP
 NOP
 NOP
 .UNIQUE776: 
-	movl	$0, %eax
+	movzbl	-65(%rbp), %eax
  jmp .UNIQUE777
 NOP
 NOP
@@ -6595,7 +6545,7 @@ NOP
 NOP
 NOP
 .UNIQUE777: 
-	call	printf
+	xorl	%edx, %eax
  jmp .UNIQUE778
 NOP
 NOP
@@ -6603,7 +6553,7 @@ NOP
 NOP
 NOP
 .UNIQUE778: 
-	movq	-48(%rbp), %rax
+	movb	%al, -65(%rbp)
  jmp .UNIQUE779
 NOP
 NOP
@@ -6611,7 +6561,7 @@ NOP
 NOP
 NOP
 .UNIQUE779: 
-	movq	%rax, -56(%rbp)
+	movq	-56(%rbp), %rax
  jmp .UNIQUE780
 NOP
 NOP
@@ -6619,8 +6569,7 @@ NOP
 NOP
 NOP
 .UNIQUE780: 
-	jmp	.L72
-.L74:
+	addq	$3, %rax
  jmp .UNIQUE781
 NOP
 NOP
@@ -6628,7 +6577,7 @@ NOP
 NOP
 NOP
 .UNIQUE781: 
-	movq	-56(%rbp), %rax
+	movzbl	(%rax), %eax
  jmp .UNIQUE782
 NOP
 NOP
@@ -6636,7 +6585,7 @@ NOP
 NOP
 NOP
 .UNIQUE782: 
-	movzbl	(%rax), %eax
+	movl	%eax, %edx
  jmp .UNIQUE783
 NOP
 NOP
@@ -6644,7 +6593,7 @@ NOP
 NOP
 NOP
 .UNIQUE783: 
-	movsbl	%al, %eax
+	movzbl	-64(%rbp), %eax
  jmp .UNIQUE784
 NOP
 NOP
@@ -6652,7 +6601,7 @@ NOP
 NOP
 NOP
 .UNIQUE784: 
-	movl	%eax, %esi
+	xorl	%edx, %eax
  jmp .UNIQUE785
 NOP
 NOP
@@ -6660,7 +6609,7 @@ NOP
 NOP
 NOP
 .UNIQUE785: 
-	movl	$.LC30, %edi
+	movb	%al, -64(%rbp)
  jmp .UNIQUE786
 NOP
 NOP
@@ -6668,7 +6617,7 @@ NOP
 NOP
 NOP
 .UNIQUE786: 
-	movl	$0, %eax
+	movq	-56(%rbp), %rax
  jmp .UNIQUE787
 NOP
 NOP
@@ -6676,7 +6625,7 @@ NOP
 NOP
 NOP
 .UNIQUE787: 
-	call	printf
+	addq	$4, %rax
  jmp .UNIQUE788
 NOP
 NOP
@@ -6684,8 +6633,7 @@ NOP
 NOP
 NOP
 .UNIQUE788: 
-	addq	$1, -56(%rbp)
-.L72:
+	movzbl	(%rax), %eax
  jmp .UNIQUE789
 NOP
 NOP
@@ -6693,7 +6641,7 @@ NOP
 NOP
 NOP
 .UNIQUE789: 
-	movq	-56(%rbp), %rax
+	movl	%eax, %edx
  jmp .UNIQUE790
 NOP
 NOP
@@ -6701,7 +6649,7 @@ NOP
 NOP
 NOP
 .UNIQUE790: 
-	movzbl	(%rax), %eax
+	movzbl	-63(%rbp), %eax
  jmp .UNIQUE791
 NOP
 NOP
@@ -6709,7 +6657,7 @@ NOP
 NOP
 NOP
 .UNIQUE791: 
-	cmpb	$-61, %al
+	xorl	%edx, %eax
  jmp .UNIQUE792
 NOP
 NOP
@@ -6717,7 +6665,7 @@ NOP
 NOP
 NOP
 .UNIQUE792: 
-	je	.L73
+	movb	%al, -63(%rbp)
  jmp .UNIQUE793
 NOP
 NOP
@@ -6733,7 +6681,7 @@ NOP
 NOP
 NOP
 .UNIQUE794: 
-	movzbl	(%rax), %eax
+	addq	$5, %rax
  jmp .UNIQUE795
 NOP
 NOP
@@ -6741,7 +6689,7 @@ NOP
 NOP
 NOP
 .UNIQUE795: 
-	cmpb	$-53, %al
+	movzbl	(%rax), %eax
  jmp .UNIQUE796
 NOP
 NOP
@@ -6749,8 +6697,7 @@ NOP
 NOP
 NOP
 .UNIQUE796: 
-	je	.L74
-.L73:
+	movl	%eax, %edx
  jmp .UNIQUE797
 NOP
 NOP
@@ -6758,7 +6705,7 @@ NOP
 NOP
 NOP
 .UNIQUE797: 
-	movq	-56(%rbp), %rax
+	movzbl	-62(%rbp), %eax
  jmp .UNIQUE798
 NOP
 NOP
@@ -6766,7 +6713,7 @@ NOP
 NOP
 NOP
 .UNIQUE798: 
-	subq	$1, %rax
+	xorl	%edx, %eax
  jmp .UNIQUE799
 NOP
 NOP
@@ -6774,7 +6721,7 @@ NOP
 NOP
 NOP
 .UNIQUE799: 
-	movzbl	(%rax), %eax
+	movb	%al, -62(%rbp)
  jmp .UNIQUE800
 NOP
 NOP
@@ -6782,7 +6729,7 @@ NOP
 NOP
 NOP
 .UNIQUE800: 
-	cmpb	$17, %al
+	movq	-56(%rbp), %rax
  jmp .UNIQUE801
 NOP
 NOP
@@ -6790,7 +6737,7 @@ NOP
 NOP
 NOP
 .UNIQUE801: 
-	jne	.L74
+	addq	$6, %rax
  jmp .UNIQUE802
 NOP
 NOP
@@ -6798,7 +6745,7 @@ NOP
 NOP
 NOP
 .UNIQUE802: 
-	movq	-56(%rbp), %rax
+	movzbl	(%rax), %eax
  jmp .UNIQUE803
 NOP
 NOP
@@ -6806,7 +6753,7 @@ NOP
 NOP
 NOP
 .UNIQUE803: 
-	subq	$2, %rax
+	movl	%eax, %edx
  jmp .UNIQUE804
 NOP
 NOP
@@ -6814,7 +6761,7 @@ NOP
 NOP
 NOP
 .UNIQUE804: 
-	movzbl	(%rax), %eax
+	movzbl	-61(%rbp), %eax
  jmp .UNIQUE805
 NOP
 NOP
@@ -6822,7 +6769,7 @@ NOP
 NOP
 NOP
 .UNIQUE805: 
-	cmpb	$17, %al
+	xorl	%edx, %eax
  jmp .UNIQUE806
 NOP
 NOP
@@ -6830,7 +6777,7 @@ NOP
 NOP
 NOP
 .UNIQUE806: 
-	jne	.L74
+	movb	%al, -61(%rbp)
  jmp .UNIQUE807
 NOP
 NOP
@@ -6838,7 +6785,8 @@ NOP
 NOP
 NOP
 .UNIQUE807: 
-	movq	-56(%rbp), %rax
+	addl	$1, -60(%rbp)
+.L68:
  jmp .UNIQUE808
 NOP
 NOP
@@ -6846,7 +6794,8 @@ NOP
 NOP
 NOP
 .UNIQUE808: 
-	movzbl	(%rax), %eax
+	addq	$1, -56(%rbp)
+.L67:
  jmp .UNIQUE809
 NOP
 NOP
@@ -6854,7 +6803,7 @@ NOP
 NOP
 NOP
 .UNIQUE809: 
-	movsbl	%al, %eax
+	movq	-56(%rbp), %rax
  jmp .UNIQUE810
 NOP
 NOP
@@ -6862,7 +6811,7 @@ NOP
 NOP
 NOP
 .UNIQUE810: 
-	movl	%eax, %esi
+	cmpq	-8(%rbp), %rax
  jmp .UNIQUE811
 NOP
 NOP
@@ -6870,7 +6819,7 @@ NOP
 NOP
 NOP
 .UNIQUE811: 
-	movl	$.LC30, %edi
+	jbe	.L69
  jmp .UNIQUE812
 NOP
 NOP
@@ -6878,7 +6827,7 @@ NOP
 NOP
 NOP
 .UNIQUE812: 
-	movl	$0, %eax
+	movl	$.LC28, %edi
  jmp .UNIQUE813
 NOP
 NOP
@@ -6886,7 +6835,7 @@ NOP
 NOP
 NOP
 .UNIQUE813: 
-	call	printf
+	movl	$0, %eax
  jmp .UNIQUE814
 NOP
 NOP
@@ -6894,7 +6843,7 @@ NOP
 NOP
 NOP
 .UNIQUE814: 
-	movl	$.LC31, %edi
+	call	printf
  jmp .UNIQUE815
 NOP
 NOP
@@ -6902,7 +6851,7 @@ NOP
 NOP
 NOP
 .UNIQUE815: 
-	call	puts
+	movzbl	-65(%rbp), %eax
  jmp .UNIQUE816
 NOP
 NOP
@@ -6910,7 +6859,7 @@ NOP
 NOP
 NOP
 .UNIQUE816: 
-	movq	-16(%rbp), %rax
+	movl	%eax, %esi
  jmp .UNIQUE817
 NOP
 NOP
@@ -6918,7 +6867,7 @@ NOP
 NOP
 NOP
 .UNIQUE817: 
-	movq	%rax, -56(%rbp)
+	movl	$.LC29, %edi
  jmp .UNIQUE818
 NOP
 NOP
@@ -6926,8 +6875,7 @@ NOP
 NOP
 NOP
 .UNIQUE818: 
-	jmp	.L75
-.L77:
+	movl	$0, %eax
  jmp .UNIQUE819
 NOP
 NOP
@@ -6935,7 +6883,7 @@ NOP
 NOP
 NOP
 .UNIQUE819: 
-	movq	-56(%rbp), %rax
+	call	printf
  jmp .UNIQUE820
 NOP
 NOP
@@ -6943,7 +6891,7 @@ NOP
 NOP
 NOP
 .UNIQUE820: 
-	movzbl	(%rax), %eax
+	movzbl	-64(%rbp), %eax
  jmp .UNIQUE821
 NOP
 NOP
@@ -6951,7 +6899,7 @@ NOP
 NOP
 NOP
 .UNIQUE821: 
-	cmpb	$-21, %al
+	movl	%eax, %esi
  jmp .UNIQUE822
 NOP
 NOP
@@ -6959,7 +6907,7 @@ NOP
 NOP
 NOP
 .UNIQUE822: 
-	jne	.L76
+	movl	$.LC30, %edi
  jmp .UNIQUE823
 NOP
 NOP
@@ -6967,7 +6915,7 @@ NOP
 NOP
 NOP
 .UNIQUE823: 
-	movq	-56(%rbp), %rax
+	movl	$0, %eax
  jmp .UNIQUE824
 NOP
 NOP
@@ -6975,7 +6923,7 @@ NOP
 NOP
 NOP
 .UNIQUE824: 
-	addq	$1, %rax
+	call	printf
  jmp .UNIQUE825
 NOP
 NOP
@@ -6983,7 +6931,7 @@ NOP
 NOP
 NOP
 .UNIQUE825: 
-	movzbl	(%rax), %eax
+	movzbl	-63(%rbp), %eax
  jmp .UNIQUE826
 NOP
 NOP
@@ -6991,7 +6939,7 @@ NOP
 NOP
 NOP
 .UNIQUE826: 
-	cmpb	$5, %al
+	movl	%eax, %esi
  jmp .UNIQUE827
 NOP
 NOP
@@ -6999,7 +6947,7 @@ NOP
 NOP
 NOP
 .UNIQUE827: 
-	jne	.L76
+	movl	$.LC31, %edi
  jmp .UNIQUE828
 NOP
 NOP
@@ -7007,7 +6955,7 @@ NOP
 NOP
 NOP
 .UNIQUE828: 
-	movq	-56(%rbp), %rax
+	movl	$0, %eax
  jmp .UNIQUE829
 NOP
 NOP
@@ -7015,7 +6963,7 @@ NOP
 NOP
 NOP
 .UNIQUE829: 
-	addq	$2, %rax
+	call	printf
  jmp .UNIQUE830
 NOP
 NOP
@@ -7023,7 +6971,7 @@ NOP
 NOP
 NOP
 .UNIQUE830: 
-	movzbl	(%rax), %eax
+	movzbl	-62(%rbp), %eax
  jmp .UNIQUE831
 NOP
 NOP
@@ -7031,7 +6979,7 @@ NOP
 NOP
 NOP
 .UNIQUE831: 
-	movsbl	%al, %eax
+	movl	%eax, %esi
  jmp .UNIQUE832
 NOP
 NOP
@@ -7039,7 +6987,7 @@ NOP
 NOP
 NOP
 .UNIQUE832: 
-	movl	%eax, %esi
+	movl	$.LC32, %edi
  jmp .UNIQUE833
 NOP
 NOP
@@ -7047,7 +6995,7 @@ NOP
 NOP
 NOP
 .UNIQUE833: 
-	movl	$.LC30, %edi
+	movl	$0, %eax
  jmp .UNIQUE834
 NOP
 NOP
@@ -7055,7 +7003,7 @@ NOP
 NOP
 NOP
 .UNIQUE834: 
-	movl	$0, %eax
+	call	printf
  jmp .UNIQUE835
 NOP
 NOP
@@ -7063,7 +7011,7 @@ NOP
 NOP
 NOP
 .UNIQUE835: 
-	call	printf
+	movzbl	-61(%rbp), %eax
  jmp .UNIQUE836
 NOP
 NOP
@@ -7071,7 +7019,7 @@ NOP
 NOP
 NOP
 .UNIQUE836: 
-	movq	-56(%rbp), %rax
+	movl	%eax, %esi
  jmp .UNIQUE837
 NOP
 NOP
@@ -7079,7 +7027,7 @@ NOP
 NOP
 NOP
 .UNIQUE837: 
-	addq	$2, %rax
+	movl	$.LC33, %edi
  jmp .UNIQUE838
 NOP
 NOP
@@ -7087,7 +7035,7 @@ NOP
 NOP
 NOP
 .UNIQUE838: 
-	movzbl	(%rax), %edx
+	movl	$0, %eax
  jmp .UNIQUE839
 NOP
 NOP
@@ -7095,7 +7043,7 @@ NOP
 NOP
 NOP
 .UNIQUE839: 
-	movzbl	-65(%rbp), %eax
+	call	printf
  jmp .UNIQUE840
 NOP
 NOP
@@ -7103,7 +7051,7 @@ NOP
 NOP
 NOP
 .UNIQUE840: 
-	xorl	%edx, %eax
+	nop
  jmp .UNIQUE841
 NOP
 NOP
@@ -7111,7 +7059,8 @@ NOP
 NOP
 NOP
 .UNIQUE841: 
-	movb	%al, -65(%rbp)
+	leave
+	.cfi_def_cfa 7, 8
  jmp .UNIQUE842
 NOP
 NOP
@@ -7119,7 +7068,17 @@ NOP
 NOP
 NOP
 .UNIQUE842: 
-	movq	-56(%rbp), %rax
+	ret
+	.cfi_endproc
+.LFE14:
+	.size	find_keyshares, .-find_keyshares
+	.globl	foo
+	.type	foo, @function
+foo:
+.LFB15:
+	.cfi_startproc
+NOP
+NOP
  jmp .UNIQUE843
 NOP
 NOP
@@ -7127,7 +7086,9 @@ NOP
 NOP
 NOP
 .UNIQUE843: 
-	addq	$3, %rax
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
  jmp .UNIQUE844
 NOP
 NOP
@@ -7135,7 +7096,8 @@ NOP
 NOP
 NOP
 .UNIQUE844: 
-	movzbl	(%rax), %edx
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
  jmp .UNIQUE845
 NOP
 NOP
@@ -7143,7 +7105,7 @@ NOP
 NOP
 NOP
 .UNIQUE845: 
-	movzbl	-64(%rbp), %eax
+	movl	%edi, -20(%rbp)
  jmp .UNIQUE846
 NOP
 NOP
@@ -7151,7 +7113,7 @@ NOP
 NOP
 NOP
 .UNIQUE846: 
-	xorl	%edx, %eax
+	movl	-20(%rbp), %eax
  jmp .UNIQUE847
 NOP
 NOP
@@ -7159,7 +7121,7 @@ NOP
 NOP
 NOP
 .UNIQUE847: 
-	movb	%al, -64(%rbp)
+	addl	$2, %eax
  jmp .UNIQUE848
 NOP
 NOP
@@ -7167,7 +7129,7 @@ NOP
 NOP
 NOP
 .UNIQUE848: 
-	movq	-56(%rbp), %rax
+	movl	%eax, -4(%rbp)
  jmp .UNIQUE849
 NOP
 NOP
@@ -7175,7 +7137,7 @@ NOP
 NOP
 NOP
 .UNIQUE849: 
-	addq	$4, %rax
+	movl	-4(%rbp), %eax
  jmp .UNIQUE850
 NOP
 NOP
@@ -7183,7 +7145,8 @@ NOP
 NOP
 NOP
 .UNIQUE850: 
-	movzbl	(%rax), %edx
+	popq	%rbp
+	.cfi_def_cfa 7, 8
  jmp .UNIQUE851
 NOP
 NOP
@@ -7191,7 +7154,25 @@ NOP
 NOP
 NOP
 .UNIQUE851: 
-	movzbl	-63(%rbp), %eax
+	ret
+	.cfi_endproc
+.LFE15:
+	.size	foo, .-foo
+	.section	.rodata
+.LC34:
+	.string	"K=%d\n"
+.LC35:
+	.string	"n=%d\n"
+.LC36:
+	.string	"main is at %p\n"
+	.text
+	.globl	main
+	.type	main, @function
+main:
+.LFB16:
+	.cfi_startproc
+NOP
+NOP
  jmp .UNIQUE852
 NOP
 NOP
@@ -7199,7 +7180,9 @@ NOP
 NOP
 NOP
 .UNIQUE852: 
-	xorl	%edx, %eax
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
  jmp .UNIQUE853
 NOP
 NOP
@@ -7207,7 +7190,8 @@ NOP
 NOP
 NOP
 .UNIQUE853: 
-	movb	%al, -63(%rbp)
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
  jmp .UNIQUE854
 NOP
 NOP
@@ -7215,7 +7199,7 @@ NOP
 NOP
 NOP
 .UNIQUE854: 
-	movq	-56(%rbp), %rax
+	subq	$16, %rsp
  jmp .UNIQUE855
 NOP
 NOP
@@ -7223,7 +7207,7 @@ NOP
 NOP
 NOP
 .UNIQUE855: 
-	addq	$5, %rax
+	movl	$1, -16(%rbp)
  jmp .UNIQUE856
 NOP
 NOP
@@ -7231,7 +7215,7 @@ NOP
 NOP
 NOP
 .UNIQUE856: 
-	movzbl	(%rax), %edx
+	movl	$2, -8(%rbp)
  jmp .UNIQUE857
 NOP
 NOP
@@ -7239,7 +7223,7 @@ NOP
 NOP
 NOP
 .UNIQUE857: 
-	movzbl	-62(%rbp), %eax
+	addl	$1, -8(%rbp)
  jmp .UNIQUE858
 NOP
 NOP
@@ -7247,7 +7231,7 @@ NOP
 NOP
 NOP
 .UNIQUE858: 
-	xorl	%edx, %eax
+	addl	$1, -8(%rbp)
  jmp .UNIQUE859
 NOP
 NOP
@@ -7255,7 +7239,7 @@ NOP
 NOP
 NOP
 .UNIQUE859: 
-	movb	%al, -62(%rbp)
+	subl	$1, -8(%rbp)
  jmp .UNIQUE860
 NOP
 NOP
@@ -7263,7 +7247,7 @@ NOP
 NOP
 NOP
 .UNIQUE860: 
-	movq	-56(%rbp), %rax
+	movl	-8(%rbp), %eax
  jmp .UNIQUE861
 NOP
 NOP
@@ -7271,7 +7255,7 @@ NOP
 NOP
 NOP
 .UNIQUE861: 
-	addq	$6, %rax
+	addl	%eax, -16(%rbp)
  jmp .UNIQUE862
 NOP
 NOP
@@ -7279,7 +7263,7 @@ NOP
 NOP
 NOP
 .UNIQUE862: 
-	movzbl	(%rax), %edx
+	addl	$2, -16(%rbp)
  jmp .UNIQUE863
 NOP
 NOP
@@ -7287,7 +7271,7 @@ NOP
 NOP
 NOP
 .UNIQUE863: 
-	movzbl	-61(%rbp), %eax
+	addl	$1, -8(%rbp)
  jmp .UNIQUE864
 NOP
 NOP
@@ -7295,7 +7279,7 @@ NOP
 NOP
 NOP
 .UNIQUE864: 
-	xorl	%edx, %eax
+	movl	$1, -12(%rbp)
  jmp .UNIQUE865
 NOP
 NOP
@@ -7303,7 +7287,8 @@ NOP
 NOP
 NOP
 .UNIQUE865: 
-	movb	%al, -61(%rbp)
+	jmp	.L74
+.L75:
  jmp .UNIQUE866
 NOP
 NOP
@@ -7311,8 +7296,7 @@ NOP
 NOP
 NOP
 .UNIQUE866: 
-	addl	$1, -60(%rbp)
-.L76:
+	movl	-8(%rbp), %eax
  jmp .UNIQUE867
 NOP
 NOP
@@ -7320,8 +7304,7 @@ NOP
 NOP
 NOP
 .UNIQUE867: 
-	addq	$1, -56(%rbp)
-.L75:
+	addl	%eax, -16(%rbp)
  jmp .UNIQUE868
 NOP
 NOP
@@ -7329,7 +7312,8 @@ NOP
 NOP
 NOP
 .UNIQUE868: 
-	movq	-56(%rbp), %rax
+	addl	$1, -12(%rbp)
+.L74:
  jmp .UNIQUE869
 NOP
 NOP
@@ -7337,7 +7321,7 @@ NOP
 NOP
 NOP
 .UNIQUE869: 
-	cmpq	-8(%rbp), %rax
+	cmpl	$500000000, -12(%rbp)
  jmp .UNIQUE870
 NOP
 NOP
@@ -7345,7 +7329,7 @@ NOP
 NOP
 NOP
 .UNIQUE870: 
-	jbe	.L77
+	jle	.L75
  jmp .UNIQUE871
 NOP
 NOP
@@ -7353,7 +7337,7 @@ NOP
 NOP
 NOP
 .UNIQUE871: 
-	movl	$.LC32, %edi
+	movl	-16(%rbp), %eax
  jmp .UNIQUE872
 NOP
 NOP
@@ -7361,7 +7345,7 @@ NOP
 NOP
 NOP
 .UNIQUE872: 
-	movl	$0, %eax
+	movl	%eax, %esi
  jmp .UNIQUE873
 NOP
 NOP
@@ -7369,7 +7353,7 @@ NOP
 NOP
 NOP
 .UNIQUE873: 
-	call	printf
+	movl	$.LC34, %edi
  jmp .UNIQUE874
 NOP
 NOP
@@ -7377,7 +7361,7 @@ NOP
 NOP
 NOP
 .UNIQUE874: 
-	movzbl	-65(%rbp), %eax
+	movl	$0, %eax
  jmp .UNIQUE875
 NOP
 NOP
@@ -7385,7 +7369,7 @@ NOP
 NOP
 NOP
 .UNIQUE875: 
-	movl	%eax, %esi
+	call	printf
  jmp .UNIQUE876
 NOP
 NOP
@@ -7393,7 +7377,7 @@ NOP
 NOP
 NOP
 .UNIQUE876: 
-	movl	$.LC33, %edi
+	movl	$5, %edi
  jmp .UNIQUE877
 NOP
 NOP
@@ -7401,7 +7385,7 @@ NOP
 NOP
 NOP
 .UNIQUE877: 
-	movl	$0, %eax
+	call	foo
  jmp .UNIQUE878
 NOP
 NOP
@@ -7409,7 +7393,7 @@ NOP
 NOP
 NOP
 .UNIQUE878: 
-	call	printf
+	movl	%eax, -4(%rbp)
  jmp .UNIQUE879
 NOP
 NOP
@@ -7417,7 +7401,7 @@ NOP
 NOP
 NOP
 .UNIQUE879: 
-	movzbl	-64(%rbp), %eax
+	movl	-4(%rbp), %eax
  jmp .UNIQUE880
 NOP
 NOP
@@ -7425,7 +7409,7 @@ NOP
 NOP
 NOP
 .UNIQUE880: 
-	movl	%eax, %esi
+	movl	%eax, %edi
  jmp .UNIQUE881
 NOP
 NOP
@@ -7433,7 +7417,7 @@ NOP
 NOP
 NOP
 .UNIQUE881: 
-	movl	$.LC34, %edi
+	call	foo2
  jmp .UNIQUE882
 NOP
 NOP
@@ -7441,7 +7425,7 @@ NOP
 NOP
 NOP
 .UNIQUE882: 
-	movl	$0, %eax
+	movl	%eax, -4(%rbp)
  jmp .UNIQUE883
 NOP
 NOP
@@ -7449,7 +7433,7 @@ NOP
 NOP
 NOP
 .UNIQUE883: 
-	call	printf
+	movl	-4(%rbp), %eax
  jmp .UNIQUE884
 NOP
 NOP
@@ -7457,7 +7441,7 @@ NOP
 NOP
 NOP
 .UNIQUE884: 
-	movzbl	-63(%rbp), %eax
+	movl	%eax, %esi
  jmp .UNIQUE885
 NOP
 NOP
@@ -7465,7 +7449,7 @@ NOP
 NOP
 NOP
 .UNIQUE885: 
-	movl	%eax, %esi
+	movl	$.LC35, %edi
  jmp .UNIQUE886
 NOP
 NOP
@@ -7473,7 +7457,7 @@ NOP
 NOP
 NOP
 .UNIQUE886: 
-	movl	$.LC35, %edi
+	movl	$0, %eax
  jmp .UNIQUE887
 NOP
 NOP
@@ -7481,7 +7465,7 @@ NOP
 NOP
 NOP
 .UNIQUE887: 
-	movl	$0, %eax
+	call	printf
  jmp .UNIQUE888
 NOP
 NOP
@@ -7489,7 +7473,7 @@ NOP
 NOP
 NOP
 .UNIQUE888: 
-	call	printf
+	movl	$main, %esi
  jmp .UNIQUE889
 NOP
 NOP
@@ -7497,7 +7481,7 @@ NOP
 NOP
 NOP
 .UNIQUE889: 
-	movzbl	-62(%rbp), %eax
+	movl	$.LC36, %edi
  jmp .UNIQUE890
 NOP
 NOP
@@ -7505,7 +7489,7 @@ NOP
 NOP
 NOP
 .UNIQUE890: 
-	movl	%eax, %esi
+	movl	$0, %eax
  jmp .UNIQUE891
 NOP
 NOP
@@ -7513,7 +7497,7 @@ NOP
 NOP
 NOP
 .UNIQUE891: 
-	movl	$.LC36, %edi
+	call	printf
  jmp .UNIQUE892
 NOP
 NOP
@@ -7529,7 +7513,7 @@ NOP
 NOP
 NOP
 .UNIQUE893: 
-	call	printf
+	call	mem_test
  jmp .UNIQUE894
 NOP
 NOP
@@ -7537,7 +7521,7 @@ NOP
 NOP
 NOP
 .UNIQUE894: 
-	movzbl	-61(%rbp), %eax
+	movl	$0, %eax
  jmp .UNIQUE895
 NOP
 NOP
@@ -7545,7 +7529,8 @@ NOP
 NOP
 NOP
 .UNIQUE895: 
-	movl	%eax, %esi
+	leave
+	.cfi_def_cfa 7, 8
  jmp .UNIQUE896
 NOP
 NOP
@@ -7553,7 +7538,17 @@ NOP
 NOP
 NOP
 .UNIQUE896: 
-	movl	$.LC37, %edi
+	ret
+	.cfi_endproc
+.LFE16:
+	.size	main, .-main
+	.globl	foo2
+	.type	foo2, @function
+foo2:
+.LFB17:
+	.cfi_startproc
+NOP
+NOP
  jmp .UNIQUE897
 NOP
 NOP
@@ -7561,7 +7556,9 @@ NOP
 NOP
 NOP
 .UNIQUE897: 
-	movl	$0, %eax
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
  jmp .UNIQUE898
 NOP
 NOP
@@ -7569,7 +7566,8 @@ NOP
 NOP
 NOP
 .UNIQUE898: 
-	call	printf
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
  jmp .UNIQUE899
 NOP
 NOP
@@ -7577,7 +7575,7 @@ NOP
 NOP
 NOP
 .UNIQUE899: 
-	nop
+	movl	%edi, -20(%rbp)
  jmp .UNIQUE900
 NOP
 NOP
@@ -7585,8 +7583,7 @@ NOP
 NOP
 NOP
 .UNIQUE900: 
-	leave
-	.cfi_def_cfa 7, 8
+	movl	-20(%rbp), %eax
  jmp .UNIQUE901
 NOP
 NOP
@@ -7594,9 +7591,42 @@ NOP
 NOP
 NOP
 .UNIQUE901: 
+	addl	$3, %eax
+ jmp .UNIQUE902
+NOP
+NOP
+NOP
+NOP
+NOP
+.UNIQUE902: 
+	movl	%eax, -4(%rbp)
+ jmp .UNIQUE903
+NOP
+NOP
+NOP
+NOP
+NOP
+.UNIQUE903: 
+	movl	-4(%rbp), %eax
+ jmp .UNIQUE904
+NOP
+NOP
+NOP
+NOP
+NOP
+.UNIQUE904: 
+	popq	%rbp
+	.cfi_def_cfa 7, 8
+ jmp .UNIQUE905
+NOP
+NOP
+NOP
+NOP
+NOP
+.UNIQUE905: 
 	ret
 	.cfi_endproc
 .LFE17:
-	.size	find_keyshares, .-find_keyshares
+	.size	foo2, .-foo2
 	.ident	"GCC: (Ubuntu 4.8.4-2ubuntu1~14.04.1) 4.8.4"
 	.section	.note.GNU-stack,"",@progbits

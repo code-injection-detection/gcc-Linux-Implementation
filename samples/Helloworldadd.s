@@ -944,143 +944,31 @@ mem_test:
 	.cfi_endproc
 .LFE13:
 	.size	mem_test, .-mem_test
-	.globl	foo
-	.type	foo, @function
-foo:
-.LFB14:
-	.cfi_startproc
-	pushq	%rbp
-	.cfi_def_cfa_offset 16
-	.cfi_offset 6, -16
-	movq	%rsp, %rbp
-	.cfi_def_cfa_register 6
-	movl	%edi, -20(%rbp)
-	movl	-20(%rbp), %eax
-	addl	$2, %eax
-	movl	%eax, -4(%rbp)
-	movl	-4(%rbp), %eax
-	popq	%rbp
-	.cfi_def_cfa 7, 8
-	ret
-	.cfi_endproc
-.LFE14:
-	.size	foo, .-foo
 	.section	.rodata
 .LC25:
-	.string	"K=%d\n"
-.LC26:
-	.string	"n=%d\n"
-.LC27:
-	.string	"main is at %p\n"
-	.text
-	.globl	main
-	.type	main, @function
-main:
-.LFB15:
-	.cfi_startproc
-	pushq	%rbp
-	.cfi_def_cfa_offset 16
-	.cfi_offset 6, -16
-	movq	%rsp, %rbp
-	.cfi_def_cfa_register 6
-	subq	$16, %rsp
-	movl	$1, -16(%rbp)
-	movl	$2, -8(%rbp)
-	addl	$1, -8(%rbp)
-	addl	$1, -8(%rbp)
-	subl	$1, -8(%rbp)
-	movl	-8(%rbp), %eax
-	addl	%eax, -16(%rbp)
-	addl	$2, -16(%rbp)
-	addl	$1, -8(%rbp)
-	movl	$1, -12(%rbp)
-	jmp	.L66
-.L67:
-	movl	-8(%rbp), %eax
-	addl	%eax, -16(%rbp)
-	addl	$1, -12(%rbp)
-.L66:
-	cmpl	$500000000, -12(%rbp)
-	jle	.L67
-	movl	-16(%rbp), %eax
-	movl	%eax, %esi
-	movl	$.LC25, %edi
-	movl	$0, %eax
-	call	printf
-	movl	$5, %edi
-	call	foo
-	movl	%eax, -4(%rbp)
-	movl	-4(%rbp), %eax
-	movl	%eax, %edi
-	movl	$0, %eax
-	call	foo2
-	movl	%eax, -4(%rbp)
-	movl	-4(%rbp), %eax
-	movl	%eax, %esi
-	movl	$.LC26, %edi
-	movl	$0, %eax
-	call	printf
-	movl	$main, %esi
-	movl	$.LC27, %edi
-	movl	$0, %eax
-	call	printf
-	movl	$0, %eax
-	call	mem_test
-	movl	$0, %eax
-	leave
-	.cfi_def_cfa 7, 8
-	ret
-	.cfi_endproc
-.LFE15:
-	.size	main, .-main
-	.globl	foo2
-	.type	foo2, @function
-foo2:
-.LFB16:
-	.cfi_startproc
-	pushq	%rbp
-	.cfi_def_cfa_offset 16
-	.cfi_offset 6, -16
-	movq	%rsp, %rbp
-	.cfi_def_cfa_register 6
-	movl	%edi, -20(%rbp)
-	movl	-20(%rbp), %eax
-	addl	$3, %eax
-	movl	%eax, -4(%rbp)
-	movl	-4(%rbp), %eax
-	popq	%rbp
-	.cfi_def_cfa 7, 8
-	ret
-	.cfi_endproc
-.LFE16:
-	.size	foo2, .-foo2
-	.section	.rodata
-.LC28:
 	.string	"a=%p b=%p c=%p d=%p\n"
 	.align 8
-.LC29:
+.LC26:
 	.string	"start of .text=0x%lx, end of .text=0x%lx, init=0x%lx, fini=0x%lx\n"
-.LC30:
-	.string	"%#04x "
-.LC31:
+.LC27:
 	.string	"\n\n"
-.LC32:
+.LC28:
 	.string	"\nkey1="
+.LC29:
+	.string	"0x%02x\n"
+.LC30:
+	.string	"key2=0x%02x\n"
+.LC31:
+	.string	"key3=0x%02x\n"
+.LC32:
+	.string	"key4=0x%02x\n"
 .LC33:
-	.string	"%#04x\n"
-.LC34:
-	.string	"key2=%#04x\n"
-.LC35:
-	.string	"key3=%#04x\n"
-.LC36:
-	.string	"key4=%#04x\n"
-.LC37:
-	.string	"key5=%#04x\n"
+	.string	"key5=0x%02x\n"
 	.text
 	.globl	find_keyshares
 	.type	find_keyshares, @function
 find_keyshares:
-.LFB17:
+.LFB14:
 	.cfi_startproc
 	pushq	%rbp
 	.cfi_def_cfa_offset 16
@@ -1106,7 +994,7 @@ find_keyshares:
 	movq	-48(%rbp), %rax
 	movq	%rsi, %r8
 	movq	%rax, %rsi
-	movl	$.LC28, %edi
+	movl	$.LC25, %edi
 	movl	$0, %eax
 	call	printf
 	movl	$_fini, %esi
@@ -1115,134 +1003,139 @@ find_keyshares:
 	movl	$__executable_start, %eax
 	movq	%rsi, %r8
 	movq	%rax, %rsi
-	movl	$.LC29, %edi
+	movl	$.LC26, %edi
 	movl	$0, %eax
 	call	printf
 	movq	-48(%rbp), %rax
 	movq	%rax, -56(%rbp)
-	jmp	.L72
-.L74:
+	jmp	.L64
+.L66:
 	movq	-56(%rbp), %rax
 	movzbl	(%rax), %eax
-	movsbl	%al, %eax
+	movzbl	%al, %eax
 	movl	%eax, %esi
-	movl	$.LC30, %edi
+	movl	$.LC3, %edi
 	movl	$0, %eax
 	call	printf
 	addq	$1, -56(%rbp)
-.L72:
+.L64:
 	movq	-56(%rbp), %rax
 	movzbl	(%rax), %eax
 	cmpb	$-61, %al
-	je	.L73
+	je	.L65
 	movq	-56(%rbp), %rax
 	movzbl	(%rax), %eax
 	cmpb	$-53, %al
-	je	.L74
-.L73:
+	je	.L66
+.L65:
 	movq	-56(%rbp), %rax
 	subq	$1, %rax
 	movzbl	(%rax), %eax
 	cmpb	$17, %al
-	jne	.L74
+	jne	.L66
 	movq	-56(%rbp), %rax
 	subq	$2, %rax
 	movzbl	(%rax), %eax
 	cmpb	$17, %al
-	jne	.L74
+	jne	.L66
 	movq	-56(%rbp), %rax
 	movzbl	(%rax), %eax
-	movsbl	%al, %eax
+	movzbl	%al, %eax
 	movl	%eax, %esi
-	movl	$.LC30, %edi
+	movl	$.LC3, %edi
 	movl	$0, %eax
 	call	printf
-	movl	$.LC31, %edi
+	movl	$.LC27, %edi
 	call	puts
 	movq	-16(%rbp), %rax
 	movq	%rax, -56(%rbp)
-	jmp	.L75
-.L77:
+	jmp	.L67
+.L69:
 	movq	-56(%rbp), %rax
 	movzbl	(%rax), %eax
 	cmpb	$-21, %al
-	jne	.L76
+	jne	.L68
 	movq	-56(%rbp), %rax
 	addq	$1, %rax
 	movzbl	(%rax), %eax
 	cmpb	$5, %al
-	jne	.L76
+	jne	.L68
 	movq	-56(%rbp), %rax
 	addq	$2, %rax
 	movzbl	(%rax), %eax
-	movsbl	%al, %eax
+	movzbl	%al, %eax
 	movl	%eax, %esi
-	movl	$.LC30, %edi
+	movl	$.LC3, %edi
 	movl	$0, %eax
 	call	printf
 	movq	-56(%rbp), %rax
 	addq	$2, %rax
-	movzbl	(%rax), %edx
+	movzbl	(%rax), %eax
+	movl	%eax, %edx
 	movzbl	-65(%rbp), %eax
 	xorl	%edx, %eax
 	movb	%al, -65(%rbp)
 	movq	-56(%rbp), %rax
 	addq	$3, %rax
-	movzbl	(%rax), %edx
+	movzbl	(%rax), %eax
+	movl	%eax, %edx
 	movzbl	-64(%rbp), %eax
 	xorl	%edx, %eax
 	movb	%al, -64(%rbp)
 	movq	-56(%rbp), %rax
 	addq	$4, %rax
-	movzbl	(%rax), %edx
+	movzbl	(%rax), %eax
+	movl	%eax, %edx
 	movzbl	-63(%rbp), %eax
 	xorl	%edx, %eax
 	movb	%al, -63(%rbp)
 	movq	-56(%rbp), %rax
 	addq	$5, %rax
-	movzbl	(%rax), %edx
+	movzbl	(%rax), %eax
+	movl	%eax, %edx
 	movzbl	-62(%rbp), %eax
 	xorl	%edx, %eax
 	movb	%al, -62(%rbp)
 	movq	-56(%rbp), %rax
 	addq	$6, %rax
-	movzbl	(%rax), %edx
+	movzbl	(%rax), %eax
+	movl	%eax, %edx
 	movzbl	-61(%rbp), %eax
 	xorl	%edx, %eax
 	movb	%al, -61(%rbp)
 	addl	$1, -60(%rbp)
-.L76:
+.L68:
 	addq	$1, -56(%rbp)
-.L75:
+.L67:
 	movq	-56(%rbp), %rax
 	cmpq	-8(%rbp), %rax
-	jbe	.L77
-	movl	$.LC32, %edi
+	jbe	.L69
+	movl	$.LC28, %edi
 	movl	$0, %eax
 	call	printf
 	movzbl	-65(%rbp), %eax
 	movl	%eax, %esi
-	movl	$.LC33, %edi
+	movl	$.LC29, %edi
 	movl	$0, %eax
 	call	printf
 	movzbl	-64(%rbp), %eax
 	movl	%eax, %esi
-	movl	$.LC34, %edi
+	movl	$.LC30, %edi
 	movl	$0, %eax
 	call	printf
 	movzbl	-63(%rbp), %eax
 	movl	%eax, %esi
-	movl	$.LC35, %edi
+	movl	$.LC31, %edi
 	movl	$0, %eax
 	call	printf
 	movzbl	-62(%rbp), %eax
 	movl	%eax, %esi
-	movl	$.LC36, %edi
+	movl	$.LC32, %edi
 	movl	$0, %eax
 	call	printf
 	movzbl	-61(%rbp), %eax
 	movl	%eax, %esi
-	movl	$.LC37, %edi
+	movl	$.LC33, %edi
 	movl	$0, %eax
 	call	printf
 	nop
@@ -1250,7 +1143,116 @@ find_keyshares:
 	.cfi_def_cfa 7, 8
 	ret
 	.cfi_endproc
-.LFE17:
+.LFE14:
 	.size	find_keyshares, .-find_keyshares
+	.globl	foo
+	.type	foo, @function
+foo:
+.LFB15:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	movl	%edi, -20(%rbp)
+	movl	-20(%rbp), %eax
+	addl	$2, %eax
+	movl	%eax, -4(%rbp)
+	movl	-4(%rbp), %eax
+	popq	%rbp
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE15:
+	.size	foo, .-foo
+	.section	.rodata
+.LC34:
+	.string	"K=%d\n"
+.LC35:
+	.string	"n=%d\n"
+.LC36:
+	.string	"main is at %p\n"
+	.text
+	.globl	main
+	.type	main, @function
+main:
+.LFB16:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$16, %rsp
+	movl	$1, -16(%rbp)
+	movl	$2, -8(%rbp)
+	addl	$1, -8(%rbp)
+	addl	$1, -8(%rbp)
+	subl	$1, -8(%rbp)
+	movl	-8(%rbp), %eax
+	addl	%eax, -16(%rbp)
+	addl	$2, -16(%rbp)
+	addl	$1, -8(%rbp)
+	movl	$1, -12(%rbp)
+	jmp	.L74
+.L75:
+	movl	-8(%rbp), %eax
+	addl	%eax, -16(%rbp)
+	addl	$1, -12(%rbp)
+.L74:
+	cmpl	$500000000, -12(%rbp)
+	jle	.L75
+	movl	-16(%rbp), %eax
+	movl	%eax, %esi
+	movl	$.LC34, %edi
+	movl	$0, %eax
+	call	printf
+	movl	$5, %edi
+	call	foo
+	movl	%eax, -4(%rbp)
+	movl	-4(%rbp), %eax
+	movl	%eax, %edi
+	call	foo2
+	movl	%eax, -4(%rbp)
+	movl	-4(%rbp), %eax
+	movl	%eax, %esi
+	movl	$.LC35, %edi
+	movl	$0, %eax
+	call	printf
+	movl	$main, %esi
+	movl	$.LC36, %edi
+	movl	$0, %eax
+	call	printf
+	movl	$0, %eax
+	call	mem_test
+	movl	$0, %eax
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE16:
+	.size	main, .-main
+	.globl	foo2
+	.type	foo2, @function
+foo2:
+.LFB17:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	movl	%edi, -20(%rbp)
+	movl	-20(%rbp), %eax
+	addl	$3, %eax
+	movl	%eax, -4(%rbp)
+	movl	-4(%rbp), %eax
+	popq	%rbp
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE17:
+	.size	foo2, .-foo2
 	.ident	"GCC: (Ubuntu 4.8.4-2ubuntu1~14.04.1) 4.8.4"
 	.section	.note.GNU-stack,"",@progbits

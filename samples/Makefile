@@ -22,7 +22,7 @@ all: Helloworldadd.s Helloworldadd Helloworldadd_sec
 static: default
 	
 
-Helloworldadd.s: Helloworldadd.c memory_manager.c
+Helloworldadd.s: Helloworldadd.c memory_manager.c verification_procedure.c
 	$(CC) $(FLAGS) Helloworldadd.c -S
 
 Helloworldadd: Helloworldadd.s
