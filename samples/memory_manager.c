@@ -305,6 +305,23 @@ void free_secure_mem(unsigned char * mem)
   free(mem);
 }
 
+
+/*Returns the value of a securely allocated char. Of course secure_malloc must have been called before*/
+/*The function writes to *res, which must have been preallocated. */
+void get_char( void * start_of_secure_data,char * res)
+{
+  get_secure_data(res,sizeof(char),start_of_secure_data,0,0);
+}
+
+
+/*Sets a securely allocated char. Of course secure_malloc must have been called before*/
+/*The function reads from *source, which must have been preallocated. */
+void set_char( void * start_of_secure_data,char * source)
+{
+  insert_data_into_mem(sizeof(char),(unsigned char *)source,(unsigned char *)start_of_secure_data);
+}
+
+
 //for time testing
 void insert_data_into_normal_array(long size, unsigned char* data,unsigned char * mem)
 {
