@@ -244,18 +244,17 @@ void * get_secure_data(long data_size, unsigned char * data_start, int isarray, 
 		//Well that's a problem. We have to start in the middle of a chunk.
 		//What we'll do is that we will retrieve the part up to the end of the chunk.
 		p+=chunks_forward*bytes_between_keyshares + chunks_forward * bytes_used_for_keyshares;
-		j=(arrayindex*data_size)-chunks_forward*bytes_between_keyshares;
+		j=(arrayindex*data_size)-(chunks_forward*bytes_between_keyshares);
 
-	
-		for (k=0;k<bytes_between_keyshares && (total_data_retrieved + k < data_size );k++)
+		for (k=0;j+k<bytes_between_keyshares && (total_data_retrieved + k < data_size );k++)
 		{
 			result[total_data_retrieved+k]=p[j+k];
 		}
 		total_data_retrieved+=k;
 		p+=bytes_between_keyshares + bytes_used_for_keyshares;
 	}
-  }	 
-    
+  }
+
 
   while(total_data_retrieved<data_size)
   {
@@ -279,7 +278,6 @@ void * get_secure_data(long data_size, unsigned char * data_start, int isarray, 
     } 
   }
 
-  
   return (void*)result;
 }
 
@@ -348,15 +346,49 @@ void mem_test()
 	data=malloc(size*sizeof(int));
 	data2=malloc(size*sizeof(int));
 
-	for (i=0;i<size;i++)
-			data[i]=i+2;
+	for (i=5;i<size+5;i++)
+			data[i-5]=i * i;
+
 
 	printf("Trying to secure malloc\n");
 	printf("Last_unused_memory before:%ld\n",(long)last_unused_memory);
 	start_of_secure_data=secure_malloc(size*sizeof(int));
+	if (start_of_secure_data==NULL)
+		{
+		  perror("Not enough mem");
+		  exit(42);
+		}
 	printf("Last_unused_memory after:%ld\n",(long)last_unused_memory);
 	
 	printf("After malloc,try to insert some data\n");
+	insert_data_into_mem(size*sizeof(int),(unsigned char *)data,start_of_secure_data);
+
+	printf("Now let's retrieve the data and display them\n");
+	
+	for (j=0;j<size;j++)
+	{
+		retrieved_int=get_secure_data(sizeof(int),start_of_secure_data,1,j);
+		printf("%d ",*retrieved_int);
+		free(retrieved_int);
+	}
+	printf("\n");
+
+
+	printf("Again, Trying to secure malloc\n");
+	printf("Last_unused_memory before:%ld\n",(long)last_unused_memory);
+	start_of_secure_data=secure_malloc(size*sizeof(int));
+	if (start_of_secure_data==NULL)
+		{
+		  perror("Not enough mem");
+		  exit(42);
+		}
+	printf("Last_unused_memory after:%ld\n",(long)last_unused_memory);
+	
+	for (i=5;i<size+5;i++)
+			data[i-5]=3*i;
+
+
+	printf("Again, after malloc,try to insert some data\n");
 	insert_data_into_mem(size*sizeof(int),(unsigned char *)data,start_of_secure_data);
 
 	printf("Now let's retrieve the data and display them\n");
