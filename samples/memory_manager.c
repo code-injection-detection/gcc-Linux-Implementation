@@ -211,8 +211,8 @@ long insert_data_into_mem(long data_size,unsigned char * data, unsigned char * m
 /*If not seeking an array element, set isarray to 0. Then arrayindex will be ignored*/
 /*Works only for 1-d arrays, 2 index conversion to 1 index should be done beforehand. Of course in a next implementation ->*/
 /*-> the function can be extended to support multiple dimension arrays*/
-/*After calling remember to free result*/
-void * get_secure_data(long data_size, unsigned char * data_start, int isarray, long arrayindex)
+/*res must have been pre-allocated.*/
+void get_secure_data(void * res,long data_size, unsigned char * data_start, int isarray, long arrayindex)
 {
   
   unsigned char* result;
@@ -222,12 +222,8 @@ void * get_secure_data(long data_size, unsigned char * data_start, int isarray, 
   int counting_key_bytes=0; //used as boolean
   long chunks_forward;
 
-  result=malloc(data_size);
-  if (result==NULL)
-  {
-	perror("get_secure_data:malloc failed.\n");
-	exit(42);
-  }
+
+  result=res;
 
   p=data_start;
 
@@ -278,7 +274,6 @@ void * get_secure_data(long data_size, unsigned char * data_start, int isarray, 
     } 
   }
 
-  return (void*)result;
 }
 
 
@@ -324,10 +319,12 @@ void mem_test()
 	long chunks;
 	int * data;
 	int * data2;
+	int * temp;
 	long i,j;
 	long size=20;
 	long t1;
 	unsigned char * start_of_secure_data;
+	unsigned char * start_of_secure_data1;
 	int * retrieved_int;
 
 
@@ -357,8 +354,8 @@ void mem_test()
 
 	printf("Trying to secure malloc\n");
 	printf("Last_unused_memory before:%ld\n",(long)last_unused_memory);
-	start_of_secure_data=secure_malloc(size*sizeof(int));
-	if (start_of_secure_data==NULL)
+	start_of_secure_data1=secure_malloc(size*sizeof(int));
+	if (start_of_secure_data1==NULL)
 		{
 		  perror("Not enough mem");
 		  exit(42);
@@ -366,15 +363,16 @@ void mem_test()
 	printf("Last_unused_memory after:%ld\n",(long)last_unused_memory);
 	
 	printf("After malloc,try to insert some data\n");
-	insert_data_into_mem(size*sizeof(int),(unsigned char *)data,start_of_secure_data);
+	insert_data_into_mem(size*sizeof(int),(unsigned char *)data,start_of_secure_data1);
 
 	printf("Now let's retrieve the data and display them\n");
 	
+	retrieved_int=malloc(sizeof(int));
+
 	for (j=0;j<size;j++)
 	{
-		retrieved_int=get_secure_data(sizeof(int),start_of_secure_data,1,j);
+		get_secure_data(retrieved_int,sizeof(int),start_of_secure_data1,1,j);
 		printf("%d ",*retrieved_int);
-		free(retrieved_int);
 	}
 	printf("\n");
 
@@ -400,40 +398,56 @@ void mem_test()
 	
 	for (j=0;j<size;j++)
 	{
-		retrieved_int=get_secure_data(sizeof(int),start_of_secure_data,1,j);
+		get_secure_data(retrieved_int,sizeof(int),start_of_secure_data,1,j);
 		printf("%d ",*retrieved_int);
-		free(retrieved_int);
 	}
 	printf("\n");
 	
 	printf("Now trying to store and retrieve 424242424...\n");
 	start_of_secure_data=secure_malloc(sizeof(int));
-	retrieved_int=malloc(sizeof(int)); *retrieved_int=424242424;
+	*retrieved_int=424242424;
 	insert_data_into_mem(sizeof(int),(unsigned char *)retrieved_int,start_of_secure_data);
 	free(retrieved_int);
-        retrieved_int=get_secure_data(sizeof(int),start_of_secure_data,0,j);
+	retrieved_int=malloc(sizeof(int));
+        get_secure_data(retrieved_int,sizeof(int),start_of_secure_data,0,j);
 	printf("\n\n%d \n\n",*retrieved_int);
 	free(retrieved_int);
+	
 	/*
+	
 	t1=time(NULL);
-	for (j=1;j<=1000000000;j++)
+	for (j=1;j<=100000000;j++)
 		for (i=0;i<size;i++)
 			data[i]=i;
-	printf("time1:%ld\n",time(NULL)-t1);
+	printf("Normal_insertion:%ld\n",time(NULL)-t1);
 
 	t1=time(NULL);
-	for (j=1;j<=1000000000;j++)
-		insert_data_into_normal_array(size*sizeof(int), data,data2);
-	printf("time3:%ld\n",time(NULL)-t1);
+	for (j=1;j<=100000000;j++)
+		insert_data_into_mem(size*sizeof(int),(unsigned char *)data,start_of_secure_data1);
+
+	printf("Secure_insertion:%ld\n",time(NULL)-t1);
+	
 	
 	t1=time(NULL);
-	for (j=1;j<=1000000000;j++)
-		insert_data_into_mem(size,data,mem);
+	for (j=1;j<=100000000;j++)
+		for (i=0;i<size;i++)
+			data2[i]=data[i];
+	printf("Normal_fetch:%ld\n",time(NULL)-t1);
 
-	printf("time3:%ld\n",time(NULL)-t1);
+	t1=time(NULL);
+	for (j=1;j<=100000000;j++)
+	{
+		get_secure_data(&data2[0],size*sizeof(int),start_of_secure_data1,0,i);
+		//for (i=0;i<size;i++)
+			//get_secure_data(&data2[i],sizeof(int),start_of_secure_data1,1,i));
+	}	
+	printf("Secure_fetch:%ld\n",time(NULL)-t1);
+
+	for(i=0;i<size;i++)
+		if(data2[i]!=data[i])	printf("data2!=data , data2[i]=%d, data[i]=%d i=%ld\n",data2[i],data[i],i);
+	
 	*/
-	
-	
+
 	printf("After data retrieval, print mem\n");
 	print_mem(mem);
 
