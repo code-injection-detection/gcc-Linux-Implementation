@@ -305,6 +305,11 @@ unsigned char * init_mem()
   return mem;
 }
 
+void free_secure_mem(unsigned char * mem)
+{
+  free(mem);
+}
+
 //for time testing
 void insert_data_into_normal_array(long size, unsigned char* data,unsigned char * mem)
 {
@@ -401,6 +406,14 @@ void mem_test()
 	}
 	printf("\n");
 	
+	printf("Now trying to store and retrieve 424242424...\n");
+	start_of_secure_data=secure_malloc(sizeof(int));
+	retrieved_int=malloc(sizeof(int)); *retrieved_int=424242424;
+	insert_data_into_mem(sizeof(int),(unsigned char *)retrieved_int,start_of_secure_data);
+	free(retrieved_int);
+        retrieved_int=get_secure_data(sizeof(int),start_of_secure_data,0,j);
+	printf("\n\n%d \n\n",*retrieved_int);
+	free(retrieved_int);
 	/*
 	t1=time(NULL);
 	for (j=1;j<=1000000000;j++)
@@ -424,6 +437,7 @@ void mem_test()
 	printf("After data retrieval, print mem\n");
 	print_mem(mem);
 
+	free_secure_mem(mem);
 	printf("Mem test done\n");
 }
 
