@@ -19,7 +19,7 @@ return k;
 
 int main()
 {
-
+	char bob[10];
 	int i;
 	int k;
 	int j;

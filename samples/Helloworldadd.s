@@ -595,9 +595,9 @@ get_char:
 	.cfi_endproc
 .LFE12:
 	.size	get_char, .-get_char
-	.globl	set_char
-	.type	set_char, @function
-set_char:
+	.globl	get_int
+	.type	get_int, @function
+get_int:
 .LFB13:
 	.cfi_startproc
 	pushq	%rbp
@@ -610,6 +610,111 @@ set_char:
 	movq	%rsi, -16(%rbp)
 	movq	-8(%rbp), %rdx
 	movq	-16(%rbp), %rax
+	movl	$0, %r8d
+	movl	$0, %ecx
+	movl	$4, %esi
+	movq	%rax, %rdi
+	call	get_secure_data
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE13:
+	.size	get_int, .-get_int
+	.globl	get_long_int
+	.type	get_long_int, @function
+get_long_int:
+.LFB14:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$16, %rsp
+	movq	%rdi, -8(%rbp)
+	movq	%rsi, -16(%rbp)
+	movq	-8(%rbp), %rdx
+	movq	-16(%rbp), %rax
+	movl	$0, %r8d
+	movl	$0, %ecx
+	movl	$8, %esi
+	movq	%rax, %rdi
+	call	get_secure_data
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE14:
+	.size	get_long_int, .-get_long_int
+	.globl	get_float
+	.type	get_float, @function
+get_float:
+.LFB15:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$16, %rsp
+	movq	%rdi, -8(%rbp)
+	movq	%rsi, -16(%rbp)
+	movq	-8(%rbp), %rdx
+	movq	-16(%rbp), %rax
+	movl	$0, %r8d
+	movl	$0, %ecx
+	movl	$4, %esi
+	movq	%rax, %rdi
+	call	get_secure_data
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE15:
+	.size	get_float, .-get_float
+	.globl	get_double
+	.type	get_double, @function
+get_double:
+.LFB16:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$16, %rsp
+	movq	%rdi, -8(%rbp)
+	movq	%rsi, -16(%rbp)
+	movq	-8(%rbp), %rdx
+	movq	-16(%rbp), %rax
+	movl	$0, %r8d
+	movl	$0, %ecx
+	movl	$8, %esi
+	movq	%rax, %rdi
+	call	get_secure_data
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE16:
+	.size	get_double, .-get_double
+	.globl	set_char
+	.type	set_char, @function
+set_char:
+.LFB17:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$16, %rsp
+	movq	%rdi, -8(%rbp)
+	movl	%esi, %eax
+	movb	%al, -12(%rbp)
+	movq	-8(%rbp), %rdx
+	leaq	-12(%rbp), %rax
 	movq	%rax, %rsi
 	movl	$1, %edi
 	call	insert_data_into_mem
@@ -617,12 +722,108 @@ set_char:
 	.cfi_def_cfa 7, 8
 	ret
 	.cfi_endproc
-.LFE13:
+.LFE17:
 	.size	set_char, .-set_char
+	.globl	set_int
+	.type	set_int, @function
+set_int:
+.LFB18:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$16, %rsp
+	movq	%rdi, -8(%rbp)
+	movl	%esi, -12(%rbp)
+	movq	-8(%rbp), %rdx
+	leaq	-12(%rbp), %rax
+	movq	%rax, %rsi
+	movl	$4, %edi
+	call	insert_data_into_mem
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE18:
+	.size	set_int, .-set_int
+	.globl	set_long_int
+	.type	set_long_int, @function
+set_long_int:
+.LFB19:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$16, %rsp
+	movq	%rdi, -8(%rbp)
+	movq	%rsi, -16(%rbp)
+	movq	-8(%rbp), %rdx
+	leaq	-16(%rbp), %rax
+	movq	%rax, %rsi
+	movl	$8, %edi
+	call	insert_data_into_mem
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE19:
+	.size	set_long_int, .-set_long_int
+	.globl	set_float
+	.type	set_float, @function
+set_float:
+.LFB20:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$16, %rsp
+	movq	%rdi, -8(%rbp)
+	movss	%xmm0, -12(%rbp)
+	movq	-8(%rbp), %rdx
+	leaq	-12(%rbp), %rax
+	movq	%rax, %rsi
+	movl	$4, %edi
+	call	insert_data_into_mem
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE20:
+	.size	set_float, .-set_float
+	.globl	set_double
+	.type	set_double, @function
+set_double:
+.LFB21:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$16, %rsp
+	movq	%rdi, -8(%rbp)
+	movsd	%xmm0, -16(%rbp)
+	movq	-8(%rbp), %rdx
+	leaq	-16(%rbp), %rax
+	movq	%rax, %rsi
+	movl	$8, %edi
+	call	insert_data_into_mem
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE21:
+	.size	set_double, .-set_double
 	.globl	insert_data_into_normal_array
 	.type	insert_data_into_normal_array, @function
 insert_data_into_normal_array:
-.LFB14:
+.LFB22:
 	.cfi_startproc
 	pushq	%rbp
 	.cfi_def_cfa_offset 16
@@ -633,8 +834,8 @@ insert_data_into_normal_array:
 	movq	%rsi, -32(%rbp)
 	movq	%rdx, -40(%rbp)
 	movl	$0, -4(%rbp)
-	jmp	.L50
-.L51:
+	jmp	.L58
+.L59:
 	movl	-4(%rbp), %eax
 	movslq	%eax, %rdx
 	movq	-32(%rbp), %rax
@@ -646,16 +847,16 @@ insert_data_into_normal_array:
 	movzbl	(%rax), %eax
 	movb	%al, (%rdx)
 	addl	$1, -4(%rbp)
-.L50:
+.L58:
 	movl	-4(%rbp), %eax
 	cltq
 	cmpq	-24(%rbp), %rax
-	jl	.L51
+	jl	.L59
 	popq	%rbp
 	.cfi_def_cfa 7, 8
 	ret
 	.cfi_endproc
-.LFE14:
+.LFE22:
 	.size	insert_data_into_normal_array, .-insert_data_into_normal_array
 	.section	.rodata
 	.align 8
@@ -712,7 +913,7 @@ insert_data_into_normal_array:
 	.globl	mem_test
 	.type	mem_test, @function
 mem_test:
-.LFB15:
+.LFB23:
 	.cfi_startproc
 	pushq	%rbp
 	.cfi_def_cfa_offset 16
@@ -766,8 +967,8 @@ mem_test:
 	call	malloc
 	movq	%rax, -32(%rbp)
 	movq	$5, -80(%rbp)
-	jmp	.L53
-.L54:
+	jmp	.L61
+.L62:
 	movq	-80(%rbp), %rax
 	salq	$2, %rax
 	leaq	-20(%rax), %rdx
@@ -779,11 +980,11 @@ mem_test:
 	imull	%ecx, %eax
 	movl	%eax, (%rdx)
 	addq	$1, -80(%rbp)
-.L53:
+.L61:
 	movq	-64(%rbp), %rax
 	addq	$5, %rax
 	cmpq	-80(%rbp), %rax
-	jg	.L54
+	jg	.L62
 	movl	$.LC11, %edi
 	call	puts
 	movq	last_unused_memory(%rip), %rax
@@ -797,12 +998,12 @@ mem_test:
 	call	secure_malloc
 	movq	%rax, -24(%rbp)
 	cmpq	$0, -24(%rbp)
-	jne	.L55
+	jne	.L63
 	movl	$.LC13, %edi
 	call	perror
 	movl	$42, %edi
 	call	exit
-.L55:
+.L63:
 	movq	last_unused_memory(%rip), %rax
 	movq	%rax, %rsi
 	movl	$.LC14, %edi
@@ -823,8 +1024,8 @@ mem_test:
 	call	malloc
 	movq	%rax, -16(%rbp)
 	movq	$0, -72(%rbp)
-	jmp	.L56
-.L57:
+	jmp	.L64
+.L65:
 	movq	-72(%rbp), %rcx
 	movq	-24(%rbp), %rdx
 	movq	-16(%rbp), %rax
@@ -840,10 +1041,10 @@ mem_test:
 	movl	$0, %eax
 	call	printf
 	addq	$1, -72(%rbp)
-.L56:
+.L64:
 	movq	-72(%rbp), %rax
 	cmpq	-64(%rbp), %rax
-	jl	.L57
+	jl	.L65
 	movl	$10, %edi
 	call	putchar
 	movl	$.LC18, %edi
@@ -859,20 +1060,20 @@ mem_test:
 	call	secure_malloc
 	movq	%rax, -8(%rbp)
 	cmpq	$0, -8(%rbp)
-	jne	.L58
+	jne	.L66
 	movl	$.LC13, %edi
 	call	perror
 	movl	$42, %edi
 	call	exit
-.L58:
+.L66:
 	movq	last_unused_memory(%rip), %rax
 	movq	%rax, %rsi
 	movl	$.LC14, %edi
 	movl	$0, %eax
 	call	printf
 	movq	$5, -80(%rbp)
-	jmp	.L59
-.L60:
+	jmp	.L67
+.L68:
 	movq	-80(%rbp), %rax
 	salq	$2, %rax
 	leaq	-20(%rax), %rdx
@@ -885,11 +1086,11 @@ mem_test:
 	addl	%edx, %eax
 	movl	%eax, (%rcx)
 	addq	$1, -80(%rbp)
-.L59:
+.L67:
 	movq	-64(%rbp), %rax
 	addq	$5, %rax
 	cmpq	-80(%rbp), %rax
-	jg	.L60
+	jg	.L68
 	movl	$.LC19, %edi
 	call	puts
 	movq	-64(%rbp), %rax
@@ -902,8 +1103,8 @@ mem_test:
 	movl	$.LC16, %edi
 	call	puts
 	movq	$0, -72(%rbp)
-	jmp	.L61
-.L62:
+	jmp	.L69
+.L70:
 	movq	-72(%rbp), %rcx
 	movq	-8(%rbp), %rdx
 	movq	-16(%rbp), %rax
@@ -919,10 +1120,10 @@ mem_test:
 	movl	$0, %eax
 	call	printf
 	addq	$1, -72(%rbp)
-.L61:
+.L69:
 	movq	-72(%rbp), %rax
 	cmpq	-64(%rbp), %rax
-	jl	.L62
+	jl	.L70
 	movl	$10, %edi
 	call	putchar
 	movl	$.LC20, %edi
@@ -974,7 +1175,7 @@ mem_test:
 	.cfi_def_cfa 7, 8
 	ret
 	.cfi_endproc
-.LFE15:
+.LFE23:
 	.size	mem_test, .-mem_test
 	.section	.rodata
 .LC24:
@@ -1000,7 +1201,7 @@ mem_test:
 	.globl	find_keyshares
 	.type	find_keyshares, @function
 find_keyshares:
-.LFB16:
+.LFB24:
 	.cfi_startproc
 	pushq	%rbp
 	.cfi_def_cfa_offset 16
@@ -1040,8 +1241,8 @@ find_keyshares:
 	call	printf
 	movq	-48(%rbp), %rax
 	movq	%rax, -56(%rbp)
-	jmp	.L64
-.L66:
+	jmp	.L72
+.L74:
 	movq	-56(%rbp), %rax
 	movzbl	(%rax), %eax
 	movzbl	%al, %eax
@@ -1050,26 +1251,26 @@ find_keyshares:
 	movl	$0, %eax
 	call	printf
 	addq	$1, -56(%rbp)
-.L64:
+.L72:
 	movq	-56(%rbp), %rax
 	movzbl	(%rax), %eax
 	cmpb	$-61, %al
-	je	.L65
+	je	.L73
 	movq	-56(%rbp), %rax
 	movzbl	(%rax), %eax
 	cmpb	$-53, %al
-	je	.L66
-.L65:
+	je	.L74
+.L73:
 	movq	-56(%rbp), %rax
 	subq	$1, %rax
 	movzbl	(%rax), %eax
 	cmpb	$17, %al
-	jne	.L66
+	jne	.L74
 	movq	-56(%rbp), %rax
 	subq	$2, %rax
 	movzbl	(%rax), %eax
 	cmpb	$17, %al
-	jne	.L66
+	jne	.L74
 	movq	-56(%rbp), %rax
 	movzbl	(%rax), %eax
 	movzbl	%al, %eax
@@ -1081,17 +1282,17 @@ find_keyshares:
 	call	puts
 	movq	-16(%rbp), %rax
 	movq	%rax, -56(%rbp)
-	jmp	.L67
-.L69:
+	jmp	.L75
+.L77:
 	movq	-56(%rbp), %rax
 	movzbl	(%rax), %eax
 	cmpb	$-21, %al
-	jne	.L68
+	jne	.L76
 	movq	-56(%rbp), %rax
 	addq	$1, %rax
 	movzbl	(%rax), %eax
 	cmpb	$5, %al
-	jne	.L68
+	jne	.L76
 	movq	-56(%rbp), %rax
 	addq	$2, %rax
 	movzbl	(%rax), %eax
@@ -1136,12 +1337,12 @@ find_keyshares:
 	xorl	%edx, %eax
 	movb	%al, -61(%rbp)
 	addl	$1, -60(%rbp)
-.L68:
+.L76:
 	addq	$1, -56(%rbp)
-.L67:
+.L75:
 	movq	-56(%rbp), %rax
 	cmpq	-8(%rbp), %rax
-	jbe	.L69
+	jbe	.L77
 	movl	$.LC27, %edi
 	movl	$0, %eax
 	call	printf
@@ -1175,12 +1376,12 @@ find_keyshares:
 	.cfi_def_cfa 7, 8
 	ret
 	.cfi_endproc
-.LFE16:
+.LFE24:
 	.size	find_keyshares, .-find_keyshares
 	.globl	foo
 	.type	foo, @function
 foo:
-.LFB17:
+.LFB25:
 	.cfi_startproc
 	pushq	%rbp
 	.cfi_def_cfa_offset 16
@@ -1196,7 +1397,7 @@ foo:
 	.cfi_def_cfa 7, 8
 	ret
 	.cfi_endproc
-.LFE17:
+.LFE25:
 	.size	foo, .-foo
 	.section	.rodata
 .LC33:
@@ -1209,45 +1410,48 @@ foo:
 	.globl	main
 	.type	main, @function
 main:
-.LFB18:
+.LFB26:
 	.cfi_startproc
 	pushq	%rbp
 	.cfi_def_cfa_offset 16
 	.cfi_offset 6, -16
 	movq	%rsp, %rbp
 	.cfi_def_cfa_register 6
-	subq	$16, %rsp
-	movl	$1, -16(%rbp)
-	movl	$2, -8(%rbp)
-	addl	$1, -8(%rbp)
-	addl	$1, -8(%rbp)
-	subl	$1, -8(%rbp)
-	movl	-8(%rbp), %eax
-	addl	%eax, -16(%rbp)
-	addl	$2, -16(%rbp)
-	addl	$1, -8(%rbp)
-	movl	$1, -12(%rbp)
-	jmp	.L74
-.L75:
-	movl	-8(%rbp), %eax
-	addl	%eax, -16(%rbp)
-	addl	$1, -12(%rbp)
-.L74:
-	cmpl	$500000000, -12(%rbp)
-	jle	.L75
-	movl	-16(%rbp), %eax
+	subq	$48, %rsp
+	movq	%fs:40, %rax
+	movq	%rax, -8(%rbp)
+	xorl	%eax, %eax
+	movl	$1, -48(%rbp)
+	movl	$2, -40(%rbp)
+	addl	$1, -40(%rbp)
+	addl	$1, -40(%rbp)
+	subl	$1, -40(%rbp)
+	movl	-40(%rbp), %eax
+	addl	%eax, -48(%rbp)
+	addl	$2, -48(%rbp)
+	addl	$1, -40(%rbp)
+	movl	$1, -44(%rbp)
+	jmp	.L82
+.L83:
+	movl	-40(%rbp), %eax
+	addl	%eax, -48(%rbp)
+	addl	$1, -44(%rbp)
+.L82:
+	cmpl	$500000000, -44(%rbp)
+	jle	.L83
+	movl	-48(%rbp), %eax
 	movl	%eax, %esi
 	movl	$.LC33, %edi
 	movl	$0, %eax
 	call	printf
 	movl	$5, %edi
 	call	foo
-	movl	%eax, -4(%rbp)
-	movl	-4(%rbp), %eax
+	movl	%eax, -36(%rbp)
+	movl	-36(%rbp), %eax
 	movl	%eax, %edi
 	call	foo2
-	movl	%eax, -4(%rbp)
-	movl	-4(%rbp), %eax
+	movl	%eax, -36(%rbp)
+	movl	-36(%rbp), %eax
 	movl	%eax, %esi
 	movl	$.LC34, %edi
 	movl	$0, %eax
@@ -1259,16 +1463,21 @@ main:
 	movl	$0, %eax
 	call	mem_test
 	movl	$0, %eax
+	movq	-8(%rbp), %rdx
+	xorq	%fs:40, %rdx
+	je	.L85
+	call	__stack_chk_fail
+.L85:
 	leave
 	.cfi_def_cfa 7, 8
 	ret
 	.cfi_endproc
-.LFE18:
+.LFE26:
 	.size	main, .-main
 	.globl	foo2
 	.type	foo2, @function
 foo2:
-.LFB19:
+.LFB27:
 	.cfi_startproc
 	pushq	%rbp
 	.cfi_def_cfa_offset 16
@@ -1284,7 +1493,7 @@ foo2:
 	.cfi_def_cfa 7, 8
 	ret
 	.cfi_endproc
-.LFE19:
+.LFE27:
 	.size	foo2, .-foo2
 	.ident	"GCC: (Ubuntu 4.8.4-2ubuntu1~14.04.1) 4.8.4"
 	.section	.note.GNU-stack,"",@progbits

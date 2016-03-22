@@ -313,12 +313,53 @@ void get_char( void * start_of_secure_data,char * res)
   get_secure_data(res,sizeof(char),start_of_secure_data,0,0);
 }
 
+void get_int( void * start_of_secure_data,int * res)
+{
+  get_secure_data(res,sizeof(int),start_of_secure_data,0,0);
+}
+
+void get_long_int( void * start_of_secure_data,long int * res)
+{
+  get_secure_data(res,sizeof(long int),start_of_secure_data,0,0);
+}
+
+
+void get_float( void * start_of_secure_data,float * res)
+{
+  get_secure_data(res,sizeof(float),start_of_secure_data,0,0);
+}
+
+void get_double( void * start_of_secure_data,double * res)
+{
+  get_secure_data(res,sizeof(double),start_of_secure_data,0,0);
+}
+
 
 /*Sets a securely allocated char. Of course secure_malloc must have been called before*/
-/*The function reads from *source, which must have been preallocated. */
-void set_char( void * start_of_secure_data,char * source)
+/*The function reads from source */
+void set_char( void * start_of_secure_data,char source)
 {
-  insert_data_into_mem(sizeof(char),(unsigned char *)source,(unsigned char *)start_of_secure_data);
+  insert_data_into_mem(sizeof(char),(unsigned char *)&source,(unsigned char *)start_of_secure_data);
+}
+
+void set_int( void * start_of_secure_data,int source)
+{
+  insert_data_into_mem(sizeof(int),(unsigned char *)&source,(unsigned char *)start_of_secure_data);
+}
+
+void set_long_int( void * start_of_secure_data,long int source)
+{
+  insert_data_into_mem(sizeof(long int),(unsigned char *)&source,(unsigned char *)start_of_secure_data);
+}
+
+void set_float( void * start_of_secure_data,float source)
+{
+  insert_data_into_mem(sizeof(float),(unsigned char *)&source,(unsigned char *)start_of_secure_data);
+}
+
+void set_double( void * start_of_secure_data,double source)
+{
+  insert_data_into_mem(sizeof(double),(unsigned char *)&source,(unsigned char *)start_of_secure_data);
 }
 
 
