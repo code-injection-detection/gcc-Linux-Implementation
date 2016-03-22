@@ -6,7 +6,7 @@
 #define bytes_used_for_keyshares (5)
 #define bytes_to_allocate_on_start (1024)
 #define bytes_between_keyshares (4) //practically the "useful" bytes. Important: It is not (currently) possible to split this bytegroup into multiple parts.
-
+				    //which means that should someone allocate x bytegroups but does not need the last one as a whole, we cannot give it to another one
 long total_bytes_allocated;
 unsigned char * memory_chunk;
 unsigned char* last_unused_memory;
@@ -276,6 +276,69 @@ void get_secure_data(void * res,long data_size, unsigned char * data_start, int 
 
 }
 
+/*Cousin function of insert_data_into_mem(), but works with array elements as well. */
+/*Structure similar to get_secure_data(), reading data from *source*/
+void set_secure_data(void * source,long data_size, unsigned char * data_start, int isarray, long arrayindex)
+{
+
+  unsigned char* src;
+  long i,j,k;
+  unsigned char * p;
+  long total_data_set=0;
+  int counting_key_bytes=0; //used as boolean
+  long chunks_forward;
+
+  p=data_start;
+  src=source;
+
+  i=0;
+  if (isarray)
+  {
+	chunks_forward=(arrayindex*data_size)/(bytes_between_keyshares);
+	if (chunks_forward*bytes_between_keyshares==(arrayindex*data_size))
+	{
+		p+=chunks_forward*bytes_between_keyshares + chunks_forward * bytes_used_for_keyshares; //We set p to point to the next useful area
+	}
+	else
+	{
+		//Well that's a problem. We have to start in the middle of a chunk.
+		//What we'll do is that we will set the part up to the end of the chunk.
+		p+=chunks_forward*bytes_between_keyshares + chunks_forward * bytes_used_for_keyshares;
+		j=(arrayindex*data_size)-(chunks_forward*bytes_between_keyshares);
+
+		for (k=0;j+k<bytes_between_keyshares && (total_data_set + k < data_size );k++)
+		{
+			p[j+k]=src[total_data_set+k];
+		}
+		total_data_set+=k;
+		p+=bytes_between_keyshares + bytes_used_for_keyshares;
+	}
+  }
+
+
+  while(total_data_set<data_size)
+  {
+    if (counting_key_bytes)
+    {
+	i+=bytes_used_for_keyshares;
+	counting_key_bytes=0;
+    }
+    else
+    {
+	//actual set
+	for (j=0;j<bytes_between_keyshares && (total_data_set + j < data_size );j++)
+	{
+		p[i+j]=src[total_data_set+j];
+	}
+
+	total_data_set+=j;
+
+	i+=bytes_between_keyshares;
+	counting_key_bytes=1;	
+    } 
+  }
+
+}
 
 
 long find_useful_chunks( long allocated_bytes)
@@ -335,6 +398,13 @@ void get_double( void * start_of_secure_data,double * res)
 }
 
 
+void get_array_element(long data_size, void * start_of_array, long index, void * res)
+{
+  get_secure_data(res,data_size,start_of_array,1,index);
+}
+
+
+
 /*Sets a securely allocated char. Of course secure_malloc must have been called before*/
 /*The function reads from source */
 void set_char( void * start_of_secure_data,char source)
@@ -362,6 +432,13 @@ void set_double( void * start_of_secure_data,double source)
   insert_data_into_mem(sizeof(double),(unsigned char *)&source,(unsigned char *)start_of_secure_data);
 }
 
+//reads data from *source
+void set_array_element(long data_size, void * start_of_array, long index, void * source)
+{
+  set_secure_data(source,data_size,start_of_array,1,index);
+}
+
+
 
 //for time testing
 void insert_data_into_normal_array(long size, unsigned char* data,unsigned char * mem)
@@ -385,8 +462,16 @@ void mem_test()
 	unsigned char * start_of_secure_data1;
 	int * retrieved_int;
 	int an_integer;
+	char a_char;
+	long int a_long;
+	double a_double;
+	char * another_secured_char;
+	long int * another_secured_long_int;
+	double * another_secured_double;
 	int * another_secured_int;
 	long loop_size;
+	double * array_test;
+	double foo_double;
 
 
 	printf("Zero hex test printing: 0x%02x \n",(unsigned char) 0);
@@ -481,8 +566,37 @@ void mem_test()
 	set_int(another_secured_int,99998);
 	get_int(another_secured_int,&an_integer);
 	printf("Got %d\n",an_integer);
+
+	another_secured_char=secure_malloc(sizeof(char));
+	set_char(another_secured_char,'b');
+	get_char(another_secured_char,&a_char);
+	printf("Got %c\n",a_char);
+
+	another_secured_long_int=secure_malloc(sizeof(long int));
+	set_long_int(another_secured_long_int,54545454);
+	get_long_int(another_secured_long_int,&a_long);
+	printf("Got %ld\n",a_long);
+
+	another_secured_double=secure_malloc(sizeof(double));
+	set_double(another_secured_double,7878.3434);
+	get_double(another_secured_double,&a_double);
+	printf("Got %lf\n",a_double);
+
+	printf("Array wrapper function testing\n");
+	array_test=secure_malloc(10*sizeof(double));
+	foo_double=42.424242;
+	set_array_element(sizeof(double),array_test,2, &foo_double);
+	foo_double=34.121212;
+	set_array_element(sizeof(double),array_test,3, &foo_double);
+	foo_double=1;
+	get_array_element(sizeof(double),array_test,2,&foo_double);
+	printf("array index 2 is %lf\n",foo_double);
+	get_array_element(sizeof(double),array_test,3,&foo_double);
+	printf("array index 3 is %lf\n",foo_double);
 	
-	
+	printf("\n\n\n");
+
+	/*
 	//loop_size=100000000;	
 	loop_size=200000000;	
 
@@ -517,7 +631,7 @@ void mem_test()
 	for(i=0;i<size;i++)
 		if(data2[i]!=data[i])	printf("data2!=data , data2[i]=%d, data[i]=%d i=%ld\n",data2[i],data[i],i);
 	
-	
+	*/
 
 	printf("After data retrieval, print mem\n");
 	print_mem(mem);
