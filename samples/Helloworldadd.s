@@ -25,7 +25,7 @@ allocate_mem:
 	subq	$48, %rsp
 	movq	$1024, -40(%rbp)
 	movq	$5, -32(%rbp)
-	movq	$1, -24(%rbp)
+	movq	$4, -24(%rbp)
 	movq	-32(%rbp), %rax
 	movq	-40(%rbp), %rdx
 	addq	%rdx, %rax
@@ -99,7 +99,7 @@ secure_malloc:
 	movq	total_bytes_allocated(%rip), %rax
 	movq	%rax, -56(%rbp)
 	movq	$5, -48(%rbp)
-	movq	$1, -40(%rbp)
+	movq	$4, -40(%rbp)
 	movq	memory_chunk(%rip), %rax
 	movq	%rax, -32(%rbp)
 	movq	-32(%rbp), %rdx
@@ -224,9 +224,9 @@ insert_keys_into_mem:
 	movb	$0, (%rax)
 	addq	$1, -40(%rbp)
 .L16:
-	cmpq	$0, -40(%rbp)
+	cmpq	$3, -40(%rbp)
 	jle	.L17
-	addq	$1, -48(%rbp)
+	addq	$4, -48(%rbp)
 	movl	$1, -52(%rbp)
 .L15:
 	cmpq	$5, -32(%rbp)
@@ -334,7 +334,7 @@ insert_data_into_mem:
 	movb	%al, (%rdx)
 	addq	$1, -32(%rbp)
 .L25:
-	cmpq	$0, -32(%rbp)
+	cmpq	$3, -32(%rbp)
 	jg	.L26
 	movq	-32(%rbp), %rax
 	movq	-16(%rbp), %rdx
@@ -345,7 +345,7 @@ insert_data_into_mem:
 	movq	-32(%rbp), %rax
 	addq	%rax, -16(%rbp)
 	addq	$1, -24(%rbp)
-	addq	$1, -40(%rbp)
+	addq	$4, -40(%rbp)
 	movl	$1, -44(%rbp)
 .L23:
 	movq	-16(%rbp), %rax
@@ -384,28 +384,37 @@ get_secure_data:
 	je	.L31
 	movq	-104(%rbp), %rax
 	imulq	-80(%rbp), %rax
+	leaq	3(%rax), %rdx
+	testq	%rax, %rax
+	cmovs	%rdx, %rax
+	sarq	$2, %rax
 	movq	%rax, -8(%rbp)
+	movq	-8(%rbp), %rax
+	leaq	0(,%rax,4), %rdx
 	movq	-104(%rbp), %rax
 	imulq	-80(%rbp), %rax
-	cmpq	-8(%rbp), %rax
+	cmpq	%rax, %rdx
 	jne	.L32
 	movq	-8(%rbp), %rdx
 	movq	%rdx, %rax
-	addq	%rax, %rax
+	salq	$3, %rax
 	addq	%rdx, %rax
-	addq	%rax, %rax
 	addq	%rax, -32(%rbp)
 	jmp	.L31
 .L32:
 	movq	-8(%rbp), %rdx
 	movq	%rdx, %rax
-	addq	%rax, %rax
+	salq	$3, %rax
 	addq	%rdx, %rax
-	addq	%rax, %rax
 	addq	%rax, -32(%rbp)
 	movq	-104(%rbp), %rax
 	imulq	-80(%rbp), %rax
-	subq	-8(%rbp), %rax
+	movq	%rax, %rdx
+	movq	-8(%rbp), %rcx
+	movl	$0, %eax
+	subq	%rcx, %rax
+	salq	$2, %rax
+	addq	%rdx, %rax
 	movq	%rax, -48(%rbp)
 	movq	$0, -40(%rbp)
 	jmp	.L33
@@ -429,7 +438,7 @@ get_secure_data:
 	movq	-40(%rbp), %rax
 	movq	-48(%rbp), %rdx
 	addq	%rdx, %rax
-	testq	%rax, %rax
+	cmpq	$3, %rax
 	jg	.L34
 	movq	-40(%rbp), %rax
 	movq	-24(%rbp), %rdx
@@ -439,7 +448,7 @@ get_secure_data:
 .L34:
 	movq	-40(%rbp), %rax
 	addq	%rax, -24(%rbp)
-	addq	$6, -32(%rbp)
+	addq	$9, -32(%rbp)
 	jmp	.L36
 .L31:
 	jmp	.L36
@@ -469,7 +478,7 @@ get_secure_data:
 	movb	%al, (%rdx)
 	addq	$1, -48(%rbp)
 .L38:
-	cmpq	$0, -48(%rbp)
+	cmpq	$3, -48(%rbp)
 	jg	.L39
 	movq	-48(%rbp), %rax
 	movq	-24(%rbp), %rdx
@@ -479,7 +488,7 @@ get_secure_data:
 .L39:
 	movq	-48(%rbp), %rax
 	addq	%rax, -24(%rbp)
-	addq	$1, -56(%rbp)
+	addq	$4, -56(%rbp)
 	movl	$1, -60(%rbp)
 .L36:
 	movq	-24(%rbp), %rax
@@ -505,7 +514,7 @@ find_useful_chunks:
 	movq	-40(%rbp), %rax
 	movq	%rax, -24(%rbp)
 	movq	$5, -16(%rbp)
-	movq	$1, -8(%rbp)
+	movq	$4, -8(%rbp)
 	movq	-16(%rbp), %rax
 	movq	-24(%rbp), %rdx
 	addq	%rdx, %rax
@@ -904,10 +913,25 @@ insert_data_into_normal_array:
 	.string	"Now trying to store and retrieve 424242424..."
 .LC21:
 	.string	"\n\n%d \n\n"
-	.align 8
 .LC22:
-	.string	"After data retrieval, print mem"
+	.string	"Testing wrapper functions"
 .LC23:
+	.string	"Got %d\n"
+.LC24:
+	.string	"Normal_insertion:%ld\n"
+.LC25:
+	.string	"Secure_insertion:%ld\n"
+.LC26:
+	.string	"Normal_fetch:%ld\n"
+.LC27:
+	.string	"Secure_fetch:%ld\n"
+	.align 8
+.LC28:
+	.string	"data2!=data , data2[i]=%d, data[i]=%d i=%ld\n"
+	.align 8
+.LC29:
+	.string	"After data retrieval, print mem"
+.LC30:
 	.string	"Mem test done"
 	.text
 	.globl	mem_test
@@ -920,8 +944,8 @@ mem_test:
 	.cfi_offset 6, -16
 	movq	%rsp, %rbp
 	.cfi_def_cfa_register 6
-	subq	$80, %rsp
-	movq	$20, -64(%rbp)
+	subq	$112, %rsp
+	movq	$20, -88(%rbp)
 	movl	$0, %esi
 	movl	$.LC4, %edi
 	movl	$0, %eax
@@ -936,7 +960,7 @@ mem_test:
 	call	puts
 	movl	$0, %eax
 	call	init_mem
-	movq	%rax, -56(%rbp)
+	movq	%rax, -80(%rbp)
 	movq	total_bytes_allocated(%rip), %rax
 	movq	%rax, %rsi
 	movl	$.LC8, %edi
@@ -945,45 +969,45 @@ mem_test:
 	movq	total_bytes_allocated(%rip), %rax
 	movq	%rax, %rdi
 	call	find_useful_chunks
-	movq	%rax, -48(%rbp)
-	movq	-48(%rbp), %rax
+	movq	%rax, -72(%rbp)
+	movq	-72(%rbp), %rax
 	movq	%rax, %rsi
 	movl	$.LC9, %edi
 	movl	$0, %eax
 	call	printf
 	movl	$.LC10, %edi
 	call	puts
-	movq	-56(%rbp), %rax
+	movq	-80(%rbp), %rax
 	movq	%rax, %rdi
 	call	print_mem
-	movq	-64(%rbp), %rax
+	movq	-88(%rbp), %rax
 	salq	$2, %rax
 	movq	%rax, %rdi
 	call	malloc
-	movq	%rax, -40(%rbp)
-	movq	-64(%rbp), %rax
+	movq	%rax, -64(%rbp)
+	movq	-88(%rbp), %rax
 	salq	$2, %rax
 	movq	%rax, %rdi
 	call	malloc
-	movq	%rax, -32(%rbp)
-	movq	$5, -80(%rbp)
+	movq	%rax, -56(%rbp)
+	movq	$5, -104(%rbp)
 	jmp	.L61
 .L62:
-	movq	-80(%rbp), %rax
+	movq	-104(%rbp), %rax
 	salq	$2, %rax
 	leaq	-20(%rax), %rdx
-	movq	-40(%rbp), %rax
+	movq	-64(%rbp), %rax
 	addq	%rax, %rdx
-	movq	-80(%rbp), %rax
+	movq	-104(%rbp), %rax
 	movl	%eax, %ecx
-	movq	-80(%rbp), %rax
+	movq	-104(%rbp), %rax
 	imull	%ecx, %eax
 	movl	%eax, (%rdx)
-	addq	$1, -80(%rbp)
+	addq	$1, -104(%rbp)
 .L61:
-	movq	-64(%rbp), %rax
+	movq	-88(%rbp), %rax
 	addq	$5, %rax
-	cmpq	-80(%rbp), %rax
+	cmpq	-104(%rbp), %rax
 	jg	.L62
 	movl	$.LC11, %edi
 	call	puts
@@ -992,12 +1016,12 @@ mem_test:
 	movl	$.LC12, %edi
 	movl	$0, %eax
 	call	printf
-	movq	-64(%rbp), %rax
+	movq	-88(%rbp), %rax
 	salq	$2, %rax
 	movq	%rax, %rdi
 	call	secure_malloc
-	movq	%rax, -24(%rbp)
-	cmpq	$0, -24(%rbp)
+	movq	%rax, -48(%rbp)
+	cmpq	$0, -48(%rbp)
 	jne	.L63
 	movl	$.LC13, %edi
 	call	perror
@@ -1011,10 +1035,10 @@ mem_test:
 	call	printf
 	movl	$.LC15, %edi
 	call	puts
-	movq	-64(%rbp), %rax
+	movq	-88(%rbp), %rax
 	salq	$2, %rax
-	movq	-24(%rbp), %rdx
-	movq	-40(%rbp), %rcx
+	movq	-48(%rbp), %rdx
+	movq	-64(%rbp), %rcx
 	movq	%rcx, %rsi
 	movq	%rax, %rdi
 	call	insert_data_into_mem
@@ -1022,28 +1046,28 @@ mem_test:
 	call	puts
 	movl	$4, %edi
 	call	malloc
-	movq	%rax, -16(%rbp)
-	movq	$0, -72(%rbp)
+	movq	%rax, -40(%rbp)
+	movq	$0, -96(%rbp)
 	jmp	.L64
 .L65:
-	movq	-72(%rbp), %rcx
-	movq	-24(%rbp), %rdx
-	movq	-16(%rbp), %rax
+	movq	-96(%rbp), %rcx
+	movq	-48(%rbp), %rdx
+	movq	-40(%rbp), %rax
 	movq	%rcx, %r8
 	movl	$1, %ecx
 	movl	$4, %esi
 	movq	%rax, %rdi
 	call	get_secure_data
-	movq	-16(%rbp), %rax
+	movq	-40(%rbp), %rax
 	movl	(%rax), %eax
 	movl	%eax, %esi
 	movl	$.LC17, %edi
 	movl	$0, %eax
 	call	printf
-	addq	$1, -72(%rbp)
+	addq	$1, -96(%rbp)
 .L64:
-	movq	-72(%rbp), %rax
-	cmpq	-64(%rbp), %rax
+	movq	-96(%rbp), %rax
+	cmpq	-88(%rbp), %rax
 	jl	.L65
 	movl	$10, %edi
 	call	putchar
@@ -1054,12 +1078,12 @@ mem_test:
 	movl	$.LC12, %edi
 	movl	$0, %eax
 	call	printf
-	movq	-64(%rbp), %rax
+	movq	-88(%rbp), %rax
 	salq	$2, %rax
 	movq	%rax, %rdi
 	call	secure_malloc
-	movq	%rax, -8(%rbp)
-	cmpq	$0, -8(%rbp)
+	movq	%rax, -32(%rbp)
+	cmpq	$0, -32(%rbp)
 	jne	.L66
 	movl	$.LC13, %edi
 	call	perror
@@ -1071,58 +1095,58 @@ mem_test:
 	movl	$.LC14, %edi
 	movl	$0, %eax
 	call	printf
-	movq	$5, -80(%rbp)
+	movq	$5, -104(%rbp)
 	jmp	.L67
 .L68:
-	movq	-80(%rbp), %rax
+	movq	-104(%rbp), %rax
 	salq	$2, %rax
 	leaq	-20(%rax), %rdx
-	movq	-40(%rbp), %rax
+	movq	-64(%rbp), %rax
 	leaq	(%rdx,%rax), %rcx
-	movq	-80(%rbp), %rax
+	movq	-104(%rbp), %rax
 	movl	%eax, %edx
 	movl	%edx, %eax
 	addl	%eax, %eax
 	addl	%edx, %eax
 	movl	%eax, (%rcx)
-	addq	$1, -80(%rbp)
+	addq	$1, -104(%rbp)
 .L67:
-	movq	-64(%rbp), %rax
+	movq	-88(%rbp), %rax
 	addq	$5, %rax
-	cmpq	-80(%rbp), %rax
+	cmpq	-104(%rbp), %rax
 	jg	.L68
 	movl	$.LC19, %edi
 	call	puts
-	movq	-64(%rbp), %rax
+	movq	-88(%rbp), %rax
 	salq	$2, %rax
-	movq	-8(%rbp), %rdx
-	movq	-40(%rbp), %rcx
+	movq	-32(%rbp), %rdx
+	movq	-64(%rbp), %rcx
 	movq	%rcx, %rsi
 	movq	%rax, %rdi
 	call	insert_data_into_mem
 	movl	$.LC16, %edi
 	call	puts
-	movq	$0, -72(%rbp)
+	movq	$0, -96(%rbp)
 	jmp	.L69
 .L70:
-	movq	-72(%rbp), %rcx
-	movq	-8(%rbp), %rdx
-	movq	-16(%rbp), %rax
+	movq	-96(%rbp), %rcx
+	movq	-32(%rbp), %rdx
+	movq	-40(%rbp), %rax
 	movq	%rcx, %r8
 	movl	$1, %ecx
 	movl	$4, %esi
 	movq	%rax, %rdi
 	call	get_secure_data
-	movq	-16(%rbp), %rax
+	movq	-40(%rbp), %rax
 	movl	(%rax), %eax
 	movl	%eax, %esi
 	movl	$.LC17, %edi
 	movl	$0, %eax
 	call	printf
-	addq	$1, -72(%rbp)
+	addq	$1, -96(%rbp)
 .L69:
-	movq	-72(%rbp), %rax
-	cmpq	-64(%rbp), %rax
+	movq	-96(%rbp), %rax
+	cmpq	-88(%rbp), %rax
 	jl	.L70
 	movl	$10, %edi
 	call	putchar
@@ -1130,46 +1154,223 @@ mem_test:
 	call	puts
 	movl	$4, %edi
 	call	secure_malloc
-	movq	%rax, -8(%rbp)
-	movq	-16(%rbp), %rax
+	movq	%rax, -32(%rbp)
+	movq	-40(%rbp), %rax
 	movl	$424242424, (%rax)
-	movq	-8(%rbp), %rdx
-	movq	-16(%rbp), %rax
+	movq	-32(%rbp), %rdx
+	movq	-40(%rbp), %rax
 	movq	%rax, %rsi
 	movl	$4, %edi
 	call	insert_data_into_mem
-	movq	-16(%rbp), %rax
+	movq	-40(%rbp), %rax
 	movq	%rax, %rdi
 	call	free
 	movl	$4, %edi
 	call	malloc
-	movq	%rax, -16(%rbp)
-	movq	-72(%rbp), %rcx
-	movq	-8(%rbp), %rdx
-	movq	-16(%rbp), %rax
+	movq	%rax, -40(%rbp)
+	movq	-96(%rbp), %rcx
+	movq	-32(%rbp), %rdx
+	movq	-40(%rbp), %rax
 	movq	%rcx, %r8
 	movl	$0, %ecx
 	movl	$4, %esi
 	movq	%rax, %rdi
 	call	get_secure_data
-	movq	-16(%rbp), %rax
+	movq	-40(%rbp), %rax
 	movl	(%rax), %eax
 	movl	%eax, %esi
 	movl	$.LC21, %edi
 	movl	$0, %eax
 	call	printf
-	movq	-16(%rbp), %rax
+	movq	-40(%rbp), %rax
 	movq	%rax, %rdi
 	call	free
 	movl	$.LC22, %edi
 	call	puts
+	movl	$4, %edi
+	call	secure_malloc
+	movq	%rax, -24(%rbp)
+	movq	-24(%rbp), %rax
+	movl	$99998, %esi
+	movq	%rax, %rdi
+	call	set_int
+	leaq	-108(%rbp), %rdx
+	movq	-24(%rbp), %rax
+	movq	%rdx, %rsi
+	movq	%rax, %rdi
+	call	get_int
+	movl	-108(%rbp), %eax
+	movl	%eax, %esi
+	movl	$.LC23, %edi
+	movl	$0, %eax
+	call	printf
+	movq	$200000000, -16(%rbp)
+	movl	$0, %edi
+	call	time
+	movq	%rax, -8(%rbp)
+	movq	$1, -96(%rbp)
+	jmp	.L71
+.L74:
+	movq	$0, -104(%rbp)
+	jmp	.L72
+.L73:
+	movq	-104(%rbp), %rax
+	leaq	0(,%rax,4), %rdx
+	movq	-64(%rbp), %rax
+	addq	%rax, %rdx
+	movq	-104(%rbp), %rax
+	movl	%eax, (%rdx)
+	addq	$1, -104(%rbp)
+.L72:
+	movq	-104(%rbp), %rax
+	cmpq	-88(%rbp), %rax
+	jl	.L73
+	addq	$1, -96(%rbp)
+.L71:
+	movq	-96(%rbp), %rax
+	cmpq	-16(%rbp), %rax
+	jle	.L74
+	movl	$0, %edi
+	call	time
+	subq	-8(%rbp), %rax
+	movq	%rax, %rsi
+	movl	$.LC24, %edi
+	movl	$0, %eax
+	call	printf
+	movl	$0, %edi
+	call	time
+	movq	%rax, -8(%rbp)
+	movq	$1, -96(%rbp)
+	jmp	.L75
+.L76:
+	movq	-88(%rbp), %rax
+	salq	$2, %rax
+	movq	-48(%rbp), %rdx
+	movq	-64(%rbp), %rcx
+	movq	%rcx, %rsi
+	movq	%rax, %rdi
+	call	insert_data_into_mem
+	addq	$1, -96(%rbp)
+.L75:
+	movq	-96(%rbp), %rax
+	cmpq	-16(%rbp), %rax
+	jle	.L76
+	movl	$0, %edi
+	call	time
+	subq	-8(%rbp), %rax
+	movq	%rax, %rsi
+	movl	$.LC25, %edi
+	movl	$0, %eax
+	call	printf
+	movl	$0, %edi
+	call	time
+	movq	%rax, -8(%rbp)
+	movq	$1, -96(%rbp)
+	jmp	.L77
+.L80:
+	movq	$0, -104(%rbp)
+	jmp	.L78
+.L79:
+	movq	-104(%rbp), %rax
+	leaq	0(,%rax,4), %rdx
 	movq	-56(%rbp), %rax
+	addq	%rax, %rdx
+	movq	-104(%rbp), %rax
+	leaq	0(,%rax,4), %rcx
+	movq	-64(%rbp), %rax
+	addq	%rcx, %rax
+	movl	(%rax), %eax
+	movl	%eax, (%rdx)
+	addq	$1, -104(%rbp)
+.L78:
+	movq	-104(%rbp), %rax
+	cmpq	-88(%rbp), %rax
+	jl	.L79
+	addq	$1, -96(%rbp)
+.L77:
+	movq	-96(%rbp), %rax
+	cmpq	-16(%rbp), %rax
+	jle	.L80
+	movl	$0, %edi
+	call	time
+	subq	-8(%rbp), %rax
+	movq	%rax, %rsi
+	movl	$.LC26, %edi
+	movl	$0, %eax
+	call	printf
+	movl	$0, %edi
+	call	time
+	movq	%rax, -8(%rbp)
+	movq	$1, -96(%rbp)
+	jmp	.L81
+.L82:
+	movq	-88(%rbp), %rax
+	salq	$2, %rax
+	movq	%rax, %rsi
+	movq	-104(%rbp), %rcx
+	movq	-48(%rbp), %rdx
+	movq	-56(%rbp), %rax
+	movq	%rcx, %r8
+	movl	$0, %ecx
+	movq	%rax, %rdi
+	call	get_secure_data
+	addq	$1, -96(%rbp)
+.L81:
+	movq	-96(%rbp), %rax
+	cmpq	-16(%rbp), %rax
+	jle	.L82
+	movl	$0, %edi
+	call	time
+	subq	-8(%rbp), %rax
+	movq	%rax, %rsi
+	movl	$.LC27, %edi
+	movl	$0, %eax
+	call	printf
+	movq	$0, -104(%rbp)
+	jmp	.L83
+.L85:
+	movq	-104(%rbp), %rax
+	leaq	0(,%rax,4), %rdx
+	movq	-56(%rbp), %rax
+	addq	%rdx, %rax
+	movl	(%rax), %edx
+	movq	-104(%rbp), %rax
+	leaq	0(,%rax,4), %rcx
+	movq	-64(%rbp), %rax
+	addq	%rcx, %rax
+	movl	(%rax), %eax
+	cmpl	%eax, %edx
+	je	.L84
+	movq	-104(%rbp), %rax
+	leaq	0(,%rax,4), %rdx
+	movq	-64(%rbp), %rax
+	addq	%rdx, %rax
+	movl	(%rax), %edx
+	movq	-104(%rbp), %rax
+	leaq	0(,%rax,4), %rcx
+	movq	-56(%rbp), %rax
+	addq	%rcx, %rax
+	movl	(%rax), %eax
+	movq	-104(%rbp), %rcx
+	movl	%eax, %esi
+	movl	$.LC28, %edi
+	movl	$0, %eax
+	call	printf
+.L84:
+	addq	$1, -104(%rbp)
+.L83:
+	movq	-104(%rbp), %rax
+	cmpq	-88(%rbp), %rax
+	jl	.L85
+	movl	$.LC29, %edi
+	call	puts
+	movq	-80(%rbp), %rax
 	movq	%rax, %rdi
 	call	print_mem
-	movq	-56(%rbp), %rax
+	movq	-80(%rbp), %rax
 	movq	%rax, %rdi
 	call	free_secure_mem
-	movl	$.LC23, %edi
+	movl	$.LC30, %edi
 	call	puts
 	leave
 	.cfi_def_cfa 7, 8
@@ -1178,24 +1379,24 @@ mem_test:
 .LFE23:
 	.size	mem_test, .-mem_test
 	.section	.rodata
-.LC24:
+.LC31:
 	.string	"a=%p b=%p c=%p d=%p\n"
 	.align 8
-.LC25:
-	.string	"start of .text=0x%lx, end of .text=0x%lx, init=0x%lx, fini=0x%lx\n"
-.LC26:
-	.string	"\n\n"
-.LC27:
-	.string	"\nkey1="
-.LC28:
-	.string	"0x%02x\n"
-.LC29:
-	.string	"key2=0x%02x\n"
-.LC30:
-	.string	"key3=0x%02x\n"
-.LC31:
-	.string	"key4=0x%02x\n"
 .LC32:
+	.string	"start of .text=0x%lx, end of .text=0x%lx, init=0x%lx, fini=0x%lx\n"
+.LC33:
+	.string	"\n\n"
+.LC34:
+	.string	"\nkey1="
+.LC35:
+	.string	"0x%02x\n"
+.LC36:
+	.string	"key2=0x%02x\n"
+.LC37:
+	.string	"key3=0x%02x\n"
+.LC38:
+	.string	"key4=0x%02x\n"
+.LC39:
 	.string	"key5=0x%02x\n"
 	.text
 	.globl	find_keyshares
@@ -1227,7 +1428,7 @@ find_keyshares:
 	movq	-48(%rbp), %rax
 	movq	%rsi, %r8
 	movq	%rax, %rsi
-	movl	$.LC24, %edi
+	movl	$.LC31, %edi
 	movl	$0, %eax
 	call	printf
 	movl	$_fini, %esi
@@ -1236,13 +1437,13 @@ find_keyshares:
 	movl	$__executable_start, %eax
 	movq	%rsi, %r8
 	movq	%rax, %rsi
-	movl	$.LC25, %edi
+	movl	$.LC32, %edi
 	movl	$0, %eax
 	call	printf
 	movq	-48(%rbp), %rax
 	movq	%rax, -56(%rbp)
-	jmp	.L72
-.L74:
+	jmp	.L87
+.L89:
 	movq	-56(%rbp), %rax
 	movzbl	(%rax), %eax
 	movzbl	%al, %eax
@@ -1251,26 +1452,26 @@ find_keyshares:
 	movl	$0, %eax
 	call	printf
 	addq	$1, -56(%rbp)
-.L72:
+.L87:
 	movq	-56(%rbp), %rax
 	movzbl	(%rax), %eax
 	cmpb	$-61, %al
-	je	.L73
+	je	.L88
 	movq	-56(%rbp), %rax
 	movzbl	(%rax), %eax
 	cmpb	$-53, %al
-	je	.L74
-.L73:
+	je	.L89
+.L88:
 	movq	-56(%rbp), %rax
 	subq	$1, %rax
 	movzbl	(%rax), %eax
 	cmpb	$17, %al
-	jne	.L74
+	jne	.L89
 	movq	-56(%rbp), %rax
 	subq	$2, %rax
 	movzbl	(%rax), %eax
 	cmpb	$17, %al
-	jne	.L74
+	jne	.L89
 	movq	-56(%rbp), %rax
 	movzbl	(%rax), %eax
 	movzbl	%al, %eax
@@ -1278,21 +1479,21 @@ find_keyshares:
 	movl	$.LC3, %edi
 	movl	$0, %eax
 	call	printf
-	movl	$.LC26, %edi
+	movl	$.LC33, %edi
 	call	puts
 	movq	-16(%rbp), %rax
 	movq	%rax, -56(%rbp)
-	jmp	.L75
-.L77:
+	jmp	.L90
+.L92:
 	movq	-56(%rbp), %rax
 	movzbl	(%rax), %eax
 	cmpb	$-21, %al
-	jne	.L76
+	jne	.L91
 	movq	-56(%rbp), %rax
 	addq	$1, %rax
 	movzbl	(%rax), %eax
 	cmpb	$5, %al
-	jne	.L76
+	jne	.L91
 	movq	-56(%rbp), %rax
 	addq	$2, %rax
 	movzbl	(%rax), %eax
@@ -1337,38 +1538,38 @@ find_keyshares:
 	xorl	%edx, %eax
 	movb	%al, -61(%rbp)
 	addl	$1, -60(%rbp)
-.L76:
+.L91:
 	addq	$1, -56(%rbp)
-.L75:
+.L90:
 	movq	-56(%rbp), %rax
 	cmpq	-8(%rbp), %rax
-	jbe	.L77
-	movl	$.LC27, %edi
+	jbe	.L92
+	movl	$.LC34, %edi
 	movl	$0, %eax
 	call	printf
 	movzbl	-65(%rbp), %eax
 	movl	%eax, %esi
-	movl	$.LC28, %edi
+	movl	$.LC35, %edi
 	movl	$0, %eax
 	call	printf
 	movzbl	-64(%rbp), %eax
 	movl	%eax, %esi
-	movl	$.LC29, %edi
+	movl	$.LC36, %edi
 	movl	$0, %eax
 	call	printf
 	movzbl	-63(%rbp), %eax
 	movl	%eax, %esi
-	movl	$.LC30, %edi
+	movl	$.LC37, %edi
 	movl	$0, %eax
 	call	printf
 	movzbl	-62(%rbp), %eax
 	movl	%eax, %esi
-	movl	$.LC31, %edi
+	movl	$.LC38, %edi
 	movl	$0, %eax
 	call	printf
 	movzbl	-61(%rbp), %eax
 	movl	%eax, %esi
-	movl	$.LC32, %edi
+	movl	$.LC39, %edi
 	movl	$0, %eax
 	call	printf
 	nop
@@ -1400,11 +1601,11 @@ foo:
 .LFE25:
 	.size	foo, .-foo
 	.section	.rodata
-.LC33:
+.LC40:
 	.string	"K=%d\n"
-.LC34:
+.LC41:
 	.string	"n=%d\n"
-.LC35:
+.LC42:
 	.string	"main is at %p\n"
 	.text
 	.globl	main
@@ -1431,17 +1632,17 @@ main:
 	addl	$2, -48(%rbp)
 	addl	$1, -40(%rbp)
 	movl	$1, -44(%rbp)
-	jmp	.L82
-.L83:
+	jmp	.L97
+.L98:
 	movl	-40(%rbp), %eax
 	addl	%eax, -48(%rbp)
 	addl	$1, -44(%rbp)
-.L82:
+.L97:
 	cmpl	$500000000, -44(%rbp)
-	jle	.L83
+	jle	.L98
 	movl	-48(%rbp), %eax
 	movl	%eax, %esi
-	movl	$.LC33, %edi
+	movl	$.LC40, %edi
 	movl	$0, %eax
 	call	printf
 	movl	$5, %edi
@@ -1453,11 +1654,11 @@ main:
 	movl	%eax, -36(%rbp)
 	movl	-36(%rbp), %eax
 	movl	%eax, %esi
-	movl	$.LC34, %edi
+	movl	$.LC41, %edi
 	movl	$0, %eax
 	call	printf
 	movl	$main, %esi
-	movl	$.LC35, %edi
+	movl	$.LC42, %edi
 	movl	$0, %eax
 	call	printf
 	movl	$0, %eax
@@ -1465,9 +1666,9 @@ main:
 	movl	$0, %eax
 	movq	-8(%rbp), %rdx
 	xorq	%fs:40, %rdx
-	je	.L85
+	je	.L100
 	call	__stack_chk_fail
-.L85:
+.L100:
 	leave
 	.cfi_def_cfa 7, 8
 	ret

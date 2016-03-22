@@ -5,7 +5,7 @@
 
 #define bytes_used_for_keyshares (5)
 #define bytes_to_allocate_on_start (1024)
-#define bytes_between_keyshares (1) //practically the "useful" bytes. Important: It is not (currently) possible to split this bytegroup into multiple parts.
+#define bytes_between_keyshares (4) //practically the "useful" bytes. Important: It is not (currently) possible to split this bytegroup into multiple parts.
 
 long total_bytes_allocated;
 unsigned char * memory_chunk;
@@ -384,6 +384,9 @@ void mem_test()
 	unsigned char * start_of_secure_data;
 	unsigned char * start_of_secure_data1;
 	int * retrieved_int;
+	int an_integer;
+	int * another_secured_int;
+	long loop_size;
 
 
 	printf("Zero hex test printing: 0x%02x \n",(unsigned char) 0);
@@ -471,29 +474,39 @@ void mem_test()
 	printf("\n\n%d \n\n",*retrieved_int);
 	free(retrieved_int);
 	
-	/*
+
+
+	printf("Testing wrapper functions\n");
+	another_secured_int=secure_malloc(sizeof(int));
+	set_int(another_secured_int,99998);
+	get_int(another_secured_int,&an_integer);
+	printf("Got %d\n",an_integer);
 	
+	
+	//loop_size=100000000;	
+	loop_size=200000000;	
+
 	t1=time(NULL);
-	for (j=1;j<=100000000;j++)
+	for (j=1;j<=loop_size;j++)
 		for (i=0;i<size;i++)
 			data[i]=i;
 	printf("Normal_insertion:%ld\n",time(NULL)-t1);
 
 	t1=time(NULL);
-	for (j=1;j<=100000000;j++)
+	for (j=1;j<=loop_size;j++)
 		insert_data_into_mem(size*sizeof(int),(unsigned char *)data,start_of_secure_data1);
 
 	printf("Secure_insertion:%ld\n",time(NULL)-t1);
 	
 	
 	t1=time(NULL);
-	for (j=1;j<=100000000;j++)
+	for (j=1;j<=loop_size;j++)
 		for (i=0;i<size;i++)
 			data2[i]=data[i];
 	printf("Normal_fetch:%ld\n",time(NULL)-t1);
 
 	t1=time(NULL);
-	for (j=1;j<=100000000;j++)
+	for (j=1;j<=loop_size;j++)
 	{
 		get_secure_data(&data2[0],size*sizeof(int),start_of_secure_data1,0,i);
 		//for (i=0;i<size;i++)
@@ -504,7 +517,7 @@ void mem_test()
 	for(i=0;i<size;i++)
 		if(data2[i]!=data[i])	printf("data2!=data , data2[i]=%d, data[i]=%d i=%ld\n",data2[i],data[i],i);
 	
-	*/
+	
 
 	printf("After data retrieval, print mem\n");
 	print_mem(mem);

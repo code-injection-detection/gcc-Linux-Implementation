@@ -1,9 +1,13 @@
 CC=gcc
 PG= #-pg 
-FLAGS= -O0
+FLAGS_to_assembly= -O0
+FLAGS_to_object= -O0
+FLAGS_to_secure_object = -O0
 
 ifeq ($(filter-out secure,$(MAKECMDGOALS)),static)
- FLAGS+=  -static
+ FLAGS_to_assembly+=  -static
+ FLAGS_to_object+=  -static
+ FLAGS_to_secure_object+=  -static
 endif
 
 #Call with simply typing "make" to produce first executable. Secure it with Java and the run "make secure" again for the second executable.
@@ -23,15 +27,15 @@ static: default
 	
 
 Helloworldadd.s: Helloworldadd.c memory_manager.c verification_procedure.c
-	$(CC) $(FLAGS) Helloworldadd.c -S
+	$(CC) $(FLAGS_to_assembly) Helloworldadd.c -S
 
 Helloworldadd: Helloworldadd.s
-	$(CC) $(FLAGS) Helloworldadd.s -c -o Helloworldadd.o 
-	$(CC) $(FLAGS) Helloworldadd.s -o Helloworldadd 
+	$(CC) $(FLAGS_to_object) Helloworldadd.s -c -o Helloworldadd.o 
+	$(CC) $(FLAGS_to_object) Helloworldadd.o -o Helloworldadd 
 
 Helloworldadd_sec: Helloworldadd_sec.s
-	$(CC) $(FLAGS) Helloworldadd_sec.s -c -o Helloworldadd_sec.o
-	$(CC) $(FLAGS) Helloworldadd_sec.s -o Helloworldadd_sec 
+	$(CC) $(FLAGS_to_secure_object) Helloworldadd_sec.s -c -o Helloworldadd_sec.o
+	$(CC) $(FLAGS_to_secure_object) Helloworldadd_sec.o -o Helloworldadd_sec 
 
 clean:
 	rm -f Helloworldadd.s Helloworldadd Helloworldadd_sec.s Helloworldadd_sec Helloworldadd_ksec Helloworldadd_sec.o Helloworldadd.o *.NASM* *.YASM* *.run
