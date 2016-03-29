@@ -52,9 +52,12 @@ int main()
 	mem=init_mem();
 	printf("If successful, total bytes allocated:%ld\n",total_bytes_allocated);
 
+	//find_keyshares();
 	//mem_test();
 	find_keyshares();
 
+
+	free_secure_mem(mem);
 	return 0;
 }
 

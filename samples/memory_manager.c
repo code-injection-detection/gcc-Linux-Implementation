@@ -656,7 +656,7 @@ void mem_test()
 	printf("After data retrieval, print mem\n");
 	print_mem(mem);
 
-	free_secure_mem(mem);
+	
 	printf("Mem test done\n");
 }
 
