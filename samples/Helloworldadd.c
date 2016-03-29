@@ -20,6 +20,7 @@ return k;
 int main()
 {
 	char bob[10];
+	unsigned char * mem;
 	int i;
 	int k;
 	int j;
@@ -44,8 +45,15 @@ int main()
 
 	printf("main is at %p\n", main);
 
-	mem_test();
-	//find_keyshares();
+	printf("Initializing mem\n");
+	printf("bytes_to_allocate_on_start:%d\n",bytes_to_allocate_on_start);
+
+        printf("Init_mem, alloc+key insertion\n");
+	mem=init_mem();
+	printf("If successful, total bytes allocated:%ld\n",total_bytes_allocated);
+
+	//mem_test();
+	find_keyshares();
 
 	return 0;
 }

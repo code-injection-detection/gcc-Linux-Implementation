@@ -19,7 +19,7 @@ extern int foo2(int);
 
 void find_keyshares()
 {
-   int i,k=0; 
+   int i,j,k=0; 
    long a= (long)foo; //can work like that
    //long a2= &&foo_end;
    long b= (long)main;
@@ -32,6 +32,8 @@ void find_keyshares()
    unsigned char key4=0x0;
    unsigned char key5=0x0;
    long fun_name;
+   long heap_cnt;
+   int counting_key_bytes=0; //used as boolean
 
    unsigned char* start_of_text=(unsigned char*)&__executable_start;  //we get the limits of .text section
    unsigned char* end_of_text=(unsigned char*)&__etext;
@@ -43,14 +45,15 @@ void find_keyshares()
    printf("start of .text=0x%lx, end of .text=0x%lx, init=0x%lx, fini=0x%lx\n",(unsigned long)&__executable_start,(unsigned long)&__etext, (unsigned long)&_init,(unsigned long)&_fini);
    
   
-   
+  //printing function foo
+  /*
    for (p=(unsigned char *)a;!((*p==0xC3 || *p!=0xCB) && *(p-1)==(unsigned char)0x11 && *(p-2)==(unsigned char)0x11);p++) //NEAR and FAR ret opcodes
    {
 	 printf("0x%02x ",*p);
    } 
      printf("0x%02x ",*p);
      printf("\n\n\n");
-
+  */
 
    //implementation #1  //iterating over function codes and locating RETs
   /*
@@ -74,7 +77,7 @@ void find_keyshares()
 		{
 			if (*p==0xEB && *(p+1)==0x5) //JMP 5
 			{ 
-			 printf("0x%02x ",*(p+2));
+			 //printf("0x%02x ",*(p+2));
 			 key1^=(char) *(p+2);
 			 key2^=(char) *(p+3); 
 			 key3^=(char) *(p+4);
@@ -82,6 +85,30 @@ void find_keyshares()
 			 key5^=(char) *(p+6);
 			 k++;			
 			}
+		}
+
+		//taking into account the heap keys
+		for (p=memory_chunk,heap_cnt=0;heap_cnt<total_bytes_allocated;)
+		{
+
+		    if (counting_key_bytes==0)
+		    {
+			heap_cnt+=bytes_between_keyshares;
+			counting_key_bytes=1;
+		    }
+		    else
+		    {
+			//checking the keys
+			 key1^=(char) *(p+heap_cnt);
+			 key2^=(char) *(p+heap_cnt+1); 
+			 key3^=(char) *(p+heap_cnt+2);
+			 key4^=(char) *(p+heap_cnt+3);
+			 key5^=(char) *(p+heap_cnt+4);
+
+			heap_cnt+=bytes_used_for_keyshares;
+			counting_key_bytes=0;	
+		    }  
+
 		}
 
   //implementation #1

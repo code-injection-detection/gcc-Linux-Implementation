@@ -36,6 +36,7 @@ public class Secure_Assembly {
 
 		
 		//we parse the file once to find the functions
+		System.out.println("These are the function names:");
 		while (sc.hasNext())
 		{
 			String line = sc.next();

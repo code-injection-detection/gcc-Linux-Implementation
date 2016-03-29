@@ -10,7 +10,7 @@
 long total_bytes_allocated;
 unsigned char * memory_chunk;
 unsigned char* last_unused_memory;
-
+FILE *keyshare_input_file;
 
 
 
@@ -94,7 +94,16 @@ void * secure_malloc(long bytes_for_allocation)
 /*magically gets/produces the next keyshare*/
 unsigned char get_next_keyshare()
 {
-  return ((unsigned char)rand()%256); //use random values for testing
+  unsigned char ret;
+  if (feof(keyshare_input_file))
+  {
+	perror("Attempted to read more keyshares that the ones stored\n");
+	exit(44);
+  }
+  fread(&ret,1,1,keyshare_input_file);
+  return ret;
+
+  //return ((unsigned char)rand()%256); //use random values for testing
 }
 
 
@@ -356,13 +365,21 @@ unsigned char * init_mem()
   unsigned char * mem;
 
   mem=allocate_mem();
+  keyshare_input_file=fopen("heap_keyshares","rb");
+  if(keyshare_input_file==NULL)
+  {
+	perror("init_mem:heap_keyshares file error\n");
+	exit(43);
+  }
   insert_keys_into_mem(mem);
 
   memory_chunk=mem;
   last_unused_memory=mem;
+  fclose(keyshare_input_file);
   return mem;
 }
 
+//normally frees the memory, not anything fancy. Secure_free() needs to be written as well.
 void free_secure_mem(unsigned char * mem)
 {
   free(mem);
@@ -476,13 +493,16 @@ void mem_test()
 
 	printf("Zero hex test printing: 0x%02x \n",(unsigned char) 0);
 	printf("Starting mem test\n");
-	
+
+	/*
 	printf("bytes_to_allocate_on_start:%d\n",bytes_to_allocate_on_start);
 
         printf("Init_mem, alloc+key insertion\n");
 	mem=init_mem();
 	printf("If successful, total bytes allocated:%ld\n",total_bytes_allocated);
-	
+	*/
+
+	mem=memory_chunk;
 	chunks=find_useful_chunks(total_bytes_allocated);
 	//size=chunks;
 	printf("chunks:%ld\n",chunks);

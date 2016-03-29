@@ -11,9 +11,14 @@ public class Secure_Machine_Code {
 	{
 		//use this if executing manually
 		//String filename = new File("samples/Helloworldadd_sec").getAbsolutePath();
+		//String heap_keys_filename=new File("samples/heap_keyshares").getAbsolutePath();
+		//String memory_manager_filename=new File("samples/memory_manager.c").getAbsolutePath();
+		
 		
 		//use this if executing with automate.sh in samples directory
-		String filename = new File("../samples/Helloworldadd_sec").getAbsolutePath();
+		String filename = new File("../samples/Helloworldadd_sec").getAbsolutePath();	
+		String heap_keys_filename=new File("../samples/heap_keyshares").getAbsolutePath();
+		String memory_manager_filename=new File("../samples/memory_manager.c").getAbsolutePath();
 		
 		String newfilename = filename.substring(0,filename.length()-3)+"ksec";
 		Runtime r = Runtime.getRuntime();
@@ -21,11 +26,19 @@ public class Secure_Machine_Code {
 		//int n = 2;
 		
 		int num_of_keys = 5; //this should be equal to the number of nops we insert in Secure_Assembly.java (now that we assume that 1 NOP = 1key)
-		// 
+		int num_of_keys_in_heap=5; //this should be equal to the number of keys we interleave in the heap
+		int useful_bytes_between_keys_in_heap=4;
+		long total_bytes_trying_to_allocate_in_heap=1024;
+		long useful_chunks;
+		
 		FileInputStream fr = new FileInputStream(new File(filename));
 		FileOutputStream fw = new FileOutputStream(new File(newfilename));
 		ArrayList<Byte> list = new ArrayList<Byte>();
 		ArrayList[] keys = new ArrayList[num_of_keys];
+
+		FileOutputStream heap_keyshares_file = new FileOutputStream(new File(heap_keys_filename));
+		
+		
 		for(int i=0;i<num_of_keys;i++)
 		{
 			keys[i] =new  ArrayList<Byte>();
@@ -52,8 +65,10 @@ public class Secure_Machine_Code {
 	    		{
 	    			byte temp = randomByte();
 	    					
-	    			if (j==0)
+	    			/*
+	    			    if (j==0)
 						System.out.printf("0x%02x ",temp);
+					*/
 	    			//inserting canary values to show that a RET is following. Temporary fix.
 	    			if ((j==num_of_keys-1 || j==num_of_keys-2) && ( arr[i+2+num_of_keys]==-61 || arr[i+2+num_of_keys]==-53) ) //RET opcode in next
 	    			{
@@ -70,6 +85,29 @@ public class Secure_Machine_Code {
 	    	}
 	    }
 		
+	    //inserting keyshares into heap keyshare file
+
+	    useful_chunks=find_useful_chunks_allocated_in_heap(
+	    				total_bytes_trying_to_allocate_in_heap,
+	    				useful_bytes_between_keys_in_heap,
+	    				num_of_keys_in_heap);
+	    //Now we don't care about the useful chunks, but the keys
+	    for (int i=0;i<useful_chunks-1;i++)
+	    {
+		    //insert into heap_keyshares file
+		    for(int j=0;j<num_of_keys;j++)
+			{
+		    	byte temp = randomByte();
+		    	byte[] temparray=new byte[1];
+		    	temparray[0]=temp;
+		    	keys[j].add(temp);
+		    	heap_keyshares_file.write(temparray);
+			}
+	    }
+	    
+	    
+	    System.out.println("");
+	    
 	    for(int i=0;i<num_of_keys;i++)
 	    {
 	    	try
@@ -86,13 +124,17 @@ public class Secure_Machine_Code {
 	    
 	    fw.write(arr);
 	    fw.flush();
+	    fw.close();
+	    heap_keyshares_file.flush();
+	    heap_keyshares_file.close();
 	    /*Giving execute permissions*/
 	    Process p = r.exec("chmod +x " + newfilename );
 	    p.waitFor();
-	    byte t = (byte)0xeb;
-		System.out.println(randomByte() + " "+(t == 107 )+" "+t);
+	    /*byte t = (byte)0xeb;
+		System.out.println(randomByte() + " "+(t == 107 )+" "+t);*/
 		System.out.println("Number of inserted jumps: "+number_of_inserted_jmps);
 	}
+	
 	static byte xor(ArrayList<Byte> list)
 	{
 		byte b = list.get(0);
@@ -117,5 +159,18 @@ public class Secure_Machine_Code {
 		}
 		return true;
 	}
-
+	
+	static long find_useful_chunks_allocated_in_heap(long ttl_bytes,int useful_bytes,int key_bytes)
+	{
+		long useful_chunks=(long)((ttl_bytes+key_bytes)/(useful_bytes+key_bytes)); //this should be an integer, If not, we should allocate a bit more. 
+		
+		if (useful_chunks*useful_bytes+(useful_chunks-1)*key_bytes==ttl_bytes)
+			return (useful_chunks);
+		else
+		{
+			//total bytes= ((useful_chunks+1)*useful_bytes+(useful_chunks+1-1)*key_bytes);
+			return (useful_chunks+1);
+		}
+	}
+	
 }
