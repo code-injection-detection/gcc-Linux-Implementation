@@ -48,7 +48,7 @@ int main()
 	printf("Initializing mem\n");
 	printf("bytes_to_allocate_on_start:%d\n",bytes_to_allocate_on_start);
 
-        printf("Init_mem, alloc+key insertion\n");
+    printf("Init_mem, alloc+key insertion\n");
 	mem=init_mem();
 	printf("If successful, total bytes allocated:%ld\n",total_bytes_allocated);
 

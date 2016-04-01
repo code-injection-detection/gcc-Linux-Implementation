@@ -41,19 +41,20 @@ echo ""
 echo "Changing defines according to input..."
 python3 set_correct_defines.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC
 echo "Changed defines."
+
 echo "Compiling...."
 make
 echo "Compiled."
-#cd ../src/
+
 echo "Inserting NOPs into assembly..."
 java -cp ../bin Secure_Assembly $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_INSTRUCTIONS
-echo "NOPS inserted."
-#cd ../samples/
+echo "NOPs inserted."
+
 echo "Assembling code with NOPs..."
 make secure
 echo "Assembled."
-#cd ../src/
+
 echo "Replacing NOPs with keys..."
 java -cp ../bin Secure_Machine_Code $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC
 echo "NOPs replaced with keys."
-#cd ../samples/
+
