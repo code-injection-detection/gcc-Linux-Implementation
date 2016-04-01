@@ -34,9 +34,16 @@ public class Secure_Assembly {
 		int  num_of_interleaved_nops = 5;   //this should be equal to the number of keys we use in Secure_Machine_Code.java (now that we assume that 1 NOP = 1key)
 		
 
+		if (args.length==1)
+			num_of_interleaved_nops=Integer.parseInt(args[0]);
+		else if (args.length==2)
+		{
+			num_of_interleaved_nops=Integer.parseInt(args[0]);
+			num_of_grouped_orig_instr=Integer.parseInt(args[1]);
+		}
 		
 		//we parse the file once to find the functions
-		System.out.println("These are the function names:");
+		//System.out.println("These are the function names:");
 		while (sc.hasNext())
 		{
 			String line = sc.next();
@@ -48,7 +55,7 @@ public class Secure_Assembly {
 				int start = removeSpaces(line).indexOf(".type") +5;
 				String fun_name=removeSpaces(line).substring(start,end);
 				function_names.add(fun_name);
-				System.out.println(fun_name);
+				//System.out.println(fun_name);
 			
 			}
 		}
@@ -160,7 +167,7 @@ public class Secure_Assembly {
 		// You can use TASM to compile this ASM into machine code
 		String finalfile = "";
 		String newfilename = filename.substring(0,filename.length()-2) + "_sec.s";
-		System.out.println(newfilename);
+		//System.out.println("NOPs added to file: "+newfilename);
 		BufferedWriter bw = new BufferedWriter(new FileWriter(newfilename));
 		for (String line: list)
 		{

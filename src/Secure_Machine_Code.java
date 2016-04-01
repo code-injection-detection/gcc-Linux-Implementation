@@ -25,7 +25,7 @@ public class Secure_Machine_Code {
 		int number_of_inserted_jmps=0;
 		//int n = 2;
 		
-		int num_of_keys = 5; //this should be equal to the number of nops we insert in Secure_Assembly.java (now that we assume that 1 NOP = 1key)
+		int number_of_interleaved_nops = 5; //this should be equal to the number of nops we insert in Secure_Assembly.java (now that we assume that 1 NOP = 1key)
 		int num_of_keys_in_heap=5; //this should be equal to the number of keys we interleave in the heap
 		int useful_bytes_between_keys_in_heap=4;
 		long total_bytes_trying_to_allocate_in_heap=1024;
@@ -34,12 +34,31 @@ public class Secure_Machine_Code {
 		FileInputStream fr = new FileInputStream(new File(filename));
 		FileOutputStream fw = new FileOutputStream(new File(newfilename));
 		ArrayList<Byte> list = new ArrayList<Byte>();
-		ArrayList[] keys = new ArrayList[num_of_keys];
 
 		FileOutputStream heap_keyshares_file = new FileOutputStream(new File(heap_keys_filename));
 		
+		if (args.length==1)
+		{
+			number_of_interleaved_nops=Integer.parseInt(args[0]);
+			num_of_keys_in_heap=number_of_interleaved_nops;
+		}
+		else if (args.length==2)
+		{
+			number_of_interleaved_nops=Integer.parseInt(args[0]);
+			num_of_keys_in_heap=number_of_interleaved_nops;
+			useful_bytes_between_keys_in_heap=Integer.parseInt(args[1]);	
+		}
+		else if (args.length==3)
+		{
+			number_of_interleaved_nops=Integer.parseInt(args[0]);
+			num_of_keys_in_heap=number_of_interleaved_nops;
+			useful_bytes_between_keys_in_heap=Integer.parseInt(args[1]);
+			total_bytes_trying_to_allocate_in_heap=Integer.parseInt(args[2]);
+		}
 		
-		for(int i=0;i<num_of_keys;i++)
+		ArrayList[] keys = new ArrayList[number_of_interleaved_nops];
+		
+		for(int i=0;i<number_of_interleaved_nops;i++)
 		{
 			keys[i] =new  ArrayList<Byte>();
 		}
@@ -56,12 +75,12 @@ public class Secure_Machine_Code {
 	    	arr[i] = list.get(i);
 	    }
 	    int n = arr.length;
-	    for(int i=0;i<n-(2+num_of_keys);i++)
+	    for(int i=0;i<n-(2+number_of_interleaved_nops);i++)
 	    {
-	    	if(arr[i]==-21 && (arr[i+1] == (byte)(num_of_keys)) && k_nops_after_us(num_of_keys,arr,i)) // int -21 = jmp opcode, and the arr[i+1] has to be the offset (number of nops + 1 ) , and we have to have num_of_keys NOPs after us
+	    	if(arr[i]==-21 && (arr[i+1] == (byte)(number_of_interleaved_nops)) && k_nops_after_us(number_of_interleaved_nops,arr,i)) // int -21 = jmp opcode, and the arr[i+1] has to be the offset (number of nops + 1 ) , and we have to have num_of_keys NOPs after us
 	    	{
 				number_of_inserted_jmps++;
-	    		for(int j=0;j<num_of_keys;j++)
+	    		for(int j=0;j<number_of_interleaved_nops;j++)
 	    		{
 	    			byte temp = randomByte();
 	    					
@@ -70,7 +89,7 @@ public class Secure_Machine_Code {
 						System.out.printf("0x%02x ",temp);
 					*/
 	    			//inserting canary values to show that a RET is following. Temporary fix.
-	    			if ((j==num_of_keys-1 || j==num_of_keys-2) && ( arr[i+2+num_of_keys]==-61 || arr[i+2+num_of_keys]==-53) ) //RET opcode in next
+	    			if ((j==number_of_interleaved_nops-1 || j==number_of_interleaved_nops-2) && ( arr[i+2+number_of_interleaved_nops]==-61 || arr[i+2+number_of_interleaved_nops]==-53) ) //RET opcode in next
 	    			{
 	    				//if(j==num_of_keys-1) System.out.printf("found ret opcode!");
 	    				arr[i+2+j] = (byte)0x11;
@@ -85,6 +104,10 @@ public class Secure_Machine_Code {
 	    	}
 	    }
 		
+	    //System.out.println("Number of interleaved nops:" + number_of_interleaved_nops);
+	    //System.out.println("Number of ttl bts:" + total_bytes_trying_to_allocate_in_heap);
+	    
+	    
 	    //inserting keyshares into heap keyshare file
 
 	    useful_chunks=find_useful_chunks_allocated_in_heap(
@@ -95,7 +118,7 @@ public class Secure_Machine_Code {
 	    for (int i=0;i<useful_chunks-1;i++)
 	    {
 		    //insert into heap_keyshares file
-		    for(int j=0;j<num_of_keys;j++)
+		    for(int j=0;j<number_of_interleaved_nops;j++)
 			{
 		    	byte temp = randomByte();
 		    	byte[] temparray=new byte[1];
@@ -108,7 +131,7 @@ public class Secure_Machine_Code {
 	    
 	    System.out.println("");
 	    
-	    for(int i=0;i<num_of_keys;i++)
+	    for(int i=0;i<number_of_interleaved_nops;i++)
 	    {
 	    	try
 	    	{
