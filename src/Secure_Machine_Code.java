@@ -169,7 +169,7 @@ public class Secure_Machine_Code {
 	}
 	static byte randomByte()
 	{
-		return (byte)(Math.random()*128); 
+		return (  (byte) ((int)Math.floor((Math.random()*256)))  ); 
 	}
 	
 	static boolean k_nops_after_us(int k, byte[] arr, int arrindex)  

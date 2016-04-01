@@ -17,6 +17,10 @@ extern int foo(int);
 extern int main();
 extern int foo2(int);
 
+struct sigaction sa; //for signal handling
+
+
+
 void find_keyshares()
 {
    int i,j,keycnt,k=0; 
@@ -43,8 +47,8 @@ void find_keyshares()
    //start_of_text=(unsigned char*)&_init; //well their range seems to be a fraction of the __executable_start and __etext
    //end_of_text=(unsigned char*)&_fini;
 
-   printf("a=%p b=%p c=%p d=%p\n",(void*)a,(void*)b,(void*)c,(void*)d);
-   printf("start of .text=0x%lx, end of .text=0x%lx, init=0x%lx, fini=0x%lx\n",(unsigned long)&__executable_start,(unsigned long)&__etext, (unsigned long)&_init,(unsigned long)&_fini);
+   //printf("a=%p b=%p c=%p d=%p\n",(void*)a,(void*)b,(void*)c,(void*)d);
+   //printf("start of .text=0x%lx, end of .text=0x%lx, init=0x%lx, fini=0x%lx\n",(unsigned long)&__executable_start,(unsigned long)&__etext, (unsigned long)&_init,(unsigned long)&_fini);
    
   
   //printing function foo
@@ -148,4 +152,12 @@ void find_keyshares()
    }
 
    return;
+}
+
+
+
+void verification_procedure()
+{
+	printf("Verification requested!\n");
+	find_keyshares();	
 }

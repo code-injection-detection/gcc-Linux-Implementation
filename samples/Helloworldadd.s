@@ -1557,13 +1557,9 @@ mem_test:
 	.cfi_endproc
 .LFE26:
 	.size	mem_test, .-mem_test
+	.comm	sa,152,32
 	.section	.rodata
 .LC38:
-	.string	"a=%p b=%p c=%p d=%p\n"
-	.align 8
-.LC39:
-	.string	"start of .text=0x%lx, end of .text=0x%lx, init=0x%lx, fini=0x%lx\n"
-.LC40:
 	.string	"key no%d=0x%02x\n"
 	.text
 	.globl	find_keyshares
@@ -1598,24 +1594,6 @@ find_keyshares:
 .L88:
 	cmpl	$4, -100(%rbp)
 	jle	.L89
-	movq	-48(%rbp), %rsi
-	movq	-56(%rbp), %rcx
-	movq	-64(%rbp), %rdx
-	movq	-72(%rbp), %rax
-	movq	%rsi, %r8
-	movq	%rax, %rsi
-	movl	$.LC38, %edi
-	movl	$0, %eax
-	call	printf
-	movl	$_fini, %esi
-	movl	$_init, %ecx
-	movl	$__etext, %edx
-	movl	$__executable_start, %eax
-	movq	%rsi, %r8
-	movq	%rax, %rsi
-	movl	$.LC39, %edi
-	movl	$0, %eax
-	call	printf
 	movq	-40(%rbp), %rax
 	movq	%rax, -88(%rbp)
 	jmp	.L90
@@ -1712,7 +1690,7 @@ find_keyshares:
 	movzbl	%al, %edx
 	movl	-100(%rbp), %eax
 	movl	%eax, %esi
-	movl	$.LC40, %edi
+	movl	$.LC38, %edi
 	movl	$0, %eax
 	call	printf
 	addl	$1, -100(%rbp)
@@ -1731,10 +1709,34 @@ find_keyshares:
 	.cfi_endproc
 .LFE27:
 	.size	find_keyshares, .-find_keyshares
+	.section	.rodata
+.LC39:
+	.string	"Verification requested!"
+	.text
+	.globl	verification_procedure
+	.type	verification_procedure, @function
+verification_procedure:
+.LFB28:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	movl	$.LC39, %edi
+	call	puts
+	movl	$0, %eax
+	call	find_keyshares
+	popq	%rbp
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE28:
+	.size	verification_procedure, .-verification_procedure
 	.globl	foo
 	.type	foo, @function
 foo:
-.LFB28:
+.LFB29:
 	.cfi_startproc
 	pushq	%rbp
 	.cfi_def_cfa_offset 16
@@ -1750,30 +1752,39 @@ foo:
 	.cfi_def_cfa 7, 8
 	ret
 	.cfi_endproc
-.LFE28:
+.LFE29:
 	.size	foo, .-foo
 	.section	.rodata
-.LC41:
-	.string	"K=%d\n"
-.LC42:
-	.string	"n=%d\n"
-.LC43:
-	.string	"main is at %p\n"
-.LC44:
+.LC40:
 	.string	"Initializing mem"
 	.align 8
-.LC45:
+.LC41:
 	.string	"bytes_to_allocate_on_start:%d\n"
-.LC46:
+.LC42:
 	.string	"Init_mem, alloc+key insertion"
 	.align 8
-.LC47:
+.LC43:
 	.string	"If successful, total bytes allocated:%ld\n"
+.LC44:
+	.string	"Installing signal handler"
+	.align 8
+.LC45:
+	.string	"Could not install signal handler"
+.LC46:
+	.string	"Signal handler installed"
+.LC47:
+	.string	"My pid=%ld\n"
+.LC48:
+	.string	"K=%d\n"
+.LC49:
+	.string	"n=%d\n"
+.LC50:
+	.string	"main is at %p\n"
 	.text
 	.globl	main
 	.type	main, @function
 main:
-.LFB29:
+.LFB30:
 	.cfi_startproc
 	pushq	%rbp
 	.cfi_def_cfa_offset 16
@@ -1784,27 +1795,70 @@ main:
 	movq	%fs:40, %rax
 	movq	%rax, -8(%rbp)
 	xorl	%eax, %eax
-	movl	$1, -56(%rbp)
-	movl	$2, -48(%rbp)
-	addl	$1, -48(%rbp)
-	addl	$1, -48(%rbp)
-	subl	$1, -48(%rbp)
-	movl	-48(%rbp), %eax
-	addl	%eax, -56(%rbp)
-	addl	$2, -56(%rbp)
-	addl	$1, -48(%rbp)
-	movl	$1, -52(%rbp)
-	jmp	.L107
-.L108:
-	movl	-48(%rbp), %eax
-	addl	%eax, -56(%rbp)
+	movl	$1, -60(%rbp)
+	movl	$2, -52(%rbp)
 	addl	$1, -52(%rbp)
-.L107:
-	cmpl	$500000000, -52(%rbp)
-	jle	.L108
-	movl	-56(%rbp), %eax
-	movl	%eax, %esi
+	addl	$1, -52(%rbp)
+	subl	$1, -52(%rbp)
+	movl	-52(%rbp), %eax
+	addl	%eax, -60(%rbp)
+	addl	$2, -60(%rbp)
+	addl	$1, -52(%rbp)
+	movl	$.LC40, %edi
+	call	puts
+	movl	$1024, %esi
 	movl	$.LC41, %edi
+	movl	$0, %eax
+	call	printf
+	movl	$.LC42, %edi
+	call	puts
+	movl	$0, %eax
+	call	init_mem
+	movq	%rax, -40(%rbp)
+	movq	total_bytes_allocated(%rip), %rax
+	movq	%rax, %rsi
+	movl	$.LC43, %edi
+	movl	$0, %eax
+	call	printf
+	movl	$.LC44, %edi
+	call	puts
+	movq	$verification_procedure, sa(%rip)
+	movl	$sa+8, %edi
+	call	sigemptyset
+	movl	$268435456, sa+136(%rip)
+	movl	$0, %edx
+	movl	$sa, %esi
+	movl	$10, %edi
+	call	sigaction
+	cmpl	$-1, %eax
+	jne	.L108
+	movl	$.LC45, %edi
+	call	perror
+	movl	$45, %edi
+	call	exit
+.L108:
+	movl	$.LC46, %edi
+	call	puts
+	call	getpid
+	movl	%eax, -48(%rbp)
+	movl	-48(%rbp), %eax
+	cltq
+	movq	%rax, %rsi
+	movl	$.LC47, %edi
+	movl	$0, %eax
+	call	printf
+	movl	$1, -56(%rbp)
+	jmp	.L109
+.L110:
+	movl	-52(%rbp), %eax
+	addl	%eax, -60(%rbp)
+	addl	$1, -56(%rbp)
+.L109:
+	cmpl	$500000000, -56(%rbp)
+	jle	.L110
+	movl	-60(%rbp), %eax
+	movl	%eax, %esi
+	movl	$.LC48, %edi
 	movl	$0, %eax
 	call	printf
 	movl	$5, %edi
@@ -1816,27 +1870,11 @@ main:
 	movl	%eax, -44(%rbp)
 	movl	-44(%rbp), %eax
 	movl	%eax, %esi
-	movl	$.LC42, %edi
+	movl	$.LC49, %edi
 	movl	$0, %eax
 	call	printf
 	movl	$main, %esi
-	movl	$.LC43, %edi
-	movl	$0, %eax
-	call	printf
-	movl	$.LC44, %edi
-	call	puts
-	movl	$1024, %esi
-	movl	$.LC45, %edi
-	movl	$0, %eax
-	call	printf
-	movl	$.LC46, %edi
-	call	puts
-	movl	$0, %eax
-	call	init_mem
-	movq	%rax, -40(%rbp)
-	movq	total_bytes_allocated(%rip), %rax
-	movq	%rax, %rsi
-	movl	$.LC47, %edi
+	movl	$.LC50, %edi
 	movl	$0, %eax
 	call	printf
 	movl	$0, %eax
@@ -1845,21 +1883,21 @@ main:
 	movq	%rax, %rdi
 	call	free_secure_mem
 	movl	$0, %eax
-	movq	-8(%rbp), %rdx
-	xorq	%fs:40, %rdx
-	je	.L110
+	movq	-8(%rbp), %rcx
+	xorq	%fs:40, %rcx
+	je	.L112
 	call	__stack_chk_fail
-.L110:
+.L112:
 	leave
 	.cfi_def_cfa 7, 8
 	ret
 	.cfi_endproc
-.LFE29:
+.LFE30:
 	.size	main, .-main
 	.globl	foo2
 	.type	foo2, @function
 foo2:
-.LFB30:
+.LFB31:
 	.cfi_startproc
 	pushq	%rbp
 	.cfi_def_cfa_offset 16
@@ -1875,7 +1913,7 @@ foo2:
 	.cfi_def_cfa 7, 8
 	ret
 	.cfi_endproc
-.LFE30:
+.LFE31:
 	.size	foo2, .-foo2
 	.ident	"GCC: (Ubuntu 4.8.4-2ubuntu1~14.04.1) 4.8.4"
 	.section	.note.GNU-stack,"",@progbits

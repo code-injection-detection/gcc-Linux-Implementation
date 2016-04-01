@@ -126,24 +126,24 @@ void insert_keys_into_mem(unsigned char * mem)
     {
 	
     	p[i]=get_next_keyshare();
-	//printf("got keyshare:0x%02x\n",p[i]);
+		//printf("got keyshare:0x%02x\n",p[i]);
         keyshare_bytecounter++;
-	i++;
+		i++;
     }
     else
     {
 	//for printing purposes
-	for (j=0;j<bytes_between_keyshares;j++)
-		p[i+j]='\0';
+		for (j=0;j<bytes_between_keyshares;j++)
+			p[i+j]='\0';
 
-	i+=bytes_between_keyshares;
-	counting_key_bytes=1;
+		i+=bytes_between_keyshares;
+		counting_key_bytes=1;
     }
 
     if(keyshare_bytecounter==bytes_used_for_keyshares)
     {
-	counting_key_bytes=0;
-	keyshare_bytecounter=0;
+		counting_key_bytes=0;
+		keyshare_bytecounter=0;
     }
      
   }
@@ -324,21 +324,21 @@ void set_secure_data(void * source,long data_size, unsigned char * data_start, i
   {
     if (counting_key_bytes)
     {
-	i+=bytes_used_for_keyshares;
-	counting_key_bytes=0;
+		i+=bytes_used_for_keyshares;
+		counting_key_bytes=0;
     }
     else
     {
 	//actual set
-	for (j=0;j<bytes_between_keyshares && (total_data_set + j < data_size );j++)
-	{
-		p[i+j]=src[total_data_set+j];
-	}
+		for (j=0;j<bytes_between_keyshares && (total_data_set + j < data_size );j++)
+		{
+			p[i+j]=src[total_data_set+j];
+		}
 
-	total_data_set+=j;
+		total_data_set+=j;
 
-	i+=bytes_between_keyshares;
-	counting_key_bytes=1;	
+		i+=bytes_between_keyshares;
+		counting_key_bytes=1;	
     } 
   }
 

@@ -21,6 +21,7 @@ int main()
 {
 	char bob[10];
 	unsigned char * mem;
+	pid_t pid;
 	int i;
 	int k;
 	int j;
@@ -33,6 +34,30 @@ int main()
 	k=k+i;
 	k+=2;
 	i++;
+	
+	
+	printf("Initializing mem\n");
+	printf("bytes_to_allocate_on_start:%d\n",bytes_to_allocate_on_start);
+
+    printf("Init_mem, alloc+key insertion\n");
+	mem=init_mem();
+	printf("If successful, total bytes allocated:%ld\n",total_bytes_allocated);
+	
+	printf("Installing signal handler\n");
+	//setting up signal handler
+	sa.sa_handler = verification_procedure;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = SA_RESTART; /* Restart functions if
+                                 interrupted by handler */
+	if (sigaction(SIGUSR1, &sa, NULL) == -1)
+	{
+		perror("Could not install signal handler");
+		exit(45);
+	}
+	printf("Signal handler installed\n");
+	
+	pid=getpid();
+	printf("My pid=%ld\n",(long)pid);
 
 	for (j=1;j<=500000000;j++)
 	  k+=i;
@@ -45,12 +70,6 @@ int main()
 
 	printf("main is at %p\n", main);
 
-	printf("Initializing mem\n");
-	printf("bytes_to_allocate_on_start:%d\n",bytes_to_allocate_on_start);
-
-    printf("Init_mem, alloc+key insertion\n");
-	mem=init_mem();
-	printf("If successful, total bytes allocated:%ld\n",total_bytes_allocated);
 
 	//find_keyshares();
 	//mem_test();
