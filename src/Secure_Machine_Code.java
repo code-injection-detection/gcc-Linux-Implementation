@@ -88,6 +88,14 @@ public class Secure_Machine_Code {
 	    			    if (j==0)
 						System.out.printf("0x%02x ",temp);
 					*/
+	    			
+	    			//check not to accidentally produce opcode for <jmp> <number of nops>
+	    			while (j>0 && temp==number_of_interleaved_nops && (byte) keys[j-1].get(keys[j-1].size()-1)==-21) // -21=jmp opcode
+	    			{
+	    				System.out.println("Accidentally created JMP <nops number> opcode!");
+	    				temp = randomByte();
+	    			}
+	    				
 	    			//inserting canary values to show that a RET is following. Temporary fix.
 	    			if ((j==number_of_interleaved_nops-1 || j==number_of_interleaved_nops-2) && ( arr[i+2+number_of_interleaved_nops]==-61 || arr[i+2+number_of_interleaved_nops]==-53) ) //RET opcode in next
 	    			{

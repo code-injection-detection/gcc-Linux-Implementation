@@ -24,8 +24,8 @@ allocate_mem:
 	movq	%rsp, %rbp
 	.cfi_def_cfa_register 6
 	subq	$48, %rsp
-	movq	$1024, -40(%rbp)
-	movq	$5, -32(%rbp)
+	movq	$111024, -40(%rbp)
+	movq	$125, -32(%rbp)
 	movq	$4, -24(%rbp)
 	movq	-32(%rbp), %rax
 	movq	-40(%rbp), %rdx
@@ -99,7 +99,7 @@ secure_malloc:
 	movq	%rax, -64(%rbp)
 	movq	total_bytes_allocated(%rip), %rax
 	movq	%rax, -56(%rbp)
-	movq	$5, -48(%rbp)
+	movq	$125, -48(%rbp)
 	movq	$4, -40(%rbp)
 	movq	memory_chunk(%rip), %rax
 	movq	%rax, -32(%rbp)
@@ -253,7 +253,7 @@ insert_keys_into_mem:
 	addq	$4, -48(%rbp)
 	movl	$1, -52(%rbp)
 .L16:
-	cmpq	$5, -32(%rbp)
+	cmpq	$125, -32(%rbp)
 	jne	.L14
 	movl	$0, -52(%rbp)
 	movq	$0, -32(%rbp)
@@ -335,7 +335,7 @@ insert_data_into_mem:
 .L29:
 	cmpl	$0, -44(%rbp)
 	je	.L25
-	addq	$5, -40(%rbp)
+	addq	$125, -40(%rbp)
 	movl	$0, -44(%rbp)
 	jmp	.L24
 .L25:
@@ -421,14 +421,14 @@ get_secure_data:
 	jne	.L33
 	movq	-8(%rbp), %rdx
 	movq	%rdx, %rax
-	salq	$3, %rax
+	salq	$7, %rax
 	addq	%rdx, %rax
 	addq	%rax, -32(%rbp)
 	jmp	.L32
 .L33:
 	movq	-8(%rbp), %rdx
 	movq	%rdx, %rax
-	salq	$3, %rax
+	salq	$7, %rax
 	addq	%rdx, %rax
 	addq	%rax, -32(%rbp)
 	movq	-104(%rbp), %rax
@@ -472,14 +472,14 @@ get_secure_data:
 .L35:
 	movq	-40(%rbp), %rax
 	addq	%rax, -24(%rbp)
-	addq	$9, -32(%rbp)
+	addq	$129, -32(%rbp)
 	jmp	.L37
 .L32:
 	jmp	.L37
 .L42:
 	cmpl	$0, -60(%rbp)
 	je	.L38
-	addq	$5, -56(%rbp)
+	addq	$125, -56(%rbp)
 	movl	$0, -60(%rbp)
 	jmp	.L37
 .L38:
@@ -563,14 +563,14 @@ set_secure_data:
 	jne	.L45
 	movq	-8(%rbp), %rdx
 	movq	%rdx, %rax
-	salq	$3, %rax
+	salq	$7, %rax
 	addq	%rdx, %rax
 	addq	%rax, -32(%rbp)
 	jmp	.L44
 .L45:
 	movq	-8(%rbp), %rdx
 	movq	%rdx, %rax
-	salq	$3, %rax
+	salq	$7, %rax
 	addq	%rdx, %rax
 	addq	%rax, -32(%rbp)
 	movq	-104(%rbp), %rax
@@ -614,14 +614,14 @@ set_secure_data:
 .L47:
 	movq	-40(%rbp), %rax
 	addq	%rax, -24(%rbp)
-	addq	$9, -32(%rbp)
+	addq	$129, -32(%rbp)
 	jmp	.L49
 .L44:
 	jmp	.L49
 .L54:
 	cmpl	$0, -60(%rbp)
 	je	.L50
-	addq	$5, -56(%rbp)
+	addq	$125, -56(%rbp)
 	movl	$0, -60(%rbp)
 	jmp	.L49
 .L50:
@@ -679,7 +679,7 @@ find_useful_chunks:
 	movq	%rdi, -40(%rbp)
 	movq	-40(%rbp), %rax
 	movq	%rax, -24(%rbp)
-	movq	$5, -16(%rbp)
+	movq	$125, -16(%rbp)
 	movq	$4, -8(%rbp)
 	movq	-16(%rbp), %rax
 	movq	-24(%rbp), %rdx
@@ -1572,130 +1572,130 @@ find_keyshares:
 	.cfi_offset 6, -16
 	movq	%rsp, %rbp
 	.cfi_def_cfa_register 6
-	subq	$112, %rsp
+	subq	$240, %rsp
 	movq	%fs:40, %rax
 	movq	%rax, -8(%rbp)
 	xorl	%eax, %eax
-	movl	$0, -96(%rbp)
-	movq	$foo, -72(%rbp)
-	movq	$main, -64(%rbp)
-	movq	$foo2, -56(%rbp)
-	movq	$find_keyshares, -48(%rbp)
-	movl	$0, -92(%rbp)
-	movq	$__executable_start, -40(%rbp)
-	movq	$__etext, -32(%rbp)
-	movl	$0, -100(%rbp)
+	movl	$0, -224(%rbp)
+	movq	$foo, -200(%rbp)
+	movq	$main, -192(%rbp)
+	movq	$foo2, -184(%rbp)
+	movq	$find_keyshares, -176(%rbp)
+	movl	$0, -220(%rbp)
+	movq	$__executable_start, -168(%rbp)
+	movq	$__etext, -160(%rbp)
+	movl	$0, -228(%rbp)
 	jmp	.L88
 .L89:
-	movl	-100(%rbp), %eax
+	movl	-228(%rbp), %eax
 	cltq
-	movb	$0, -16(%rbp,%rax)
-	addl	$1, -100(%rbp)
+	movb	$0, -144(%rbp,%rax)
+	addl	$1, -228(%rbp)
 .L88:
-	cmpl	$4, -100(%rbp)
+	cmpl	$124, -228(%rbp)
 	jle	.L89
-	movq	-40(%rbp), %rax
-	movq	%rax, -88(%rbp)
+	movq	-168(%rbp), %rax
+	movq	%rax, -216(%rbp)
 	jmp	.L90
 .L94:
-	movq	-88(%rbp), %rax
+	movq	-216(%rbp), %rax
 	movzbl	(%rax), %eax
 	cmpb	$-21, %al
 	jne	.L91
-	movq	-88(%rbp), %rax
+	movq	-216(%rbp), %rax
 	addq	$1, %rax
 	movzbl	(%rax), %eax
-	cmpb	$5, %al
+	cmpb	$125, %al
 	jne	.L91
-	movl	$0, -100(%rbp)
+	movl	$0, -228(%rbp)
 	jmp	.L92
 .L93:
-	movl	-100(%rbp), %eax
+	movl	-228(%rbp), %eax
 	cltq
-	movzbl	-16(%rbp,%rax), %edx
-	movl	-100(%rbp), %eax
+	movzbl	-144(%rbp,%rax), %edx
+	movl	-228(%rbp), %eax
 	cltq
 	leaq	2(%rax), %rcx
-	movq	-88(%rbp), %rax
+	movq	-216(%rbp), %rax
 	addq	%rcx, %rax
 	movzbl	(%rax), %eax
 	xorl	%eax, %edx
-	movl	-100(%rbp), %eax
+	movl	-228(%rbp), %eax
 	cltq
-	movb	%dl, -16(%rbp,%rax)
-	addl	$1, -100(%rbp)
+	movb	%dl, -144(%rbp,%rax)
+	addl	$1, -228(%rbp)
 .L92:
-	cmpl	$4, -100(%rbp)
+	cmpl	$124, -228(%rbp)
 	jle	.L93
-	addl	$1, -96(%rbp)
+	addl	$1, -224(%rbp)
 .L91:
-	addq	$1, -88(%rbp)
+	addq	$1, -216(%rbp)
 .L90:
-	movq	-88(%rbp), %rax
-	cmpq	-32(%rbp), %rax
+	movq	-216(%rbp), %rax
+	cmpq	-160(%rbp), %rax
 	jbe	.L94
 	movl	$.LC5, %esi
 	movl	$.LC6, %edi
 	call	fopen
-	movq	%rax, -24(%rbp)
+	movq	%rax, -152(%rbp)
 	movq	memory_chunk(%rip), %rax
-	movq	%rax, -88(%rbp)
-	movq	$0, -80(%rbp)
+	movq	%rax, -216(%rbp)
+	movq	$0, -208(%rbp)
 	jmp	.L95
 .L99:
-	cmpl	$0, -92(%rbp)
+	cmpl	$0, -220(%rbp)
 	jne	.L96
-	addq	$4, -80(%rbp)
-	movl	$1, -92(%rbp)
+	addq	$4, -208(%rbp)
+	movl	$1, -220(%rbp)
 	jmp	.L95
 .L96:
-	movl	$0, -100(%rbp)
+	movl	$0, -228(%rbp)
 	jmp	.L97
 .L98:
-	movl	-100(%rbp), %eax
+	movl	-228(%rbp), %eax
 	cltq
-	movzbl	-16(%rbp,%rax), %edx
-	movl	-100(%rbp), %eax
+	movzbl	-144(%rbp,%rax), %edx
+	movl	-228(%rbp), %eax
 	movslq	%eax, %rcx
-	movq	-80(%rbp), %rax
+	movq	-208(%rbp), %rax
 	addq	%rax, %rcx
-	movq	-88(%rbp), %rax
+	movq	-216(%rbp), %rax
 	addq	%rcx, %rax
 	movzbl	(%rax), %eax
 	xorl	%eax, %edx
-	movl	-100(%rbp), %eax
+	movl	-228(%rbp), %eax
 	cltq
-	movb	%dl, -16(%rbp,%rax)
-	addl	$1, -100(%rbp)
+	movb	%dl, -144(%rbp,%rax)
+	addl	$1, -228(%rbp)
 .L97:
-	cmpl	$4, -100(%rbp)
+	cmpl	$124, -228(%rbp)
 	jle	.L98
-	addq	$5, -80(%rbp)
-	movl	$0, -92(%rbp)
+	addq	$125, -208(%rbp)
+	movl	$0, -220(%rbp)
 .L95:
 	movq	total_bytes_allocated(%rip), %rax
-	cmpq	%rax, -80(%rbp)
+	cmpq	%rax, -208(%rbp)
 	jl	.L99
-	movq	-24(%rbp), %rax
+	movq	-152(%rbp), %rax
 	movq	%rax, %rdi
 	call	fclose
 	movl	$10, %edi
 	call	putchar
-	movl	$0, -100(%rbp)
+	movl	$0, -228(%rbp)
 	jmp	.L100
 .L101:
-	movl	-100(%rbp), %eax
+	movl	-228(%rbp), %eax
 	cltq
-	movzbl	-16(%rbp,%rax), %eax
+	movzbl	-144(%rbp,%rax), %eax
 	movzbl	%al, %edx
-	movl	-100(%rbp), %eax
+	movl	-228(%rbp), %eax
 	movl	%eax, %esi
 	movl	$.LC38, %edi
 	movl	$0, %eax
 	call	printf
-	addl	$1, -100(%rbp)
+	addl	$1, -228(%rbp)
 .L100:
-	cmpl	$4, -100(%rbp)
+	cmpl	$124, -228(%rbp)
 	jle	.L101
 	nop
 	movq	-8(%rbp), %rax
@@ -1806,7 +1806,7 @@ main:
 	addl	$1, -52(%rbp)
 	movl	$.LC40, %edi
 	call	puts
-	movl	$1024, %esi
+	movl	$111024, %esi
 	movl	$.LC41, %edi
 	movl	$0, %eax
 	call	printf

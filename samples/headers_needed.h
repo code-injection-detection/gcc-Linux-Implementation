@@ -8,15 +8,15 @@
 
 
 #ifndef number_of_interleaved_keys
-#define number_of_interleaved_keys (5)
+#define number_of_interleaved_keys (125)
 #endif
 
 #ifndef bytes_used_for_keyshares
-#define bytes_used_for_keyshares (5)
+#define bytes_used_for_keyshares (125)
 #endif				//This one is for the memory, not for the interleaved NOPs. The number shuld be the same as number_of_interleaved_keys
 
 #ifndef bytes_to_allocate_on_start
-#define bytes_to_allocate_on_start (1024)
+#define bytes_to_allocate_on_start (111024)
 #endif
 
 #ifndef bytes_between_keyshares
