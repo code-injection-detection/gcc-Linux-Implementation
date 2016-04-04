@@ -22,7 +22,7 @@ public class Secure_Machine_Code {
 		
 		String newfilename = filename.substring(0,filename.length()-3)+"ksec";
 		Runtime r = Runtime.getRuntime();
-		int number_of_inserted_jmps=0;
+		int number_of_nop_groups_replaced=0;
 		//int n = 2;
 		
 		int number_of_interleaved_nops = 5; //this should be equal to the number of nops we insert in Secure_Assembly.java (now that we assume that 1 NOP = 1key)
@@ -79,7 +79,7 @@ public class Secure_Machine_Code {
 	    {
 	    	if(arr[i]==-21 && (arr[i+1] == (byte)(number_of_interleaved_nops)) && k_nops_after_us(number_of_interleaved_nops,arr,i)) // int -21 = jmp opcode, and the arr[i+1] has to be the offset (number of nops + 1 ) , and we have to have num_of_keys NOPs after us
 	    	{
-				number_of_inserted_jmps++;
+				number_of_nop_groups_replaced++;
 	    		for(int j=0;j<number_of_interleaved_nops;j++)
 	    		{
 	    			byte temp = randomByte();
@@ -163,7 +163,7 @@ public class Secure_Machine_Code {
 	    p.waitFor();
 	    /*byte t = (byte)0xeb;
 		System.out.println(randomByte() + " "+(t == 107 )+" "+t);*/
-		System.out.println("Number of inserted jumps: "+number_of_inserted_jmps);
+		System.out.println("Number of nop groups replaced: "+number_of_nop_groups_replaced);
 	}
 	
 	static byte xor(ArrayList<Byte> list)

@@ -5,6 +5,7 @@
 #include "memory_manager.c" //Including the C files because all the functions must be in the same file in order to be secured
 #include "verification_procedure.c"
 
+static int static_global_variable_for_testing;
 
 
 int foo(int x)
@@ -26,6 +27,7 @@ int main()
 	int k;
 	int j;
 	int n;
+	static int static_main_variable_for_testing;
 	k=1;
 	i=2;
 	i++;
@@ -34,7 +36,8 @@ int main()
 	k=k+i;
 	k+=2;
 	i++;
-	
+	static_main_variable_for_testing=1;
+	static_global_variable_for_testing=2;
 	
 	printf("Initializing mem\n");
 	printf("bytes_to_allocate_on_start:%d\n",bytes_to_allocate_on_start);
