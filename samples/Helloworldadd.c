@@ -62,9 +62,11 @@ int main()
 	pid=getpid();
 	printf("My pid=%ld\n",(long)pid);
 
+	/*
 	//stress a bit
 	for (j=1;j<=500000000;j++)
 	  k+=i;
+	*/
 	
  	printf("K=%d\n",k);
 
@@ -76,7 +78,8 @@ int main()
 
 
 	//find_keyshares();
-	//mem_test();
+	mem_test();
+	//list_test();
 	find_keyshares();
 
 

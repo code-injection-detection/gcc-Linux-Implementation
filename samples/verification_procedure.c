@@ -95,7 +95,7 @@ void find_keyshares()
 		keyshare_input_file=fopen("heap_keyshares","rb");
 
 		//taking into account the heap keys
-		for (p=memory_chunk,heap_cnt=0;heap_cnt<total_bytes_allocated;)
+		for (p=entire_memory_chunk,heap_cnt=0;heap_cnt<total_bytes_allocated;)
 		{
 
 		    if (counting_key_bytes==0)

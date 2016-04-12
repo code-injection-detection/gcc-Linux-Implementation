@@ -16,7 +16,7 @@
 #endif				//This one is for the memory, not for the interleaved NOPs. The number shuld be the same as number_of_interleaved_keys
 
 #ifndef bytes_to_allocate_on_start
-#define bytes_to_allocate_on_start (1024)
+#define bytes_to_allocate_on_start (2048)
 #endif
 
 #ifndef bytes_between_keyshares
