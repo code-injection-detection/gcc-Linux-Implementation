@@ -784,7 +784,7 @@ void set_int_array_element(void * start_of_array, long index, int source)
 	set_secure_data(&src,sizeof(int),start_of_array,1,index);
 }
 
-long int set_long_int_array_element(void * start_of_array, long index, long int source)
+void set_long_int_array_element(void * start_of_array, long index, long int source)
 {
 	long int src=source;
 	set_secure_data(&src,sizeof(long int),start_of_array,1,index);

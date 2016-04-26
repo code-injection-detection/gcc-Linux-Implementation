@@ -527,7 +527,7 @@ allocate_mem:
 	movq	%rsp, %rbp
 	.cfi_def_cfa_register 6
 	subq	$48, %rsp
-	movq	$1500, -40(%rbp)
+	movq	$1200, -40(%rbp)
 	movq	$5, -32(%rbp)
 	movq	$4, -24(%rbp)
 	movq	-32(%rbp), %rax
@@ -3127,42 +3127,38 @@ simple_array_tests:
 	movl	$4, %edi
 	call	managed_secure_malloc
 	movq	%rax, -64(%rbp)
-	movl	$4, %edi
+	movl	$8, %edi
 	call	managed_secure_malloc
 	movq	%rax, -56(%rbp)
 	movq	-56(%rbp), %rax
 	movl	$25, %esi
 	movq	%rax, %rdi
-	call	set_int
+	call	set_long_int
 	movq	-56(%rbp), %rax
 	movq	%rax, %rdi
-	call	get_int
-	cltq
+	call	get_long_int
 	salq	$2, %rax
 	movq	%rax, %rdi
 	call	managed_secure_malloc
 	movq	%rax, -48(%rbp)
 	movq	-56(%rbp), %rax
 	movq	%rax, %rdi
-	call	get_int
-	cltq
+	call	get_long_int
 	salq	$2, %rax
 	movq	%rax, %rdi
 	call	managed_secure_malloc
 	movq	%rax, -40(%rbp)
 	movq	-56(%rbp), %rax
 	movq	%rax, %rdi
-	call	get_int
-	cltq
+	call	get_long_int
 	salq	$3, %rax
 	movq	%rax, %rdi
 	call	managed_secure_malloc
 	movq	%rax, -32(%rbp)
 	movq	-56(%rbp), %rax
 	movq	%rax, %rdi
-	call	get_int
-	cltq
-	salq	$3, %rax
+	call	get_long_int
+	salq	$2, %rax
 	movq	%rax, %rdi
 	call	managed_secure_malloc
 	movq	%rax, -24(%rbp)
@@ -3170,6 +3166,8 @@ simple_array_tests:
 	jne	.L196
 	movl	$.LC66, %edi
 	call	puts
+	movl	$42, %edi
+	call	exit
 .L196:
 	movl	$.LC67, %edi
 	call	puts
@@ -3228,17 +3226,17 @@ simple_array_tests:
 	movq	%rax, %rdi
 	call	get_int
 	addl	%eax, %eax
-	cvtsi2sd	%eax, %xmm3
-	movsd	%xmm3, -72(%rbp)
+	cvtsi2ss	%eax, %xmm3
+	movss	%xmm3, -72(%rbp)
 	movq	-64(%rbp), %rax
 	movq	%rax, %rdi
 	call	get_int
 	movslq	%eax, %rdx
 	movq	-24(%rbp), %rax
-	movsd	-72(%rbp), %xmm0
+	movss	-72(%rbp), %xmm0
 	movq	%rdx, %rsi
 	movq	%rax, %rdi
-	call	set_double_array_element
+	call	set_float_array_element
 	movq	-64(%rbp), %rax
 	movq	%rax, %rdi
 	call	get_int
@@ -3251,11 +3249,11 @@ simple_array_tests:
 	movq	-64(%rbp), %rax
 	movq	%rax, %rdi
 	call	get_int
-	movl	%eax, %ebx
+	movslq	%eax, %rbx
 	movq	-56(%rbp), %rax
 	movq	%rax, %rdi
-	call	get_int
-	cmpl	%eax, %ebx
+	call	get_long_int
+	cmpq	%rax, %rbx
 	jl	.L198
 	movl	$.LC69, %edi
 	call	puts
@@ -3308,7 +3306,9 @@ simple_array_tests:
 	movq	-24(%rbp), %rax
 	movq	%rdx, %rsi
 	movq	%rax, %rdi
-	call	get_double_array_element
+	call	get_float_array_element
+	unpcklps	%xmm0, %xmm0
+	cvtps2pd	%xmm0, %xmm0
 	movapd	%xmm0, %xmm2
 	addsd	-72(%rbp), %xmm2
 	movsd	%xmm2, -72(%rbp)
@@ -3333,11 +3333,11 @@ simple_array_tests:
 	movq	-64(%rbp), %rax
 	movq	%rax, %rdi
 	call	get_int
-	movl	%eax, %ebx
+	movslq	%eax, %rbx
 	movq	-56(%rbp), %rax
 	movq	%rax, %rdi
-	call	get_int
-	cmpl	%eax, %ebx
+	call	get_long_int
+	cmpq	%rax, %rbx
 	jl	.L200
 	movl	$.LC70, %edi
 	call	puts
@@ -3371,11 +3371,11 @@ simple_array_tests:
 	movq	-64(%rbp), %rax
 	movq	%rax, %rdi
 	call	get_int
-	movl	%eax, %ebx
+	movslq	%eax, %rbx
 	movq	-56(%rbp), %rax
 	movq	%rax, %rdi
-	call	get_int
-	cmpl	%eax, %ebx
+	call	get_long_int
+	cmpq	%rax, %rbx
 	jl	.L202
 	movl	$10, %edi
 	call	putchar
@@ -3412,11 +3412,11 @@ simple_array_tests:
 	movq	-64(%rbp), %rax
 	movq	%rax, %rdi
 	call	get_int
-	movl	%eax, %ebx
+	movslq	%eax, %rbx
 	movq	-56(%rbp), %rax
 	movq	%rax, %rdi
-	call	get_int
-	cmpl	%eax, %ebx
+	call	get_long_int
+	cmpq	%rax, %rbx
 	jl	.L204
 	movl	$10, %edi
 	call	putchar
@@ -3694,7 +3694,7 @@ main:
 	movl	$2, static_global_variable_for_testing(%rip)
 	movl	$.LC75, %edi
 	call	puts
-	movl	$1500, %esi
+	movl	$1200, %esi
 	movl	$.LC76, %edi
 	movl	$0, %eax
 	call	printf
