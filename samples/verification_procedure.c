@@ -34,7 +34,6 @@ void find_keyshares()
    long fun_name;
    long heap_cnt;
    int counting_key_bytes=0; //used as boolean
-   FILE *keyshare_input_file;
    char ret;
 
    unsigned char* start_of_text=(unsigned char*)&__executable_start;  //we get the limits of .text section
@@ -61,7 +60,7 @@ void find_keyshares()
      printf("\n\n\n");
   */
 
-   //implementation #1  //iterating over function codes and locating RETs
+   //implementation #1  //iterating over function codes and locating RETs //SUPER WRONG IDEA. MANY RETs in a function?
   /*
    for (i=1;i<=4;i++)
    {
@@ -78,7 +77,7 @@ void find_keyshares()
 
 
 
-		//implementation #3
+		//implementation #3   //using start and end of text section
 		for (p=start_of_text;p<=end_of_text;p++)
 		{
 			if (*p==0xEB && *(p+1)==number_of_interleaved_keys) //JMP 5
@@ -92,7 +91,6 @@ void find_keyshares()
 			}
 		}
 
-		keyshare_input_file=fopen("heap_keyshares","rb");
 
 		//taking into account the heap keys
 		for (p=entire_memory_chunk,heap_cnt=0;heap_cnt<total_bytes_allocated;)
@@ -114,33 +112,10 @@ void find_keyshares()
 				heap_cnt+=bytes_used_for_keyshares;
 				counting_key_bytes=0;
 
-				//consistency tests
-				/*
-				fread(&ret,1,1,keyshare_input_file);
-				if (ret!=*(p+heap_cnt))
-				  printf("WHOAH! ERROR 0. heap_cnt=%ld ret=0x%02x heap=0x%02x\n",heap_cnt,ret,*(p+heap_cnt));
-
-				 fread(&ret,1,1,keyshare_input_file);
-				if (ret!=*(p+heap_cnt+1))
-				  printf("WHOAH! ERROR 1. heap_cnt=%ld\n",heap_cnt);
-				 
-				fread(&ret,1,1,keyshare_input_file);
-				if (ret!=*(p+heap_cnt+2))
-				  printf("WHOAH! ERROR 2. heap_cnt=%ld\n",heap_cnt);
-		
-				fread(&ret,1,1,keyshare_input_file);
-				if (ret!=*(p+heap_cnt+3))
-				  printf("WHOAH! ERROR 3. heap_cnt=%ld\n",heap_cnt);
-
-				fread(&ret,1,1,keyshare_input_file);
-				if (ret!=*(p+heap_cnt+4))
-				  printf("WHOAH! ERROR 4. heap_cnt=%ld\n",heap_cnt);
-				*/
 				
 		    }  
 
 		}
-		fclose(keyshare_input_file);
 
   //implementation #1
  /* } */

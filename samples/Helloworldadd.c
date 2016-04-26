@@ -78,8 +78,9 @@ int main()
 
 
 	//find_keyshares();
-	mem_test();
+	//mem_test();
 	//list_test();
+	simple_array_tests();
 	find_keyshares();
 
 

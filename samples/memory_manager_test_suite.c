@@ -334,3 +334,77 @@ void list_test()
 	print_lists();
 }
 
+
+
+void simple_array_tests()
+{
+	int* int_array1;
+	int * int_array2;
+	double * double_array1;
+	double *double_array2;
+	int * index;
+	int * length;
+	
+	index=managed_secure_malloc(sizeof(int));
+	
+	length=managed_secure_malloc(sizeof(int));
+	set_int(length,25);
+	
+	int_array1=managed_secure_malloc(get_int(length)*sizeof(int));
+	int_array2=managed_secure_malloc(get_int(length)*sizeof(int));
+	double_array1=managed_secure_malloc(get_int(length)*sizeof(double));
+	double_array2=managed_secure_malloc(get_int(length)*sizeof(double));
+	
+	if (double_array2==NULL)
+	{
+		printf("Need more mem!\n");
+	}
+	
+	printf("setting\n");
+	//set arrays
+	for (set_int(index,0);get_int(index)<get_int(length);set_int(index,get_int(index)+1))
+	{
+		//printf("index=%d\n",get_int(index));
+		set_int_array_element(int_array1,get_int(index),get_int(index)*2);
+		//printf("a\n");
+		set_int_array_element(int_array2,get_int(index),get_int(index)*3);
+		//printf("b\n");
+		set_double_array_element(double_array1,get_int(index),get_int(index)*0.5);
+		//printf("c\n");
+		set_double_array_element(double_array2,get_int(index),get_int(index)*2);
+		//printf("d\n");
+	}
+	
+	printf("adding\n");
+	//add arrays and put the result into the first ones
+	for (set_int(index,0);get_int(index)<get_int(length);set_int(index,get_int(index)+1))
+	{
+		set_int_array_element(int_array1,get_int(index),get_int_array_element(int_array1,get_int(index))+get_int_array_element(int_array2,get_int(index)));
+		set_double_array_element(double_array1,get_int(index),get_double_array_element(double_array1,get_int(index))+get_double_array_element(double_array2,get_int(index)));
+	}
+	
+	printf("printing\n");
+	//print arrays
+	for (set_int(index,0);get_int(index)<get_int(length);set_int(index,get_int(index)+1))
+	{
+		printf("%d ",get_int_array_element(int_array1,get_int(index)));
+	}
+	printf("\n");
+	
+	for (set_int(index,0);get_int(index)<get_int(length);set_int(index,get_int(index)+1))
+	{
+		printf("%lg ",get_double_array_element(double_array1,get_int(index)));
+	}
+	printf("\n");
+	
+	
+	
+	printf("freeing\n");
+	managed_secure_free(index);
+	managed_secure_free(length);
+	managed_secure_free(int_array1);
+	managed_secure_free(int_array2);
+	managed_secure_free(double_array1);
+	managed_secure_free(double_array2);
+	
+}

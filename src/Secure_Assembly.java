@@ -21,7 +21,7 @@ public class Secure_Assembly {
 		String filename = new File("../samples/Helloworldadd.s").getAbsolutePath();
 		
 		Scanner sc = new Scanner(new File(filename));
-		ArrayList<String> list = new ArrayList<String>();
+		ArrayList<String> list_of_lines = new ArrayList<String>();
 		ArrayList<String> function_names = new ArrayList<String>();
 		sc.useDelimiter("\n");
 		String ulabel = "UNIQUE";
@@ -74,7 +74,7 @@ public class Secure_Assembly {
 				String line = sc.next();
 				line = removeNewlines(line);
 				//System.out.println(removeSpaces(line));
-				list.add(line);
+				list_of_lines.add(line);
 				
 							
 				if (removeSpaces(line).indexOf(".cfi_startproc")!=-1)
@@ -86,8 +86,8 @@ public class Secure_Assembly {
 			}
 			
 			// Adding these NOPs help identify the beginning of code for the Secure_Machine_code program
-			list.add("NOP");
-			list.add("NOP");
+			list_of_lines.add("NOP");
+			list_of_lines.add("NOP");
 			
 			// This inserts the jumps and NOPs in the code.
 			// It breaks at the end of the code ("end")
@@ -104,14 +104,14 @@ public class Secure_Assembly {
 				
 				if (reached_end_of_function)
 				{
-					list.add(line);
+					list_of_lines.add(line);
 					break;
 				}
 				
 				if (removeSpaces(line).startsWith(".cfi_endproc"))
 				{
 					//System.out.println("I came to end");
-					list.add(line);
+					list_of_lines.add(line);
 					reached_end_of_function = true;
 					//continue;
 					break;
@@ -119,24 +119,24 @@ public class Secure_Assembly {
 				
 				if (removeSpaces(line).startsWith("."))
 				{
-					list.add(line);
+					list_of_lines.add(line);
 					continue;
 				}
 								
 				//if we have exhausted the group of commands, we need to add a jump and nops, and a label after them
 				if (i == num_of_grouped_orig_instr)
 				{
-					list.add(" jmp " + "." + ulabel + label_counter);
+					list_of_lines.add(" jmp " + "." + ulabel + label_counter);
 					for (int j = 0; j < num_of_interleaved_nops; j++)
-						list.add("NOP"); 
-					list.add("."+ ulabel + label_counter + ": " );          //we are just adding the label, not any command
+						list_of_lines.add("NOP"); 
+					list_of_lines.add("."+ ulabel + label_counter + ": " );          //we are just adding the label, not any command
 					//System.out.println(line);
 					i = 0;
 					label_counter++;
 					//continue;
 				}
 				
-				list.add(line);  //the default behavior is the program to add the next command
+				list_of_lines.add(line);  //the default behavior is the program to add the next command
 				i++;
 				
 				//System.out.println(line);
@@ -154,11 +154,11 @@ public class Secure_Assembly {
 				//System.out.println("I see an empty line");
 				continue;
 			}
-			list.add(line); 
+			list_of_lines.add(line); 
 		}
 		
 		
-		for (String s: list)
+		for (String s: list_of_lines)
 		{
 			//System.out.println(s);
 		}
@@ -169,7 +169,7 @@ public class Secure_Assembly {
 		String newfilename = filename.substring(0,filename.length()-2) + "_sec.s";
 		//System.out.println("NOPs added to file: "+newfilename);
 		BufferedWriter bw = new BufferedWriter(new FileWriter(newfilename));
-		for (String line: list)
+		for (String line: list_of_lines)
 		{
 			bw.write(line);
 			bw.newLine();
