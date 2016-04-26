@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-#script to prove that accildental generation of jmp <number of nops> ofcode will result in error
+#script to prove that accildental generation of jmp <number of nops> opcode will result in error
 #Now the problem is fixed though
 for ((i=1;i<=100;i++)); do
 

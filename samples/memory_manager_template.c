@@ -3,23 +3,30 @@
 /* The memory image should be like ('o'=useful data, 'x'=keyshares):
 oooxxxxxxooo.....xxxxxxoooxxxxxxooo
 Which means: n times useful data, (n-1) times keyshares
+Let's call these groups of bytes as chunks (of useful data, and of keyshares)
+Allocation is done as allocation of a whole number of useful chunks. A chunk is not broken between different allocations.
+The heap memory manager uses two lists: One for free consecutive chunks (which are grouped together  whenever they don't have data among them),
+and one for allocated groups of chunks, one group for every managed_secure_malloc() call.
 */
 
 
 /*Memory manager data structure*/
 typedef struct node {
-	long length; //in chunks
+	long length; //in chunks (groups of useful data in heap)
 	void * pointer_to_mem;
 	struct node * next;
 	struct node * previous;
 } list_node;
 
 
-long total_bytes_allocated;
-unsigned char * entire_memory_chunk;
-unsigned char* last_unused_memory;
+long total_bytes_allocated; /*total bytes allocated for the secure heap (perhaps different than the amount asked)*/
+unsigned char * entire_memory_chunk; /*points to the start of the secure heap*/
+unsigned char* last_unused_memory; /*old, use memory manager functions instead*/
 FILE *keyshare_input_file;
-list_node * free_chunks_list;
+
+/*memory manager lists*/
+/*Each node they contain, represents one group of chunks that has been allocated as one, or is one continuous free space in the heap*/
+list_node * free_chunks_list; 
 long free_chunks_num;
 list_node * allocated_chunks_list;
 long allocated_chunks_num;
@@ -82,6 +89,7 @@ list_node * alloc_list(long number_of_nodes)
 	return head;
 }
 
+/*Allocates and adds a node at the start of the list*/
 list_node * add_node_to_list(list_node *head,list_node newnode)
 {
 	list_node * new;
@@ -96,6 +104,7 @@ list_node * add_node_to_list(list_node *head,list_node newnode)
 	
 	copy_nodes(new,newnode);
 	
+	//if the list was empty
 	if (head==NULL)
 	{
 		head=new;
@@ -105,7 +114,7 @@ list_node * add_node_to_list(list_node *head,list_node newnode)
 	}
 	
 	//else
-	//insert in at the start of the list
+	//insert at the start of the list
 	new->next=head;
 	head->previous=new;
 	new->previous=NULL;
@@ -114,6 +123,7 @@ list_node * add_node_to_list(list_node *head,list_node newnode)
 	return head;
 }
 
+/*Deletes a node from a list*/
 list_node * delete_node_from_list(list_node *head,list_node * node_to_delete)
 {
 	list_node * prev;
@@ -154,6 +164,7 @@ list_node * delete_node_from_list(list_node *head,list_node * node_to_delete)
 	
 }
 
+/*Free all the elements of a list*/
 void free_list(list_node *head)
 {
 	list_node * temp1;
@@ -210,8 +221,9 @@ void print_lists()
 
 /***************************** END OF LIST MANIPULATION FUNCTIONS ******************************************/
 
-
-long find_number_of_useful_chunks(long allocated_bytes) //most often allocated bytes == total_bytes_allocates
+/*Returns the number of the useful chunks in memory*/
+/*This number (let it be "n") satisfies the equation <useful_bytes_chunk_length>*(n) + <keyshare_bytes_chunk_length>*(n-1)= total_allocated_bytes */
+long find_number_of_useful_chunks(long allocated_bytes) //most often allocated bytes == total_bytes_allocated
 {
   long a=allocated_bytes;
   long b=bytes_used_for_keyshares;
@@ -300,6 +312,7 @@ unsigned char * allocate_mem()
 
 
 /*Allocates secured space for future use*/
+/*Obsolete. use managed_secure_malloc() instead*/
 void * secure_malloc(long bytes_for_allocation )
 {
   unsigned char* last_unused_mem=last_unused_memory;
@@ -326,6 +339,7 @@ void * secure_malloc(long bytes_for_allocation )
   //else allocate
   chunks_needed=(bytes_for_allocation/c);
 
+  //allocate one more chunk if needed (remember: we need whole number of chunks)
   if (chunks_needed*c!=bytes_for_allocation) chunks_needed++;
   
   //practically move unused memory pointer
@@ -345,6 +359,7 @@ unsigned char get_next_keyshare()
 	perror("Attempted to read more keyshares that the ones stored\n");
 	exit(44);
   }
+  //reads one byte
   fread(&ret,1,1,keyshare_input_file);
   return ret;
 
@@ -361,8 +376,6 @@ void insert_keys_into_mem(unsigned char * mem)
   long keyshare_bytecounter;
   int counting_key_bytes=0; //used as boolean
 
-  //temporary, random init
-  srand(time(NULL));
   
   p=&(mem[0]);
   
@@ -374,7 +387,7 @@ void insert_keys_into_mem(unsigned char * mem)
 
     if (counting_key_bytes)
     {
-	
+		//inserting keys
     	p[i]=get_next_keyshare();
 		//printf("got keyshare:0x%02x\n",p[i]);
         keyshare_bytecounter++;
@@ -382,7 +395,7 @@ void insert_keys_into_mem(unsigned char * mem)
     }
     else
     {
-	//for printing purposes
+		//for printing purposes, insert NULLs
 		for (j=0;j<bytes_between_keyshares;j++)
 			p[i+j]='\0';
 
@@ -418,6 +431,7 @@ void print_mem(unsigned char * mem)
 
 /*Receives "data_size" bytes of data, and inserts them into memory. Insertion starts at "last_unused_mem".
 Returns how many groups (chunks) of useful data have actually been used.*/
+/*Obsolete. Use set_secure_data() instead*/
 long insert_data_into_mem(long data_size,unsigned char * data, unsigned char * mem_where_to_insert)
 {
   long i,j;
@@ -435,22 +449,22 @@ long insert_data_into_mem(long data_size,unsigned char * data, unsigned char * m
   {
     if (counting_key_bytes)
     {
-	i+=bytes_used_for_keyshares;
-	counting_key_bytes=0;
+	    i+=bytes_used_for_keyshares;
+	    counting_key_bytes=0;
     }
     else
     {
-	//actual insertion
-	for (j=0;j<bytes_between_keyshares && (total_data_inserted + j < data_size );j++)
-	{
-		p[i+j]=data[total_data_inserted+j];
-	}
-	
-	total_data_inserted+=j;
-	chunks++;
+		//actual insertion
+		for (j=0;j<bytes_between_keyshares && (total_data_inserted + j < data_size );j++)
+		{
+			p[i+j]=data[total_data_inserted+j];
+		}
+		
+		total_data_inserted+=j;
+		chunks++;
 
-	i+=bytes_between_keyshares;
-	counting_key_bytes=1;	
+		i+=bytes_between_keyshares;
+		counting_key_bytes=1;	
     }  
 
   }
@@ -484,6 +498,7 @@ void get_secure_data(void * res,long data_size, unsigned char * data_start, int 
   i=0;
   if (isarray)
   {
+	
 	chunks_forward=(arrayindex*data_size)/(bytes_between_keyshares);
 	if (chunks_forward*bytes_between_keyshares==(arrayindex*data_size))
 	{
@@ -508,24 +523,24 @@ void get_secure_data(void * res,long data_size, unsigned char * data_start, int 
 
   while(total_data_retrieved<data_size)
   {
-    if (counting_key_bytes)
-    {
-	i+=bytes_used_for_keyshares;
-	counting_key_bytes=0;
-    }
-    else
-    {
-	//actual retrieval
-	for (j=0;j<bytes_between_keyshares && (total_data_retrieved + j < data_size );j++)
+	if (counting_key_bytes)
 	{
-		result[total_data_retrieved+j]=p[i+j];
+		i+=bytes_used_for_keyshares;
+		counting_key_bytes=0;
 	}
+	else
+	{
+		//actual retrieval
+		for (j=0;j<bytes_between_keyshares && (total_data_retrieved + j < data_size );j++)
+		{
+			result[total_data_retrieved+j]=p[i+j];
+		}
 
-	total_data_retrieved+=j;
+		total_data_retrieved+=j;
 
-	i+=bytes_between_keyshares;
-	counting_key_bytes=1;	
-    } 
+		i+=bytes_between_keyshares;
+		counting_key_bytes=1;	
+	} 
   }
 
 }
@@ -579,7 +594,7 @@ void set_secure_data(void * source,long data_size, unsigned char * data_start, i
     }
     else
     {
-	//actual set
+		//actual set
 		for (j=0;j<bytes_between_keyshares && (total_data_set + j < data_size );j++)
 		{
 			p[i+j]=src[total_data_set+j];
@@ -601,6 +616,9 @@ unsigned char * init_mem()
 {
   unsigned char * mem;
 
+  //init random seed, in case we need to produce random keyshares (now we read them from file)
+  srand(time(NULL));
+
   mem=allocate_mem();
   keyshare_input_file=fopen("heap_keyshares","rb");
   if(keyshare_input_file==NULL)
@@ -620,7 +638,7 @@ unsigned char * init_mem()
   return mem;
 }
 
-//normally frees the memory (and the memory manager structures), not anything fancy. Secure_free() needs to be written as well.
+//normally frees the memory (and the memory manager structures), not anything fancy.
 void free_secure_mem(unsigned char * mem)
 {
   free(mem);
@@ -628,41 +646,98 @@ void free_secure_mem(unsigned char * mem)
 }
 
 
+/************************************************************************************************/
+/********************************SECURE GETTERS START********************************************/
+/************************************************************************************************/
+
 /*Returns the value of a securely allocated char. Of course secure_malloc must have been called before*/
-/*The function writes to *res, which must have been preallocated. */
-void get_char( void * start_of_secure_data,char * res)
+char get_char( void * start_of_secure_data)
 {
-  get_secure_data(res,sizeof(char),start_of_secure_data,0,0);
-}
-
-void get_int( void * start_of_secure_data,int * res)
-{
-  get_secure_data(res,sizeof(int),start_of_secure_data,0,0);
-}
-
-void get_long_int( void * start_of_secure_data,long int * res)
-{
-  get_secure_data(res,sizeof(long int),start_of_secure_data,0,0);
+	char res[1];
+	get_secure_data(res,sizeof(char),start_of_secure_data,0,0);
+	return (res[0]);
 }
 
 
-void get_float( void * start_of_secure_data,float * res)
+int get_int( void * start_of_secure_data)
 {
-  get_secure_data(res,sizeof(float),start_of_secure_data,0,0);
+	int res[1];
+	get_secure_data(res,sizeof(int),start_of_secure_data,0,0);
+	return (res[0]);
 }
 
-void get_double( void * start_of_secure_data,double * res)
+long int get_long_int( void * start_of_secure_data)
 {
-  get_secure_data(res,sizeof(double),start_of_secure_data,0,0);
+	long int res[1];
+	get_secure_data(res,sizeof(long int),start_of_secure_data,0,0);
+	return res[0];
 }
 
 
+float get_float( void * start_of_secure_data)
+{
+	float res[1];
+	get_secure_data(res,sizeof(float),start_of_secure_data,0,0);
+	return res[0];
+}
+
+double get_double( void * start_of_secure_data)
+{
+	double res[1];
+	get_secure_data(res,sizeof(double),start_of_secure_data,0,0);
+	return res[0];
+}
+
+/*Generic get array element. Writes result to *res, which must have been preallocated*/
 void get_array_element(long data_size, void * start_of_array, long index, void * res)
 {
-  get_secure_data(res,data_size,start_of_array,1,index);
+	get_secure_data(res,data_size,start_of_array,1,index);
+}
+
+char get_char_array_element(void * start_of_array, long index)
+{
+	char res[1];
+	get_secure_data(res,sizeof(char),start_of_array,1,index);
+	return res[0];
+}
+
+int get_int_array_element(void * start_of_array, long index)
+{
+	int res[1];
+	get_secure_data(res,sizeof(int),start_of_array,1,index);
+	return res[0];
+}
+
+long int get_long_int_array_element(void * start_of_array, long index)
+{
+	long int res[1];
+	get_secure_data(res,sizeof(long int),start_of_array,1,index);
+	return res[0];
+}
+
+float get_float_array_element(void * start_of_array, long index)
+{
+	float res[1];
+	get_secure_data(res,sizeof(float),start_of_array,1,index);
+	return res[0];
+}
+
+double get_double_array_element(void * start_of_array, long index)
+{
+	double res[1];
+	get_secure_data(res,sizeof(double),start_of_array,1,index);
+	return res[0];
 }
 
 
+/************************************************************************************************/
+/********************************SECURE GETTERS END**********************************************/
+/************************************************************************************************/
+
+
+/************************************************************************************************/
+/********************************SECURE SETTERS START********************************************/
+/************************************************************************************************/
 
 /*Sets a securely allocated char. Of course secure_malloc must have been called before*/
 /*The function reads from source */
@@ -691,11 +766,48 @@ void set_double( void * start_of_secure_data,double source)
   insert_data_into_mem(sizeof(double),(unsigned char *)&source,(unsigned char *)start_of_secure_data);
 }
 
-//reads data from *source
+/*Generic set_array_element.Reads data from *source*/
 void set_array_element(long data_size, void * start_of_array, long index, void * source)
 {
-  set_secure_data(source,data_size,start_of_array,1,index);
+	set_secure_data(source,data_size,start_of_array,1,index);
 }
+
+void set_char_array_element(void * start_of_array, long index, char source)
+{
+	char src=source;
+	set_secure_data(&src,sizeof(char),start_of_array,1,index);
+}
+
+void set_int_array_element(void * start_of_array, long index, int source)
+{
+	int src=source;
+	set_secure_data(&src,sizeof(int),start_of_array,1,index);
+}
+
+long int set_long_int_array_element(void * start_of_array, long index, long int source)
+{
+	long int src=source;
+	set_secure_data(&src,sizeof(long int),start_of_array,1,index);
+}
+
+void set_float_array_element(void * start_of_array, long index, float source)
+{
+	float src=source;
+	set_secure_data(&src,sizeof(float),start_of_array,1,index);
+}
+
+void set_double_array_element(void * start_of_array, long index, double source)
+{
+	double src=source;
+	set_secure_data(&src,sizeof(double),start_of_array,1,index);
+}
+
+
+/************************************************************************************************/
+/********************************SECURE SETTERS END**********************************************/
+/************************************************************************************************/
+
+
 
 
 /**************************************************************************************************************/
@@ -758,7 +870,7 @@ list_node * check_and_merge(list_node* a, list_node* b , list_node ** head) //ca
 {
 	list_node *temp;
 	
-	
+	//if the memory is consecutive
 	if ((long)(a->pointer_to_mem) + a->length*(bytes_between_keyshares+bytes_used_for_keyshares) == (long)(b->pointer_to_mem))
 	{ //yes they can be merged
 		temp=malloc(sizeof(list_node));
@@ -767,6 +879,7 @@ list_node * check_and_merge(list_node* a, list_node* b , list_node ** head) //ca
 			perror("check_and_merge:malloc failed.\n");
 			exit(42);
 		}
+		//merge
 		temp->length=a->length+b->length;
 		temp->pointer_to_mem=a->pointer_to_mem;
 		temp->previous=a->previous;
@@ -779,6 +892,7 @@ list_node * check_and_merge(list_node* a, list_node* b , list_node ** head) //ca
 		if (temp->next!=NULL)
 			(temp->next)->previous=temp;
 
+		//free the former nodes
 		free(a);
 		free(b);
 		return temp;
@@ -796,6 +910,7 @@ void * managed_secure_malloc(long bytes_for_allocation)
 	list_node * temp;
 	list_node new_node;
 	
+	//find correct number of needed chunks
 	chunks_needed=bytes_for_allocation/bytes_between_keyshares;
 	
 	if (chunks_needed*bytes_between_keyshares<bytes_for_allocation)
@@ -806,6 +921,7 @@ void * managed_secure_malloc(long bytes_for_allocation)
 	if (temp==NULL)
 	{
 		//can't find a group large enough.Perhaps compact list if we have external fragmentation?
+		//careful on this one: User's memory will be moved around if we compact! This is not the expected standard behavior by the user...
 		return NULL;
 	}
 	else
@@ -867,7 +983,7 @@ int managed_secure_free(void * pointer_to_freed_mem)
 	allocated_chunks_list=delete_node_from_list(allocated_chunks_list,temp);
 	allocated_chunks_num--;
 	
-	//now we need to add temp2 to free_chunks_list. But we must not add it in the correct place.
+	//now we need to add temp2 to free_chunks_list. But we must add it in the correct place.
 	temp=free_chunks_list;
 	if (temp==NULL) //if the list is empty
 	{
@@ -894,6 +1010,7 @@ int managed_secure_free(void * pointer_to_freed_mem)
 			free_chunks_num++;
 			free(temp2); //add_node mallocs on her own
 			
+			//now we will try to see what we can merge
 			temp2=free_chunks_list;
 			temp4=temp2->next;
 			
@@ -919,7 +1036,6 @@ int managed_secure_free(void * pointer_to_freed_mem)
 				
 			}
 			
-			
 			ret=1;
 		}
 		else if (prev->next==NULL && (long)prev->pointer_to_mem < (long)temp2->pointer_to_mem)
@@ -929,6 +1045,7 @@ int managed_secure_free(void * pointer_to_freed_mem)
 			temp2->next=NULL;
 			free_chunks_num++;
 			
+			//try to merge, if possible
 			temp3=check_and_merge(prev,temp2,&free_chunks_list);
 			
 			if (temp3!=NULL)
@@ -944,10 +1061,9 @@ int managed_secure_free(void * pointer_to_freed_mem)
 			temp->previous=temp2;
 			free_chunks_num++;
 			
+			//now we will try to see what we can merge
 			temp3=check_and_merge(prev,temp2,&free_chunks_list);
-			
-			int bool=1;
-			
+
 			if (temp3==NULL) //merge has noot been done
 			{
 				temp3=check_and_merge(temp2,temp,&free_chunks_list); //try the next one
@@ -986,333 +1102,7 @@ int managed_secure_free(void * pointer_to_freed_mem)
 /**************************************************************************************************************/
 
 
-//for time testing
-void insert_data_into_normal_array(long size, unsigned char* data,unsigned char * mem)
-{
-	int i;
-	for (i=0;i<size;i++) data[i]=mem[i];
-}
 
-
-void mem_test()
-{
-	unsigned char * mem;
-	long chunks;
-	int * data;
-	int * data2;
-	int * temp;
-	long i,j;
-	long size=20;
-	long t1;
-	unsigned char * start_of_secure_data;
-	unsigned char * start_of_secure_data1;
-	int * retrieved_int;
-	int an_integer;
-	char a_char;
-	long int a_long;
-	double a_double;
-	char * another_secured_char;
-	long int * another_secured_long_int;
-	double * another_secured_double;
-	char * another_secured_char2;
-	int * another_secured_int;
-	long loop_size;
-	double * array_test;
-	double foo_double;
-
-
-	printf("Zero hex test printing: 0x%02x \n",(unsigned char) 0);
-	printf("Starting mem test\n");
-
-	/*
-	printf("bytes_to_allocate_on_start:%d\n",bytes_to_allocate_on_start);
-
-        printf("Init_mem, alloc+key insertion\n");
-	mem=init_mem();
-	printf("If successful, total bytes allocated:%ld\n",total_bytes_allocated);
-	*/
-
-	mem=entire_memory_chunk;
-	chunks=find_number_of_useful_chunks(total_bytes_allocated);
-	//size=chunks;
-	printf("chunks:%ld\n",chunks);
-
-	
-	printf("After init, print mem\n");
-	print_mem(mem);
-	
-	
-	data=malloc(size*sizeof(int));
-	data2=malloc(size*sizeof(int));
-
-	for (i=5;i<size+5;i++)
-			data[i-5]=i * i;
-
-
-	printf("Trying to secure malloc\n");
-	//printf("Last_unused_memory before:%ld\n",(long)last_unused_memory);
-	//start_of_secure_data1=secure_malloc(size*sizeof(int));
-	start_of_secure_data1=managed_secure_malloc(size*sizeof(int));
-	if (start_of_secure_data1==NULL)
-		{
-		  perror("Not enough mem");
-		  exit(42);
-		}
-	//printf("Last_unused_memory after:%ld\n",(long)last_unused_memory);
-	
-	printf("After malloc,try to insert some data\n");
-	insert_data_into_mem(size*sizeof(int),(unsigned char *)data,start_of_secure_data1);
-
-	printf("Now let's retrieve the data and display them\n");
-	
-	retrieved_int=malloc(sizeof(int));
-
-	for (j=0;j<size;j++)
-	{
-		get_secure_data(retrieved_int,sizeof(int),start_of_secure_data1,1,j);
-		printf("%d ",*retrieved_int);
-	}
-	printf("\n");
-
-
-	printf("Again, Trying to secure malloc\n");
-	//printf("Last_unused_memory before:%ld\n",(long)last_unused_memory);
-	//start_of_secure_data=secure_malloc(size*sizeof(int));
-	start_of_secure_data=managed_secure_malloc(size*sizeof(int));
-	if (start_of_secure_data==NULL)
-		{
-		  perror("Not enough mem");
-		  exit(42);
-		}
-	//printf("Last_unused_memory after:%ld\n",(long)last_unused_memory);
-	
-	for (i=5;i<size+5;i++)
-			data[i-5]=3*i;
-
-
-	printf("Again, after malloc,try to insert some data\n");
-	insert_data_into_mem(size*sizeof(int),(unsigned char *)data,start_of_secure_data);
-
-	printf("Now let's retrieve the data and display them\n");
-	
-	for (j=0;j<size;j++)
-	{
-		get_secure_data(retrieved_int,sizeof(int),start_of_secure_data,1,j);
-		printf("%d ",*retrieved_int);
-	}
-	printf("\n");
-	
-	printf("After displaying the two arrays:\n");
-	print_lists();
-	
-	managed_secure_free(start_of_secure_data);
-	printf("After freeing one of them:\n");
-	print_lists();
-	
-	
-	printf("Now trying to store and retrieve 424242424...\n");
-	//start_of_secure_data=secure_malloc(sizeof(int));
-	start_of_secure_data=managed_secure_malloc(sizeof(int));
-	*retrieved_int=424242424;
-	insert_data_into_mem(sizeof(int),(unsigned char *)retrieved_int,start_of_secure_data);
-	free(retrieved_int);
-	retrieved_int=malloc(sizeof(int));
-        get_secure_data(retrieved_int,sizeof(int),start_of_secure_data,0,j);
-	printf("\n\n%d \n\n",*retrieved_int);
-	free(retrieved_int);
-	
-	printf("After retrieving int:\n");
-	print_lists();
-	
-	managed_secure_free(start_of_secure_data1);
-
-	printf("After freeing the second array:\n");
-	print_lists();
-	
-	managed_secure_free(start_of_secure_data);
-
-	printf("After freeing the int:\n");
-	print_lists();
-	
-
-
-	printf("Testing wrapper functions\n");
-	//another_secured_int=secure_malloc(sizeof(int));
-	another_secured_int=managed_secure_malloc(sizeof(int));
-	set_int(another_secured_int,99998);
-	get_int(another_secured_int,&an_integer);
-	printf("Got %d\n",an_integer);
-
-	//another_secured_char=secure_malloc(sizeof(char));
-	another_secured_char=managed_secure_malloc(sizeof(char));
-	set_char(another_secured_char,'b');
-	get_char(another_secured_char,&a_char);
-	printf("Got %c\n",a_char);
-
-	//another_secured_long_int=secure_malloc(sizeof(long int));
-	another_secured_long_int=managed_secure_malloc(sizeof(long int));
-	set_long_int(another_secured_long_int,54545454);
-	get_long_int(another_secured_long_int,&a_long);
-	printf("Got %ld\n",a_long);
-
-	printf("After long int printing:\n");
-	print_lists();
-	
-	managed_secure_free(another_secured_long_int);
-	
-	printf("After long int free:\n");
-	print_lists();
-
-
-	another_secured_char2=managed_secure_malloc(sizeof(char));
-	set_char(another_secured_char2,'a');
-	get_char(another_secured_char2,&a_char);
-	printf("Got %c\n",a_char);
-
-	printf("After another char alloc:\n");
-	print_lists();
-
-
-	//another_secured_double=secure_malloc(sizeof(double));
-	another_secured_double=managed_secure_malloc(sizeof(double));
-	set_double(another_secured_double,7878.3434);
-	get_double(another_secured_double,&a_double);
-	printf("Got %lf\n",a_double);
-
-	printf("After double alloc:\n");
-	print_lists();
-
-
-	printf("Array wrapper function testing\n");
-	//array_test=secure_malloc(10*sizeof(double));
-	array_test=managed_secure_malloc(10*sizeof(double));
-	foo_double=42.424242;
-	set_array_element(sizeof(double),array_test,2, &foo_double);
-	foo_double=34.121212;
-	set_array_element(sizeof(double),array_test,3, &foo_double);
-	foo_double=1;
-	get_array_element(sizeof(double),array_test,2,&foo_double);
-	printf("array index 2 is %lf\n",foo_double);
-	get_array_element(sizeof(double),array_test,3,&foo_double);
-	printf("array index 3 is %lf\n",foo_double);
-	
-	printf("\n\n\n");
-
-	/*
-	//loop_size=100000000;	
-	loop_size=200000000;	
-
-	t1=time(NULL);
-	for (j=1;j<=loop_size;j++)
-		for (i=0;i<size;i++)
-			data[i]=i;
-	printf("Normal_insertion:%ld\n",time(NULL)-t1);
-
-	t1=time(NULL);
-	for (j=1;j<=loop_size;j++)
-		insert_data_into_mem(size*sizeof(int),(unsigned char *)data,start_of_secure_data1);
-
-	printf("Secure_insertion:%ld\n",time(NULL)-t1);
-	
-	
-	t1=time(NULL);
-	for (j=1;j<=loop_size;j++)
-		for (i=0;i<size;i++)
-			data2[i]=data[i];
-	printf("Normal_fetch:%ld\n",time(NULL)-t1);
-
-	t1=time(NULL);
-	for (j=1;j<=loop_size;j++)
-	{
-		get_secure_data(&data2[0],size*sizeof(int),start_of_secure_data1,0,i);
-		//for (i=0;i<size;i++)
-			//get_secure_data(&data2[i],sizeof(int),start_of_secure_data1,1,i));
-	}	
-	printf("Secure_fetch:%ld\n",time(NULL)-t1);
-
-	for(i=0;i<size;i++)
-		if(data2[i]!=data[i])	printf("data2!=data , data2[i]=%d, data[i]=%d i=%ld\n",data2[i],data[i],i);
-	
-	*/
-
-
-	
-	printf("After data retrieval, print mem\n");
-	print_mem(mem);
-	
-	
-	printf("Mem test done\n");
-}
-
-
-
-void list_test()
-{
-	list_node temp;
-	unsigned char * p1;
-	unsigned char * p2;
-	unsigned char * p3;
-	unsigned char * p4;
-	int k;
-	
-	printf("Free chunks list:\n");
-	print_list(free_chunks_list);
-	
-	printf("Allocated chunks list:\n");
-	print_list(allocated_chunks_list);
-	
-	temp.length=10;
-	temp.pointer_to_mem=entire_memory_chunk;
-	temp.next=NULL;
-	temp.previous=NULL;
-	
-	/*free_chunks_list=add_node_to_list(free_chunks_list,temp);
-	printf("Free chunks list:\n");
-	print_list(free_chunks_list);*/
-	
-	
-	
-	printf("a---------\n");
-	p1=managed_secure_malloc(101);
-	if (p1==NULL)
-		printf("Returned NULL! -.- 1\n");
-	print_lists();
-	
-	
-	printf("b---------\n");
-	p2=managed_secure_malloc(42);
-	if (p2==NULL)
-		printf("Returned NULL! -.- 2\n");
-	print_lists();
-	
-	
-	printf("c---------\n");
-	p3=managed_secure_malloc(61);
-	if (p3==NULL)
-		printf("Returned NULL! -.- 3\n");
-	print_lists();
-
-	printf("d---------\n");
-	k=managed_secure_free(p2);
-	if (k==0) printf("Something went wrong\n");
-	print_lists();
-	
-	printf("e---------\n");
-	p2=managed_secure_malloc(80);
-	if (p2==NULL)
-		printf("Returned NULL! -.- 4\n");
-	print_lists();
-	
-	printf("f---------\n");
-	p4=managed_secure_malloc(29);
-	if (p4==NULL)
-		printf("Returned NULL! -.- 5\n");
-	print_lists();
-	
-
-	printf("g---------\n");
-	k=managed_secure_free(p3);
-	if (k==0) printf("Something went wrong\n");
-	print_lists();
-}
+/*Let's include a test suite*/
+#include "memory_manager_test_suite.c"
 

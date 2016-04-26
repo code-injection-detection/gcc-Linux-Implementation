@@ -26,7 +26,7 @@ all: Helloworldadd.s Helloworldadd Helloworldadd_sec
 static: default
 	
 
-Helloworldadd.s: Helloworldadd.c memory_manager.c verification_procedure.c
+Helloworldadd.s: Helloworldadd.c memory_manager.c verification_procedure.c memory_manager_test_suite.c
 	$(CC) $(FLAGS_to_assembly) Helloworldadd.c -S
 
 Helloworldadd: Helloworldadd.s
