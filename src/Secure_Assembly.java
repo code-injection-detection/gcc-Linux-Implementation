@@ -32,7 +32,7 @@ public class Secure_Assembly {
 		int label_counter = 0;
 		int i = 0;
 		int  num_of_interleaved_nops = 5;   //this should be equal to the number of keys we use in Secure_Machine_Code.java (now that we assume that 1 NOP = 1key)
-		
+		int  number_of_canaries=2;
 
 		if (args.length==1)
 			num_of_interleaved_nops=Integer.parseInt(args[0]);
@@ -40,6 +40,12 @@ public class Secure_Assembly {
 		{
 			num_of_interleaved_nops=Integer.parseInt(args[0]);
 			num_of_grouped_orig_instr=Integer.parseInt(args[1]);
+		}
+		else if (args.length==3)
+		{
+			num_of_interleaved_nops=Integer.parseInt(args[0]);
+			num_of_grouped_orig_instr=Integer.parseInt(args[1]);
+			number_of_canaries=Integer.parseInt(args[2]);
 		}
 		
 		//we parse the file once to find the functions
@@ -127,7 +133,7 @@ public class Secure_Assembly {
 				if (i == num_of_grouped_orig_instr)
 				{
 					list_of_lines.add(" jmp " + "." + ulabel + label_counter);
-					for (int j = 0; j < num_of_interleaved_nops; j++)
+					for (int j = 0; j < num_of_interleaved_nops+number_of_canaries; j++)
 						list_of_lines.add("NOP"); 
 					list_of_lines.add("."+ ulabel + label_counter + ": " );          //we are just adding the label, not any command
 					//System.out.println(line);

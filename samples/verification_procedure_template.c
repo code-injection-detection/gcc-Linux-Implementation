@@ -19,6 +19,18 @@ extern int foo2(int);
 
 struct sigaction sa; //for signal handling
 
+//checks the next <number_of_canaries> to see if they hold the canary value
+int check_next_canaries(void* p)
+{
+	int i;
+	for (i=0;i<number_of_canaries;i++)
+	{
+		if ( *((unsigned char*)p+i)!=(unsigned char)(canary_value))
+			return 0;
+	}
+	return 1;
+}
+
 
 
 void find_keyshares()
@@ -60,34 +72,16 @@ void find_keyshares()
      printf("\n\n\n");
   */
 
-   //implementation #1  //iterating over function codes and locating RETs //SUPER WRONG IDEA. MANY RETs in a function?
-  /*
-   for (i=1;i<=4;i++)
-   {
-	   if (i==1) fun_name=a; 
-	    if (i==2) fun_name=b;
-	    if (i==3) fun_name=c;
-	    if (i==4) fun_name=d;
-		for (p=(char*)fun_name;!((*p==0xffffffC3 || *p!=0xffffffCB) && *(p-1)==(char)0x11 && *(p-2)==(char)0x11);p++)  //you should make sure you do not count when you meet 0xc3 in random places in the code, and be careful for many RETs!
-	*/
-
-
-		//implementation #2
-		//for (p=(char *)foo,k=0;k<211;p++)   //if we hardcode number of jumps
-
-
-
 		//implementation #3   //using start and end of text section
 		for (p=start_of_text;p<=end_of_text;p++)
 		{
-			if (*p==0xEB && *(p+1)==number_of_interleaved_keys) //JMP 5
+			if (*p==0xEB && *(p+1)==number_of_interleaved_keys+number_of_canaries && check_next_canaries(p+2)) //JMP <number of keys>+<number_of_canaries>
 			{ 
 			 //printf("0x%02x ",*(p+2));
 			 for (keycnt=0;keycnt<number_of_interleaved_keys;keycnt++)
 			 {
-				 keys[keycnt]^= (unsigned char) *(p+2+keycnt);
-			 }
-			 k++;			
+				 keys[keycnt]^= (unsigned char) *(p+2+keycnt+number_of_canaries);
+			 }			
 			}
 		}
 
@@ -103,7 +97,7 @@ void find_keyshares()
 		    }
 		    else
 		    {
-			//checking the keys
+				//checking the keys
 				for (keycnt=0;keycnt<number_of_interleaved_keys;keycnt++)
 				{
 					 keys[keycnt]^=(unsigned char) *(p+heap_cnt+keycnt);
@@ -117,8 +111,6 @@ void find_keyshares()
 
 		}
 
-  //implementation #1
- /* } */
 
    printf("\n");
    for (keycnt=0;keycnt<number_of_interleaved_keys;keycnt++)

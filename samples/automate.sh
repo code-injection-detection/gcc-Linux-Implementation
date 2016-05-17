@@ -1,13 +1,14 @@
 #!/bin/bash
 
-if [ "$#" -ne 2   -a   "$#" -ne 4 ]; then
+if [ "$#" -ne 2   -a   "$#" -ne 5 ]; then
     echo "Please execute as following:"
     echo "$0 <number_of_interleaved keys in code> <number_of grouped instructions in code>"
     echo "Example: $0 5 1"
-    echo -e "Or:\n$0 <a> <b> <c> <d>"
+    echo -e "Or:\n$0 <a> <b> <c> <d> <e>"
     echo "Where: a=number_of_interleaved keys in code, b=number_of grouped instructions in code"
     echo "c=number of grouped useful bytes in memory, d=total bytes to (try to) pre-allocate in memory"
-    echo "Example: $0 5 1 4 1024"
+    echo "e=number of canary values before keyshares in code, to denote keyshare presence"
+    echo "Example: $0 5 1 4 1024 2"
     exit
 fi
 
@@ -15,17 +16,19 @@ NUM_OF_INTERLEAVED_KEYS=5
 NUM_OF_GROUPED_INSTRUCTIONS=1
 NUM_OF_GROUPED_USEFUL_BYTES=4
 NUM_OF_TOTAL_BYTES_ALLOC=1024
+NUM_OF_CANARIES=2
 
 if [ "$#" -eq 2 ]; then
 	NUM_OF_INTERLEAVED_KEYS=$1
 	NUM_OF_GROUPED_INSTRUCTIONS=$2
 fi
 
-if [ "$#" -eq 4 ]; then
+if [ "$#" -eq 5 ]; then
 	NUM_OF_INTERLEAVED_KEYS=$1
 	NUM_OF_GROUPED_INSTRUCTIONS=$2
 	NUM_OF_GROUPED_USEFUL_BYTES=$3
 	NUM_OF_TOTAL_BYTES_ALLOC=$4
+	NUM_OF_CANARIES=$5
 fi
 
 echo -n "NUM_OF_INTERLEAVED_KEYS: "
@@ -36,10 +39,12 @@ echo -n "NUM_OF_GROUPED_USEFUL_BYTES: "
 echo $NUM_OF_GROUPED_USEFUL_BYTES
 echo -n "NUM_OF_TOTAL_BYTES_ALLOC: "
 echo $NUM_OF_TOTAL_BYTES_ALLOC
+echo -n "NUM_OF_CANARIES: "
+echo $NUM_OF_CANARIES
 echo ""
 
 echo "Changing defines according to input..."
-python3 set_correct_defines.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC
+python3 set_correct_defines.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC $NUM_OF_CANARIES
 echo "Changed defines."
 
 echo "Compiling...."
@@ -47,7 +52,7 @@ make
 echo "Compiled."
 
 echo "Inserting NOPs into assembly..."
-java -cp ../bin Secure_Assembly $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_INSTRUCTIONS
+java -cp ../bin Secure_Assembly $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_INSTRUCTIONS $NUM_OF_CANARIES
 echo "NOPs inserted."
 
 echo "Assembling code with NOPs..."
@@ -55,6 +60,6 @@ make secure
 echo "Assembled."
 
 echo "Replacing NOPs with keys..."
-java -cp ../bin Secure_Machine_Code $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC
+java -cp ../bin Secure_Machine_Code $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC $NUM_OF_CANARIES
 echo "NOPs replaced with keys."
 

@@ -30,6 +30,8 @@ public class Secure_Machine_Code {
 		int useful_bytes_between_keys_in_heap=4;
 		long total_bytes_trying_to_allocate_in_heap=1024;
 		long useful_chunks;
+		int number_of_canaries=2;
+		byte canary_value=0x42; //says:after me, keyshares follow!
 		
 		FileInputStream fr = new FileInputStream(new File(filename));
 		FileOutputStream fw = new FileOutputStream(new File(newfilename));
@@ -55,6 +57,14 @@ public class Secure_Machine_Code {
 			useful_bytes_between_keys_in_heap=Integer.parseInt(args[1]);
 			total_bytes_trying_to_allocate_in_heap=Integer.parseInt(args[2]);
 		}
+		else if (args.length==4)
+		{
+			number_of_interleaved_nops=Integer.parseInt(args[0]);
+			num_of_keys_in_heap=number_of_interleaved_nops;
+			useful_bytes_between_keys_in_heap=Integer.parseInt(args[1]);
+			total_bytes_trying_to_allocate_in_heap=Integer.parseInt(args[2]);
+			number_of_canaries=Integer.parseInt(args[3]);
+		}
 		
 		ArrayList[] keys = new ArrayList[number_of_interleaved_nops];
 		
@@ -75,39 +85,36 @@ public class Secure_Machine_Code {
 	    	arr[i] = list.get(i);
 	    }
 	    int n = arr.length;
-	    for(int i=0;i<n-(2+number_of_interleaved_nops);i++)
+	    for(int i=0;i<n-(2+number_of_interleaved_nops+number_of_canaries);i++)
 	    {
-	    	if(arr[i]==-21 && (arr[i+1] == (byte)(number_of_interleaved_nops)) && k_nops_after_us(number_of_interleaved_nops,arr,i)) // int -21 = jmp opcode, and the arr[i+1] has to be the offset (number of nops + 1 ) , and we have to have num_of_keys NOPs after us
+	    	if(arr[i]==-21 && (arr[i+1] == (byte)(number_of_interleaved_nops+number_of_canaries)) && k_nops_after_us(number_of_interleaved_nops+number_of_canaries,arr,i)) // int -21 = jmp opcode, and the arr[i+1] has to be the offset (number of nops + 1 ) , and we have to have num_of_keys NOPs after us
 	    	{
 				number_of_nop_groups_replaced++;
+				for(int j=0;j<number_of_canaries;j++)
+				{
+					arr[i+2+j] = (byte)canary_value;
+				}
+				
+				byte[] random_bytes_generated= new byte[number_of_interleaved_nops]; //to check accidental creation of "used" opcodes
 	    		for(int j=0;j<number_of_interleaved_nops;j++)
 	    		{
 	    			byte temp = randomByte();
 	    					
-	    			/*
-	    			    if (j==0)
-						System.out.printf("0x%02x ",temp);
-					*/
+	    			random_bytes_generated[j]=temp;
 	    			
-	    			//check not to accidentally produce opcode for <jmp> <number of nops>
-	    			while (j>0 && temp==number_of_interleaved_nops && (byte) keys[j-1].get(keys[j-1].size()-1)==-21) // -21=jmp opcode
+	    			//check not to accidentally produce opcode for <jmp> (<number of nops>+<number of canaries>) and the canary bytes afterwards
+	    			while (j>=2+number_of_canaries-1 /*minus 1!*/ && produced_opcode(random_bytes_generated,number_of_interleaved_nops,number_of_canaries,j,canary_value))
 	    			{
-	    				System.out.println("Accidentally created JMP <nops number> opcode!");
+	    				System.out.println("Accidentally created JMP <nops number + number of canaries> opcode, and inserted canaries after it!");
 	    				temp = randomByte();
+	    				random_bytes_generated[j]=temp;
 	    			}
+	    			
 	    				
-	    			//inserting canary values to show that a RET is following. Temporary fix.
-	    			if ((j==number_of_interleaved_nops-1 || j==number_of_interleaved_nops-2) && ( arr[i+2+number_of_interleaved_nops]==-61 || arr[i+2+number_of_interleaved_nops]==-53) ) //RET opcode in next
-	    			{
-	    				//if(j==num_of_keys-1) System.out.printf("found ret opcode!");
-	    				arr[i+2+j] = (byte)0x11;
-	    				keys[j].add((byte)0x11);
-	    			}
-	    			else
-	    			{
-	    				arr[i+2+j] = temp;
-	    				keys[j].add(temp);
-	    			}
+
+    				arr[i+2+j+number_of_canaries] = temp;
+    				keys[j].add(temp);
+    				
 	    		}
 	    	}
 	    }
@@ -204,4 +211,18 @@ public class Secure_Machine_Code {
 		}
 	}
 	
+	static boolean produced_opcode( byte[] random_bytes_generated,int number_of_interleaved_nops, int number_of_canaries,int pos,byte canary_value)
+	{
+		for (int i=0;i<number_of_canaries;i++)
+		{
+			if (random_bytes_generated[pos-i]!=canary_value)
+				return false;
+		}
+		if (random_bytes_generated[pos-number_of_canaries]!=(number_of_interleaved_nops+number_of_canaries))
+			return false;
+		if (random_bytes_generated[pos-number_of_canaries-1]!=-21) // -21=jmp opcode
+			return false;
+			
+		return true;
+	}
 }

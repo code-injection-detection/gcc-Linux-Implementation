@@ -2,7 +2,7 @@
 
 #script to prove that accildental generation of jmp <number of nops> opcode will result in error
 #Now the problem is fixed though
-for ((i=1;i<=100;i++)); do
+for ((i=1;i<=10000;i++)); do
 
 	echo $i
 	x=$(./automate.sh 5 1 4 1024)

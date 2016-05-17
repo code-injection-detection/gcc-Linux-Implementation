@@ -527,7 +527,7 @@ allocate_mem:
 	movq	%rsp, %rbp
 	.cfi_def_cfa_register 6
 	subq	$48, %rsp
-	movq	$1200, -40(%rbp)
+	movq	$1024, -40(%rbp)
 	movq	$5, -32(%rbp)
 	movq	$4, -24(%rbp)
 	movq	-32(%rbp), %rax
@@ -3131,7 +3131,7 @@ simple_array_tests:
 	call	managed_secure_malloc
 	movq	%rax, -56(%rbp)
 	movq	-56(%rbp), %rax
-	movl	$25, %esi
+	movl	$21, %esi
 	movq	%rax, %rdi
 	call	set_long_int
 	movq	-56(%rbp), %rax
@@ -3449,6 +3449,42 @@ simple_array_tests:
 .LFE53:
 	.size	simple_array_tests, .-simple_array_tests
 	.comm	sa,152,32
+	.globl	check_next_canaries
+	.type	check_next_canaries, @function
+check_next_canaries:
+.LFB54:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	movq	%rdi, -24(%rbp)
+	movl	$0, -4(%rbp)
+	jmp	.L206
+.L209:
+	movl	-4(%rbp), %eax
+	movslq	%eax, %rdx
+	movq	-24(%rbp), %rax
+	addq	%rdx, %rax
+	movzbl	(%rax), %eax
+	cmpb	$66, %al
+	je	.L207
+	movl	$0, %eax
+	jmp	.L208
+.L207:
+	addl	$1, -4(%rbp)
+.L206:
+	cmpl	$1, -4(%rbp)
+	jle	.L209
+	movl	$1, %eax
+.L208:
+	popq	%rbp
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE54:
+	.size	check_next_canaries, .-check_next_canaries
 	.section	.rodata
 .LC73:
 	.string	"key no%d=0x%02x\n"
@@ -3456,7 +3492,7 @@ simple_array_tests:
 	.globl	find_keyshares
 	.type	find_keyshares, @function
 find_keyshares:
-.LFB54:
+.LFB55:
 	.cfi_startproc
 	pushq	%rbp
 	.cfi_def_cfa_offset 16
@@ -3467,46 +3503,52 @@ find_keyshares:
 	movq	%fs:40, %rax
 	movq	%rax, -8(%rbp)
 	xorl	%eax, %eax
-	movl	$0, -88(%rbp)
+	movl	$0, -84(%rbp)
 	movq	$foo, -64(%rbp)
 	movq	$main, -56(%rbp)
 	movq	$foo2, -48(%rbp)
 	movq	$find_keyshares, -40(%rbp)
-	movl	$0, -84(%rbp)
+	movl	$0, -88(%rbp)
 	movq	$__executable_start, -32(%rbp)
 	movq	$__etext, -24(%rbp)
 	movl	$0, -92(%rbp)
-	jmp	.L206
-.L207:
+	jmp	.L211
+.L212:
 	movl	-92(%rbp), %eax
 	cltq
 	movb	$0, -16(%rbp,%rax)
 	addl	$1, -92(%rbp)
-.L206:
+.L211:
 	cmpl	$4, -92(%rbp)
-	jle	.L207
+	jle	.L212
 	movq	-32(%rbp), %rax
 	movq	%rax, -80(%rbp)
-	jmp	.L208
-.L212:
+	jmp	.L213
+.L217:
 	movq	-80(%rbp), %rax
 	movzbl	(%rax), %eax
 	cmpb	$-21, %al
-	jne	.L209
+	jne	.L214
 	movq	-80(%rbp), %rax
 	addq	$1, %rax
 	movzbl	(%rax), %eax
-	cmpb	$5, %al
-	jne	.L209
+	cmpb	$7, %al
+	jne	.L214
+	movq	-80(%rbp), %rax
+	addq	$2, %rax
+	movq	%rax, %rdi
+	call	check_next_canaries
+	testl	%eax, %eax
+	je	.L214
 	movl	$0, -92(%rbp)
-	jmp	.L210
-.L211:
+	jmp	.L215
+.L216:
 	movl	-92(%rbp), %eax
 	cltq
 	movzbl	-16(%rbp,%rax), %edx
 	movl	-92(%rbp), %eax
 	cltq
-	leaq	2(%rax), %rcx
+	leaq	4(%rax), %rcx
 	movq	-80(%rbp), %rax
 	addq	%rcx, %rax
 	movzbl	(%rax), %eax
@@ -3515,30 +3557,29 @@ find_keyshares:
 	cltq
 	movb	%dl, -16(%rbp,%rax)
 	addl	$1, -92(%rbp)
-.L210:
+.L215:
 	cmpl	$4, -92(%rbp)
-	jle	.L211
-	addl	$1, -88(%rbp)
-.L209:
+	jle	.L216
+.L214:
 	addq	$1, -80(%rbp)
-.L208:
+.L213:
 	movq	-80(%rbp), %rax
 	cmpq	-24(%rbp), %rax
-	jbe	.L212
+	jbe	.L217
 	movq	entire_memory_chunk(%rip), %rax
 	movq	%rax, -80(%rbp)
 	movq	$0, -72(%rbp)
-	jmp	.L213
-.L217:
-	cmpl	$0, -84(%rbp)
-	jne	.L214
+	jmp	.L218
+.L222:
+	cmpl	$0, -88(%rbp)
+	jne	.L219
 	addq	$4, -72(%rbp)
-	movl	$1, -84(%rbp)
-	jmp	.L213
-.L214:
+	movl	$1, -88(%rbp)
+	jmp	.L218
+.L219:
 	movl	$0, -92(%rbp)
-	jmp	.L215
-.L216:
+	jmp	.L220
+.L221:
 	movl	-92(%rbp), %eax
 	cltq
 	movzbl	-16(%rbp,%rax), %edx
@@ -3554,20 +3595,20 @@ find_keyshares:
 	cltq
 	movb	%dl, -16(%rbp,%rax)
 	addl	$1, -92(%rbp)
-.L215:
+.L220:
 	cmpl	$4, -92(%rbp)
-	jle	.L216
+	jle	.L221
 	addq	$5, -72(%rbp)
-	movl	$0, -84(%rbp)
-.L213:
+	movl	$0, -88(%rbp)
+.L218:
 	movq	total_bytes_allocated(%rip), %rax
 	cmpq	%rax, -72(%rbp)
-	jl	.L217
+	jl	.L222
 	movl	$10, %edi
 	call	putchar
 	movl	$0, -92(%rbp)
-	jmp	.L218
-.L219:
+	jmp	.L223
+.L224:
 	movl	-92(%rbp), %eax
 	cltq
 	movzbl	-16(%rbp,%rax), %eax
@@ -3578,20 +3619,20 @@ find_keyshares:
 	movl	$0, %eax
 	call	printf
 	addl	$1, -92(%rbp)
-.L218:
+.L223:
 	cmpl	$4, -92(%rbp)
-	jle	.L219
+	jle	.L224
 	nop
 	movq	-8(%rbp), %rax
 	xorq	%fs:40, %rax
-	je	.L221
+	je	.L226
 	call	__stack_chk_fail
-.L221:
+.L226:
 	leave
 	.cfi_def_cfa 7, 8
 	ret
 	.cfi_endproc
-.LFE54:
+.LFE55:
 	.size	find_keyshares, .-find_keyshares
 	.section	.rodata
 .LC74:
@@ -3600,7 +3641,7 @@ find_keyshares:
 	.globl	verification_procedure
 	.type	verification_procedure, @function
 verification_procedure:
-.LFB55:
+.LFB56:
 	.cfi_startproc
 	pushq	%rbp
 	.cfi_def_cfa_offset 16
@@ -3615,14 +3656,14 @@ verification_procedure:
 	.cfi_def_cfa 7, 8
 	ret
 	.cfi_endproc
-.LFE55:
+.LFE56:
 	.size	verification_procedure, .-verification_procedure
 	.local	static_global_variable_for_testing
 	.comm	static_global_variable_for_testing,4,4
 	.globl	foo
 	.type	foo, @function
 foo:
-.LFB56:
+.LFB57:
 	.cfi_startproc
 	pushq	%rbp
 	.cfi_def_cfa_offset 16
@@ -3638,7 +3679,7 @@ foo:
 	.cfi_def_cfa 7, 8
 	ret
 	.cfi_endproc
-.LFE56:
+.LFE57:
 	.size	foo, .-foo
 	.section	.rodata
 .LC75:
@@ -3670,7 +3711,7 @@ foo:
 	.globl	main
 	.type	main, @function
 main:
-.LFB57:
+.LFB58:
 	.cfi_startproc
 	pushq	%rbp
 	.cfi_def_cfa_offset 16
@@ -3690,11 +3731,11 @@ main:
 	addl	%eax, -56(%rbp)
 	addl	$2, -56(%rbp)
 	addl	$1, -52(%rbp)
-	movl	$1, static_main_variable_for_testing.4245(%rip)
+	movl	$1, static_main_variable_for_testing.4252(%rip)
 	movl	$2, static_global_variable_for_testing(%rip)
 	movl	$.LC75, %edi
 	call	puts
-	movl	$1200, %esi
+	movl	$1024, %esi
 	movl	$.LC76, %edi
 	movl	$0, %eax
 	call	printf
@@ -3719,12 +3760,12 @@ main:
 	movl	$10, %edi
 	call	sigaction
 	cmpl	$-1, %eax
-	jne	.L226
+	jne	.L231
 	movl	$.LC80, %edi
 	call	perror
 	movl	$45, %edi
 	call	exit
-.L226:
+.L231:
 	movl	$.LC81, %edi
 	call	puts
 	call	getpid
@@ -3766,19 +3807,19 @@ main:
 	movl	$0, %eax
 	movq	-8(%rbp), %rcx
 	xorq	%fs:40, %rcx
-	je	.L228
+	je	.L233
 	call	__stack_chk_fail
-.L228:
+.L233:
 	leave
 	.cfi_def_cfa 7, 8
 	ret
 	.cfi_endproc
-.LFE57:
+.LFE58:
 	.size	main, .-main
 	.globl	foo2
 	.type	foo2, @function
 foo2:
-.LFB58:
+.LFB59:
 	.cfi_startproc
 	pushq	%rbp
 	.cfi_def_cfa_offset 16
@@ -3794,10 +3835,10 @@ foo2:
 	.cfi_def_cfa 7, 8
 	ret
 	.cfi_endproc
-.LFE58:
+.LFE59:
 	.size	foo2, .-foo2
-	.local	static_main_variable_for_testing.4245
-	.comm	static_main_variable_for_testing.4245,4,4
+	.local	static_main_variable_for_testing.4252
+	.comm	static_main_variable_for_testing.4252,4,4
 	.section	.rodata
 	.align 8
 .LC68:

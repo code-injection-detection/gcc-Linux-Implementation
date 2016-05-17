@@ -16,10 +16,19 @@
 #endif				//This one is for the memory, not for the interleaved NOPs. The number shuld be the same as number_of_interleaved_keys
 
 #ifndef bytes_to_allocate_on_start
-#define bytes_to_allocate_on_start (1200)
+#define bytes_to_allocate_on_start (1024)
 #endif
 
 #ifndef bytes_between_keyshares
 #define bytes_between_keyshares (4)
 #endif				//practically the "useful" bytes. Important: It is not (currently) possible to split this bytegroup into multiple parts.
 				    //which means that should someone allocate x bytegroups but does not need the last one as a whole, we cannot give the rest of it to someone else
+
+#ifndef number_of_canaries
+#define number_of_canaries (2)
+#endif				//The number of the canary values before the keyshares in the code, to denote that keyshares follow.
+				    //which means that should someone allocate x bytegroups but does not need the last one as a whole, we cannot give the rest of it to someone else
+
+#ifndef canary_value
+#define canary_value (0x42)
+#endif				//the canary value. Does not matter what it is. Must be the same as in Secure_Machine_Code.java

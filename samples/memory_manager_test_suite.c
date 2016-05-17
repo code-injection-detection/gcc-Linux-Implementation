@@ -348,7 +348,7 @@ void simple_array_tests()
 	index=managed_secure_malloc(sizeof(int));
 	
 	length=managed_secure_malloc(sizeof(long));
-	set_long_int(length,25);
+	set_long_int(length,21);
 	
 	int_array1=managed_secure_malloc(get_long_int(length)*sizeof(int));
 	int_array2=managed_secure_malloc(get_long_int(length)*sizeof(int));
@@ -398,6 +398,7 @@ void simple_array_tests()
 	}
 	printf("\n");
 	
+	//print_mem(entire_memory_chunk);
 	
 	
 	printf("freeing\n");

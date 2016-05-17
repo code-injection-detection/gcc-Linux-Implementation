@@ -22,7 +22,9 @@ for line in src_lines:
 	if '#define bytes_between_keyshares' in line:
 		newline='#define bytes_between_keyshares ('+sys.argv[2]+')\n'
 	if '#define bytes_to_allocate_on_start' in line:
-		newline='#define bytes_to_allocate_on_start ('+sys.argv[3]+')\n'	
+		newline='#define bytes_to_allocate_on_start ('+sys.argv[3]+')\n'
+	if '#define number_of_canaries' in line:
+		newline='#define number_of_canaries ('+sys.argv[4]+')\n'		
 		
 	headers_dst.write(newline)
 
@@ -53,7 +55,9 @@ for line in src_lines:
 	if '#define bytes_between_keyshares' in line:
 		newline='#define bytes_between_keyshares ('+sys.argv[2]+')\n'
 	if '#define bytes_to_allocate_on_start' in line:
-		newline='#define bytes_to_allocate_on_start ('+sys.argv[3]+')\n'	
+		newline='#define bytes_to_allocate_on_start ('+sys.argv[3]+')\n'
+	if '#define number_of_canaries' in line:
+		newline='#define number_of_canaries ('+sys.argv[4]+')\n'		
 	
 	verif_proc_dst.write(newline)
 
