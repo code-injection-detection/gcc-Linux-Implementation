@@ -732,6 +732,12 @@ double get_double_array_element(void * start_of_array, long index)
 	return res[0];
 }
 
+//gets a block of data from the secure heap. Writes to *res, which must have been preallocated
+void get_arbitrary_block_in_heap(long data_size,void * start_of_block,void * res)
+{
+	get_secure_data(res,data_size, start_of_block,0,0);
+}
+
 
 /************************************************************************************************/
 /********************************SECURE GETTERS END**********************************************/
@@ -819,6 +825,11 @@ void set_double_array_element(void * start_of_array, long index, double source)
 	set_secure_data(&src,sizeof(double),start_of_array,1,index);
 }
 
+//sets a block of data to the secure heap. reads from *src, which must have been preallocated
+void set_arbitrary_block_in_heap(long data_size,void * start_of_block,void * src)
+{
+	set_secure_data(src,data_size, start_of_block,0,0);
+}
 
 /************************************************************************************************/
 /********************************SECURE SETTERS END**********************************************/

@@ -66,8 +66,12 @@ int main()
 	//find_keyshares();
 	//mem_test();
 	//list_test();
+	printf("\nSimple array tests in heap\n");
 	simple_array_tests();
+	printf("\nStack fun params test\n");
 	stack_fun_params_test();
+	printf("\nEnd of tests\n");
+	printf("Going to find keyshares\n");
 	find_keyshares();
 
 

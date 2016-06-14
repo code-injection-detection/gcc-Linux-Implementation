@@ -30,10 +30,19 @@ typedef struct non_array_function_parameters{
 	long num_of_double_params;
 	double * double_params;
 	
-
 	long num_of_pointer_params;
 	long * pointer_params_sizes; //how big is each element that pointer points to?
 	void ** pointer_params; //array of void * 's (pointers)
+	
+	//and any other arbitraty structure which must be inserted in the stack
+	//perhaps it would be better if we put it outside of the non_array_fun_params?
+	
+	/*the difference between the pointers and the arbitrary pointers is that the pointer values are 
+	*inserted in the stack(the pointers themselves)
+	*whereas the elements to which the arbitrary pointers point are inserted into the stack*/
+	long num_of_arb_pointer_params;
+	long * arb_pointer_params_sizes; //how big is each element that pointer points to?
+	void ** arb_pointer_params; //array of void * 's (pointers)
 	
 	
 } non_array_fun_params;
@@ -84,137 +93,6 @@ typedef struct function_parameters{
 
 
 
-/*Initialises a fun_params struct.
- * We use the following convention for the multiple arguments: 
- * First three integer (used as boolean) values: if we want non arrays, arrays, other data as parameters.
- * Rest:
- * If we want only non array elements:
- * 1)number of char params
- * 2)char params,one by one (if 1 is not zero). If it is, these parameters do not exist.
- * 3)number of int params
- * 4)int params,one by one (if 3 is not zero). If it is, these parameters do not exist.
- * ...etc.
- * For the pointer params, first we have the num_of_pointer_params, then the sizes of each pointer param (one by one), 
- * and then the pointers (one by one)
- * 
- * Same story with arrays of elements. First the number of arrays, then the size of each array, and then the elements of
- * each array one by one.
-  */
-fun_params * init_function_params(int want_non_arrays, int want_arrays, ...)
-{
-	fun_params *params;
-	va_list multiple_args_list; //for multiple arguments.
-	long i;
-	long num_of_param;
-	long size_of_all_params=0;
-	
-	va_start(multiple_args_list,want_arrays);
-	
-	params=error_checking_malloc(sizeof(fun_params),__func__,__LINE__);
-	
-	if (want_non_arrays)
-		params->non_array_params=error_checking_malloc(sizeof(non_array_fun_params),__func__,__LINE__);
-	else
-		params->non_array_params=NULL;
-	
-	if (want_arrays)
-		params->array_params=error_checking_malloc(sizeof(array_fun_params),__func__,__LINE__);
-	else
-		params->array_params=NULL;
-			
-	if (want_non_arrays)
-	{
-		//chars
-		params->non_array_params->num_of_char_params= num_of_param= va_arg(multiple_args_list,long);
-		size_of_all_params+=num_of_param*sizeof(char);
-		if (num_of_param!=0)
-		{
-			params->non_array_params->char_params=error_checking_malloc(num_of_param*sizeof(char),__func__,__LINE__);
-			for (i=0;i<num_of_param;i++)
-			{
-				params->non_array_params->char_params[i]=(char)va_arg(multiple_args_list,int); //the compiler does not like char here	
-			}
-		}
-		
-		//ints
-		params->non_array_params->num_of_int_params= num_of_param= va_arg(multiple_args_list,long);
-		size_of_all_params+=num_of_param*sizeof(int);
-		if (num_of_param!=0)
-		{
-			params->non_array_params->int_params=error_checking_malloc(num_of_param*sizeof(int),__func__,__LINE__);
-			for (i=0;i<num_of_param;i++)
-			{
-				params->non_array_params->int_params[i]=va_arg(multiple_args_list,int);	
-			}
-		}
-		
-		//long ints
-		params->non_array_params->num_of_long_int_params= num_of_param= va_arg(multiple_args_list,long);
-		size_of_all_params+=num_of_param*sizeof(long int);
-		if (num_of_param!=0)
-		{
-			params->non_array_params->long_int_params=error_checking_malloc(num_of_param*sizeof(long int),__func__,__LINE__);
-			for (i=0;i<num_of_param;i++)
-			{
-				params->non_array_params->long_int_params[i]=va_arg(multiple_args_list,long int);	
-			}
-		}
-		
-		//floats
-		params->non_array_params->num_of_float_params= num_of_param= va_arg(multiple_args_list,long);
-		size_of_all_params+=num_of_param*sizeof(float);
-		if (num_of_param!=0)
-		{
-			params->non_array_params->float_params=error_checking_malloc(num_of_param*sizeof(float),__func__,__LINE__);
-			for (i=0;i<num_of_param;i++)
-			{
-				params->non_array_params->float_params[i]=(float)va_arg(multiple_args_list,double); //the compiler does not like float here
-			}
-		}
-		
-		//doubles
-		params->non_array_params->num_of_double_params= num_of_param= va_arg(multiple_args_list,long);
-		size_of_all_params+=num_of_param*sizeof(double);
-		if (num_of_param!=0)
-		{
-			params->non_array_params->double_params=error_checking_malloc(num_of_param*sizeof(double),__func__,__LINE__);
-			for (i=0;i<num_of_param;i++)
-			{
-				params->non_array_params->double_params[i]=va_arg(multiple_args_list,double);	
-			}
-		}
-		
-		//pointers
-		params->non_array_params->num_of_pointer_params= num_of_param= va_arg(multiple_args_list,long);
-		size_of_all_params+=num_of_param*sizeof(void*);
-		if (num_of_param!=0)
-		{
-			params->non_array_params->pointer_params_sizes=error_checking_malloc(num_of_param*sizeof(long),__func__,__LINE__);
-			for (i=0;i<num_of_param;i++)
-			{
-				params->non_array_params->pointer_params_sizes[i]=va_arg(multiple_args_list,long);	
-			}
-			
-			params->non_array_params->pointer_params=error_checking_malloc(num_of_param*sizeof(void *),__func__,__LINE__);
-			for (i=0;i<num_of_param;i++)
-			{
-				params->non_array_params->pointer_params[i]=va_arg(multiple_args_list,void *);	
-			}
-		}
-	}
-	
-	if (want_arrays)
-	{
-		//not implemented yet
-		//FIX ME
-		
-	}
-	
-	params->total_size_of_all_params=size_of_all_params;
-
-	va_end(multiple_args_list);
-	return params;
-}
 
 /*Returns the number of the useful chunks in stack memory*/
 /*This number (let it be "n") satisfies the equation <useful_bytes_chunk_length>*(n) + <keyshare_bytes_chunk_length>*(n-1)= total_allocated_bytes */
@@ -602,6 +480,404 @@ void * allocate_mem_into_secure_stack(long stack_bytes_to_allocate)
 	return ret;
 }
 
+
+
+
+
+/*Initialises a fun_params struct.
+ * We use the following convention for the multiple arguments: 
+ * First three integer (used as boolean) values: if we want non arrays, arrays, other data as parameters.
+ * Rest:
+ * If we want only non array elements:
+ * 1)number of char params
+ * 2)char params,one by one (if 1 is not zero). If it is, these parameters do not exist.
+ * 3)number of int params
+ * 4)int params,one by one (if 3 is not zero). If it is, these parameters do not exist.
+ * ...etc.
+ * For the pointer and arbitrary pointer params, first we have the num_of_pointer_params,
+ * then the sizes of each pointer element(one by one), 
+ * and then the pointers (one by one)
+ * 
+ * Same story with arrays of elements. First the number of arrays, then the size of each array, and then the elements of
+ * each array one by one.
+  */
+fun_params * init_function_params(int want_non_arrays, int want_arrays, ...)
+{
+	fun_params *params;
+	va_list multiple_args_list; //for multiple arguments.
+	long i;
+	long num_of_param;
+	long size_of_all_params=0;
+	
+	va_start(multiple_args_list,want_arrays);
+	
+	params=error_checking_malloc(sizeof(fun_params),__func__,__LINE__);
+	
+	if (want_non_arrays)
+		params->non_array_params=error_checking_malloc(sizeof(non_array_fun_params),__func__,__LINE__);
+	else
+		params->non_array_params=NULL;
+	
+	if (want_arrays)
+		params->array_params=error_checking_malloc(sizeof(array_fun_params),__func__,__LINE__);
+	else
+		params->array_params=NULL;
+			
+	if (want_non_arrays)
+	{
+		//chars
+		params->non_array_params->num_of_char_params= num_of_param= va_arg(multiple_args_list,long);
+		size_of_all_params+=num_of_param*sizeof(char);
+		if (num_of_param!=0)
+		{
+			params->non_array_params->char_params=error_checking_malloc(num_of_param*sizeof(char),__func__,__LINE__);
+			for (i=0;i<num_of_param;i++)
+			{
+				params->non_array_params->char_params[i]=(char)va_arg(multiple_args_list,int); //the compiler does not like char here	
+			}
+		}
+		else
+		{
+			params->non_array_params->char_params=NULL;
+		}
+		
+		//ints
+		params->non_array_params->num_of_int_params= num_of_param= va_arg(multiple_args_list,long);
+		size_of_all_params+=num_of_param*sizeof(int);
+		if (num_of_param!=0)
+		{
+			params->non_array_params->int_params=error_checking_malloc(num_of_param*sizeof(int),__func__,__LINE__);
+			for (i=0;i<num_of_param;i++)
+			{
+				params->non_array_params->int_params[i]=va_arg(multiple_args_list,int);	
+			}
+		}
+		else
+		{
+			params->non_array_params->int_params=NULL;
+		}
+		
+		//long ints
+		params->non_array_params->num_of_long_int_params= num_of_param= va_arg(multiple_args_list,long);
+		size_of_all_params+=num_of_param*sizeof(long int);
+		if (num_of_param!=0)
+		{
+			params->non_array_params->long_int_params=error_checking_malloc(num_of_param*sizeof(long int),__func__,__LINE__);
+			for (i=0;i<num_of_param;i++)
+			{
+				params->non_array_params->long_int_params[i]=va_arg(multiple_args_list,long int);	
+			}
+		}
+		else
+		{
+			params->non_array_params->long_int_params=NULL;
+		}
+		
+		//floats
+		params->non_array_params->num_of_float_params= num_of_param= va_arg(multiple_args_list,long);
+		size_of_all_params+=num_of_param*sizeof(float);
+		if (num_of_param!=0)
+		{
+			params->non_array_params->float_params=error_checking_malloc(num_of_param*sizeof(float),__func__,__LINE__);
+			for (i=0;i<num_of_param;i++)
+			{
+				params->non_array_params->float_params[i]=(float)va_arg(multiple_args_list,double); //the compiler does not like float here
+			}
+		}
+		else
+		{
+			params->non_array_params->float_params=NULL;
+		}
+			
+		//doubles
+		params->non_array_params->num_of_double_params= num_of_param= va_arg(multiple_args_list,long);
+		size_of_all_params+=num_of_param*sizeof(double);
+		if (num_of_param!=0)
+		{
+			params->non_array_params->double_params=error_checking_malloc(num_of_param*sizeof(double),__func__,__LINE__);
+			for (i=0;i<num_of_param;i++)
+			{
+				params->non_array_params->double_params[i]=va_arg(multiple_args_list,double);	
+			}
+		}
+		else
+		{
+			params->non_array_params->double_params=NULL;
+		}
+		
+		
+		//pointers
+		params->non_array_params->num_of_pointer_params= num_of_param= va_arg(multiple_args_list,long);
+		size_of_all_params+=num_of_param*sizeof(void*);
+		if (num_of_param!=0)
+		{	
+			params->non_array_params->pointer_params_sizes=error_checking_malloc(num_of_param*sizeof(long),__func__,__LINE__);
+			for (i=0;i<num_of_param;i++)
+			{
+				params->non_array_params->pointer_params_sizes[i]=va_arg(multiple_args_list,long);
+			}
+				
+			params->non_array_params->pointer_params=error_checking_malloc(num_of_param*sizeof(void *),__func__,__LINE__);
+			for (i=0;i<num_of_param;i++)
+			{
+				params->non_array_params->pointer_params[i]=va_arg(multiple_args_list,void *);	
+			}
+		}
+		else
+		{
+			params->non_array_params->pointer_params_sizes=NULL;
+			params->non_array_params->pointer_params=NULL;
+		}
+		
+		
+		//pointers to arbitrary structures
+		params->non_array_params->num_of_arb_pointer_params= num_of_param= va_arg(multiple_args_list,long);
+		size_of_all_params+=num_of_param*sizeof(void*);
+		if (num_of_param!=0)
+		{
+			params->non_array_params->arb_pointer_params_sizes=error_checking_malloc(num_of_param*sizeof(long),__func__,__LINE__);
+			for (i=0;i<num_of_param;i++)
+			{
+				params->non_array_params->arb_pointer_params_sizes[i]=va_arg(multiple_args_list,long);
+				size_of_all_params+=params->non_array_params->arb_pointer_params_sizes[i];
+			}
+			
+			params->non_array_params->arb_pointer_params=error_checking_malloc(num_of_param*sizeof(void *),__func__,__LINE__);
+			for (i=0;i<num_of_param;i++)
+			{
+				params->non_array_params->arb_pointer_params[i]=va_arg(multiple_args_list,void *);	
+			}
+		}
+		else
+		{
+			params->non_array_params->arb_pointer_params_sizes=NULL;
+			params->non_array_params->arb_pointer_params=NULL;
+		}
+		
+		
+	}
+	
+	if (want_arrays)
+	{
+		//not implemented yet
+		//FIX ME
+		
+	}
+	
+	params->total_size_of_all_params=size_of_all_params;
+
+	va_end(multiple_args_list);
+	return params;
+}
+
+
+/*Initialises a fun_params struct with some variables uninitialised, if asked.
+ * We use the following convention for the multiple arguments: 
+ * First three integer (used as boolean) values: if we want non arrays, arrays, other data as parameters.
+ * Rest:
+ * If we want only non array elements:
+ * 1)number of char params
+ * 2)number of char params to initialise
+ * 3)char params to initialise,one by one (if 1 is not zero). If it is, these parameters do not exist.
+ * The rest of the chars that remain uninitialised, are allocated, but put at the end of the char array in the struct
+ * 4)number of int params
+ * 5)number of int params to initialise
+ * 6)int params to initialise,one by one (if 4 is not zero). If it is, these parameters do not exist.
+ * The rest of the ints that remain uninitialised, are allocated, but put at the end of the int array in the struct
+ * ...etc.
+ * For the pointer and arbitrary pointer params, first we have the num_of_pointer_params,
+ * then the sizes of each pointer element (one by one),
+ * then the number of the ones we want to initialise, 
+ * and then the pointers (one by one)
+ * 
+  */
+fun_params * init_function_params_with_uninitialised_elements(int want_non_arrays, int want_arrays, ...)
+{
+	fun_params *params;
+	va_list multiple_args_list; //for multiple arguments.
+	long i;
+	long num_to_initialise;
+	long num_of_param;
+	long size_of_all_params=0;
+	
+	va_start(multiple_args_list,want_arrays);
+	
+	params=error_checking_malloc(sizeof(fun_params),__func__,__LINE__);
+	
+	if (want_non_arrays)
+		params->non_array_params=error_checking_malloc(sizeof(non_array_fun_params),__func__,__LINE__);
+	else
+		params->non_array_params=NULL;
+	
+	if (want_arrays)
+		params->array_params=error_checking_malloc(sizeof(array_fun_params),__func__,__LINE__);
+	else
+		params->array_params=NULL;
+			
+	if (want_non_arrays)
+	{
+		//chars
+		params->non_array_params->num_of_char_params= num_of_param= va_arg(multiple_args_list,long);
+		size_of_all_params+=num_of_param*sizeof(char);
+		if (num_of_param!=0)
+		{
+			num_to_initialise=va_arg(multiple_args_list,long int);
+			params->non_array_params->char_params=error_checking_malloc(num_of_param*sizeof(char),__func__,__LINE__);
+			for (i=0;i<num_to_initialise;i++)
+			{
+				params->non_array_params->char_params[i]=(char)va_arg(multiple_args_list,int); //the compiler does not like char here	
+			}
+		}
+		else
+		{
+			params->non_array_params->char_params=NULL;
+		}
+		
+		//ints
+		params->non_array_params->num_of_int_params= num_of_param= va_arg(multiple_args_list,long);
+		size_of_all_params+=num_of_param*sizeof(int);
+		if (num_of_param!=0)
+		{
+			num_to_initialise=va_arg(multiple_args_list,long int);
+			params->non_array_params->int_params=error_checking_malloc(num_of_param*sizeof(int),__func__,__LINE__);
+			for (i=0;i<num_to_initialise;i++)
+			{
+				params->non_array_params->int_params[i]=va_arg(multiple_args_list,int);	
+			}
+		}
+		else
+		{
+			params->non_array_params->int_params=NULL;
+		}
+		
+		//long ints
+		params->non_array_params->num_of_long_int_params= num_of_param= va_arg(multiple_args_list,long);
+		size_of_all_params+=num_of_param*sizeof(long int);
+		if (num_of_param!=0)
+		{
+			num_to_initialise=va_arg(multiple_args_list,long int);
+			params->non_array_params->long_int_params=error_checking_malloc(num_of_param*sizeof(long int),__func__,__LINE__);
+			for (i=0;i<num_to_initialise;i++)
+			{
+				params->non_array_params->long_int_params[i]=va_arg(multiple_args_list,long int);	
+			}
+		}
+		else
+		{
+			params->non_array_params->long_int_params=NULL;
+		}
+		
+		//floats
+		params->non_array_params->num_of_float_params= num_of_param= va_arg(multiple_args_list,long);
+		size_of_all_params+=num_of_param*sizeof(float);
+		if (num_of_param!=0)
+		{
+			num_to_initialise=va_arg(multiple_args_list,long int);
+			params->non_array_params->float_params=error_checking_malloc(num_of_param*sizeof(float),__func__,__LINE__);
+			for (i=0;i<num_to_initialise;i++)
+			{
+				params->non_array_params->float_params[i]=(float)va_arg(multiple_args_list,double); //the compiler does not like float here
+			}
+		}
+		else
+		{
+			params->non_array_params->float_params=NULL;
+		}
+		
+		//doubles
+		params->non_array_params->num_of_double_params= num_of_param= va_arg(multiple_args_list,long);
+		size_of_all_params+=num_of_param*sizeof(double);
+		if (num_of_param!=0)
+		{
+			num_to_initialise=va_arg(multiple_args_list,long int);
+			params->non_array_params->double_params=error_checking_malloc(num_of_param*sizeof(double),__func__,__LINE__);
+			for (i=0;i<num_to_initialise;i++)
+			{
+				params->non_array_params->double_params[i]=va_arg(multiple_args_list,double);	
+			}
+		}
+		else
+		{
+			params->non_array_params->double_params=NULL;
+		}
+		
+		//pointers
+		params->non_array_params->num_of_pointer_params= num_of_param= va_arg(multiple_args_list,long);
+		size_of_all_params+=num_of_param*sizeof(void*);
+		if (num_of_param!=0)
+		{	
+			params->non_array_params->pointer_params_sizes=error_checking_malloc(num_of_param*sizeof(long),__func__,__LINE__);
+			for (i=0;i<num_of_param;i++)
+			{
+				params->non_array_params->pointer_params_sizes[i]=va_arg(multiple_args_list,long);
+			}
+			
+			num_to_initialise=va_arg(multiple_args_list,long int);
+			params->non_array_params->pointer_params=error_checking_malloc(num_of_param*sizeof(void *),__func__,__LINE__);
+			for (i=0;i<num_to_initialise;i++)
+			{
+				params->non_array_params->pointer_params[i]=va_arg(multiple_args_list,void *);	
+			}
+			//set the rest to NULL
+			for (i=num_to_initialise;i<num_of_param;i++)
+			{
+				params->non_array_params->pointer_params[i]=NULL;
+			}
+		}
+		else
+		{
+			params->non_array_params->pointer_params_sizes=NULL;
+			params->non_array_params->pointer_params=NULL;
+		}
+		
+		//pointers to arbitrary structures
+		params->non_array_params->num_of_arb_pointer_params= num_of_param= va_arg(multiple_args_list,long);
+		size_of_all_params+=num_of_param*sizeof(void*);
+		if (num_of_param!=0)
+		{
+			params->non_array_params->arb_pointer_params_sizes=error_checking_malloc(num_of_param*sizeof(long),__func__,__LINE__);
+			for (i=0;i<num_of_param;i++)
+			{
+				params->non_array_params->arb_pointer_params_sizes[i]=va_arg(multiple_args_list,long);
+				size_of_all_params+=params->non_array_params->arb_pointer_params_sizes[i];
+			}
+			
+			num_to_initialise=va_arg(multiple_args_list,long int);
+			params->non_array_params->arb_pointer_params=error_checking_malloc(num_of_param*sizeof(void *),__func__,__LINE__);
+			for (i=0;i<num_to_initialise;i++)
+			{
+				params->non_array_params->arb_pointer_params[i]=va_arg(multiple_args_list,void *);	
+			}
+			//set the rest to NULL
+			for (i=num_to_initialise;i<num_of_param;i++)
+			{
+				params->non_array_params->arb_pointer_params[i]=NULL;
+			}
+		}
+		else
+		{
+			params->non_array_params->arb_pointer_params_sizes=NULL;
+			params->non_array_params->arb_pointer_params=NULL;
+		}
+	}
+	
+	if (want_arrays)
+	{
+		//not implemented yet
+		//FIX ME
+		
+	}
+	
+	params->total_size_of_all_params=size_of_all_params;
+
+	va_end(multiple_args_list);
+	return params;
+}
+
+
+
+
+
 /*Puts the parameters into the secure stack. Now the pointers in the fun_params struct
  * point to the secure stack. This is done to find access them at will, in a secure way.
  * Important: The parameters are allocated  and inserted one type (chars,ints...) at once. 
@@ -695,10 +971,29 @@ fun_params * put_fun_params_into_secure_stack(fun_params * params)
 			insert_data_into_stack_mem(number_of_elements*sizeof(void *),
 								  (unsigned char *) params->non_array_params->pointer_params,
 								  mem_in_secure_stack);
+		//and the sizes!
 		params_in_secure_stack->non_array_params->pointer_params_sizes=error_checking_malloc(number_of_elements*sizeof(long),__func__,__LINE__);
 		for (i=0;i<number_of_elements;i++)
+			params_in_secure_stack->non_array_params->pointer_params_sizes[i]=params->non_array_params->pointer_params_sizes[i]; 
+		
+		
+		//arbitraty pointers
+		params_in_secure_stack->non_array_params->num_of_arb_pointer_params=params->non_array_params->num_of_arb_pointer_params;
+		number_of_elements=params_in_secure_stack->non_array_params->num_of_arb_pointer_params;
+		params_in_secure_stack->non_array_params->arb_pointer_params_sizes=error_checking_malloc(number_of_elements*sizeof(long),__func__,__LINE__);
+		for (i=0;i<number_of_elements;i++)
+			params_in_secure_stack->non_array_params->arb_pointer_params_sizes[i]=params->non_array_params->arb_pointer_params_sizes[i]; 
+		params_in_secure_stack->non_array_params->arb_pointer_params=error_checking_malloc(number_of_elements*sizeof(void*),__func__,__LINE__);
+	
+		//allocate all these things into the stack
+		for (i=0;i<number_of_elements;i++)
 		{
-			params_in_secure_stack->non_array_params->pointer_params_sizes[i]=params->non_array_params->pointer_params_sizes[i];
+			mem_in_secure_stack=allocate_mem_into_secure_stack(params_in_secure_stack->non_array_params->arb_pointer_params_sizes[i]);
+			if (mem_in_secure_stack!=NULL)
+				insert_data_into_stack_mem(params_in_secure_stack->non_array_params->arb_pointer_params_sizes[i],
+									  (unsigned char *) params->non_array_params->arb_pointer_params[i],
+									   mem_in_secure_stack);
+			params_in_secure_stack->non_array_params->arb_pointer_params[i]=(void *)mem_in_secure_stack;
 		}
 						
 	}
@@ -715,11 +1010,34 @@ fun_params * put_fun_params_into_secure_stack(fun_params * params)
 }
 
 
+//frees the fun_params structure
+void free_fun_params(fun_params* params)
+{
+	long i;
+	free(params->non_array_params->char_params);
+	free(params->non_array_params->int_params);
+	free(params->non_array_params->long_int_params);
+	free(params->non_array_params->float_params);
+	free(params->non_array_params->double_params);
+	free(params->non_array_params->pointer_params);
+	free(params->non_array_params->pointer_params_sizes);
+	free(params->non_array_params->arb_pointer_params_sizes);
+	for (i=0;i<params->non_array_params->num_of_arb_pointer_params;i++)
+		free(params->non_array_params->arb_pointer_params[i]);
+	free(params->non_array_params->pointer_params);
+	free(params->non_array_params);
+	//what about array_params inner elements?
+	//FIX ME
+	free(params->array_params);
+	free(params);
+}
+
+
 fun_params * put_fun_params_into_secure_stack_and_free(fun_params * params)
 {
 	fun_params * ret;
 	ret=put_fun_params_into_secure_stack(params);
-	free(params);
+	free_fun_params(params);
 	return ret;
 }
 
@@ -822,6 +1140,12 @@ double get_stack_double_array_element(void * start_of_array, long index)
 	return res[0];
 }
 
+//gets a block of data from the secure stack. Writes to *res, which must have been preallocated
+void get_arbitrary_block_in_stack(long data_size,void * start_of_block,void * res)
+{
+	get_secure_stack_data(res,data_size, start_of_block,0,0);
+}
+
 
 /************************************************************************************************/
 /********************************SECURE GETTERS END**********************************************/
@@ -909,6 +1233,12 @@ void set_stack_double_array_element(void * start_of_array, long index, double so
 {
 	double src=source;
 	set_secure_stack_data(&src,sizeof(double),start_of_array,1,index);
+}
+
+//sets a block of data to the secure stack. reads from *src, which must have been preallocated
+void set_arbitrary_block_in_stack(long data_size,void * start_of_block,void * src)
+{
+	set_secure_stack_data(src,data_size, start_of_block,0,0);
 }
 
 
