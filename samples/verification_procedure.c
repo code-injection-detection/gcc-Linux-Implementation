@@ -45,6 +45,7 @@ void find_keyshares()
    unsigned char keys[number_of_interleaved_keys];
    long fun_name;
    long heap_cnt;
+   long stack_cnt;
    int counting_key_bytes=0; //used as boolean
    char ret;
 
@@ -87,6 +88,7 @@ void find_keyshares()
 
 
 		//taking into account the heap keys
+		counting_key_bytes=0;
 		for (p=entire_memory_chunk,heap_cnt=0;heap_cnt<total_bytes_allocated;)
 		{
 
@@ -104,6 +106,32 @@ void find_keyshares()
 				}
 
 				heap_cnt+=bytes_used_for_keyshares;
+				counting_key_bytes=0;
+
+				
+		    }  
+
+		}
+		
+		//taking into account the stack keys
+		counting_key_bytes=0;
+		for (p=entire_stack_memory_chunk,stack_cnt=0;stack_cnt<total_stack_bytes_allocated;)
+		{
+
+		    if (counting_key_bytes==0)
+		    {
+				stack_cnt+=stack_bytes_between_keyshares;
+				counting_key_bytes=1;
+		    }
+		    else
+		    {
+				//checking the keys
+				for (keycnt=0;keycnt<number_of_interleaved_keys;keycnt++)
+				{
+					 keys[keycnt]^=(unsigned char) *(p+stack_cnt+keycnt);
+				}
+
+				stack_cnt+=stack_bytes_used_for_keyshares;
 				counting_key_bytes=0;
 
 				

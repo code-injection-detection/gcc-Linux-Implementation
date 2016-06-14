@@ -57,8 +57,8 @@ void mem_test()
 	print_mem(mem);
 	
 	
-	data=malloc(size*sizeof(int));
-	data2=malloc(size*sizeof(int));
+	data=error_checking_malloc(size*sizeof(int),__func__,__LINE__);
+	data2=error_checking_malloc(size*sizeof(int),__func__,__LINE__);
 
 	for (i=5;i<size+5;i++)
 			data[i-5]=i * i;
@@ -67,12 +67,7 @@ void mem_test()
 	printf("Trying to secure malloc\n");
 	//printf("Last_unused_memory before:%ld\n",(long)last_unused_memory);
 	//start_of_secure_data1=secure_malloc(size*sizeof(int));
-	start_of_secure_data1=managed_secure_malloc(size*sizeof(int));
-	if (start_of_secure_data1==NULL)
-		{
-		  perror("Not enough mem");
-		  exit(42);
-		}
+	start_of_secure_data1=error_checking_managed_secure_malloc(size*sizeof(int),__func__,__LINE__);
 	//printf("Last_unused_memory after:%ld\n",(long)last_unused_memory);
 	
 	printf("After malloc,try to insert some data\n");
@@ -80,7 +75,7 @@ void mem_test()
 
 	printf("Now let's retrieve the data and display them\n");
 	
-	retrieved_int=malloc(sizeof(int));
+	retrieved_int=error_checking_malloc(sizeof(int),__func__,__LINE__);
 
 	for (j=0;j<size;j++)
 	{
@@ -93,12 +88,7 @@ void mem_test()
 	printf("Again, Trying to secure malloc\n");
 	//printf("Last_unused_memory before:%ld\n",(long)last_unused_memory);
 	//start_of_secure_data=secure_malloc(size*sizeof(int));
-	start_of_secure_data=managed_secure_malloc(size*sizeof(int));
-	if (start_of_secure_data==NULL)
-		{
-		  perror("Not enough mem");
-		  exit(42);
-		}
+	start_of_secure_data=error_checking_managed_secure_malloc(size*sizeof(int),__func__,__LINE__);
 	//printf("Last_unused_memory after:%ld\n",(long)last_unused_memory);
 	
 	for (i=5;i<size+5;i++)
@@ -127,11 +117,11 @@ void mem_test()
 	
 	printf("Now trying to store and retrieve 424242424...\n");
 	//start_of_secure_data=secure_malloc(sizeof(int));
-	start_of_secure_data=managed_secure_malloc(sizeof(int));
+	start_of_secure_data=error_checking_managed_secure_malloc(sizeof(int),__func__,__LINE__);
 	*retrieved_int=424242424;
 	insert_data_into_mem(sizeof(int),(unsigned char *)retrieved_int,start_of_secure_data);
 	free(retrieved_int);
-	retrieved_int=malloc(sizeof(int));
+	retrieved_int=error_checking_malloc(sizeof(int),__func__,__LINE__);
     get_secure_data(retrieved_int,sizeof(int),start_of_secure_data,0,j);
 	printf("\n\n%d \n\n",*retrieved_int);
 	free(retrieved_int);
@@ -153,19 +143,19 @@ void mem_test()
 
 	printf("Testing wrapper functions\n");
 	//another_secured_int=secure_malloc(sizeof(int));
-	another_secured_int=managed_secure_malloc(sizeof(int));
+	another_secured_int=error_checking_managed_secure_malloc(sizeof(int),__func__,__LINE__);
 	set_int(another_secured_int,99998);
 	an_integer=get_int(another_secured_int);
 	printf("Got %d\n",an_integer);
 
 	//another_secured_char=secure_malloc(sizeof(char));
-	another_secured_char=managed_secure_malloc(sizeof(char));
+	another_secured_char=error_checking_managed_secure_malloc(sizeof(char),__func__,__LINE__);
 	set_char(another_secured_char,'b');
 	a_char=get_char(another_secured_char);
 	printf("Got %c\n",a_char);
 
 	//another_secured_long_int=secure_malloc(sizeof(long int));
-	another_secured_long_int=managed_secure_malloc(sizeof(long int));
+	another_secured_long_int=error_checking_managed_secure_malloc(sizeof(long int),__func__,__LINE__);
 	set_long_int(another_secured_long_int,54545454);
 	a_long=get_long_int(another_secured_long_int);
 	printf("Got %ld\n",a_long);
@@ -179,7 +169,7 @@ void mem_test()
 	print_lists();
 
 
-	another_secured_char2=managed_secure_malloc(sizeof(char));
+	another_secured_char2=error_checking_managed_secure_malloc(sizeof(char),__func__,__LINE__);
 	set_char(another_secured_char2,'a');
 	a_char=get_char(another_secured_char2);
 	printf("Got %c\n",a_char);
@@ -189,7 +179,7 @@ void mem_test()
 
 
 	//another_secured_double=secure_malloc(sizeof(double));
-	another_secured_double=managed_secure_malloc(sizeof(double));
+	another_secured_double=error_checking_managed_secure_malloc(sizeof(double),__func__,__LINE__);
 	set_double(another_secured_double,7878.3434);
 	a_double=get_double(another_secured_double);
 	printf("Got %lf\n",a_double);
@@ -200,7 +190,7 @@ void mem_test()
 
 	printf("Array wrapper function testing\n");
 	//array_test=secure_malloc(10*sizeof(double));
-	array_test=managed_secure_malloc(10*sizeof(double));
+	array_test=error_checking_managed_secure_malloc(10*sizeof(double),__func__,__LINE__);
 	foo_double=42.424242;
 	set_array_element(sizeof(double),array_test,2, &foo_double);
 	foo_double=34.121212;
@@ -344,11 +334,16 @@ void simple_array_tests()
 	float *float_array2;
 	int * index;
 	long * length;
+	long ** long_ptr;
 	
 	index=managed_secure_malloc(sizeof(int));
 	
 	length=managed_secure_malloc(sizeof(long));
-	set_long_int(length,21);
+	long_ptr=managed_secure_malloc(sizeof(long*));
+	
+	set_long_int(length,5); // set it to 5 but afterwards let's make it bigger
+	set_pointer(long_ptr,length);
+	set_long_int(get_pointer(long_ptr),21);
 	
 	int_array1=managed_secure_malloc(get_long_int(length)*sizeof(int));
 	int_array2=managed_secure_malloc(get_long_int(length)*sizeof(int));

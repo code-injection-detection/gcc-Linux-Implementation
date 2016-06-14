@@ -5,7 +5,7 @@
 for ((i=1;i<=10000;i++)); do
 
 	echo $i
-	x=$(./automate.sh 5 1 4 1024)
+	x=$(./automate.sh 100 1 1 4 1024 4 1024)
 	a=$(echo $x | grep "Acc")
 	if [ "$a" != "" ]; then
 		echo $x

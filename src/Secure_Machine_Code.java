@@ -18,6 +18,7 @@ public class Secure_Machine_Code {
 		//use this if executing with automate.sh in samples directory
 		String filename = new File("../samples/Helloworldadd_sec").getAbsolutePath();	
 		String heap_keys_filename=new File("../samples/heap_keyshares").getAbsolutePath();
+		String stack_keys_filename=new File("../samples/stack_keyshares").getAbsolutePath();
 		String memory_manager_filename=new File("../samples/memory_manager.c").getAbsolutePath();
 		
 		String newfilename = filename.substring(0,filename.length()-3)+"ksec";
@@ -27,9 +28,13 @@ public class Secure_Machine_Code {
 		
 		int number_of_interleaved_nops = 5; //this should be equal to the number of nops we insert in Secure_Assembly.java (now that we assume that 1 NOP = 1key)
 		int num_of_keys_in_heap=5; //this should be equal to the number of keys we interleave in the heap
+		int num_of_keys_in_stack=5; //this should be equal to the number of keys we interleave in the stack
 		int useful_bytes_between_keys_in_heap=4;
-		long total_bytes_trying_to_allocate_in_heap=1024;
-		long useful_chunks;
+		int useful_bytes_between_keys_in_stack=4;
+		long total_bytes_trying_to_allocate_in_heap=2048;
+		long total_bytes_trying_to_allocate_in_stack=1024;
+		long useful_chunks_in_heap;
+		long useful_chunks_in_stack;
 		int number_of_canaries=2;
 		byte canary_value=0x42; //says:after me, keyshares follow!
 		
@@ -38,32 +43,23 @@ public class Secure_Machine_Code {
 		ArrayList<Byte> list = new ArrayList<Byte>();
 
 		FileOutputStream heap_keyshares_file = new FileOutputStream(new File(heap_keys_filename));
+		FileOutputStream stack_keyshares_file = new FileOutputStream(new File(stack_keys_filename));
 		
-		if (args.length==1)
+		if (args.length==6)
 		{
 			number_of_interleaved_nops=Integer.parseInt(args[0]);
 			num_of_keys_in_heap=number_of_interleaved_nops;
+			num_of_keys_in_stack=number_of_interleaved_nops;
+			number_of_canaries=Integer.parseInt(args[1]);
+			useful_bytes_between_keys_in_heap=Integer.parseInt(args[2]);
+			total_bytes_trying_to_allocate_in_heap=Long.parseLong(args[3]);
+			useful_bytes_between_keys_in_stack=Integer.parseInt(args[4]);
+			total_bytes_trying_to_allocate_in_stack=Long.parseLong(args[5]);
 		}
-		else if (args.length==2)
+		else
 		{
-			number_of_interleaved_nops=Integer.parseInt(args[0]);
-			num_of_keys_in_heap=number_of_interleaved_nops;
-			useful_bytes_between_keys_in_heap=Integer.parseInt(args[1]);	
-		}
-		else if (args.length==3)
-		{
-			number_of_interleaved_nops=Integer.parseInt(args[0]);
-			num_of_keys_in_heap=number_of_interleaved_nops;
-			useful_bytes_between_keys_in_heap=Integer.parseInt(args[1]);
-			total_bytes_trying_to_allocate_in_heap=Integer.parseInt(args[2]);
-		}
-		else if (args.length==4)
-		{
-			number_of_interleaved_nops=Integer.parseInt(args[0]);
-			num_of_keys_in_heap=number_of_interleaved_nops;
-			useful_bytes_between_keys_in_heap=Integer.parseInt(args[1]);
-			total_bytes_trying_to_allocate_in_heap=Integer.parseInt(args[2]);
-			number_of_canaries=Integer.parseInt(args[3]);
+			System.out.println("Incorrect number of arguments!");
+			System.exit(-1);
 		}
 		
 		ArrayList[] keys = new ArrayList[number_of_interleaved_nops];
@@ -103,7 +99,7 @@ public class Secure_Machine_Code {
 	    			random_bytes_generated[j]=temp;
 	    			
 	    			//check not to accidentally produce opcode for <jmp> (<number of nops>+<number of canaries>) and the canary bytes afterwards
-	    			while (j>=2+number_of_canaries-1 /*minus 1!*/ && produced_opcode(random_bytes_generated,number_of_interleaved_nops,number_of_canaries,j,canary_value))
+	    			while (j>=2+number_of_canaries-1 /*minus 1!*/ && produced_bad_opcode(random_bytes_generated,number_of_interleaved_nops,number_of_canaries,j,canary_value))
 	    			{
 	    				System.out.println("Accidentally created JMP <nops number + number of canaries> opcode, and inserted canaries after it!");
 	    				temp = randomByte();
@@ -125,12 +121,12 @@ public class Secure_Machine_Code {
 	    
 	    //inserting keyshares into heap keyshare file
 
-	    useful_chunks=find_useful_chunks_allocated_in_heap(
+	    useful_chunks_in_heap=find_useful_chunks_needed_to_allocate_in_mem(
 	    				total_bytes_trying_to_allocate_in_heap,
 	    				useful_bytes_between_keys_in_heap,
 	    				num_of_keys_in_heap);
 	    //Now we don't care about the useful chunks, but the keys
-	    for (int i=0;i<useful_chunks-1;i++)
+	    for (int i=0;i<useful_chunks_in_heap-1;i++)
 	    {
 		    //insert into heap_keyshares file
 		    for(int j=0;j<number_of_interleaved_nops;j++)
@@ -140,6 +136,26 @@ public class Secure_Machine_Code {
 		    	temparray[0]=temp;
 		    	keys[j].add(temp);
 		    	heap_keyshares_file.write(temparray);
+			}
+	    }
+	    
+	  //inserting keyshares into stack keyshare file
+
+	    useful_chunks_in_stack=find_useful_chunks_needed_to_allocate_in_mem(
+	    				total_bytes_trying_to_allocate_in_stack,
+	    				useful_bytes_between_keys_in_stack,
+	    				num_of_keys_in_stack);
+	    //Now we don't care about the useful chunks, but the keys (chunks-1)
+	    for (int i=0;i<useful_chunks_in_stack-1;i++)
+	    {
+		    //insert into stack_keyshares file
+		    for(int j=0;j<number_of_interleaved_nops;j++)
+			{
+		    	byte temp = randomByte();
+		    	byte[] temparray=new byte[1];
+		    	temparray[0]=temp;
+		    	keys[j].add(temp);
+		    	stack_keyshares_file.write(temparray);
 			}
 	    }
 	    
@@ -165,6 +181,8 @@ public class Secure_Machine_Code {
 	    fw.close();
 	    heap_keyshares_file.flush();
 	    heap_keyshares_file.close();
+	    stack_keyshares_file.flush();
+	    stack_keyshares_file.close();
 	    /*Giving execute permissions*/
 	    Process p = r.exec("chmod +x " + newfilename );
 	    p.waitFor();
@@ -198,7 +216,7 @@ public class Secure_Machine_Code {
 		return true;
 	}
 	
-	static long find_useful_chunks_allocated_in_heap(long ttl_bytes,int useful_bytes,int key_bytes)
+	static long find_useful_chunks_needed_to_allocate_in_mem(long ttl_bytes,int useful_bytes,int key_bytes)
 	{
 		long useful_chunks=(long)((ttl_bytes+key_bytes)/(useful_bytes+key_bytes)); //this should be an integer, If not, we should allocate a bit more. 
 		
@@ -211,7 +229,7 @@ public class Secure_Machine_Code {
 		}
 	}
 	
-	static boolean produced_opcode( byte[] random_bytes_generated,int number_of_interleaved_nops, int number_of_canaries,int pos,byte canary_value)
+	static boolean produced_bad_opcode( byte[] random_bytes_generated,int number_of_interleaved_nops, int number_of_canaries,int pos,byte canary_value)
 	{
 		for (int i=0;i<number_of_canaries;i++)
 		{

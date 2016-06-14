@@ -2,8 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "memory_manager.c" //Including the C files because all the functions must be in the same file in order to be secured
-#include "verification_procedure.c"
+#include "functions_needed.c" //Including the C file because all the functions must be in the same file in order to be secured
 
 static int static_global_variable_for_testing;
 
@@ -21,7 +20,6 @@ return k;
 int main()
 {
 	char bob[10];
-	unsigned char * mem;
 	pid_t pid;
 	int i;
 	int k;
@@ -39,25 +37,13 @@ int main()
 	static_main_variable_for_testing=1;
 	static_global_variable_for_testing=2;
 	
-	printf("Initializing mem\n");
-	printf("bytes_to_allocate_on_start:%d\n",bytes_to_allocate_on_start);
-
-    printf("Init_mem, alloc+key insertion\n");
-	mem=init_mem();
-	printf("If successful, total bytes allocated:%ld\n",total_bytes_allocated);
+	//initialize memory
+	init_heap_and_stack_mem();
 	
-	printf("Installing signal handler\n");
+	
 	//setting up signal handler
-	sa.sa_handler = verification_procedure;
-	sigemptyset(&sa.sa_mask);
-	sa.sa_flags = SA_RESTART; /* Restart functions if
-                                 interrupted by handler */
-	if (sigaction(SIGUSR1, &sa, NULL) == -1)
-	{
-		perror("Could not install signal handler");
-		exit(45);
-	}
-	printf("Signal handler installed\n");
+	install_signal_handler();
+	
 	
 	pid=getpid();
 	printf("My pid=%ld\n",(long)pid);
@@ -81,10 +67,13 @@ int main()
 	//mem_test();
 	//list_test();
 	simple_array_tests();
+	stack_fun_params_test();
 	find_keyshares();
 
 
-	free_secure_mem(mem);
+	//free memory
+	free_heap_and_stack_memory();
+	
 	return 0;
 }
 

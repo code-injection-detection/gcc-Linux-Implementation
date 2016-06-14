@@ -11,11 +11,11 @@ and one for allocated groups of chunks, one group for every managed_secure_mallo
 
 
 /*Memory manager data structure*/
-typedef struct node {
+typedef struct node_of_a_list {
 	long length; //in chunks (groups of useful data in heap)
 	void * pointer_to_mem;
-	struct node * next;
-	struct node * previous;
+	struct node_of_a_list * next;
+	struct node_of_a_list * previous;
 } list_node;
 
 
@@ -64,12 +64,8 @@ list_node * alloc_list(long number_of_nodes)
 	head=temp=prev=NULL;
 	for (i=1;i<=number_of_nodes;i++)
 	{	
-		temp=(list_node*)malloc(sizeof(list_node));
-		if (temp==NULL)
-		{
-			perror("alloc_list:malloc failed.\n");
-			exit(42);
-		}
+		temp=(list_node*)error_checking_malloc(sizeof(list_node),__func__,__LINE__);
+
 		if (i==1)
 			head=temp;
 		if (i>1)
@@ -95,12 +91,7 @@ list_node * add_node_to_list(list_node *head,list_node newnode)
 	list_node * new;
 	
 	
-	new=malloc(sizeof(list_node));
-	if (new==NULL)
-	{
-		perror("add_node_to_list:malloc failed.\n");
-		exit(42);
-	}
+	new=error_checking_malloc(sizeof(list_node),__func__,__LINE__);
 	
 	copy_nodes(new,newnode);
 	
@@ -299,12 +290,7 @@ unsigned char * allocate_mem()
 	bytes_to_allocate=element_appearances_in_mem*c + (element_appearances_in_mem-1)*b;
   }
  
-  mem = malloc(bytes_to_allocate);
-  if (mem==NULL)
-  {
-	perror("allocate_mem:malloc failed.\n");
-	exit(42);
-  }
+  mem = error_checking_malloc(bytes_to_allocate,__func__,__LINE__);
 
   total_bytes_allocated=bytes_to_allocate;
   return mem;
@@ -419,6 +405,7 @@ void print_mem(unsigned char * mem)
   long i;
   unsigned char * p;
   p=&mem[0];
+  printf("Printing heap memory:\n");
   for (i=0;i<total_bytes_allocated;i++)
   {
 	//printf("%#04x ",p[i]);
@@ -429,7 +416,7 @@ void print_mem(unsigned char * mem)
 }
 
 
-/*Receives "data_size" bytes of data, and inserts them into memory. Insertion starts at "last_unused_mem".
+/*Receives "data_size" bytes of data, and inserts them into memory. Insertion starts at "mem_where_to_insert".
 Returns how many groups (chunks) of useful data have actually been used.*/
 /*Obsolete. Use set_secure_data() instead*/
 long insert_data_into_mem(long data_size,unsigned char * data, unsigned char * mem_where_to_insert)
@@ -473,7 +460,8 @@ long insert_data_into_mem(long data_size,unsigned char * data, unsigned char * m
 
 }
 
-/*returns a pointer to the data needed. The last two arguments are useful if called for an array element.*/
+/*Gets data from the secure heap*/
+/*res is a pointer to where the retrieved secure data will be written. The last two arguments are useful if called for an array element.*/
 /*Set data_size to the size of the element you want to retrieve. For example "sizeof(int)" */
 /*If seeking an array element, set isarray !=0. Set data_start to the start of the array*/
 /*If not seeking an array element, set isarray to 0. Then arrayindex will be ignored*/
@@ -673,6 +661,13 @@ long int get_long_int( void * start_of_secure_data)
 	return res[0];
 }
 
+//pay attention to the type of the pointer when calling
+void * get_pointer(void * start_of_secure_data)
+{
+	void * res[1];
+	get_secure_data(res,sizeof(void *),start_of_secure_data,0,0);
+	return res[0];
+}
 
 float get_float( void * start_of_secure_data)
 {
@@ -712,6 +707,14 @@ long int get_long_int_array_element(void * start_of_array, long index)
 {
 	long int res[1];
 	get_secure_data(res,sizeof(long int),start_of_array,1,index);
+	return res[0];
+}
+
+//pay attention to the type of the pointer when calling
+void * get_pointer_array_element(void * start_of_array, long index)
+{
+	void * res[1];
+	get_secure_data(res,sizeof(void *),start_of_array,1,index);
 	return res[0];
 }
 
@@ -756,6 +759,12 @@ void set_long_int( void * start_of_secure_data,long int source)
   insert_data_into_mem(sizeof(long int),(unsigned char *)&source,(unsigned char *)start_of_secure_data);
 }
 
+//pay attention to the type of the pointer when calling
+void set_pointer( void * start_of_secure_data,void * source)
+{
+  insert_data_into_mem(sizeof(void *),(unsigned char *)&source,(unsigned char *)start_of_secure_data);
+}
+
 void set_float( void * start_of_secure_data,float source)
 {
   insert_data_into_mem(sizeof(float),(unsigned char *)&source,(unsigned char *)start_of_secure_data);
@@ -789,6 +798,14 @@ void set_long_int_array_element(void * start_of_array, long index, long int sour
 	long int src=source;
 	set_secure_data(&src,sizeof(long int),start_of_array,1,index);
 }
+
+//pay attention to the type of the pointer when calling
+void set_pointer_array_element(void * start_of_array, long index, void * source)
+{
+	unsigned char * src=source;
+	set_secure_data(&src,sizeof(void *),start_of_array,1,index);
+}
+
 
 void set_float_array_element(void * start_of_array, long index, float source)
 {
@@ -873,12 +890,7 @@ list_node * check_and_merge(list_node* a, list_node* b , list_node ** head) //ca
 	//if the memory is consecutive
 	if ((long)(a->pointer_to_mem) + a->length*(bytes_between_keyshares+bytes_used_for_keyshares) == (long)(b->pointer_to_mem))
 	{ //yes they can be merged
-		temp=malloc(sizeof(list_node));
-		if (temp==NULL)
-		{
-			perror("check_and_merge:malloc failed.\n");
-			exit(42);
-		}
+		temp=error_checking_malloc(sizeof(list_node),__func__,__LINE__);
 		//merge
 		temp->length=a->length+b->length;
 		temp->pointer_to_mem=a->pointer_to_mem;
@@ -971,12 +983,8 @@ int managed_secure_free(void * pointer_to_freed_mem)
 	if (temp==NULL) //did not find it
 		return 0;
 	
-	temp2=malloc(sizeof(list_node));
-	if (temp2==NULL)
-	{
-		perror("managed_secure_free:malloc failed.\n");
-		exit(42);
-	}
+	temp2=error_checking_malloc(sizeof(list_node),__func__,__LINE__);
+	
 	copy_nodes_ptr(temp2,temp);
 	
 	//remove from allocated_chunks_list
@@ -1093,8 +1101,18 @@ int managed_secure_free(void * pointer_to_freed_mem)
 
 }
 
-
-
+/*Wrapper for managed_secure_malloc. Checks for NULL return value and exits if this is true*/
+void * error_checking_managed_secure_malloc(long bytes_for_allocation,const char * fun_name, int line)
+{
+	void * ret;
+	ret=managed_secure_malloc(bytes_for_allocation);
+	if (ret==NULL)
+	{
+		fprintf(stderr,"Managed secure malloc error n function %s, line %d\n",fun_name,line);
+		exit(52);
+	}
+	return ret;	
+}
 
 
 /**************************************************************************************************************/
