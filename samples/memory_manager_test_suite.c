@@ -395,6 +395,14 @@ void simple_array_tests()
 	
 	//print_mem(entire_memory_chunk);
 	
+	printf("printing as blocks of data using arbitrary blocks\n");
+	double temp;
+	for (set_int(index,0);get_int(index)<get_long_int(length);set_int(index,get_int(index)+1))
+	{
+		get_arbitrary_block_in_heap_with_offset(sizeof(double),double_array1,get_int(index)*sizeof(double),&temp);
+		printf("%lg ",temp);
+	}
+	printf("\n");
 	
 	printf("freeing\n");
 	managed_secure_free(index);

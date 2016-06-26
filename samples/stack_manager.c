@@ -285,8 +285,9 @@ long insert_data_into_stack_mem(long data_size,unsigned char * data, unsigned ch
 /*Gets data from the secure stack*/
 /*res is a pointer to where the retrieved secure data will be written. The last two arguments are useful if called for an array element.*/
 /*Set data_size to the size of the element you want to retrieve. For example "sizeof(int)" */
-/*If seeking an array element, set isarray !=0. Set data_start to the start of the array*/
+/*If seeking an array element, set isarray = 1. Set data_start to the start of the array*/
 /*If not seeking an array element, set isarray to 0. Then arrayindex will be ignored*/
+/*If isarray = 2, then this means that we want a block of data from *data_start, with offset <arrayindex> *BYTES*!*/
 /*Works only for 1-d arrays, 2 index conversion to 1 index should be done beforehand. Of course in a next implementation ->*/
 /*-> the function can be extended to support multiple dimension arrays*/
 /*res must have been pre-allocated.*/
@@ -299,18 +300,24 @@ void get_secure_stack_data(void * res,long data_size, unsigned char * data_start
   long total_data_retrieved=0;
   int counting_key_bytes=0; //used as boolean
   long chunks_forward;
-
+  long data_size_for_offset;
 
   result=res;
 
   p=data_start;
 
+ 
+  if (isarray==2)
+	data_size_for_offset=1;
+  else
+    data_size_for_offset=data_size;
+
   i=0;
   if (isarray)
   {
 	
-	chunks_forward=(arrayindex*data_size)/(stack_bytes_between_keyshares);
-	if (chunks_forward*stack_bytes_between_keyshares==(arrayindex*data_size))
+	chunks_forward=(arrayindex*data_size_for_offset)/(stack_bytes_between_keyshares);
+	if (chunks_forward*stack_bytes_between_keyshares==(arrayindex*data_size_for_offset))
 	{
 		p+=chunks_forward*stack_bytes_between_keyshares + chunks_forward * stack_bytes_used_for_keyshares; //We set p to point to the next useful area
 	}
@@ -319,7 +326,7 @@ void get_secure_stack_data(void * res,long data_size, unsigned char * data_start
 		//Well that's a problem. We have to start in the middle of a chunk.
 		//What we'll do is that we will retrieve the part up to the end of the chunk.
 		p+=chunks_forward*stack_bytes_between_keyshares + chunks_forward * stack_bytes_used_for_keyshares;
-		j=(arrayindex*data_size)-(chunks_forward*stack_bytes_between_keyshares);
+		j=(arrayindex*data_size_for_offset)-(chunks_forward*stack_bytes_between_keyshares);
 
 		for (k=0;j+k<stack_bytes_between_keyshares && (total_data_retrieved + k < data_size );k++)
 		{
@@ -366,15 +373,21 @@ void set_secure_stack_data(void * source,long data_size, unsigned char * data_st
   long total_data_set=0;
   int counting_key_bytes=0; //used as boolean
   long chunks_forward;
+  long data_size_for_offset;
 
   p=data_start;
   src=source;
 
+  if (isarray==2)
+	data_size_for_offset=1;
+  else
+    data_size_for_offset=data_size;
+    
   i=0;
   if (isarray)
   {
-	chunks_forward=(arrayindex*data_size)/(stack_bytes_between_keyshares);
-	if (chunks_forward*stack_bytes_between_keyshares==(arrayindex*data_size))
+	chunks_forward=(arrayindex*data_size_for_offset)/(stack_bytes_between_keyshares);
+	if (chunks_forward*stack_bytes_between_keyshares==(arrayindex*data_size_for_offset))
 	{
 		p+=chunks_forward*stack_bytes_between_keyshares + chunks_forward * stack_bytes_used_for_keyshares; //We set p to point to the next useful area
 	}
@@ -383,7 +396,7 @@ void set_secure_stack_data(void * source,long data_size, unsigned char * data_st
 		//Well that's a problem. We have to start in the middle of a chunk.
 		//What we'll do is that we will set the part up to the end of the chunk.
 		p+=chunks_forward*stack_bytes_between_keyshares + chunks_forward * stack_bytes_used_for_keyshares;
-		j=(arrayindex*data_size)-(chunks_forward*stack_bytes_between_keyshares);
+		j=(arrayindex*data_size_for_offset)-(chunks_forward*stack_bytes_between_keyshares);
 
 		for (k=0;j+k<stack_bytes_between_keyshares && (total_data_set + k < data_size );k++)
 		{
@@ -1076,6 +1089,13 @@ void get_arbitrary_block_in_stack(long data_size,void * start_of_block,void * re
 }
 
 
+//gets a block of data from the secure stack, using offset bytes. Writes to *res, which must have been preallocated
+void get_arbitrary_block_in_stack_with_offset(long data_size,void * start,long offset,void * res)
+{
+	get_secure_stack_data(res,data_size, start,2,offset);
+}
+
+
 /************************************************************************************************/
 /********************************SECURE GETTERS END**********************************************/
 /************************************************************************************************/
@@ -1168,6 +1188,12 @@ void set_stack_double_array_element(void * start_of_array, long index, double so
 void set_arbitrary_block_in_stack(long data_size,void * start_of_block,void * src)
 {
 	set_secure_stack_data(src,data_size, start_of_block,0,0);
+}
+
+//sets a block of data to the secure stack,using offset bytes. reads from *src, which must have been preallocated
+void set_arbitrary_block_in_stack_with_offset(long data_size,void * start,long offset,void * src)
+{
+	set_secure_stack_data(src,data_size, start,2,offset);
 }
 
 

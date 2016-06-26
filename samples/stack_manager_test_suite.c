@@ -60,5 +60,14 @@ void stack_fun_params_test()
 	}
 	printf("\n");
 	
+	printf("Fetching double array elements (one by one), using arbitrary blocks\n");
+	double_array=error_checking_malloc(10*sizeof(double),__func__,__LINE__);
+	for (i=0;i<10;i++)
+	{
+		get_arbitrary_block_in_stack_with_offset(sizeof(double),test_params->elem_params->arb_pointer_params[0],i*sizeof(double),&double_array[i]);
+		printf("%lg ",double_array[i]);
+	}
+	printf("\n");
+	
 	
 }
