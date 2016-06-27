@@ -10,12 +10,13 @@ void stack_fun_params_test()
 	for (i=0;i<10;i++)
 		double_array[i]=100+i;
 	
-	
+
 	printf("Initializing fun params\n");
 	
 	//pass lengths as LONGS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	test_params=init_function_params(1,5L,'c','d','e','f','g',2L,42,41,0L,0L,2L,42.42,56.56,1L,100L,424242,1L,10L*sizeof(double),double_array);
+	test_params=init_function_params(1,5L,'c','d','e','f','g',2L,42,41,0L,0L,2L,42.42,56.56,1L,10L,424242,1L,10L*sizeof(double),double_array);
 	
+
 	printf("Inserting fun params into secure stack\n");
 	test_params=put_fun_params_into_secure_stack_and_free(test_params);
 	
@@ -33,6 +34,7 @@ void stack_fun_params_test()
 	for (i=0;i<2;i++)
 		printf("%lf ",get_stack_double_array_element(test_params->elem_params->double_params,i));
 	printf("\n");
+	
 	
 	printf("Changing pointer\n");
 	set_stack_pointer_array_element(test_params->elem_params->pointer_params,0,test_params->elem_params->int_params);
@@ -69,5 +71,59 @@ void stack_fun_params_test()
 	}
 	printf("\n");
 	
+	//free_chunks_from_secure_stack(test_params->total_amount_of_chunks_needed_in_secure_stack);
+	//free_fun_params_that_point_to_stack(test_params);
 	
+	
+}
+
+
+void towerOfHanoi(int n, char fromrod, char torod, char auxrod)
+{
+    if (n == 1)
+    {
+        //printf("\n Move disk 1 from rod %c to rod %c", fromrod, torod);
+        return;
+    }
+    towerOfHanoi(n-1, fromrod, auxrod, torod);
+    //printf("\n Move disk %d from rod %c to rod %c", n, fromrod, torod);
+    towerOfHanoi(n-1, auxrod, torod, fromrod);
+}
+
+
+void towerOfHanoi_secure(int n, char fromrod, char torod, char auxrod)
+{
+	fun_params * hanoi_params;
+	hanoi_params=init_function_params(1,3L,fromrod,torod,auxrod,1L,n,0L,0L,0L,0L,0L);
+	hanoi_params=put_fun_params_into_secure_stack_and_free(hanoi_params);
+	
+	if (get_stack_int_array_element(hanoi_params->elem_params->int_params,0)==1)
+	{
+		/*
+		printf("\n Move disk 1 from rod %c to rod %c", get_stack_char_array_element(hanoi_params->elem_params->char_params,0),
+													   get_stack_char_array_element(hanoi_params->elem_params->char_params,1));
+		*/
+		free_chunks_from_secure_stack(hanoi_params->total_amount_of_chunks_needed_in_secure_stack);
+		free_fun_params_that_point_to_stack(hanoi_params);
+		return;
+	}
+	towerOfHanoi_secure(get_stack_int_array_element(hanoi_params->elem_params->int_params,0)-1, 
+						get_stack_char_array_element(hanoi_params->elem_params->char_params,0),
+						get_stack_char_array_element(hanoi_params->elem_params->char_params,2), 
+						get_stack_char_array_element(hanoi_params->elem_params->char_params,1));
+						
+	/*
+    printf("\n Move disk %d from rod %c to rod %c",get_stack_int_array_element(hanoi_params->elem_params->int_params,0),
+												   get_stack_char_array_element(hanoi_params->elem_params->char_params,0),
+												   get_stack_char_array_element(hanoi_params->elem_params->char_params,1));
+	*/
+    
+    towerOfHanoi_secure(get_stack_int_array_element(hanoi_params->elem_params->int_params,0)-1, 
+						get_stack_char_array_element(hanoi_params->elem_params->char_params,2),
+						get_stack_char_array_element(hanoi_params->elem_params->char_params,1), 
+						get_stack_char_array_element(hanoi_params->elem_params->char_params,0));
+						
+					
+	free_chunks_from_secure_stack(hanoi_params->total_amount_of_chunks_needed_in_secure_stack);
+	free_fun_params_that_point_to_stack(hanoi_params);
 }

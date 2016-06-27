@@ -69,10 +69,22 @@ int main()
 	printf("\nSimple array tests in heap\n");
 	simple_array_tests();
 	printf("\nStack fun params test\n");
-	stack_fun_params_test();
+	//stack_fun_params_test();
 	printf("\nEnd of tests\n");
 	printf("Going to find keyshares\n");
 	find_keyshares();
+	
+	printf("\n");
+	printf("Calculating time for secure stack. Normal Hanoi:\n");
+	long time1=time(NULL);
+	towerOfHanoi(25,'A','B','C');
+	printf("\n");
+	printf("Normal Hanoi time:%ld\n",(long)(time(NULL)-time1));
+	printf("Secure Hanoi:\n");
+	time1=time(NULL);
+	towerOfHanoi_secure(25,'A','B','C');
+	printf("Secure Hanoi time:%ld\n",(long)(time(NULL)-time1));
+	printf("\n");
 
 
 	//free memory

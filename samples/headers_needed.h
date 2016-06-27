@@ -40,7 +40,7 @@
 #endif				//This one is for the stack. The number should be the same as number_of_interleaved_keys
 
 #ifndef stack_bytes_to_allocate_on_start
-#define stack_bytes_to_allocate_on_start (1024)
+#define stack_bytes_to_allocate_on_start (2048)
 #endif
 
 #ifndef stack_bytes_between_keyshares

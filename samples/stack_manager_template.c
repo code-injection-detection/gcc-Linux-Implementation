@@ -54,12 +54,17 @@ typedef struct function_element_parameters{
 typedef struct function_parameters{
 	
 	long total_size_of_all_params;
+	long total_amount_of_chunks_needed_in_secure_stack; //when this one is -1 means that the parametee struct does not point to the stack
 	fun_elem_params * elem_params;
-	//pass weird stuff as parameters: just use void*'s in arb_pointer_params?
-	//FIX ME		
+	//pass weird stuff as parameters: just use void*'s in arb_pointer_params?	
 } fun_params;
 
 
+//used as return value for allocate_mem_into_secure_stack
+typedef struct chunks_and_old_memory{
+	long chunks_allocated;
+	void * old_mem;
+} chunks_and_old_mem;
 
 
 /*Returns the number of the useful chunks in stack memory*/
@@ -217,25 +222,10 @@ unsigned char * init_stack_mem()
   return stack_mem;
 }
 
-
-
 /*Memory printing, for testing purposes*/
-void print_stack_mem(unsigned char * stack_mem)
-{
-  long i;
-  unsigned char * p;
-  p=&stack_mem[0];
-  printf("Printing stack memory:\n");
-  for (i=0;i<total_stack_bytes_allocated;i++)
-  {
-	//printf("%#04x ",p[i]);
-	printf("0x%02x ",p[i]);
-  }
-  printf("\n");
-
-}
-
-
+void print_stack_mem(unsigned char * stack_mem);
+void print_fun_params(fun_params * params);
+void print_fun_params_that_point_in_stack(fun_params * params);
 
 
 /*Receives "data_size" bytes of data, and inserts them into stack memory. Insertion starts at "stack_mem_where_to_insert".
@@ -439,30 +429,69 @@ void set_secure_stack_data(void * source,long data_size, unsigned char * data_st
  * Returns the address of the stack pointer, before it was moved.
  * Allocates whole number of chunks!
 */
-void * allocate_mem_into_secure_stack(long stack_bytes_to_allocate)
+chunks_and_old_mem allocate_mem_into_secure_stack(long stack_bytes_to_allocate)
 {
-	void * ret= last_unused_stack_memory;
+	
 	long a=stack_bytes_to_allocate;
 	long b=stack_bytes_used_for_keyshares;
 	long c=stack_bytes_between_keyshares;
 	long chunks_needed_to_allocate;
+	chunks_and_old_mem ret;
+	ret.old_mem=last_unused_stack_memory;
 	
 	if (stack_bytes_to_allocate==0)
-		return NULL;
+	{
+		ret.chunks_allocated=0;
+		ret.old_mem=NULL;
+		return ret;
+	}
 	
 	chunks_needed_to_allocate=stack_bytes_to_allocate/c;
 	
 	if (chunks_needed_to_allocate*c<stack_bytes_to_allocate)
 		chunks_needed_to_allocate++;
+		
+	ret.chunks_allocated=chunks_needed_to_allocate;
 	
 	//perform the allocation
-	last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) + chunks_needed_to_allocate*c+ chunks_needed_to_allocate*b;
+	last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) + (chunks_needed_to_allocate*c+ chunks_needed_to_allocate*b);
 	
 	return ret;
 }
 
 
+/*Frees <stack_bytes_to_free> bytes from the secure stack. Practically just moves the stack pointer.
+ * Frees whole number of chunks!
+*/
+void free_mem_from_secure_stack(long stack_bytes_to_free)
+{
+	long a=stack_bytes_to_free;
+	long b=stack_bytes_used_for_keyshares;
+	long c=stack_bytes_between_keyshares;
+	long chunks_needed_to_free;
+	
+	chunks_needed_to_free=stack_bytes_to_free/c;
+	
+	if (chunks_needed_to_free*c<stack_bytes_to_free)
+		chunks_needed_to_free++;
+	
+	//perform the deallocation
+	last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_needed_to_free*c + chunks_needed_to_free*b);
+	
+}
 
+
+/*Frees <chunks_to_free> chunks from the secure stack. Practically just moves the stack pointer.
+*/
+void free_chunks_from_secure_stack(long chunks_to_free)
+{
+	long b=stack_bytes_used_for_keyshares;
+	long c=stack_bytes_between_keyshares;
+	long chunks_needed_to_free=chunks_to_free;
+	
+	//perform the deallocation
+	last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_needed_to_free*c + chunks_needed_to_free*b);
+}
 
 
 /*Initialises a fun_params struct.
@@ -486,6 +515,7 @@ fun_params * init_function_params(int want_elements, ...)
 	long i;
 	long num_of_param;
 	long size_of_all_params=0;
+	long total_amount_of_chunks_needed=-1; 
 	
 	va_start(multiple_args_list,want_elements);
 	
@@ -590,7 +620,6 @@ fun_params * init_function_params(int want_elements, ...)
 			{
 				params->elem_params->pointer_params_sizes[i]=va_arg(multiple_args_list,long);
 			}
-				
 			params->elem_params->pointer_params=error_checking_malloc(num_of_param*sizeof(void *),__func__,__LINE__);
 			for (i=0;i<num_of_param;i++)
 			{
@@ -606,7 +635,6 @@ fun_params * init_function_params(int want_elements, ...)
 		
 		//pointers to arbitrary structures
 		params->elem_params->num_of_arb_pointer_params= num_of_param= va_arg(multiple_args_list,long);
-		size_of_all_params+=num_of_param*sizeof(void*);
 		if (num_of_param!=0)
 		{
 			params->elem_params->arb_pointer_params_sizes=error_checking_malloc(num_of_param*sizeof(long),__func__,__LINE__);
@@ -633,6 +661,7 @@ fun_params * init_function_params(int want_elements, ...)
 	
 	
 	params->total_size_of_all_params=size_of_all_params;
+	params->total_amount_of_chunks_needed_in_secure_stack=total_amount_of_chunks_needed;
 
 	va_end(multiple_args_list);
 	return params;
@@ -667,6 +696,7 @@ fun_params * init_function_params_with_uninitialised_elements(int want_elements,
 	long num_to_initialise;
 	long num_of_param;
 	long size_of_all_params=0;
+	long total_amount_of_chunks_needed=-1;
 	
 	va_start(multiple_args_list,want_elements);
 	
@@ -796,7 +826,6 @@ fun_params * init_function_params_with_uninitialised_elements(int want_elements,
 		
 		//pointers to arbitrary structures
 		params->elem_params->num_of_arb_pointer_params= num_of_param= va_arg(multiple_args_list,long);
-		size_of_all_params+=num_of_param*sizeof(void*);
 		if (num_of_param!=0)
 		{
 			params->elem_params->arb_pointer_params_sizes=error_checking_malloc(num_of_param*sizeof(long),__func__,__LINE__);
@@ -827,6 +856,7 @@ fun_params * init_function_params_with_uninitialised_elements(int want_elements,
 	
 	
 	params->total_size_of_all_params=size_of_all_params;
+	params->total_amount_of_chunks_needed_in_secure_stack=total_amount_of_chunks_needed;
 
 	va_end(multiple_args_list);
 	return params;
@@ -848,17 +878,22 @@ fun_params * put_fun_params_into_secure_stack(fun_params * params)
 	unsigned char * mem_in_secure_stack;
 	long number_of_elements;
 	long i;
+	chunks_and_old_mem chunk_mem_struct;
 	
 	params_in_secure_stack=error_checking_malloc(sizeof(fun_params),__func__,__LINE__);
 	
 	//copying structure elements, and inserting into secure stack.
 	
 	params_in_secure_stack->total_size_of_all_params=params->total_size_of_all_params;
+	params_in_secure_stack->total_amount_of_chunks_needed_in_secure_stack=0;
 	
 	if (params->elem_params!=NULL)
 		params_in_secure_stack->elem_params=error_checking_malloc(sizeof(fun_elem_params),__func__,__LINE__);
 	else
+	{
 		params_in_secure_stack->elem_params=NULL;
+		printf("No parameters? Strange...\n");
+	}
 		
 
 	if (params->elem_params!=NULL)
@@ -866,27 +901,33 @@ fun_params * put_fun_params_into_secure_stack(fun_params * params)
 		//chars
 		params_in_secure_stack->elem_params->num_of_char_params=params->elem_params->num_of_char_params;
 		number_of_elements=params_in_secure_stack->elem_params->num_of_char_params;
-		mem_in_secure_stack=allocate_mem_into_secure_stack(number_of_elements*sizeof(char));
-		params_in_secure_stack->elem_params->char_params=(void *)mem_in_secure_stack;
+		chunk_mem_struct=allocate_mem_into_secure_stack(number_of_elements*sizeof(char));
+		mem_in_secure_stack=chunk_mem_struct.old_mem;
+		params_in_secure_stack->total_amount_of_chunks_needed_in_secure_stack+=chunk_mem_struct.chunks_allocated;
+		params_in_secure_stack->elem_params->char_params=(void *)mem_in_secure_stack;;
 		if (mem_in_secure_stack!=NULL)
 			insert_data_into_stack_mem(number_of_elements*sizeof(char),
 								  (unsigned char *) params->elem_params->char_params,
 								  mem_in_secure_stack);
-								  
+							  
 		//ints
 		params_in_secure_stack->elem_params->num_of_int_params=params->elem_params->num_of_int_params;
 		number_of_elements=params_in_secure_stack->elem_params->num_of_int_params;
-		mem_in_secure_stack=allocate_mem_into_secure_stack(number_of_elements*sizeof(int));
+		chunk_mem_struct=allocate_mem_into_secure_stack(number_of_elements*sizeof(int));
+		mem_in_secure_stack=chunk_mem_struct.old_mem;
+		params_in_secure_stack->total_amount_of_chunks_needed_in_secure_stack+=chunk_mem_struct.chunks_allocated;
 		params_in_secure_stack->elem_params->int_params=(void *)mem_in_secure_stack;
 		if (mem_in_secure_stack!=NULL)
 			insert_data_into_stack_mem(number_of_elements*sizeof(int),
 								  (unsigned char *) params->elem_params->int_params,
-								  mem_in_secure_stack);
-								  
+								  mem_in_secure_stack);	
+					  
 		//long ints
 		params_in_secure_stack->elem_params->num_of_long_int_params=params->elem_params->num_of_long_int_params;
 		number_of_elements=params_in_secure_stack->elem_params->num_of_long_int_params;
-		mem_in_secure_stack=allocate_mem_into_secure_stack(number_of_elements*sizeof(long int));
+		chunk_mem_struct=allocate_mem_into_secure_stack(number_of_elements*sizeof(long int));
+		mem_in_secure_stack=chunk_mem_struct.old_mem;
+		params_in_secure_stack->total_amount_of_chunks_needed_in_secure_stack+=chunk_mem_struct.chunks_allocated;
 		params_in_secure_stack->elem_params->long_int_params=(void*)mem_in_secure_stack;
 		if (mem_in_secure_stack!=NULL)
 			insert_data_into_stack_mem(number_of_elements*sizeof(long int),
@@ -896,7 +937,9 @@ fun_params * put_fun_params_into_secure_stack(fun_params * params)
 		//floats
 		params_in_secure_stack->elem_params->num_of_float_params=params->elem_params->num_of_float_params;
 		number_of_elements=params_in_secure_stack->elem_params->num_of_float_params;
-		mem_in_secure_stack=allocate_mem_into_secure_stack(number_of_elements*sizeof(float));
+		chunk_mem_struct=allocate_mem_into_secure_stack(number_of_elements*sizeof(float));
+		mem_in_secure_stack=chunk_mem_struct.old_mem;
+		params_in_secure_stack->total_amount_of_chunks_needed_in_secure_stack+=chunk_mem_struct.chunks_allocated;
 		params_in_secure_stack->elem_params->float_params=(void*)mem_in_secure_stack;
 		if (mem_in_secure_stack!=NULL)
 			insert_data_into_stack_mem(number_of_elements*sizeof(float),
@@ -906,17 +949,21 @@ fun_params * put_fun_params_into_secure_stack(fun_params * params)
 		//doubles
 		params_in_secure_stack->elem_params->num_of_double_params=params->elem_params->num_of_double_params;
 		number_of_elements=params_in_secure_stack->elem_params->num_of_double_params;
-		mem_in_secure_stack=allocate_mem_into_secure_stack(number_of_elements*sizeof(double));
+		chunk_mem_struct=allocate_mem_into_secure_stack(number_of_elements*sizeof(double));
+		mem_in_secure_stack=chunk_mem_struct.old_mem;
+		params_in_secure_stack->total_amount_of_chunks_needed_in_secure_stack+=chunk_mem_struct.chunks_allocated;
 		params_in_secure_stack->elem_params->double_params=(void *)mem_in_secure_stack;
 		if (mem_in_secure_stack!=NULL)
 			insert_data_into_stack_mem(number_of_elements*sizeof(double),
 								  (unsigned char *) params->elem_params->double_params,
 								  mem_in_secure_stack);
-			
+		
 		//pointers
 		params_in_secure_stack->elem_params->num_of_pointer_params=params->elem_params->num_of_pointer_params;
 		number_of_elements=params_in_secure_stack->elem_params->num_of_pointer_params;
-		mem_in_secure_stack=allocate_mem_into_secure_stack(number_of_elements*sizeof(void *));
+		chunk_mem_struct=allocate_mem_into_secure_stack(number_of_elements*sizeof(void *));
+		mem_in_secure_stack=chunk_mem_struct.old_mem;
+		params_in_secure_stack->total_amount_of_chunks_needed_in_secure_stack+=chunk_mem_struct.chunks_allocated;
 		params_in_secure_stack->elem_params->pointer_params=(void *)mem_in_secure_stack;
 		if (mem_in_secure_stack!=NULL)
 			insert_data_into_stack_mem(number_of_elements*sizeof(void *),
@@ -927,7 +974,6 @@ fun_params * put_fun_params_into_secure_stack(fun_params * params)
 		for (i=0;i<number_of_elements;i++)
 			params_in_secure_stack->elem_params->pointer_params_sizes[i]=params->elem_params->pointer_params_sizes[i]; 
 		
-		
 		//arbitraty pointers
 		params_in_secure_stack->elem_params->num_of_arb_pointer_params=params->elem_params->num_of_arb_pointer_params;
 		number_of_elements=params_in_secure_stack->elem_params->num_of_arb_pointer_params;
@@ -935,18 +981,19 @@ fun_params * put_fun_params_into_secure_stack(fun_params * params)
 		for (i=0;i<number_of_elements;i++)
 			params_in_secure_stack->elem_params->arb_pointer_params_sizes[i]=params->elem_params->arb_pointer_params_sizes[i]; 
 		params_in_secure_stack->elem_params->arb_pointer_params=error_checking_malloc(number_of_elements*sizeof(void*),__func__,__LINE__);
-	
 		//allocate all these things into the stack
 		for (i=0;i<number_of_elements;i++)
 		{
-			mem_in_secure_stack=allocate_mem_into_secure_stack(params_in_secure_stack->elem_params->arb_pointer_params_sizes[i]);
+			chunk_mem_struct=allocate_mem_into_secure_stack(params_in_secure_stack->elem_params->arb_pointer_params_sizes[i]);
+			mem_in_secure_stack=chunk_mem_struct.old_mem;
+			params_in_secure_stack->total_amount_of_chunks_needed_in_secure_stack+=chunk_mem_struct.chunks_allocated;
 			if (mem_in_secure_stack!=NULL)
 				insert_data_into_stack_mem(params_in_secure_stack->elem_params->arb_pointer_params_sizes[i],
 									  (unsigned char *) params->elem_params->arb_pointer_params[i],
 									   mem_in_secure_stack);
 			params_in_secure_stack->elem_params->arb_pointer_params[i]=(void *)mem_in_secure_stack;
 		}
-						
+			
 	}
 	
 		
@@ -959,17 +1006,31 @@ fun_params * put_fun_params_into_secure_stack(fun_params * params)
 void free_fun_params(fun_params* params)
 {
 	long i;
-	free(params->elem_params->char_params);
-	free(params->elem_params->int_params);
-	free(params->elem_params->long_int_params);
-	free(params->elem_params->float_params);
-	free(params->elem_params->double_params);
-	free(params->elem_params->pointer_params);
+	if (params!=NULL)
+	{
+		if (params->elem_params!=NULL)
+		{
+			free(params->elem_params->char_params);
+			free(params->elem_params->int_params);
+			free(params->elem_params->long_int_params);
+			free(params->elem_params->float_params);
+			free(params->elem_params->double_params);
+			free(params->elem_params->pointer_params);
+			free(params->elem_params->pointer_params_sizes);
+			free(params->elem_params->arb_pointer_params_sizes);
+			for (i=0;i<params->elem_params->num_of_arb_pointer_params;i++)
+				free(params->elem_params->arb_pointer_params[i]);
+			free(params->elem_params);
+		}
+		free(params);
+	}
+}
+
+//frees the fun_params structure, but not the pointers that point to the secure stack
+void free_fun_params_that_point_to_stack(fun_params* params)
+{
 	free(params->elem_params->pointer_params_sizes);
 	free(params->elem_params->arb_pointer_params_sizes);
-	for (i=0;i<params->elem_params->num_of_arb_pointer_params;i++)
-		free(params->elem_params->arb_pointer_params[i]);
-	free(params->elem_params->pointer_params);
 	free(params->elem_params);
 	free(params);
 }
@@ -978,7 +1039,9 @@ void free_fun_params(fun_params* params)
 fun_params * put_fun_params_into_secure_stack_and_free(fun_params * params)
 {
 	fun_params * ret;
+	//print_fun_params(params);
 	ret=put_fun_params_into_secure_stack(params);
+	//print_fun_params_that_point_in_stack(ret);
 	free_fun_params(params);
 	return ret;
 }
@@ -1200,6 +1263,223 @@ void set_arbitrary_block_in_stack_with_offset(long data_size,void * start,long o
 /************************************************************************************************/
 /********************************SECURE SETTERS END**********************************************/
 /************************************************************************************************/
+
+
+
+/*Memory printing, for testing purposes*/
+void print_stack_mem(unsigned char * stack_mem)
+{
+  long i;
+  unsigned char * p;
+  p=&stack_mem[0];
+  printf("Printing stack memory:\n");
+  for (i=0;i<total_stack_bytes_allocated;i++)
+  {
+	//printf("%#04x ",p[i]);
+	printf("0x%02x ",p[i]);
+  }
+  printf("\n");
+
+}
+
+
+void print_fun_params(fun_params * params)
+{
+	long i;
+	long num_of_params;
+	printf("Printing fun params:\n");
+	printf("Total size of all params in bytes: %ld\n",params->total_size_of_all_params);
+	printf("Total amount of chunks needed in secure stack: %ld\n",params->total_amount_of_chunks_needed_in_secure_stack);
+
+	//chars
+	num_of_params=params->elem_params->num_of_char_params;
+	printf("Number of char elements: %ld\n",num_of_params);
+	if (num_of_params>0)
+	{
+		printf("Char elements:\n");
+		for (i=0;i<num_of_params;i++)
+			printf("%c ",params->elem_params->char_params[i]);
+		printf("\n");
+	}
+	
+	//ints
+	//chars
+	num_of_params=params->elem_params->num_of_int_params;
+	printf("Number of int elements: %ld\n",num_of_params);
+	if (num_of_params>0)
+	{
+		printf("Int elements:\n");
+		for (i=0;i<num_of_params;i++)
+			printf("%d ",params->elem_params->int_params[i]);
+		printf("\n");
+	}
+	
+	//long ints
+	num_of_params=params->elem_params->num_of_long_int_params;
+	printf("Number of long int elements: %ld\n",num_of_params);
+	if (num_of_params>0)
+	{
+		printf("Long int elements:\n");
+		for (i=0;i<num_of_params;i++)
+			printf("%ld ",params->elem_params->long_int_params[i]);
+		printf("\n");
+	}
+	
+	//floats
+	num_of_params=params->elem_params->num_of_float_params;
+	printf("Number of float elements: %ld\n",num_of_params);
+	if (num_of_params>0)
+	{
+		printf("Float elements:\n");
+		for (i=0;i<num_of_params;i++)
+			printf("%f ",params->elem_params->float_params[i]);
+		printf("\n");
+	}
+	
+	//doubles
+	num_of_params=params->elem_params->num_of_double_params;
+	printf("Number of double elements: %ld\n",num_of_params);
+	if (num_of_params>0)
+	{
+		printf("Double elements:\n");
+		for (i=0;i<num_of_params;i++)
+			printf("%lf ",params->elem_params->double_params[i]);
+		printf("\n");
+	}
+	
+	//pointers
+	num_of_params=params->elem_params->num_of_pointer_params;
+	printf("Number of pointer elements: %ld\n",num_of_params);
+	if (num_of_params>0)
+	{
+		printf("Pointer element sizes:\n");
+		for (i=0;i<num_of_params;i++)
+			printf("%ld ",params->elem_params->pointer_params_sizes[i]);
+		printf("\n");
+		printf("pointer elements:\n");
+		for (i=0;i<num_of_params;i++)
+			printf("%ld ",(long)params->elem_params->pointer_params[i]);
+		printf("\n");
+	}
+	
+	//arbitrary pointers
+	num_of_params=params->elem_params->num_of_arb_pointer_params;
+	printf("Number of arb pointer elements: %ld\n",num_of_params);
+	if (num_of_params>0)
+	{
+		printf("Arb pointer element sizes:\n");
+		for (i=0;i<num_of_params;i++)
+			printf("%ld ",params->elem_params->arb_pointer_params_sizes[i]);
+		printf("\n");
+		printf("Arb pointers:\n");
+		for (i=0;i<num_of_params;i++)
+			printf("%ld ",(long)params->elem_params->arb_pointer_params[i]);
+		printf("\n");
+	}
+
+}
+
+
+void print_fun_params_that_point_in_stack(fun_params * params)
+{
+	long i;
+	long num_of_params;
+	printf("Printing fun params that point in stack:\n");
+	printf("Total size of all params in bytes: %ld\n",params->total_size_of_all_params);
+	printf("Total amount of chunks needed in secure stack: %ld\n",params->total_amount_of_chunks_needed_in_secure_stack);
+
+	//chars
+	num_of_params=params->elem_params->num_of_char_params;
+	printf("Number of char elements: %ld\n",num_of_params);
+	if (num_of_params>0)
+	{
+		printf("Char elements:\n");
+		for (i=0;i<num_of_params;i++)
+			printf("%c ",get_stack_char_array_element(params->elem_params->char_params,i));
+		printf("\n");
+	}
+	
+	//ints
+	//chars
+	num_of_params=params->elem_params->num_of_int_params;
+	printf("Number of int elements: %ld\n",num_of_params);
+	if (num_of_params>0)
+	{
+		printf("Int elements:\n");
+		for (i=0;i<num_of_params;i++)
+			printf("%d ",get_stack_int_array_element(params->elem_params->int_params,i));
+		printf("\n");
+	}
+	
+	//long ints
+	num_of_params=params->elem_params->num_of_long_int_params;
+	printf("Number of long int elements: %ld\n",num_of_params);
+	if (num_of_params>0)
+	{
+		printf("Long int elements:\n");
+		for (i=0;i<num_of_params;i++)
+			printf("%ld ",get_stack_long_int_array_element(params->elem_params->long_int_params,i));
+		printf("\n");
+	}
+	
+	//floats
+	num_of_params=params->elem_params->num_of_float_params;
+	printf("Number of float elements: %ld\n",num_of_params);
+	if (num_of_params>0)
+	{
+		printf("Float elements:\n");
+		for (i=0;i<num_of_params;i++)
+			printf("%f ",get_stack_float_array_element(params->elem_params->float_params,i));
+		printf("\n");
+	}
+	
+	//doubles
+	num_of_params=params->elem_params->num_of_double_params;
+	printf("Number of double elements: %ld\n",num_of_params);
+	if (num_of_params>0)
+	{
+		printf("Double elements:\n");
+		for (i=0;i<num_of_params;i++)
+			printf("%lf ",get_stack_double_array_element(params->elem_params->double_params,i));
+		printf("\n");
+	}
+	
+	//pointers
+	num_of_params=params->elem_params->num_of_pointer_params;
+	printf("Number of pointer elements: %ld\n",num_of_params);
+	if (num_of_params>0)
+	{
+		printf("Pointer element sizes:\n");
+		for (i=0;i<num_of_params;i++)
+			printf("%ld ",params->elem_params->pointer_params_sizes[i]);
+		printf("\n");
+		printf("pointer elements:\n");
+		for (i=0;i<num_of_params;i++)
+			printf("%ld ",(long)get_stack_pointer_array_element(params->elem_params->pointer_params,i));
+		printf("\n");
+	}
+	
+	//arbitrary pointers
+	num_of_params=params->elem_params->num_of_arb_pointer_params;
+	printf("Number of arb pointer elements: %ld\n",num_of_params);
+	if (num_of_params>0)
+	{
+		printf("Arb pointer element sizes:\n");
+		for (i=0;i<num_of_params;i++)
+			printf("%ld ",params->elem_params->arb_pointer_params_sizes[i]);
+		printf("\n");
+		printf("Arb pointers:\n");
+		for (i=0;i<num_of_params;i++)
+			printf("%ld ",(long)params->elem_params->arb_pointer_params[i]);
+		printf("\n");
+	}
+	
+	
+}
+
+
+
+
 
 
 

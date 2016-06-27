@@ -3,7 +3,10 @@
 
 void * error_checking_malloc(long size_in_bytes, const char * fun_name,int line)
 {
-	void * ret=malloc(size_in_bytes);
+	void * ret;
+	
+	if (size_in_bytes==0) return NULL; 
+	ret=malloc(size_in_bytes);
 	if (ret==NULL)
 	{
 		fprintf(stderr,"malloc failed in function %s, line %d\n",fun_name,line);

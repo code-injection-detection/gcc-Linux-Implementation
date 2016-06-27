@@ -958,6 +958,7 @@ void * managed_secure_malloc(long bytes_for_allocation)
 	list_node * temp;
 	list_node new_node;
 	
+	if (bytes_for_allocation==0) return NULL;
 	//find correct number of needed chunks
 	chunks_needed=bytes_for_allocation/bytes_between_keyshares;
 	
@@ -1141,6 +1142,7 @@ int managed_secure_free(void * pointer_to_freed_mem)
 void * error_checking_managed_secure_malloc(long bytes_for_allocation,const char * fun_name, int line)
 {
 	void * ret;
+	if (bytes_for_allocation==0) return NULL;
 	ret=managed_secure_malloc(bytes_for_allocation);
 	if (ret==NULL)
 	{
