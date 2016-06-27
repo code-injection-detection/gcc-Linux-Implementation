@@ -346,7 +346,11 @@ unsigned char get_next_keyshare()
 	exit(44);
   }
   //reads one byte
-  fread(&ret,1,1,keyshare_input_file);
+  if( fread(&ret,1,1,keyshare_input_file) != 1 )
+  {
+	perror("Did not read byte in get_next_keyshare()\n");
+	exit(47);
+  }
   return ret;
 
   //return ((unsigned char)rand()%256); //use random values for testing

@@ -76,16 +76,28 @@ int main()
 	
 	printf("\n");
 	printf("Calculating time for secure stack. Normal Hanoi:\n");
-	long time1=time(NULL);
+	clock_t simplestart=clock();
 	towerOfHanoi(25,'A','B','C');
+	clock_t simpleend=clock();
+	double simpletime=((double) (simpleend - simplestart)) / CLOCKS_PER_SEC;
 	printf("\n");
-	printf("Normal Hanoi time:%ld\n",(long)(time(NULL)-time1));
+	printf("Normal Hanoi time:%lg cpu seconds\n",simpletime);
 	printf("Secure Hanoi:\n");
-	time1=time(NULL);
-	towerOfHanoi_secure(25,'A','B','C');
-	printf("Secure Hanoi time:%ld\n",(long)(time(NULL)-time1));
+	clock_t securestart=clock();
+	//towerOfHanoi_secure(25,'A','B','C');
+	towerOfHanoi_secure_using_template(25,'A','B','C');
+	//towerOfHanoi_secure_using_changed_accesses(25,'A','B','C');
+	clock_t secureend=clock();
+	double securetime=((double) (secureend - securestart)) / CLOCKS_PER_SEC;
 	printf("\n");
+	printf("Normal Hanoi time:%lg cpu seconds\n",simpletime);
+	printf("Secure Hanoi time:%lg cpu seconds\n",securetime);
+	printf("\n");
+	printf("Ratio: %lg times slowdown\n",securetime/simpletime);
 
+	printf("\n");
+	printf("Going to find keyshares\n");
+	find_keyshares();
 
 	//free memory
 	free_heap_and_stack_memory();

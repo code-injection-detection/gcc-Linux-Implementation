@@ -90,7 +90,7 @@ void towerOfHanoi(int n, char fromrod, char torod, char auxrod)
     towerOfHanoi(n-1, auxrod, torod, fromrod);
 }
 
-
+//generic way to secure a function
 void towerOfHanoi_secure(int n, char fromrod, char torod, char auxrod)
 {
 	fun_params * hanoi_params;
@@ -103,6 +103,7 @@ void towerOfHanoi_secure(int n, char fromrod, char torod, char auxrod)
 		printf("\n Move disk 1 from rod %c to rod %c", get_stack_char_array_element(hanoi_params->elem_params->char_params,0),
 													   get_stack_char_array_element(hanoi_params->elem_params->char_params,1));
 		*/
+		
 		free_chunks_from_secure_stack(hanoi_params->total_amount_of_chunks_needed_in_secure_stack);
 		free_fun_params_that_point_to_stack(hanoi_params);
 		return;
@@ -127,3 +128,87 @@ void towerOfHanoi_secure(int n, char fromrod, char torod, char auxrod)
 	free_chunks_from_secure_stack(hanoi_params->total_amount_of_chunks_needed_in_secure_stack);
 	free_fun_params_that_point_to_stack(hanoi_params);
 }
+
+//tower of Hanoi using specific template for its fun_params struct, i.e. specific for this function
+void towerOfHanoi_secure_using_template(int n, char fromrod, char torod, char auxrod)
+{
+	fun_params * hanoi_params;
+	hanoi_params=tower_of_Hanoi_init_secure_template(n,fromrod,torod,auxrod);
+	
+	if (get_stack_int_array_element(hanoi_params->elem_params->int_params,0)==1)
+	{
+		/*
+		printf("\n Move disk 1 from rod %c to rod %c", get_stack_char_array_element(hanoi_params->elem_params->char_params,0),
+													   get_stack_char_array_element(hanoi_params->elem_params->char_params,1));
+		*/
+		
+		free_chunks_from_secure_stack(hanoi_params->total_amount_of_chunks_needed_in_secure_stack);
+		free_fun_params_that_point_to_stack(hanoi_params);
+		return;
+	}
+	towerOfHanoi_secure_using_template(get_stack_int_array_element(hanoi_params->elem_params->int_params,0)-1, 
+									   get_stack_char_array_element(hanoi_params->elem_params->char_params,0),
+									   get_stack_char_array_element(hanoi_params->elem_params->char_params,2), 
+									   get_stack_char_array_element(hanoi_params->elem_params->char_params,1));
+						
+	/*
+    printf("\n Move disk %d from rod %c to rod %c",get_stack_int_array_element(hanoi_params->elem_params->int_params,0),
+												   get_stack_char_array_element(hanoi_params->elem_params->char_params,0),
+												   get_stack_char_array_element(hanoi_params->elem_params->char_params,1));
+	*/
+    
+    towerOfHanoi_secure_using_template(get_stack_int_array_element(hanoi_params->elem_params->int_params,0)-1, 
+									   get_stack_char_array_element(hanoi_params->elem_params->char_params,2),
+									   get_stack_char_array_element(hanoi_params->elem_params->char_params,1), 
+									   get_stack_char_array_element(hanoi_params->elem_params->char_params,0));
+						
+					
+	free_chunks_from_secure_stack(hanoi_params->total_amount_of_chunks_needed_in_secure_stack);
+	free_fun_params_that_point_to_stack(hanoi_params);
+}
+
+
+//tower of Hanoi using specific template for its fun_params struct, i.e. specific for this function
+//but it has its function code changed too, in the way that the accesses in the secure stack are kind of optimized
+//practically,new variables are introduced and they are used to reference the stack, which is a small cheat.
+void towerOfHanoi_secure_using_changed_accesses(int n, char fromrod, char torod, char auxrod)
+{
+	fun_params * hanoi_params;
+	void * int_params;
+	void * char_params;
+	hanoi_params=tower_of_Hanoi_init_secure_template(n,fromrod,torod,auxrod);
+	int_params=hanoi_params->elem_params->int_params;
+	char_params=hanoi_params->elem_params->char_params;
+	
+	if (get_stack_int_array_element(int_params,0)==1)
+	{
+		/*
+		printf("\n Move disk 1 from rod %c to rod %c", get_stack_char_array_element(char_params,0),
+													   get_stack_char_array_element(char_params,1));
+		*/
+		
+		free_chunks_from_secure_stack(hanoi_params->total_amount_of_chunks_needed_in_secure_stack);
+		free_fun_params_that_point_to_stack(hanoi_params);
+		return;
+	}
+	towerOfHanoi_secure_using_template(get_stack_int_array_element(int_params,0)-1, 
+									   get_stack_char_array_element(char_params,0),
+									   get_stack_char_array_element(char_params,2), 
+									   get_stack_char_array_element(char_params,1));
+						
+	/*
+    printf("\n Move disk %d from rod %c to rod %c",get_stack_int_array_element(int_params,0),
+												   get_stack_char_array_element(char_params,0),
+												   get_stack_char_array_element(char_params,1));
+	*/
+    
+    towerOfHanoi_secure_using_template(get_stack_int_array_element(int_params,0)-1, 
+									   get_stack_char_array_element(char_params,2),
+									   get_stack_char_array_element(char_params,1), 
+									   get_stack_char_array_element(char_params,0));
+						
+					
+	free_chunks_from_secure_stack(hanoi_params->total_amount_of_chunks_needed_in_secure_stack);
+	free_fun_params_that_point_to_stack(hanoi_params);
+}
+

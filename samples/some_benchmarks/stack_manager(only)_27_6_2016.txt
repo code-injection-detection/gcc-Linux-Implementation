@@ -1,0 +1,5 @@
+generic way, no optimizations -> ~135 times slowdown
+template way, no optimizations -> ~80 times slowdown
+generic way, 03 optimizations (relatime to O0 in unsecure way) -> ~55 times slowdown
+template way, 03 optimizations (relatime to O0 in unsecure way) -> ~18 times slowdown
+

@@ -86,6 +86,32 @@ int get_ptr_size()
 }
 
 
+/*magically gets/produces the next stack keyshare*/
+unsigned char get_next_stack_keyshare()
+{
+  unsigned char ret;
+  if (feof(stack_keyshare_input_file))
+  {
+	perror("Stack:Attempted to read more keyshares that the ones stored\n");
+	exit(45);
+  }
+  //reads one byte
+  if( fread(&ret,1,1,stack_keyshare_input_file) != 1 )
+  {
+	perror("Did not read byte in get_next_keyshare()\n");
+	exit(47);
+  }
+  return ret;
+
+  //return ((unsigned char)rand()%256); //use random values for testing
+}
+
+
+/************************************************************************************************/
+/**************************STACK MANIPULATION FUNCTIONS START************************************/
+/************************************************************************************************/
+
+
 /*Allocates the entire chunck of stack memory.*/
 /*The goal is to allocate a space where we can have useful("o") bytes with keyshare bytes("x"). The memory image should be like:
 oooxxxxxxooo.....xxxxxxoooxxxxxxooo
@@ -128,24 +154,6 @@ unsigned char * allocate_stack_mem()
 void free_secure_stack_mem(unsigned char * stack_mem)
 {
   free(stack_mem);
-}
-
-
-
-/*magically gets/produces the next stack keyshare*/
-unsigned char get_next_stack_keyshare()
-{
-  unsigned char ret;
-  if (feof(stack_keyshare_input_file))
-  {
-	perror("Stack:Attempted to read more keyshares that the ones stored\n");
-	exit(45);
-  }
-  //reads one byte
-  fread(&ret,1,1,stack_keyshare_input_file);
-  return ret;
-
-  //return ((unsigned char)rand()%256); //use random values for testing
 }
 
 
@@ -456,6 +464,18 @@ chunks_and_old_mem allocate_mem_into_secure_stack(long stack_bytes_to_allocate)
 	//perform the allocation
 	last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) + (chunks_needed_to_allocate*c+ chunks_needed_to_allocate*b);
 	
+	//stack overflow check
+	//this way, allocating the last chunk results in overflow, but that's ok for now. //FIX ME
+	if ((unsigned char*)last_unused_memory >= ((unsigned char*)entire_stack_memory_chunk) + total_stack_bytes_allocated)
+	{
+		//cancel last increase
+		last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_needed_to_allocate*c+ chunks_needed_to_allocate*b);
+		//return NULL
+		ret.chunks_allocated=0;
+		ret.old_mem=NULL;
+		return ret;
+	}
+	
 	return ret;
 }
 
@@ -492,6 +512,19 @@ void free_chunks_from_secure_stack(long chunks_to_free)
 	//perform the deallocation
 	last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_needed_to_free*c + chunks_needed_to_free*b);
 }
+
+
+
+/************************************************************************************************/
+/**************************STACK MANIPULATION FUNCTIONS END**************************************/
+/************************************************************************************************/
+
+
+
+/************************************************************************************************/
+/*****************************PARAMETER FUNCTIONS START******************************************/
+/************************************************************************************************/
+
 
 
 /*Initialises a fun_params struct.
@@ -1046,6 +1079,10 @@ fun_params * put_fun_params_into_secure_stack_and_free(fun_params * params)
 	return ret;
 }
 
+/************************************************************************************************/
+/*****************************PARAMETER FUNCTIONS END********************************************/
+/************************************************************************************************/
+
 
 /************************************************************************************************/
 /********************************SECURE GETTERS START********************************************/
@@ -1266,6 +1303,10 @@ void set_arbitrary_block_in_stack_with_offset(long data_size,void * start,long o
 
 
 
+/************************************************************************************************/
+/*****************************PRINTING FUNCTIONS START*******************************************/
+/************************************************************************************************/
+
 /*Memory printing, for testing purposes*/
 void print_stack_mem(unsigned char * stack_mem)
 {
@@ -1478,10 +1519,70 @@ void print_fun_params_that_point_in_stack(fun_params * params)
 }
 
 
+/************************************************************************************************/
+/*****************************PRINTING FUNCTIONS END*********************************************/
+/************************************************************************************************/
 
 
+/************************************************************************************************/
+/***********************TESTING FUNCTIONS AND INCLUDES START*************************************/
+/************************************************************************************************/
 
 
+fun_params * tower_of_Hanoi_init_secure_template(int n, char fromrod, char torod, char auxrod)
+{
+	char three_chars[3];
+	fun_params * ret;
+	long c=stack_bytes_between_keyshares;
+	long chunks_needed_chars;
+	long chunks_needed_ints;
+	chunks_and_old_mem chunk_mem_struct;
+	unsigned char * mem_in_secure_stack;
+	
+	three_chars[0]=fromrod;
+	three_chars[1]=torod;
+	three_chars[2]=auxrod;
+	
+	ret=error_checking_malloc(sizeof(fun_params),__func__,__LINE__);
+	ret->total_size_of_all_params=7;
+	
+	
+	chunks_needed_chars=3*sizeof(char)/c;
+	if (chunks_needed_chars*c < 3*sizeof(char)) chunks_needed_chars++;
+	chunks_needed_ints=sizeof(int)/c;
+	if (chunks_needed_ints*c < sizeof(int)) chunks_needed_ints++;
+	ret->total_amount_of_chunks_needed_in_secure_stack= chunks_needed_ints+chunks_needed_chars;
+	
+	ret->elem_params=error_checking_malloc(sizeof(fun_elem_params),__func__,__LINE__);
+	
+	//zero everything
+	memset(ret->elem_params,0,sizeof(fun_elem_params));
+	
+	ret->elem_params->num_of_char_params=3;
+	ret->elem_params->num_of_int_params=1;
+	
+	
+	//chars
+	chunk_mem_struct=allocate_mem_into_secure_stack(3*sizeof(char));
+	mem_in_secure_stack=chunk_mem_struct.old_mem;
+	ret->elem_params->char_params=(void *)mem_in_secure_stack;;
+	if (mem_in_secure_stack!=NULL)
+		insert_data_into_stack_mem(3*sizeof(char),
+							  (unsigned char *) &three_chars[0],
+							  mem_in_secure_stack);
+							  
+	//ints
+	chunk_mem_struct=allocate_mem_into_secure_stack(sizeof(int));
+	mem_in_secure_stack=chunk_mem_struct.old_mem;
+	ret->elem_params->int_params=(void *)mem_in_secure_stack;;
+	if (mem_in_secure_stack!=NULL)
+		insert_data_into_stack_mem(sizeof(int),
+							  (unsigned char *) &n,
+							  mem_in_secure_stack);
+	
+	
+	return ret;
+}
 
 
 
@@ -1490,3 +1591,6 @@ void print_fun_params_that_point_in_stack(fun_params * params)
 
 
 
+/************************************************************************************************/
+/***********************TESTING FUNCTIONS AND INCLUDES END***************************************/
+/************************************************************************************************/
