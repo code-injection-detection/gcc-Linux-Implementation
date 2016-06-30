@@ -453,7 +453,7 @@ chunks_and_old_mem allocate_mem_into_secure_stack(long stack_bytes_to_allocate)
 		ret.old_mem=NULL;
 		return ret;
 	}
-	
+		
 	chunks_needed_to_allocate=stack_bytes_to_allocate/c;
 	
 	if (chunks_needed_to_allocate*c<stack_bytes_to_allocate)
@@ -466,7 +466,7 @@ chunks_and_old_mem allocate_mem_into_secure_stack(long stack_bytes_to_allocate)
 	
 	//stack overflow check
 	//this way, allocating the last chunk results in overflow, but that's ok for now. //FIX ME
-	if ((unsigned char*)last_unused_memory >= ((unsigned char*)entire_stack_memory_chunk) + total_stack_bytes_allocated)
+	if ((unsigned char*)last_unused_stack_memory >= ((unsigned char*)entire_stack_memory_chunk) + total_stack_bytes_allocated)
 	{
 		//cancel last increase
 		last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_needed_to_allocate*c+ chunks_needed_to_allocate*b);
@@ -707,11 +707,11 @@ fun_params * init_function_params(int want_elements, ...)
  * Rest:
  * If we want only non array elements:
  * 1)number of char params
- * 2)number of char params to initialise
+ * 2)number of char params to initialise (if 1 is not zero)
  * 3)char params to initialise,one by one (if 1 is not zero). If it is, these parameters do not exist.
  * The rest of the chars that remain uninitialised, are allocated, but put at the end of the char array in the struct
  * 4)number of int params
- * 5)number of int params to initialise
+ * 5)number of int params to initialise (if 4 is not zero)
  * 6)int params to initialise,one by one (if 4 is not zero). If it is, these parameters do not exist.
  * The rest of the ints that remain uninitialised, are allocated, but put at the end of the int array in the struct
  * ...etc.
@@ -769,7 +769,7 @@ fun_params * init_function_params_with_uninitialised_elements(int want_elements,
 			params->elem_params->int_params=error_checking_malloc(num_of_param*sizeof(int),__func__,__LINE__);
 			for (i=0;i<num_to_initialise;i++)
 			{
-				params->elem_params->int_params[i]=va_arg(multiple_args_list,int);	
+				params->elem_params->int_params[i]=va_arg(multiple_args_list,int);
 			}
 		}
 		else

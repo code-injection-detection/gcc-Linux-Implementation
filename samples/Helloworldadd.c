@@ -26,6 +26,12 @@ int main()
 	int j;
 	int n;
 	static int static_main_variable_for_testing;
+	clock_t simplestart;
+	clock_t simpleend;
+	clock_t securestart;
+	clock_t secureend;
+	double securetime;
+	double simpletime;
 	k=1;
 	i=2;
 	i++;
@@ -62,7 +68,7 @@ int main()
 
 	printf("main is at %p\n", main);
 
-
+	/*
 	//find_keyshares();
 	//mem_test();
 	//list_test();
@@ -73,32 +79,57 @@ int main()
 	printf("\nEnd of tests\n");
 	printf("Going to find keyshares\n");
 	find_keyshares();
+	*/
 	
+	/*
+	printf("\n");
+	printf("Going to measure time for heap accesses in array adding.\n");
+	printf("Simple array adding:\n");
+	simplestart=clock();
+	adding_unsecured_arrays_time_measure(100);
+	simpleend=clock();
+	simpletime=((double) (simpleend - simplestart)) / CLOCKS_PER_SEC;
+	printf("Normal array adding time:%lg cpu seconds\n",simpletime);
+	printf("Secure array adding:\n");
+	securestart=clock();
+	adding_heap_arrays_time_measure(100);
+	secureend=clock();
+	securetime=((double) (secureend - securestart)) / CLOCKS_PER_SEC;
+	printf("Secure array adding time:%lg cpu seconds\n",securetime);
+	printf("Ratio: %lg times slowdown\n",securetime/simpletime);
+	*/
+	
+	/*
 	printf("\n");
 	printf("Calculating time for secure stack. Normal Hanoi:\n");
-	clock_t simplestart=clock();
+	simplestart=clock();
 	towerOfHanoi(25,'A','B','C');
-	clock_t simpleend=clock();
-	double simpletime=((double) (simpleend - simplestart)) / CLOCKS_PER_SEC;
+	simpleend=clock();
+	simpletime=((double) (simpleend - simplestart)) / CLOCKS_PER_SEC;
 	printf("\n");
 	printf("Normal Hanoi time:%lg cpu seconds\n",simpletime);
 	printf("Secure Hanoi:\n");
-	clock_t securestart=clock();
+	securestart=clock();
 	//towerOfHanoi_secure(25,'A','B','C');
 	towerOfHanoi_secure_using_template(25,'A','B','C');
 	//towerOfHanoi_secure_using_changed_accesses(25,'A','B','C');
-	clock_t secureend=clock();
-	double securetime=((double) (secureend - securestart)) / CLOCKS_PER_SEC;
+	secureend=clock();
+	securetime=((double) (secureend - securestart)) / CLOCKS_PER_SEC;
 	printf("\n");
 	printf("Normal Hanoi time:%lg cpu seconds\n",simpletime);
 	printf("Secure Hanoi time:%lg cpu seconds\n",securetime);
 	printf("\n");
 	printf("Ratio: %lg times slowdown\n",securetime/simpletime);
-
+	*/
+	
+	find_primes_up_to_a_number(100);
+	
 	printf("\n");
-	printf("Going to find keyshares\n");
+	printf("Going to find keyshares.\n");
 	find_keyshares();
-
+	
+	
+	
 	//free memory
 	free_heap_and_stack_memory();
 	

@@ -413,3 +413,67 @@ void simple_array_tests()
 	managed_secure_free(float_array2);
 	
 }
+
+void adding_unsecured_arrays_time_measure(long len)
+{
+	int* int_array1;
+	int * int_array2;
+	int * index;
+	long * length;
+	int cnt;
+	
+	index=malloc(sizeof(int));
+	length=malloc(sizeof(long));
+	*length=len;
+	int_array1=malloc(*length*sizeof(int));
+	int_array2=malloc(*length*sizeof(int));
+	
+	for (cnt=0;cnt<100000;cnt++)
+	{
+		for (*index=0;*index<*length;*index=*index+1)
+		{
+			int_array1[*index]=*index*2;
+			int_array2[*index]=*index*3;
+
+			int_array1[*index]=int_array1[*index]+int_array2[*index];
+		}
+	}
+	
+	free(index);
+	free(length);
+	free(int_array1);
+	free(int_array2);
+	
+}
+
+void adding_heap_arrays_time_measure(long len)
+{
+	int* int_array1;
+	int * int_array2;
+	int * index;
+	long * length;
+	int cnt;
+	
+	index=error_checking_managed_secure_malloc(sizeof(int),__func__,__LINE__);
+	length=error_checking_managed_secure_malloc(sizeof(long),__func__,__LINE__);
+	
+	set_long_int(length,len);
+	int_array1=error_checking_managed_secure_malloc(get_long_int(length)*sizeof(int),__func__,__LINE__);
+	int_array2=error_checking_managed_secure_malloc(get_long_int(length)*sizeof(int),__func__,__LINE__);
+	
+	for (cnt=0;cnt<100000;cnt++)
+	{
+		for (set_int(index,0);get_int(index)<get_long_int(length);set_int(index,get_int(index)+1))
+		{
+			set_int_array_element(int_array1,get_int(index),get_int(index)*2);
+			set_int_array_element(int_array2,get_int(index),get_int(index)*3);
+			set_int_array_element(int_array1,get_int(index),get_int_array_element(int_array1,get_int(index)) + get_int_array_element(int_array2,get_int(index)));
+		}
+	}
+	
+	managed_secure_free(index);
+	managed_secure_free(length);
+	managed_secure_free(int_array1);
+	managed_secure_free(int_array2);
+	
+}

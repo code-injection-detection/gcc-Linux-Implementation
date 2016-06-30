@@ -1150,7 +1150,7 @@ void * error_checking_managed_secure_malloc(long bytes_for_allocation,const char
 	ret=managed_secure_malloc(bytes_for_allocation);
 	if (ret==NULL)
 	{
-		fprintf(stderr,"Managed secure malloc error n function %s, line %d\n",fun_name,line);
+		fprintf(stderr,"Managed secure malloc error in function %s, line %d\n",fun_name,line);
 		exit(52);
 	}
 	return ret;	

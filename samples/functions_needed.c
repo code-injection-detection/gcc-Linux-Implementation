@@ -21,6 +21,7 @@ void * error_checking_malloc(long size_in_bytes, const char * fun_name,int line)
 #include "memory_manager.c" //Including the C files because all the functions must be in the same file in order to be secured
 #include "stack_manager.c"
 #include "verification_procedure.c"
+#include "general_tests.c"
 
 
 
