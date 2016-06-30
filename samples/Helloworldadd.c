@@ -122,7 +122,11 @@ int main()
 	printf("Ratio: %lg times slowdown\n",securetime/simpletime);
 	*/
 	
-	find_primes_up_to_a_number(100);
+	
+	//find_primes_up_to_a_number(100);
+	
+	
+	multiple_secure_mallocs_and_frees(100000,40);
 	
 	printf("\n");
 	printf("Going to find keyshares.\n");

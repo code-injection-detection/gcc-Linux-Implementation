@@ -103,3 +103,5 @@ void find_primes_up_to_a_number(int num)
 	free_chunks_from_secure_stack(prime_params->total_amount_of_chunks_needed_in_secure_stack);
 	free_fun_params_that_point_to_stack(prime_params);
 }
+
+
