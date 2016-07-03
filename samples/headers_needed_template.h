@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <stdarg.h>
 #include <string.h>
+#include <math.h>
 
 
 #ifndef number_of_interleaved_keys 

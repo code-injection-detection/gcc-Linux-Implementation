@@ -1,8 +1,9 @@
 CC=gcc
 PG= #-pg 
-FLAGS_to_assembly= -O0
+FLAGS_to_assembly= -O3
 FLAGS_to_object= -O0
 FLAGS_to_secure_object = -O0
+FLAGS_in_the_end= -lm
 
 ifeq ($(filter-out secure,$(MAKECMDGOALS)),static)
  FLAGS_to_assembly+=  -static
@@ -27,15 +28,15 @@ static: default
 	
 
 Helloworldadd.s: Helloworldadd.c memory_manager.c verification_procedure.c memory_manager_test_suite.c stack_manager.c
-	$(CC) $(FLAGS_to_assembly) Helloworldadd.c -S
+	$(CC) $(FLAGS_to_assembly) Helloworldadd.c -S $(FLAGS_in_the_end)
 
 Helloworldadd: Helloworldadd.s
-	$(CC) $(FLAGS_to_object) Helloworldadd.s -c -o Helloworldadd.o 
-	$(CC) $(FLAGS_to_object) Helloworldadd.o -o Helloworldadd 
+	$(CC) $(FLAGS_to_object) Helloworldadd.s -c -o Helloworldadd.o $(FLAGS_in_the_end)
+	$(CC) $(FLAGS_to_object) Helloworldadd.o -o Helloworldadd $(FLAGS_in_the_end)
 
 Helloworldadd_sec: Helloworldadd_sec.s
-	$(CC) $(FLAGS_to_secure_object) Helloworldadd_sec.s -c -o Helloworldadd_sec.o
-	$(CC) $(FLAGS_to_secure_object) Helloworldadd_sec.o -o Helloworldadd_sec 
+	$(CC) $(FLAGS_to_secure_object) Helloworldadd_sec.s -c -o Helloworldadd_sec.o $(FLAGS_in_the_end)
+	$(CC) $(FLAGS_to_secure_object) Helloworldadd_sec.o -o Helloworldadd_sec $(FLAGS_in_the_end)
 
 clean:
 	rm -f Helloworldadd.s Helloworldadd Helloworldadd_sec.s Helloworldadd_sec Helloworldadd_ksec Helloworldadd_sec.o Helloworldadd.o *.NASM* *.YASM* *.run

@@ -1,0 +1,3 @@
+no optimizations -> ~53 times slowdown
+O3 optimizations (relative to O0)-> ~6 times slowdown
+(relative to O3 -> inf?)

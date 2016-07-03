@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <stdarg.h>
 #include <string.h>
+#include <math.h>
 
 
 #ifndef number_of_interleaved_keys 
@@ -18,7 +19,7 @@
 #endif				//This one is for the memory, not for the interleaved NOPs. The number should be the same as number_of_interleaved_keys
 
 #ifndef bytes_to_allocate_on_start
-#define bytes_to_allocate_on_start (2048)
+#define bytes_to_allocate_on_start (40480)
 #endif
 
 #ifndef bytes_between_keyshares

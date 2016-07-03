@@ -479,6 +479,43 @@ void adding_heap_arrays_time_measure(long len)
 }
 
 
+void multiple_simple_mallocs_and_frees(int loopcount,int pointercount)
+{
+	double ** pointers; 
+	int i,randnum;
+	double total_cnt=0;
+	
+	srand(time(NULL));
+	pointers=error_checking_malloc(pointercount*sizeof(double*),__func__,__LINE__);
+	
+	for (i=0;i<pointercount;i++)
+	{
+		pointers[i]=NULL;
+	}
+	
+	for(i=0;i<loopcount;i++)
+	{
+		randnum=rand()%pointercount; 
+		if (pointers[randnum]==NULL)
+		{
+			pointers[randnum]=error_checking_malloc(sizeof(double),__func__,__LINE__);
+			pointers[randnum][0]=randnum;
+		}
+		else
+		{
+			total_cnt+=pointers[randnum][0];
+			free(pointers[randnum]);
+			pointers[randnum]=NULL;
+		}		
+	}
+	//result is /4 : /2 because of rand, and /2 again because total_cnt only increases when we free
+	printf("(pointercount-1)/4)= %.8lf\n",(double)(pointercount-1)/4);
+	printf("Got result: %.8lf\n",total_cnt/loopcount);
+	
+	
+}
+
+
 //mallocs and frees many times, and we ce
 void multiple_secure_mallocs_and_frees(int loopcount,int pointercount)
 {
@@ -513,6 +550,6 @@ void multiple_secure_mallocs_and_frees(int loopcount,int pointercount)
 	//result is /4 : /2 because of rand, and /2 again because total_cnt only increases when we free
 	printf("(pointercount-1)/4)= %.8lf\n",(double)(pointercount-1)/4);
 	printf("Got result: %.8lf\n",total_cnt/loopcount);
-	print_lists();
+	//print_lists();
 	
 }

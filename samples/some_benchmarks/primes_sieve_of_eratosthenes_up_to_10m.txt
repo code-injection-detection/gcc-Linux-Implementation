@@ -1,0 +1,2 @@
+no opt -> ~100 times slowdown
+O3 opt (relative to O0) -> ~30 times slowdown, (relative to O3) -> 38 times slowdown
