@@ -1,6 +1,6 @@
 CC=gcc
 PG= #-pg 
-FLAGS_to_assembly= -O3
+FLAGS_to_assembly= -O0
 FLAGS_to_object= -O0
 FLAGS_to_secure_object = -O0
 FLAGS_in_the_end= -lm

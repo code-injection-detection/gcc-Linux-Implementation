@@ -229,6 +229,7 @@ void secure_sieve_of_Eratosthenes(int num)
 	sieve_params=put_fun_params_into_secure_stack_and_free(sieve_params);
 	
 	
+	
 	//square_root=sqrt(num);
 	set_stack_double_array_element(sieve_params->elem_params->double_params,0,
 								   sqrt(get_stack_int_array_element(sieve_params->elem_params->int_params,0))
@@ -307,3 +308,111 @@ void secure_sieve_of_Eratosthenes(int num)
 	free_fun_params_that_point_to_stack(sieve_params);
 }
 
+
+
+
+void user_friendly_secure_sieve_of_Eratosthenes(int num)
+{
+	/*
+	char * numbers;
+	int i;
+	int j;
+	int prime_cnt=0;
+	double square_root=sqrt(num);
+	*/
+	
+	fun_params * sieve_params;
+	sieve_params=init_function_params_with_uninitialised_elements(1, //want to use parameters
+																  0L, //no chars
+																  4L,2L,num,0, //4 ints,2 initialized (with num,0)
+																  0L,0L, //no longs,floats
+																  1L,0L, //1 double, uninitialized
+																  1L,(long)sizeof(char),0L, //1 pointer, a char * uninitialized
+																  0L); //no arbitrary pointer params
+	sieve_params=put_fun_params_into_secure_stack_and_free(sieve_params);
+	
+	//user friendly parameter definition
+	#define NUM 0 //for ints
+	#define PRIME_CNT 1
+	#define I 2
+	#define J 3
+	#define SQUARE_ROOT 0 //for doubles
+	#define NUMBERS 0 //for pointers
+	
+	
+	
+	//square_root=sqrt(num);
+	SET_STACK_DOUBLE(sieve_params,SQUARE_ROOT,sqrt(GET_STACK_INT(sieve_params,NUM)));
+	
+	
+	//numbers=error_checking_malloc((num+1)*sizeof(char),__func__,__LINE__);
+	SET_STACK_PTR(sieve_params,NUMBERS,error_checking_managed_secure_malloc(  sizeof(char)*(GET_STACK_INT(sieve_params,NUM)+1)  ,__func__,__LINE__)
+				 );
+	
+	
+	//for (i=2;i<=num;i++)
+	for (SET_STACK_INT(sieve_params,I,2);
+		 GET_STACK_INT(sieve_params,I)<=GET_STACK_INT(sieve_params,NUM);
+		 SET_STACK_INT(sieve_params,I,GET_STACK_INT(sieve_params,I)+1) )
+	{
+		//numbers[i]=1;
+		 set_char_array_element(GET_STACK_PTR(sieve_params,NUMBERS),GET_STACK_INT(sieve_params,I),1);
+	}
+
+									
+	//for (i=2;i<=square_root+1;i++)
+	for (SET_STACK_INT(sieve_params,I,2);
+		 GET_STACK_INT(sieve_params,I)<=GET_STACK_DOUBLE(sieve_params,SQUARE_ROOT)+1;
+		 SET_STACK_INT(sieve_params,I,GET_STACK_INT(sieve_params,I)+1) )
+	{
+		
+		//if (numbers[i]==1)
+		if (get_char_array_element(GET_STACK_PTR(sieve_params,NUMBERS),GET_STACK_INT(sieve_params,I))==1)
+		{
+			
+			//for (j=2*i;j<=num;j+=i)
+			for (SET_STACK_INT(sieve_params,J,2*GET_STACK_INT(sieve_params,I));
+				 GET_STACK_INT(sieve_params,J)<=GET_STACK_INT(sieve_params,NUM);
+				 SET_STACK_INT(sieve_params,J,GET_STACK_INT(sieve_params,J)+GET_STACK_INT(sieve_params,I)) )
+			{
+				//numbers[j]=0;
+				set_char_array_element(GET_STACK_PTR(sieve_params,NUMBERS), GET_STACK_INT(sieve_params,J),0);
+			}
+		}
+	}
+	
+	
+	printf("\n");
+	printf("Primes with secure sieve:\n");
+	//for (i=2;i<=num;i++)
+	for (SET_STACK_INT(sieve_params,I,2);
+		 GET_STACK_INT(sieve_params,I)<=GET_STACK_INT(sieve_params,NUM);
+		 SET_STACK_INT(sieve_params,I,GET_STACK_INT(sieve_params,I)+1) )
+	{
+		//if (numbers[i]==1)
+		if (get_char_array_element(GET_STACK_PTR(sieve_params,NUMBERS),GET_STACK_INT(sieve_params,I))==1)
+		{
+			//printf("%d ",i);
+			printf("%d ",GET_STACK_INT(sieve_params,I));
+			
+			//prime_cnt++;
+			SET_STACK_INT(sieve_params,PRIME_CNT,GET_STACK_INT(sieve_params,PRIME_CNT)+1);
+		}
+	}
+	printf("\n");
+	//printf("Total: %d primes.\n",prime_cnt);
+	printf("Total: %d primes.\n",GET_STACK_INT(sieve_params,PRIME_CNT));
+	
+	//free(numbers);
+	managed_secure_free(GET_STACK_PTR(sieve_params,NUMBERS));
+
+	//user friendly parameter undefinition
+	#undef NUM
+	#undef PRIME_CNT
+	#undef I
+	#undef J
+	#undef SQUARE_ROOT
+	#undef NUMBERS
+
+	FUNCTION_FOOTER_FOR_STACK(sieve_params);
+}

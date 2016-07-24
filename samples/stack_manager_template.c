@@ -1585,6 +1585,70 @@ fun_params * tower_of_Hanoi_init_secure_template(int n, char fromrod, char torod
 }
 
 
+/*definitions for user friendliness*/
+#define STACK_CHAR_PARAMS(param_var) ((param_var)->elem_params->char_params)
+#define STACK_INT_PARAMS(param_var) ((param_var)->elem_params->int_params)
+#define STACK_LONG_PARAMS(param_var) ((param_var)->elem_params->long_int_params)
+#define STACK_FLOAT_PARAMS(param_var) ((param_var)->elem_params->float_params)
+#define STACK_DOUBLE_PARAMS(param_var) ((param_var)->elem_params->double_params)
+#define STACK_PTR_PARAMS(param_var) ((param_var)->elem_params->pointer_params)
+#define STACK_ARB_PTR_PARAMS(param_var) ((param_var)->elem_params->arb_pointer_params)
+
+#define GET_STACK_CHAR(param_var,index) get_stack_char_array_element(STACK_CHAR_PARAMS(param_var),(index))
+#define GET_STACK_INT(param_var,index) get_stack_int_array_element(STACK_INT_PARAMS(param_var),(index))
+#define GET_STACK_LONG(param_var,index) get_stack_long_int_array_element(STACK_LONG_PARAMS(param_var),(index))
+#define GET_STACK_FLOAT(param_var,index) get_stack_float_array_element(STACK_FLOAT_PARAMS(param_var),(index))
+#define GET_STACK_DOUBLE(param_var,index) get_stack_double_array_element(STACK_DOUBLE_PARAMS(param_var),(index))
+#define GET_STACK_PTR(param_var,index) get_stack_pointer_array_element(STACK_PTR_PARAMS(param_var),(index))
+
+#define SET_STACK_CHAR(param_var,index,value) set_stack_char_array_element(STACK_CHAR_PARAMS(param_var),(index),(value))
+#define SET_STACK_INT(param_var,index,value) set_stack_int_array_element(STACK_INT_PARAMS(param_var),(index),(value))
+#define SET_STACK_LONG(param_var,index,value) set_stack_long_int_array_element(STACK_LONG_PARAMS(param_var),(index),(value))
+#define SET_STACK_FLOAT(param_var,index,value) set_stack_float_array_element(STACK_FLOAT_PARAMS(param_var),(index),(value))
+#define SET_STACK_DOUBLE(param_var,index,value) set_stack_double_array_element(STACK_DOUBLE_PARAMS(param_var),(index),(value))
+#define SET_STACK_PTR(param_var,index,value) set_stack_pointer_array_element(STACK_PTR_PARAMS(param_var),(index),(value))
+
+#define FUNCTION_FOOTER_FOR_STACK(param_var) { \
+												free_chunks_from_secure_stack((param_var)->total_amount_of_chunks_needed_in_secure_stack); \
+												free_fun_params_that_point_to_stack((param_var)); \
+											 }
+
+//perhaps achieve this with the help of python?
+/*
+#define DEFINE_ALL_CUSTOM_STACK(param_var) \
+	#ifdef __PLEASE_DEFINE_CUSTOM_STACK \
+		#define GET_STACK_CHAR(index) GET_STACK_CHAR(param_var,index) \
+		#define GET_STACK_INT(index) GET_STACK_INT(param_var,index) \
+		#define GET_STACK_LONG(index) GET_STACK_LONG(param_var,index) \
+		#define GET_STACK_FLOAT(index) GET_STACK_FLOAT(param_var,index) \
+		#define GET_STACK_DOUBLE(index) GET_STACK_DOUBLE(param_var,index) \
+		#define GET_STACK_PTR(index) GET_STACK_PTR(param_var,index) \
+		#define SET_STACK_CHAR(index,value) SET_STACK_CHAR(param_var,index,value) \
+		#define SET_STACK_INT(index,value) SET_STACK_INT(param_var,index,value) \
+		#define SET_STACK_LONG(index,value) SET_STACK_LONG(param_var,index,value) \
+		#define SET_STACK_FLOAT(index,value) SET_STACK_FLOAT(param_var,index,value) \
+		#define SET_STACK_DOUBLE(index,value) SET_STACK_DOUBLE(param_var,index,value) \
+		#define SET_STACK_PTR(index,value) SET_STACK_PTR(param_var,index,value) \
+	#endif
+
+#define UNDEFINE_ALL_CUSTOM_STACK \
+	#ifdef __PLEASE_UNDEFINE_CUSTOM_STACK \
+		#undef GET_STACK_CHAR(index) \
+		#undef GET_STACK_INT(index) \
+		#undef GET_STACK_LONG(index) \
+		#undef GET_STACK_FLOAT(index) \
+		#undef GET_STACK_DOUBLE(index) \
+		#undef GET_STACK_PTR(index) \
+		#undef SET_STACK_CHAR(index,value) \
+		#undef SET_STACK_INT(index,value) \
+		#undef SET_STACK_LONG(index,value) \
+		#undef SET_STACK_FLOAT(index,value) \
+		#undef SET_STACK_DOUBLE(index,value) \
+		#undef SET_STACK_PTR(index,value) \
+	#endif
+
+*/
+
 
 /*Let's include a test suite*/
 #include "stack_manager_test_suite.c"

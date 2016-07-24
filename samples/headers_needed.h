@@ -19,7 +19,7 @@
 #endif				//This one is for the memory, not for the interleaved NOPs. The number should be the same as number_of_interleaved_keys
 
 #ifndef bytes_to_allocate_on_start
-#define bytes_to_allocate_on_start (40480)
+#define bytes_to_allocate_on_start (204800)
 #endif
 
 #ifndef bytes_between_keyshares
@@ -42,10 +42,10 @@
 #endif				//This one is for the stack. The number should be the same as number_of_interleaved_keys
 
 #ifndef stack_bytes_to_allocate_on_start
-#define stack_bytes_to_allocate_on_start (2048)
+#define stack_bytes_to_allocate_on_start (1024)
 #endif
 
 #ifndef stack_bytes_between_keyshares
-#define stack_bytes_between_keyshares (3)
+#define stack_bytes_between_keyshares (4)
 #endif				//practically the "useful" bytes in the stack. Important: It is not (currently) possible to split this bytegroup into multiple parts.
 				    //which means that should someone allocate x bytegroups but does not need the last one as a whole, we cannot give the rest of it to someone else
