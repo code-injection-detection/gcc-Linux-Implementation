@@ -335,25 +335,17 @@ void user_friendly_secure_sieve_of_Eratosthenes(int num)
 	//use that very specific syntax. Nothing else, the parser is not something professional.
 	//For example, don't include comments into the "PLEASE_INIT_PARAMS" block. Also, write number and initialise integers with numbers only (no "L"'s or casting)
 	//For the rest of the values, you can use casting
-	
-sieve_params = init_function_params_with_uninitialised_elements(1,
-(long)(0),
-(long)(4),(long)(2),num,0,
-(long)(0),
-(long)(0),
-(long)(1),(long)(0),
-(long)(1),(long)((long)(sizeof(char))),(long)(0),
-(long)(0));
-
-sieve_params = put_fun_params_into_secure_stack_and_free(sieve_params);
-
-#define NUM 0
-#define PRIME_CNT 1
-#define I 2
-#define J 3
-#define SQUARE_ROOT 0
-#define NUMBERS 0
-		
+	PLEASE_INIT_PARAMS
+		name_of_var: sieve_params
+		uninitialised_elements: yes
+		chars: 0 
+		ints: 4 | initialise: 2 | values: num,0 | names: NUM,PRIME_CNT,I,J
+		longs: 0
+		floats: 0
+		doubles: 1 | initialise: 0 | names: SQUARE_ROOT
+		pointers: 1 | sizes: (long)(sizeof(char)) | initialise: 0 | names: NUMBERS
+		arb_pointers: 0
+	END_OF_PARAM_INIT	
 	
 	/*
 	//user friendly parameter definition
@@ -441,13 +433,7 @@ sieve_params = put_fun_params_into_secure_stack_and_free(sieve_params);
 	#undef NUMBERS
 	*/
 	
-#undef NUM
-#undef PRIME_CNT
-#undef I
-#undef J
-#undef SQUARE_ROOT
-#undef NUMBERS
-	
+	PLEASE_UNDEF_NAMES
 	
 	FUNCTION_FOOTER_FOR_STACK(sieve_params);
 }
@@ -506,29 +492,17 @@ void user_friendly_secure_matrix_multiplication(int size,int maxnum)
 	fun_params * mm_params;
 	
 	//SOS the way this works, the arb_pointer values (here: test_array) must be freed by the user afterwards (if they are allocated in the normal heap)
-	
-mm_params = init_function_params_with_uninitialised_elements(1,
-(long)(0),
-(long)(7),(long)(2),size,maxnum,
-(long)(0),
-(long)(0),
-(long)(0),
-(long)(0),
-(long)(3),(long)(4*sizeof(int)),(long)((sizeof(int)*size*size)),(long)((sizeof(int)*size*size)),(long)(1),test_array);
-
-mm_params = put_fun_params_into_secure_stack_and_free(mm_params);
-
-#define SIZE 0
-#define MAXNUM 1
-#define I 2
-#define J 3
-#define K 4
-#define L 5
-#define SUM 6
-#define TEST_ARRAY 0
-#define A 1
-#define B 2
-		
+	PLEASE_INIT_PARAMS
+		name_of_var: mm_params
+		uninitialised_elements: yes
+		chars: 0 
+		ints: 7 | initialise: 2| values: size,maxnum| names: SIZE,MAXNUM,I,J,K,L,SUM
+		longs: 0
+		floats: 0
+		doubles: 0
+		pointers: 0
+		arb_pointers: 3 | sizes: 4*sizeof(int),(sizeof(int)*size*size),(sizeof(int)*size*size) | initialise:1 | values: test_array |names: TEST_ARRAY,A,B
+	END_OF_PARAM_INIT	
 	
 	
 	for (SET_STACK_INT(mm_params,I,0);
@@ -596,17 +570,7 @@ mm_params = put_fun_params_into_secure_stack_and_free(mm_params);
 	printf("\n");
 	
 	
-#undef SIZE
-#undef MAXNUM
-#undef I
-#undef J
-#undef K
-#undef L
-#undef SUM
-#undef TEST_ARRAY
-#undef A
-#undef B
-	
+	PLEASE_UNDEF_NAMES
 	
 	FUNCTION_FOOTER_FOR_STACK(mm_params);
 	

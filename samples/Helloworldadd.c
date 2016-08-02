@@ -16,6 +16,27 @@ return k;
 }
 
 
+#define TEST_NORMAL_AND_SECURE_TIME(operation,function_call_normal,function_call_secure) { \
+					printf("\n"); \
+					printf("Calculating time for " #operation ". Normal " #operation ":\n"); \
+					simplestart=clock(); \
+					function_call_normal ;\
+					simpleend=clock(); \
+					simpletime=((double) (simpleend - simplestart)) / CLOCKS_PER_SEC; \
+					printf("\n"); \
+					printf("Normal " #operation ":%lg cpu seconds\n",simpletime); \
+					printf("Secure "  #operation ":\n"); \
+					securestart=clock(); \
+					function_call_secure ;\
+					secureend=clock(); \
+					securetime=((double) (secureend - securestart)) / CLOCKS_PER_SEC; \
+					printf("\n"); \
+					printf("Normal " #operation " time:%lg cpu seconds\n",simpletime); \
+					printf("Secure " #operation " time:%lg cpu seconds\n",securetime); \
+					printf("\n"); \
+					printf("Ratio: %lg times slowdown\n",securetime/simpletime); \
+				} 
+
 
 int main()
 {
@@ -43,7 +64,7 @@ int main()
 	static_main_variable_for_testing=1;
 	static_global_variable_for_testing=2;
 	
-	//initialize memory
+	//initialise memory
 	init_heap_and_stack_mem();
 	
 	
@@ -144,7 +165,7 @@ int main()
 	printf("Ratio: %lg times slowdown\n",securetime/simpletime);
 	*/
 	
-	
+	/*
 	printf("\n");
 	printf("Calculating time for primes with sieve of Eratosthenes. Normal sieve:\n");
 	simplestart=clock();
@@ -163,7 +184,7 @@ int main()
 	printf("Secure sieve time:%lg cpu seconds\n",securetime);
 	printf("\n");
 	printf("Ratio: %lg times slowdown\n",securetime/simpletime);
-	
+	*/
 	
 	/*
 	printf("\n");
@@ -185,6 +206,16 @@ int main()
 	printf("\n");
 	printf("Ratio: %lg times slowdown\n",securetime/simpletime);
 	*/
+	
+	int matrix_size=100;
+	fill_matrices_for_multiplication(matrix_size,2000);
+	TEST_NORMAL_AND_SECURE_TIME(matrix multiplication,matrix_multiplication(matrix_size,2000),
+								user_friendly_secure_matrix_multiplication(matrix_size,2000))
+	if (the_matrices_are_the_same(matrix_size))
+		printf("\nThe matrices are the same.\n\n");
+	else
+		printf("\nERROR!THE MATRICES ARE NOT THE SAME!\n\n");
+	
 	
 	printf("\n");
 	printf("Going to find keyshares.\n");

@@ -473,6 +473,7 @@ chunks_and_old_mem allocate_mem_into_secure_stack(long stack_bytes_to_allocate)
 		//return NULL
 		ret.chunks_allocated=0;
 		ret.old_mem=NULL;
+		fprintf(stderr,"Error:Attempted to allocate more memory than the secure stack size.\n");
 		return ret;
 	}
 	
@@ -1020,7 +1021,7 @@ fun_params * put_fun_params_into_secure_stack(fun_params * params)
 			chunk_mem_struct=allocate_mem_into_secure_stack(params_in_secure_stack->elem_params->arb_pointer_params_sizes[i]);
 			mem_in_secure_stack=chunk_mem_struct.old_mem;
 			params_in_secure_stack->total_amount_of_chunks_needed_in_secure_stack+=chunk_mem_struct.chunks_allocated;
-			if (mem_in_secure_stack!=NULL)
+			if (mem_in_secure_stack!=NULL && params->elem_params->arb_pointer_params[i]!=NULL) //if arb_pointer_params[i] is NULL it means that it is not initialised. We only need to allocate.
 				insert_data_into_stack_mem(params_in_secure_stack->elem_params->arb_pointer_params_sizes[i],
 									  (unsigned char *) params->elem_params->arb_pointer_params[i],
 									   mem_in_secure_stack);
@@ -1051,8 +1052,11 @@ void free_fun_params(fun_params* params)
 			free(params->elem_params->pointer_params);
 			free(params->elem_params->pointer_params_sizes);
 			free(params->elem_params->arb_pointer_params_sizes);
+			//IMPORTANT: LET the arb_pointer parameter free duty to the user
+			/*
 			for (i=0;i<params->elem_params->num_of_arb_pointer_params;i++)
 				free(params->elem_params->arb_pointer_params[i]);
+			*/
 			free(params->elem_params);
 		}
 		free(params);
