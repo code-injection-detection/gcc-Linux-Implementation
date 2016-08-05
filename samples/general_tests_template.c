@@ -414,7 +414,7 @@ void user_friendly_secure_sieve_of_Eratosthenes(int num)
 			//prime_cnt++;
 			SET_STACK_INT(sieve_params,PRIME_CNT,GET_STACK_INT(sieve_params,PRIME_CNT)+1);
 		}
-	}
+	} 
 	printf("\n");
 	//printf("Total: %d primes.\n",prime_cnt);
 	printf("Total: %d primes.\n",GET_STACK_INT(sieve_params,PRIME_CNT));

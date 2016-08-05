@@ -428,7 +428,6 @@ long insert_data_into_mem(long data_size,unsigned char * data, unsigned char * m
   long i,j;
   unsigned char * p;
   long chunks=0;
-  int counting_key_bytes=0; //used as boolean
   long total_data_inserted=0;
 
 
@@ -438,25 +437,16 @@ long insert_data_into_mem(long data_size,unsigned char * data, unsigned char * m
 
   while(total_data_inserted<data_size)
   {
-    if (counting_key_bytes)
-    {
-	    i+=bytes_used_for_keyshares;
-	    counting_key_bytes=0;
-    }
-    else
-    {
-		//actual insertion
-		for (j=0;j<bytes_between_keyshares && (total_data_inserted + j < data_size );j++)
-		{
-			p[i+j]=data[total_data_inserted+j];
-		}
-		
-		total_data_inserted+=j;
-		chunks++;
+	//actual insertion
+	for (j=0;j<bytes_between_keyshares && (total_data_inserted + j < data_size );j++)
+	{
+		p[i+j]=data[total_data_inserted+j];
+	}
+	
+	total_data_inserted+=j;
+	chunks++;
 
-		i+=bytes_between_keyshares;
-		counting_key_bytes=1;	
-    }  
+	i+=bytes_between_keyshares+bytes_used_for_keyshares;
 
   }
 
@@ -480,7 +470,6 @@ void get_secure_data(void * res,long data_size, unsigned char * data_start, int 
   long i,j,k;
   unsigned char * p;
   long total_data_retrieved=0;
-  int counting_key_bytes=0; //used as boolean
   long chunks_forward;
   long data_size_for_offset;
 
@@ -521,24 +510,15 @@ void get_secure_data(void * res,long data_size, unsigned char * data_start, int 
 
   while(total_data_retrieved<data_size)
   {
-	if (counting_key_bytes)
+	//actual retrieval
+	for (j=0;j<bytes_between_keyshares && (total_data_retrieved + j < data_size );j++)
 	{
-		i+=bytes_used_for_keyshares;
-		counting_key_bytes=0;
+		result[total_data_retrieved+j]=p[i+j];
 	}
-	else
-	{
-		//actual retrieval
-		for (j=0;j<bytes_between_keyshares && (total_data_retrieved + j < data_size );j++)
-		{
-			result[total_data_retrieved+j]=p[i+j];
-		}
 
-		total_data_retrieved+=j;
+	total_data_retrieved+=j;
 
-		i+=bytes_between_keyshares;
-		counting_key_bytes=1;	
-	} 
+	i+=bytes_between_keyshares+bytes_used_for_keyshares;
   }
 
 }
@@ -552,7 +532,6 @@ void set_secure_data(void * source,long data_size, unsigned char * data_start, i
   long i,j,k;
   unsigned char * p;
   long total_data_set=0;
-  int counting_key_bytes=0; //used as boolean
   long chunks_forward;
   long data_size_for_offset;
 
@@ -591,24 +570,15 @@ void set_secure_data(void * source,long data_size, unsigned char * data_start, i
 
   while(total_data_set<data_size)
   {
-    if (counting_key_bytes)
-    {
-		i+=bytes_used_for_keyshares;
-		counting_key_bytes=0;
-    }
-    else
-    {
-		//actual set
-		for (j=0;j<bytes_between_keyshares && (total_data_set + j < data_size );j++)
-		{
-			p[i+j]=src[total_data_set+j];
-		}
+	//actual set
+	for (j=0;j<bytes_between_keyshares && (total_data_set + j < data_size );j++)
+	{
+		p[i+j]=src[total_data_set+j];
+	}
 
-		total_data_set+=j;
+	total_data_set+=j;
 
-		i+=bytes_between_keyshares;
-		counting_key_bytes=1;	
-    } 
+	i+=bytes_between_keyshares+bytes_used_for_keyshares;
   }
 
 }
