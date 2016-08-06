@@ -188,12 +188,14 @@ int main()
 	printf("Ratio: %lg times slowdown\n",securetime/simpletime);
 	*/
 	
+	/*
 	int sieve_size=1000;
 	TEST_NORMAL_AND_SECURE_TIME(sieve of Eratosthenes,simple_sieve_of_Eratosthenes(sieve_size);,
 								user_friendly_secure_sieve_of_Eratosthenes(sieve_size))
+	*/
 	
-	/*
-	int matrix_size=500;
+	
+	int matrix_size=400;
 	fill_matrices_for_multiplication(matrix_size,2000);
 	TEST_NORMAL_AND_SECURE_TIME(matrix multiplication,matrix_multiplication(matrix_size,2000),
 								user_friendly_secure_matrix_multiplication(matrix_size,2000))
@@ -201,7 +203,7 @@ int main()
 		printf("\nThe matrices are the same.\n\n");
 	else
 		printf("\nERROR!THE MATRICES ARE NOT THE SAME!\n\n");
-	*/
+	
 	
 	printf("\n");
 	printf("Going to find keyshares.\n");
