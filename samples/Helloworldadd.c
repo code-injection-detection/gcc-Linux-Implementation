@@ -144,57 +144,23 @@ int main()
 	*/
 	
 	
-	/*
-	printf("\n");
-	printf("Calculating time for primes. Normal primes:\n");
-	simplestart=clock();
-	find_primes_up_to_a_number(1000);
-	simpleend=clock();
-	simpletime=((double) (simpleend - simplestart)) / CLOCKS_PER_SEC;
-	printf("\n");
-	printf("Normal primes time:%lg cpu seconds\n",simpletime);
-	printf("Secure primes:\n");
-	securestart=clock();
-	secure_find_primes_up_to_a_number(1000);
-	secureend=clock();
-	securetime=((double) (secureend - securestart)) / CLOCKS_PER_SEC;
-	printf("\n");
-	printf("Normal primes time:%lg cpu seconds\n",simpletime);
-	printf("Secure primes time:%lg cpu seconds\n",securetime);
-	printf("\n");
-	printf("Ratio: %lg times slowdown\n",securetime/simpletime);
-	*/
-	
-
+	int primes_up_to=1000;
+	TEST_NORMAL_AND_SECURE_TIME(primes not very fast version,find_primes_up_to_a_number(primes_up_to);,
+								secure_find_primes_up_to_a_number(primes_up_to);)
 	
 	/*
-	printf("\n");
-	printf("Calculating time for secure heap. Normal mallocs_and_frees:\n");
-	simplestart=clock();
-	multiple_simple_mallocs_and_frees(10000000,40);
-	simpleend=clock();
-	simpletime=((double) (simpleend - simplestart)) / CLOCKS_PER_SEC;
-	printf("\n");
-	printf("Normal mallocs_and_frees time:%lg cpu seconds\n",simpletime);
-	printf("Secure mallocs_and_frees:\n");
-	securestart=clock();
-	multiple_secure_mallocs_and_frees(10000000,40);
-	secureend=clock();
-	securetime=((double) (secureend - securestart)) / CLOCKS_PER_SEC;
-	printf("\n");
-	printf("Normal mallocs_and_frees time:%lg cpu seconds\n",simpletime);
-	printf("Secure mallocs_and_frees time:%lg cpu seconds\n",securetime);
-	printf("\n");
-	printf("Ratio: %lg times slowdown\n",securetime/simpletime);
+	int times=10000000;
+	TEST_NORMAL_AND_SECURE_TIME(mallocs and frees,multiple_simple_mallocs_and_frees(times,40);,
+								multiple_secure_mallocs_and_frees(times,40);)
 	*/
 	
 	/*
-	int sieve_size=1000;
+	int sieve_size=10000;
 	TEST_NORMAL_AND_SECURE_TIME(sieve of Eratosthenes,simple_sieve_of_Eratosthenes(sieve_size);,
 								user_friendly_secure_sieve_of_Eratosthenes(sieve_size))
 	*/
 	
-	
+	/*
 	int matrix_size=400;
 	fill_matrices_for_multiplication(matrix_size,2000);
 	TEST_NORMAL_AND_SECURE_TIME(matrix multiplication,matrix_multiplication(matrix_size,2000),
@@ -203,7 +169,7 @@ int main()
 		printf("\nThe matrices are the same.\n\n");
 	else
 		printf("\nERROR!THE MATRICES ARE NOT THE SAME!\n\n");
-	
+	*/
 	
 	printf("\n");
 	printf("Going to find keyshares.\n");

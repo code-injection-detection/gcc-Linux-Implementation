@@ -429,6 +429,7 @@ long insert_data_into_mem(long data_size,unsigned char * data, unsigned char * m
   unsigned char * p;
   long chunks=0;
   long total_data_inserted=0;
+  long data_remaining;
 
 
   p=&mem_where_to_insert[0];
@@ -438,16 +439,20 @@ long insert_data_into_mem(long data_size,unsigned char * data, unsigned char * m
   while(total_data_inserted<data_size)
   {
 	//actual insertion
-	for (j=0;j<bytes_between_keyshares && (total_data_inserted + j < data_size );j++)
-	{
-		p[i+j]=data[total_data_inserted+j];
-	}
-	
-	total_data_inserted+=j;
 	chunks++;
-
+	data_remaining=data_size-total_data_inserted;
+	//actual insertion
+	if (data_remaining<=bytes_between_keyshares)
+	{
+		memcpy(&p[i],&data[total_data_inserted],data_remaining);
+		total_data_inserted=data_size;
+	}
+	else
+	{
+		memcpy(&p[i],&data[total_data_inserted],bytes_between_keyshares);
+		total_data_inserted+=bytes_between_keyshares;
+	}
 	i+=bytes_between_keyshares+bytes_used_for_keyshares;
-
   }
 
   return chunks;
@@ -472,6 +477,8 @@ void get_secure_data(void * res,long data_size, unsigned char * data_start, int 
   long total_data_retrieved=0;
   long chunks_forward;
   long data_size_for_offset;
+  long data_remaining;
+  long data_remaining_till_end_of_chunk;
 
   result=res;
 
@@ -489,21 +496,30 @@ void get_secure_data(void * res,long data_size, unsigned char * data_start, int 
 	chunks_forward=(arrayindex*data_size_for_offset)/(bytes_between_keyshares);
 	if (chunks_forward*bytes_between_keyshares==(arrayindex*data_size_for_offset))
 	{
-		p+=chunks_forward*bytes_between_keyshares + chunks_forward * bytes_used_for_keyshares; //We set p to point to the next useful area
+		p+=chunks_forward*(bytes_between_keyshares + bytes_used_for_keyshares); //We set p to point to the next useful area
 	}
 	else
 	{
 		//Well that's a problem. We have to start in the middle of a chunk.
 		//What we'll do is that we will retrieve the part up to the end of the chunk.
-		p+=chunks_forward*bytes_between_keyshares + chunks_forward * bytes_used_for_keyshares;
+		p+=chunks_forward*(bytes_between_keyshares + bytes_used_for_keyshares);
 		j=(arrayindex*data_size_for_offset)-(chunks_forward*bytes_between_keyshares);
 
-		for (k=0;j+k<bytes_between_keyshares && (total_data_retrieved + k < data_size );k++)
+
+		if(data_size<=bytes_between_keyshares-j)
 		{
-			result[total_data_retrieved+k]=p[j+k];
+			data_remaining_till_end_of_chunk=data_size;
 		}
-		total_data_retrieved+=k;
+		else
+		{
+			data_remaining_till_end_of_chunk=bytes_between_keyshares-j;
+		}
+		
+		memcpy(&result[total_data_retrieved],&p[j],data_remaining_till_end_of_chunk);
+
+		total_data_retrieved+=data_remaining_till_end_of_chunk;
 		p+=bytes_between_keyshares + bytes_used_for_keyshares;
+		
 	}
   }
 
@@ -511,13 +527,17 @@ void get_secure_data(void * res,long data_size, unsigned char * data_start, int 
   while(total_data_retrieved<data_size)
   {
 	//actual retrieval
-	for (j=0;j<bytes_between_keyshares && (total_data_retrieved + j < data_size );j++)
+	data_remaining=data_size-total_data_retrieved;
+	if (data_remaining<=bytes_between_keyshares)
 	{
-		result[total_data_retrieved+j]=p[i+j];
+		memcpy(&result[total_data_retrieved],&p[i],data_remaining);
+		total_data_retrieved=data_size;
 	}
-
-	total_data_retrieved+=j;
-
+	else
+	{
+		memcpy(&result[total_data_retrieved],&p[i],bytes_between_keyshares);
+		total_data_retrieved+=bytes_between_keyshares;
+	}
 	i+=bytes_between_keyshares+bytes_used_for_keyshares;
   }
 
@@ -534,6 +554,8 @@ void set_secure_data(void * source,long data_size, unsigned char * data_start, i
   long total_data_set=0;
   long chunks_forward;
   long data_size_for_offset;
+  long data_remaining;
+  long data_remaining_till_end_of_chunk;
 
   p=data_start;
   src=source;
@@ -549,21 +571,29 @@ void set_secure_data(void * source,long data_size, unsigned char * data_start, i
 	chunks_forward=(arrayindex*data_size_for_offset)/(bytes_between_keyshares);
 	if (chunks_forward*bytes_between_keyshares==(arrayindex*data_size_for_offset))
 	{
-		p+=chunks_forward*bytes_between_keyshares + chunks_forward * bytes_used_for_keyshares; //We set p to point to the next useful area
+		p+=chunks_forward*(bytes_between_keyshares + bytes_used_for_keyshares); //We set p to point to the next useful area
 	}
 	else
 	{
 		//Well that's a problem. We have to start in the middle of a chunk.
 		//What we'll do is that we will set the part up to the end of the chunk.
-		p+=chunks_forward*bytes_between_keyshares + chunks_forward * bytes_used_for_keyshares;
+		p+=chunks_forward*(bytes_between_keyshares + bytes_used_for_keyshares);
 		j=(arrayindex*data_size_for_offset)-(chunks_forward*bytes_between_keyshares);
 
-		for (k=0;j+k<bytes_between_keyshares && (total_data_set + k < data_size );k++)
+		if(data_size<=bytes_between_keyshares-j)
 		{
-			p[j+k]=src[total_data_set+k];
+			data_remaining_till_end_of_chunk=data_size;
 		}
-		total_data_set+=k;
+		else
+		{
+			data_remaining_till_end_of_chunk=bytes_between_keyshares-j;
+		}
+		
+		memcpy(&p[j],&src[total_data_set],data_remaining_till_end_of_chunk);
+
+		total_data_set+=data_remaining_till_end_of_chunk;
 		p+=bytes_between_keyshares + bytes_used_for_keyshares;
+		
 	}
   }
 
@@ -571,14 +601,19 @@ void set_secure_data(void * source,long data_size, unsigned char * data_start, i
   while(total_data_set<data_size)
   {
 	//actual set
-	for (j=0;j<bytes_between_keyshares && (total_data_set + j < data_size );j++)
+	data_remaining=data_size-total_data_set;
+	if (data_remaining<=bytes_between_keyshares)
 	{
-		p[i+j]=src[total_data_set+j];
+		memcpy(&p[i],&src[total_data_set],data_remaining);
+		total_data_set=data_size;
 	}
-
-	total_data_set+=j;
-
+	else
+	{
+		memcpy(&p[i],&src[total_data_set],bytes_between_keyshares);
+		total_data_set+=bytes_between_keyshares;
+	}
 	i+=bytes_between_keyshares+bytes_used_for_keyshares;
+
   }
 
 }

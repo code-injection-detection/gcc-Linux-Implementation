@@ -190,6 +190,7 @@ void simple_sieve_of_Eratosthenes(int num)
 		}
 	}
 	
+	
 	printf("\n");
 	printf("Primes with sieve:\n");
 	for (i=2;i<=num;i++)
@@ -202,6 +203,7 @@ void simple_sieve_of_Eratosthenes(int num)
 	}
 	printf("\n");
 	printf("Total: %d primes.\n",prime_cnt);
+	
 	
 	//free(numbers);
 	
@@ -418,6 +420,7 @@ void user_friendly_secure_sieve_of_Eratosthenes(int num)
 	printf("\n");
 	//printf("Total: %d primes.\n",prime_cnt);
 	printf("Total: %d primes.\n",GET_STACK_INT(sieve_params,PRIME_CNT));
+	
 	
 	//free(numbers);
 	managed_secure_free(GET_STACK_PTR(sieve_params,NUMBERS));
