@@ -39,4 +39,4 @@ Helloworldadd_sec: Helloworldadd_sec.s
 	$(CC) $(FLAGS_to_secure_object) Helloworldadd_sec.o -o Helloworldadd_sec $(FLAGS_in_the_end)
 
 clean:
-	rm -f Helloworldadd.s Helloworldadd Helloworldadd_sec.s Helloworldadd_sec Helloworldadd_ksec Helloworldadd_sec.o Helloworldadd.o *.NASM* *.YASM* *.run
+	rm -f Helloworldadd.s Helloworldadd Helloworldadd_sec.s Helloworldadd_sec Helloworldadd_ksec Helloworldadd_sec.o Helloworldadd.o *.NASM* *.YASM* *.run heap_keyshares stack_keyshares
