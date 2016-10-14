@@ -1,6 +1,8 @@
-./bin/
-./samples/*.o
-./samples/*sec
-./samples/*.s
+/bin/
+/samples/*.o
+/samples/*sec
+/samples/*.s
+/samples/Helloworldadd
+/samples/*_keyshares
 #.classpath
 #.project
