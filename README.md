@@ -3,4 +3,6 @@ An implementation of the "Provable Virus Detection: Using the Uncertainty Princi
 More info here: https://eprint.iacr.org/2015/728
 
 
-An effort to port the First-Implementation repo into gcc and linux
+An effort to port the First-Implementation repo into gcc and Linux.
+
+Packages needed: python3, gcc, javac (java compiler)
