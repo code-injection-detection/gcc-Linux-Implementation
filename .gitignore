@@ -5,6 +5,10 @@
 Helloworldadd
 *_keyshares
 headers_needed.h
+verification_procedure.c
+memory_manager.c
+stack_manager.c
+general_tests.c
 
 #.classpath
 #.project

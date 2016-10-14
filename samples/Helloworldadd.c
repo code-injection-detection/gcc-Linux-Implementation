@@ -53,16 +53,7 @@ int main()
 	clock_t secureend;
 	double securetime;
 	double simpletime;
-	k=1;
-	i=2;
-	i++;
-	i++;
-	i--;
-	k=k+i;
-	k+=2;
-	i++;
-	static_main_variable_for_testing=1;
-	static_global_variable_for_testing=2;
+
 	
 	//initialise memory
 	init_heap_and_stack_mem();
@@ -75,14 +66,6 @@ int main()
 	pid=getpid();
 	printf("My pid=%ld\n",(long)pid);
 
-
- 	printf("K=%d\n",k);
-
- 	n=foo(5);
-	n=foo2(n);
-	printf("n=%d\n",n);
-
-	printf("main is at %p\n", main);
 
 	/*
 	//find_keyshares();
@@ -107,7 +90,7 @@ int main()
 	int hanoi_up_to=25;
 	//towerOfHanoi_secure_using_template(hanoi_up_to,'A','C','B');
 	//towerOfHanoi_secure(hanoi_up_to,'A','C','B');
-	//towerOfHanoi_secure_using_changed_accesses(hanoi_up_to,'A','C','B');
+	//towerOfHanoi_secure_using_changed_accesses(hanoi_up_to,'A','C','B'); //don't do this
 	TEST_NORMAL_AND_SECURE_TIME(towers of Hanoi,towerOfHanoi(hanoi_up_to,'A','C','B');,
 								towerOfHanoi_secure_using_template(hanoi_up_to,'A','C','B');)
 	*/
