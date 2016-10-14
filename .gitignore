@@ -1,8 +1,10 @@
 /bin/
-/samples/*.o
-/samples/*sec
-/samples/*.s
-/samples/Helloworldadd
-/samples/*_keyshares
+*.o
+*sec
+*.s
+Helloworldadd
+*_keyshares
+headers_needed.h
+
 #.classpath
 #.project
