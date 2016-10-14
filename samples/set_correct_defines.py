@@ -122,7 +122,8 @@ def create_init_commands():
 		new_line=''
 		new_line+='(long)('+dictionary['number']+'),'
 		if (dictionary['number']!='0'):
-			new_line+='(long)('+dictionary['initialise']+'),'
+			if (uninitialised_elements==1):
+				new_line+='(long)('+dictionary['initialise']+'),'
 			if (dictionary['initialise']!='0'):
 				for i,value in enumerate(dictionary['values']):
 					new_line+=''+value+','
@@ -136,7 +137,8 @@ def create_init_commands():
 		if (dictionary['number']!='0'):
 			for i,size in enumerate(dictionary['sizes']):
 					new_line+='(long)('+size+'),'
-			new_line+='(long)('+dictionary['initialise']+'),'
+			if (uninitialised_elements==1):
+				new_line+='(long)('+dictionary['initialise']+'),'
 			if (dictionary['initialise']!='0'):
 				for i,value in enumerate(dictionary['values']):
 					new_line+=''+value+','
@@ -150,7 +152,8 @@ def create_init_commands():
 		if (dictionary['number']!='0'):
 			for i,size in enumerate(dictionary['sizes']):
 					new_line+=',(long)('+size+')'
-			new_line+=',(long)('+dictionary['initialise']+')'
+			if (uninitialised_elements==1):
+				new_line+=',(long)('+dictionary['initialise']+')'
 			if (dictionary['initialise']!='0'):
 				for i,value in enumerate(dictionary['values']):
 					new_line+=','+value

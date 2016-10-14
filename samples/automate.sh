@@ -45,6 +45,28 @@ echo -n "NUM_OF_TOTAL_STACK_BYTES_ALLOC: "
 echo $NUM_OF_TOTAL_STACK_BYTES_ALLOC
 echo ""
 
+#Checking if the .class files are present
+if [ ! -d "../bin" ]; then
+	echo "The 'bin' directory with the class files is not present!" 
+	echo "The script will do the job for you. Make sure Java compiler is installed."
+	javac ../src/*
+	mkdir ../bin/
+	mv ../src/*.class ../bin/
+else
+	if [ ! -f ../bin/Secure_Assembly.class ]; then
+		echo "Secure_Assembly class file not found!"
+		echo "The script will do the job for you. Make sure Java compiler is installed."
+		javac ../src/Secure_Assembly.java
+		mv ../src/Secure_Assembly.class ../bin/
+	fi
+	if [ ! -f ../bin/Secure_Machine_Code.class ]; then
+		echo "Secure_Machine_Code class file not found!"
+		echo "The script will do the job for you. Make sure Java compiler is installed."
+		javac ../src/Secure_Machine_Code.java
+		mv ../src/Secure_Machine_Code.class ../bin/
+	fi
+fi
+
 echo "Changing defines according to input..."
 python3 set_correct_defines.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_TOTAL_STACK_BYTES_ALLOC
 echo "Changed defines."

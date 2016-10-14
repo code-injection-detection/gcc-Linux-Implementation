@@ -555,7 +555,7 @@ allocate_mem:
 	pushq	%rbx
 	subq	$56, %rsp
 	.cfi_offset 3, -24
-	movq	$30000, -56(%rbp)
+	movq	$2048, -56(%rbp)
 	movq	$5, -48(%rbp)
 	movq	$4, -40(%rbp)
 	movq	-48(%rbp), %rax
@@ -4467,7 +4467,7 @@ allocate_stack_mem:
 	pushq	%rbx
 	subq	$56, %rsp
 	.cfi_offset 3, -24
-	movq	$50000, -56(%rbp)
+	movq	$8192, -56(%rbp)
 	movq	$5, -48(%rbp)
 	movq	$4, -40(%rbp)
 	movq	-48(%rbp), %rax
@@ -12391,7 +12391,7 @@ init_heap_and_stack_mem:
 	.cfi_def_cfa_register 6
 	movl	$.LC134, %edi
 	call	puts
-	movl	$30000, %esi
+	movl	$2048, %esi
 	movl	$.LC135, %edi
 	movl	$0, %eax
 	call	printf
@@ -12406,7 +12406,7 @@ init_heap_and_stack_mem:
 	call	printf
 	movl	$.LC138, %edi
 	call	puts
-	movl	$50000, %esi
+	movl	$8192, %esi
 	movl	$.LC139, %edi
 	movl	$0, %eax
 	call	printf
@@ -12525,19 +12525,18 @@ foo:
 	.string	"main is at %p\n"
 	.align 8
 .LC148:
-	.string	"Calculating time for primes not very fast version. Normal primes not very fast version:"
+	.string	"Calculating time for towers of Hanoi. Normal towers of Hanoi:"
 	.align 8
 .LC150:
-	.string	"Normal primes not very fast version:%lg cpu seconds\n"
-	.align 8
+	.string	"Normal towers of Hanoi:%lg cpu seconds\n"
 .LC151:
-	.string	"Secure primes not very fast version:"
+	.string	"Secure towers of Hanoi:"
 	.align 8
 .LC152:
-	.string	"Normal primes not very fast version time:%lg cpu seconds\n"
+	.string	"Normal towers of Hanoi time:%lg cpu seconds\n"
 	.align 8
 .LC153:
-	.string	"Secure primes not very fast version time:%lg cpu seconds\n"
+	.string	"Secure towers of Hanoi time:%lg cpu seconds\n"
 .LC154:
 	.string	"Ratio: %lg times slowdown\n"
 .LC155:
@@ -12553,19 +12552,21 @@ main:
 	.cfi_offset 6, -16
 	movq	%rsp, %rbp
 	.cfi_def_cfa_register 6
-	addq	$-128, %rsp
+	pushq	%rbx
+	subq	$136, %rsp
+	.cfi_offset 3, -24
 	movq	%fs:40, %rax
-	movq	%rax, -8(%rbp)
+	movq	%rax, -24(%rbp)
 	xorl	%eax, %eax
-	movl	$1, -100(%rbp)
-	movl	$2, -96(%rbp)
-	addl	$1, -96(%rbp)
-	addl	$1, -96(%rbp)
-	subl	$1, -96(%rbp)
-	movl	-96(%rbp), %eax
-	addl	%eax, -100(%rbp)
-	addl	$2, -100(%rbp)
-	addl	$1, -96(%rbp)
+	movl	$1, -116(%rbp)
+	movl	$2, -112(%rbp)
+	addl	$1, -112(%rbp)
+	addl	$1, -112(%rbp)
+	subl	$1, -112(%rbp)
+	movl	-112(%rbp), %eax
+	addl	%eax, -116(%rbp)
+	addl	$2, -116(%rbp)
+	addl	$1, -112(%rbp)
 	movl	$1, static_main_variable_for_testing.6297(%rip)
 	movl	$2, static_global_variable_for_testing(%rip)
 	movl	$0, %eax
@@ -12573,26 +12574,26 @@ main:
 	movl	$0, %eax
 	call	install_signal_handler
 	call	getpid
-	movl	%eax, -92(%rbp)
-	movl	-92(%rbp), %eax
+	movl	%eax, -108(%rbp)
+	movl	-108(%rbp), %eax
 	cltq
 	movq	%rax, %rsi
 	movl	$.LC144, %edi
 	movl	$0, %eax
 	call	printf
-	movl	-100(%rbp), %eax
+	movl	-116(%rbp), %eax
 	movl	%eax, %esi
 	movl	$.LC145, %edi
 	movl	$0, %eax
 	call	printf
 	movl	$5, %edi
 	call	foo
-	movl	%eax, -88(%rbp)
-	movl	-88(%rbp), %eax
+	movl	%eax, -104(%rbp)
+	movl	-104(%rbp), %eax
 	movl	%eax, %edi
 	call	foo2
-	movl	%eax, -88(%rbp)
-	movl	-88(%rbp), %eax
+	movl	%eax, -104(%rbp)
+	movl	-104(%rbp), %eax
 	movl	%eax, %esi
 	movl	$.LC146, %edi
 	movl	$0, %eax
@@ -12601,69 +12602,75 @@ main:
 	movl	$.LC147, %edi
 	movl	$0, %eax
 	call	printf
-	movl	$1000, -84(%rbp)
+	movl	$25, -100(%rbp)
 	movl	$10, %edi
 	call	putchar
 	movl	$.LC148, %edi
 	call	puts
 	call	clock
-	movq	%rax, -80(%rbp)
-	movl	-84(%rbp), %eax
+	movq	%rax, -96(%rbp)
+	movl	-100(%rbp), %eax
+	movl	$66, %ecx
+	movl	$67, %edx
+	movl	$65, %esi
 	movl	%eax, %edi
-	call	find_primes_up_to_a_number
+	call	towerOfHanoi
 	call	clock
-	movq	%rax, -72(%rbp)
-	movq	-80(%rbp), %rax
-	movq	-72(%rbp), %rdx
+	movq	%rax, -88(%rbp)
+	movq	-96(%rbp), %rax
+	movq	-88(%rbp), %rdx
 	subq	%rax, %rdx
 	movq	%rdx, %rax
 	cvtsi2sdq	%rax, %xmm0
 	movsd	.LC149(%rip), %xmm1
 	divsd	%xmm1, %xmm0
-	movsd	%xmm0, -64(%rbp)
+	movsd	%xmm0, -80(%rbp)
 	movl	$10, %edi
 	call	putchar
-	movq	-64(%rbp), %rax
-	movq	%rax, -120(%rbp)
-	movsd	-120(%rbp), %xmm0
+	movq	-80(%rbp), %rax
+	movq	%rax, -136(%rbp)
+	movsd	-136(%rbp), %xmm0
 	movl	$.LC150, %edi
 	movl	$1, %eax
 	call	printf
 	movl	$.LC151, %edi
 	call	puts
 	call	clock
-	movq	%rax, -56(%rbp)
-	movl	-84(%rbp), %eax
+	movq	%rax, -72(%rbp)
+	movl	-100(%rbp), %eax
+	movl	$66, %ecx
+	movl	$67, %edx
+	movl	$65, %esi
 	movl	%eax, %edi
-	call	secure_find_primes_up_to_a_number
+	call	towerOfHanoi_secure_using_template
 	call	clock
-	movq	%rax, -48(%rbp)
-	movq	-56(%rbp), %rax
-	movq	-48(%rbp), %rdx
+	movq	%rax, -64(%rbp)
+	movq	-72(%rbp), %rax
+	movq	-64(%rbp), %rdx
 	subq	%rax, %rdx
 	movq	%rdx, %rax
 	cvtsi2sdq	%rax, %xmm0
 	movsd	.LC149(%rip), %xmm1
 	divsd	%xmm1, %xmm0
-	movsd	%xmm0, -40(%rbp)
+	movsd	%xmm0, -56(%rbp)
 	movl	$10, %edi
 	call	putchar
-	movq	-64(%rbp), %rax
-	movq	%rax, -120(%rbp)
-	movsd	-120(%rbp), %xmm0
+	movq	-80(%rbp), %rax
+	movq	%rax, -136(%rbp)
+	movsd	-136(%rbp), %xmm0
 	movl	$.LC152, %edi
 	movl	$1, %eax
 	call	printf
-	movq	-40(%rbp), %rax
-	movq	%rax, -120(%rbp)
-	movsd	-120(%rbp), %xmm0
+	movq	-56(%rbp), %rax
+	movq	%rax, -136(%rbp)
+	movsd	-136(%rbp), %xmm0
 	movl	$.LC153, %edi
 	movl	$1, %eax
 	call	printf
 	movl	$10, %edi
 	call	putchar
-	movsd	-40(%rbp), %xmm0
-	divsd	-64(%rbp), %xmm0
+	movsd	-56(%rbp), %xmm0
+	divsd	-80(%rbp), %xmm0
 	movl	$.LC154, %edi
 	movl	$1, %eax
 	call	printf
@@ -12676,12 +12683,14 @@ main:
 	movl	$0, %eax
 	call	free_heap_and_stack_memory
 	movl	$0, %eax
-	movq	-8(%rbp), %rcx
-	xorq	%fs:40, %rcx
+	movq	-24(%rbp), %rbx
+	xorq	%fs:40, %rbx
 	je	.L742
 	call	__stack_chk_fail
 .L742:
-	leave
+	addq	$136, %rsp
+	popq	%rbx
+	popq	%rbp
 	.cfi_def_cfa 7, 8
 	ret
 	.cfi_endproc

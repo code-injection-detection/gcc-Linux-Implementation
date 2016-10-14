@@ -103,50 +103,25 @@ int main()
 	*/
 	
 	/*
-	printf("\n");
-	printf("Going to measure time for heap accesses in array adding.\n");
-	printf("Simple array adding:\n");
-	simplestart=clock();
-	adding_unsecured_arrays_time_measure(100);
-	simpleend=clock();
-	simpletime=((double) (simpleend - simplestart)) / CLOCKS_PER_SEC;
-	printf("Normal array adding time:%lg cpu seconds\n",simpletime);
-	printf("Secure array adding:\n");
-	securestart=clock();
-	adding_heap_arrays_time_measure(100);
-	secureend=clock();
-	securetime=((double) (secureend - securestart)) / CLOCKS_PER_SEC;
-	printf("Secure array adding time:%lg cpu seconds\n",securetime);
-	printf("Ratio: %lg times slowdown\n",securetime/simpletime);
+	int len=100;
+	TEST_NORMAL_AND_SECURE_TIME(time for heap accesses in array adding.,adding_unsecured_arrays_time_measure(len);,
+								adding_heap_arrays_time_measure(len);)
 	*/
+	
+	
+	int hanoi_up_to=25;
+	//towerOfHanoi_secure_using_template(hanoi_up_to,'A','C','B');
+	//towerOfHanoi_secure(hanoi_up_to,'A','C','B');
+	//towerOfHanoi_secure_using_changed_accesses(hanoi_up_to,'A','C','B');
+	TEST_NORMAL_AND_SECURE_TIME(towers of Hanoi,towerOfHanoi(hanoi_up_to,'A','C','B');,
+								towerOfHanoi_secure_using_template(hanoi_up_to,'A','C','B');)
+	
 	
 	/*
-	printf("\n");
-	printf("Calculating time for secure stack. Normal Hanoi:\n");
-	simplestart=clock();
-	towerOfHanoi(25,'A','C','B');
-	simpleend=clock();
-	simpletime=((double) (simpleend - simplestart)) / CLOCKS_PER_SEC;
-	printf("\n");
-	printf("Normal Hanoi time:%lg cpu seconds\n",simpletime);
-	printf("Secure Hanoi:\n");
-	securestart=clock();
-	//towerOfHanoi_secure(25,'A','C','B');
-	towerOfHanoi_secure_using_template(25,'A','C','B');
-	//towerOfHanoi_secure_using_changed_accesses(25,'A','C','B');
-	secureend=clock();
-	securetime=((double) (secureend - securestart)) / CLOCKS_PER_SEC;
-	printf("\n");
-	printf("Normal Hanoi time:%lg cpu seconds\n",simpletime);
-	printf("Secure Hanoi time:%lg cpu seconds\n",securetime);
-	printf("\n");
-	printf("Ratio: %lg times slowdown\n",securetime/simpletime);
-	*/
-	
-	
 	int primes_up_to=1000;
 	TEST_NORMAL_AND_SECURE_TIME(primes not very fast version,find_primes_up_to_a_number(primes_up_to);,
 								secure_find_primes_up_to_a_number(primes_up_to);)
+	*/
 	
 	/*
 	int times=10000000;
