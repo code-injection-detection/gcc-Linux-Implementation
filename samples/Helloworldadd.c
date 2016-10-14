@@ -75,12 +75,7 @@ int main()
 	pid=getpid();
 	printf("My pid=%ld\n",(long)pid);
 
-	/*
-	//stress a bit
-	for (j=1;j<=500000000;j++)
-	  k+=i;
-	*/
-	
+
  	printf("K=%d\n",k);
 
  	n=foo(5);
@@ -108,20 +103,20 @@ int main()
 								adding_heap_arrays_time_measure(len);)
 	*/
 	
-	
+	/*
 	int hanoi_up_to=25;
 	//towerOfHanoi_secure_using_template(hanoi_up_to,'A','C','B');
 	//towerOfHanoi_secure(hanoi_up_to,'A','C','B');
 	//towerOfHanoi_secure_using_changed_accesses(hanoi_up_to,'A','C','B');
 	TEST_NORMAL_AND_SECURE_TIME(towers of Hanoi,towerOfHanoi(hanoi_up_to,'A','C','B');,
 								towerOfHanoi_secure_using_template(hanoi_up_to,'A','C','B');)
+	*/
 	
 	
-	/*
-	int primes_up_to=1000;
+	int primes_up_to=100;
 	TEST_NORMAL_AND_SECURE_TIME(primes not very fast version,find_primes_up_to_a_number(primes_up_to);,
 								secure_find_primes_up_to_a_number(primes_up_to);)
-	*/
+	
 	
 	/*
 	int times=10000000;

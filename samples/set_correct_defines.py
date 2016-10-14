@@ -2,7 +2,7 @@ import sys
 import copy
 
 
-headers_src=open('headers_needed_template.h','r')
+headers_src=open('./template_files/headers_needed_template.h','r')
 headers_dst=open('headers_needed.h','w')
 
 
@@ -200,7 +200,7 @@ def init_params():
 
 
 
-general_tests_src=open('general_tests_template.c','r')
+general_tests_src=open('./template_files/general_tests_template.c','r')
 general_tests_dst=open('general_tests.c','w')
 
 src_lines= general_tests_src.readlines()

@@ -72,9 +72,9 @@ python3 set_correct_defines.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF
 echo "Changed defines."
 
 echo "Copying templates to target files"
-cp memory_manager_template.c memory_manager.c
-cp verification_procedure_template.c verification_procedure.c
-cp stack_manager_template.c stack_manager.c
+cp ./template_files/memory_manager_template.c memory_manager.c
+cp ./template_files/verification_procedure_template.c verification_procedure.c
+cp ./template_files/stack_manager_template.c stack_manager.c
 echo "Copied templates"
 
 echo "Compiling...."
