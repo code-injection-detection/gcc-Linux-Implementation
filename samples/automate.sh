@@ -46,7 +46,7 @@ echo $NUM_OF_TOTAL_STACK_BYTES_ALLOC
 echo ""
 
 #Checking if the .class files are present
-if [ ! -d "../bin" ]; then
+if [ ! -d "../bin" ]; then  #if directory does not exist
 	echo "The 'bin' directory with the class files is not present!" 
 	echo "The script will do the job for you. Make sure Java compiler is installed."
 	echo "Compiling Java classes..."
@@ -55,21 +55,38 @@ if [ ! -d "../bin" ]; then
 	mv ../src/*.class ../bin/
 	echo "Compiled Java classes."
 else
-	if [ ! -f ../bin/Secure_Assembly.class ]; then
+	if [ ! -f ../bin/Secure_Assembly.class ]; then #if .class file is not there
 		echo "Secure_Assembly class file not found!"
 		echo "The script will do the job for you. Make sure Java compiler is installed."
-		echo "Compiling Java classes..."
+		echo "Compiling Java class..."
 		javac ../src/Secure_Assembly.java
 		mv ../src/Secure_Assembly.class ../bin/
-		echo "Compiled Java classes."
+		echo "Compiled Java class."
+	else if [ ../bin/Secure_Assembly.class -ot ../src/Secure_Assembly.java ]; then #if the class file is older than the code
+			echo "Secure_Assembly class file is out of date!"
+			echo "The script will do the job for you. Make sure Java compiler is installed."
+			echo "Compiling Java class..."
+			javac ../src/Secure_Assembly.java
+			mv ../src/Secure_Assembly.class ../bin/
+			echo "Compiled Java class."
+		 fi
 	fi
-	if [ ! -f ../bin/Secure_Machine_Code.class ]; then
+	
+	if [ ! -f ../bin/Secure_Machine_Code.class ]; then #if .class file is not there
 		echo "Secure_Machine_Code class file not found!"
 		echo "The script will do the job for you. Make sure Java compiler is installed."
-		echo "Compiling Java classes..."
+		echo "Compiling Java class..."
 		javac ../src/Secure_Machine_Code.java
 		mv ../src/Secure_Machine_Code.class ../bin/
-		echo "Compiled Java classes."
+		echo "Compiled Java class."
+	else if [ ../bin/Secure_Machine_Code.class -ot ../src/Secure_Machine_Code.java ]; then #if the class file is older than the code
+		echo "Secure_Machine_Code class file is out of date!"
+		echo "The script will do the job for you. Make sure Java compiler is installed."
+		echo "Compiling Java class..."
+		javac ../src/Secure_Machine_Code.java
+		mv ../src/Secure_Machine_Code.class ../bin/
+		echo "Compiled Java class."
+		fi
 	fi
 fi
 
