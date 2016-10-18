@@ -125,8 +125,8 @@ public class Secure_Machine_Code {
 	    				total_bytes_trying_to_allocate_in_heap,
 	    				useful_bytes_between_keys_in_heap,
 	    				num_of_keys_in_heap);
-	    //Now we don't care about the useful chunks, but the keys
-	    for (int i=0;i<useful_chunks_in_heap-1;i++)
+	    //Now we don't care about the useful chunks, but the keys ( whose groups are the same as the number of chunks)
+	    for (int i=0;i<useful_chunks_in_heap;i++)
 	    {
 		    //insert into heap_keyshares file
 		    for(int j=0;j<number_of_interleaved_nops;j++)
@@ -141,11 +141,11 @@ public class Secure_Machine_Code {
 	    
 	  //inserting keyshares into stack keyshare file
 
-	    useful_chunks_in_stack=find_useful_chunks_needed_to_allocate_in_mem(
+	    useful_chunks_in_stack=find_useful_chunks_needed_to_allocate_in_stack(
 	    				total_bytes_trying_to_allocate_in_stack,
 	    				useful_bytes_between_keys_in_stack,
 	    				num_of_keys_in_stack);
-	    //Now we don't care about the useful chunks, but the keys (chunks-1)
+	    //Now we don't care about the useful chunks, but the keys (chunks -1)
 	    for (int i=0;i<useful_chunks_in_stack-1;i++)
 	    {
 		    //insert into stack_keyshares file
@@ -218,13 +218,25 @@ public class Secure_Machine_Code {
 	
 	static long find_useful_chunks_needed_to_allocate_in_mem(long ttl_bytes,int useful_bytes,int key_bytes)
 	{
+		long useful_chunks=(long)((ttl_bytes)/(useful_bytes+key_bytes)); //this should be an integer, If not, we should allocate a bit more. 
+		if (useful_chunks*useful_bytes+(useful_chunks)*key_bytes==ttl_bytes)
+		{
+			return (useful_chunks);
+		}
+		else
+		{
+			return (useful_chunks+1);
+		}
+	}
+	
+	static long find_useful_chunks_needed_to_allocate_in_stack(long ttl_bytes,int useful_bytes,int key_bytes)
+	{
 		long useful_chunks=(long)((ttl_bytes+key_bytes)/(useful_bytes+key_bytes)); //this should be an integer, If not, we should allocate a bit more. 
 		
 		if (useful_chunks*useful_bytes+(useful_chunks-1)*key_bytes==ttl_bytes)
 			return (useful_chunks);
 		else
 		{
-			//total bytes= ((useful_chunks+1)*useful_bytes+(useful_chunks+1-1)*key_bytes);
 			return (useful_chunks+1);
 		}
 	}

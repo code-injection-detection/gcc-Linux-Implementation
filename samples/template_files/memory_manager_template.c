@@ -1,8 +1,8 @@
 #include "headers_needed.h"
 
 /* The memory image should be like ('o'=useful data, 'x'=keyshares):
-oooxxxxxxooo.....xxxxxxoooxxxxxxooo
-Which means: n times useful data, (n-1) times keyshares
+oooxxxxxxooo.....xxxxxxoooxxxxxx
+Which means: n times useful data, n times keyshares
 Let's call these groups of bytes as chunks (of useful data, and of keyshares)
 Allocation is done as allocation of a whole number of useful chunks. A chunk is not broken between different allocations.
 The heap memory manager uses two lists: One for free consecutive chunks (which are grouped together  whenever they don't have data among them),
@@ -213,14 +213,14 @@ void print_lists()
 /***************************** END OF LIST MANIPULATION FUNCTIONS ******************************************/
 
 /*Returns the number of the useful chunks in memory*/
-/*This number (let it be "n") satisfies the equation <useful_bytes_chunk_length>*(n) + <keyshare_bytes_chunk_length>*(n-1)= total_allocated_bytes */
+/*This number (let it be "n") satisfies the equation <useful_bytes_chunk_length>*(n) + <keyshare_bytes_chunk_length>*(n)= total_allocated_bytes */
 long find_number_of_useful_chunks(long allocated_bytes) //most often allocated bytes == total_bytes_allocated
 {
   long a=allocated_bytes;
   long b=bytes_used_for_keyshares;
   long c=bytes_between_keyshares;
 
-  return ((a+b)/(b+c));
+  return ((a)/(b+c));
 }
 
 /*Initialises memory manager's data structures*/
@@ -264,8 +264,8 @@ void free_memory_manager_structures()
 
 /*Allocates the entire chunck of memory.*/
 /*The goal is to allocate a space where we can have useful("o") bytes with keyshare bytes("x"). The memory image should be like:
-oooxxxxxxooo.....xxxxxxoooxxxxxxooo
-Which means: n times useful data, (n-1) times keyshares
+oooxxxxxxooo.....xxxxxxoooxxxxxx
+Which means: n times useful data, n times keyshares
 */
 unsigned char * allocate_mem()
 {
@@ -276,9 +276,9 @@ unsigned char * allocate_mem()
   long c=bytes_between_keyshares;
   long element_appearances_in_mem;
 
-  element_appearances_in_mem=(a+b)/(b+c); //this should be an integer, If not, we should allocate a bit more. 
+  element_appearances_in_mem=(a)/(b+c); //this should be an integer, If not, we should allocate a bit more. 
 
-  if (element_appearances_in_mem*c + (element_appearances_in_mem-1)*b == a) 
+  if (element_appearances_in_mem*c + (element_appearances_in_mem)*b == a) 
   {
 	printf("Great!. No need to allocate more than the defined amount.\n");
 	bytes_to_allocate=a;
@@ -287,7 +287,7 @@ unsigned char * allocate_mem()
   {
 	printf("Whoops. We need to allocate a bit more space.\n");
 	element_appearances_in_mem++;
-	bytes_to_allocate=element_appearances_in_mem*c + (element_appearances_in_mem-1)*b;
+	bytes_to_allocate=element_appearances_in_mem*c + (element_appearances_in_mem)*b;
   }
  
   mem = error_checking_malloc(bytes_to_allocate,__func__,__LINE__);
@@ -314,7 +314,7 @@ void * secure_malloc(long bytes_for_allocation )
 
   total_bytes_left_free=ttl_bts_alloc-(last_unused_mem-memstart);
 
-  useful_chunks=(total_bytes_left_free+b)/(b+c);
+  useful_chunks=(total_bytes_left_free)/(b+c);
 
   if (useful_chunks*c<bytes_for_allocation)
   {
@@ -1155,7 +1155,7 @@ void * error_checking_managed_secure_malloc(long bytes_for_allocation,const char
 	ret=managed_secure_malloc(bytes_for_allocation);
 	if (ret==NULL)
 	{
-		fprintf(stderr,"Managed secure malloc error in function %s, line %d\n",fun_name,line);
+		fprintf(stderr,"Managed secure malloc error in function %s, line %d. Perhaps not enough memory?\n",fun_name,line);
 		exit(52);
 	}
 	return ret;	

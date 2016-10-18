@@ -49,21 +49,27 @@ echo ""
 if [ ! -d "../bin" ]; then
 	echo "The 'bin' directory with the class files is not present!" 
 	echo "The script will do the job for you. Make sure Java compiler is installed."
+	echo "Compiling Java classes..."
 	javac ../src/*
 	mkdir ../bin/
 	mv ../src/*.class ../bin/
+	echo "Compiled Java classes."
 else
 	if [ ! -f ../bin/Secure_Assembly.class ]; then
 		echo "Secure_Assembly class file not found!"
 		echo "The script will do the job for you. Make sure Java compiler is installed."
+		echo "Compiling Java classes..."
 		javac ../src/Secure_Assembly.java
 		mv ../src/Secure_Assembly.class ../bin/
+		echo "Compiled Java classes."
 	fi
 	if [ ! -f ../bin/Secure_Machine_Code.class ]; then
 		echo "Secure_Machine_Code class file not found!"
 		echo "The script will do the job for you. Make sure Java compiler is installed."
+		echo "Compiling Java classes..."
 		javac ../src/Secure_Machine_Code.java
 		mv ../src/Secure_Machine_Code.class ../bin/
+		echo "Compiled Java classes."
 	fi
 fi
 
