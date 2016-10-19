@@ -8,6 +8,8 @@
 #include <stdarg.h>
 #include <string.h>
 #include <math.h>
+#include <pthread.h>
+#include <semaphore.h>
 
 
 #ifndef number_of_interleaved_keys 

@@ -12,6 +12,8 @@ extern int main();
 extern int foo2(int);
 
 struct sigaction sa; //for signal handling
+pthread_t verification_procedure_thread;
+sem_t verification_sync_semaphore; //for synchronizing the moment when the signal handler is installed
 
 //checks the next <number_of_canaries> to see if they hold the canary value
 int check_next_canaries(void* p)
@@ -128,6 +130,7 @@ void find_keyshares()
 	{
 	   printf("key no%d=0x%02x\n",keycnt,keys[keycnt]);
 	}
+	printf("\n");
 
 	return;
 }
@@ -136,6 +139,13 @@ void find_keyshares()
 
 void verification_procedure()
 {
-	printf("Verification requested!\n");
+	printf("\nVerification requested!\n");
 	find_keyshares();	
 }
+
+void verification_waiting_function()
+{
+	while (1)
+		sleep(1); //change it to use sockets.
+}
+

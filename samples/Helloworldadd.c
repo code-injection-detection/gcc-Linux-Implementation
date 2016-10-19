@@ -59,8 +59,8 @@ int main()
 	init_heap_and_stack_mem();
 	
 	
-	//setting up signal handler
-	install_signal_handler();
+	//initialise the verification procedure thread that will wait to be called
+	init_verification_procedure_thread();
 	
 	
 	pid=getpid();

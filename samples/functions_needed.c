@@ -61,6 +61,22 @@ void install_signal_handler()
 }
 
 
+void * init_verification_procedure(void * param)
+{
+	//set up the signal handler
+	install_signal_handler();
+	sem_post(&verification_sync_semaphore); //signal handler is installed. Release semaphore.
+	verification_waiting_function();
+}
+
+void init_verification_procedure_thread()
+{
+	sem_init(&verification_sync_semaphore, 0, 0); //We need to make sure the thread has installed the signal handler before continuing
+	pthread_create(&verification_procedure_thread,NULL,init_verification_procedure,NULL); //create the thread
+	sem_wait(&verification_sync_semaphore); //and wait until the signal handler is installed
+}
+
+
 void free_heap_and_stack_memory()
 {
 	free_secure_mem(entire_memory_chunk);	
