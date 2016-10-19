@@ -71,9 +71,14 @@ void * init_verification_procedure(void * param)
 
 void init_verification_procedure_thread()
 {
+	sigset_t set;
+	
 	sem_init(&verification_sync_semaphore, 0, 0); //We need to make sure the thread has installed the signal handler before continuing
 	pthread_create(&verification_procedure_thread,NULL,init_verification_procedure,NULL); //create the thread
-	sem_wait(&verification_sync_semaphore); //and wait until the signal handler is installed
+	sigemptyset(&set);
+	sigaddset(&set, SIGUSR1);
+	pthread_sigmask(SIG_BLOCK, &set, NULL); //Make the main thread not accept SIGUSR1
+	sem_wait(&verification_sync_semaphore); //wait until the signal handler is installed
 }
 
 
