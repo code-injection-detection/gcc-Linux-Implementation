@@ -8,7 +8,7 @@ import java.io.*;
  * It does this by some not-very-clean parsing, (but we could refine it later)
  * (The point is that parsing an assembly file is still way easier than parsing
  * a C file.)
- * To handle the jumps over the instructions, we add labels. 
+ * To handle the jumps over the instructions, we add labels.
  */
 public class Secure_Assembly {
 	

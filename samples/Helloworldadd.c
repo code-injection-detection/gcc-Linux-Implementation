@@ -72,9 +72,9 @@ int main()
 	//mem_test();
 	//list_test();
 	printf("\nSimple array tests in heap\n");
-	simple_array_tests();
+	//simple_array_tests();
 	printf("\nStack fun params test\n");
-	//stack_fun_params_test();
+	stack_fun_params_test();
 	printf("\nEnd of tests\n");
 	printf("Going to find keyshares\n");
 	find_keyshares();
@@ -108,7 +108,7 @@ int main()
 	*/
 	
 	/*
-	int sieve_size=10000;
+	int sieve_size=1000;
 	TEST_NORMAL_AND_SECURE_TIME(sieve of Eratosthenes,simple_sieve_of_Eratosthenes(sieve_size);,
 								user_friendly_secure_sieve_of_Eratosthenes(sieve_size))
 	*/

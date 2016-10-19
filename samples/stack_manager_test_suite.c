@@ -16,9 +16,12 @@ void stack_fun_params_test()
 	//pass lengths as LONGS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	test_params=init_function_params(1,5L,'c','d','e','f','g',2L,42,41,0L,0L,2L,42.42,56.56,1L,10L,424242,1L,10L*sizeof(double),double_array);
 	
+	//print_stack_mem(entire_stack_memory_chunk);
 
 	printf("Inserting fun params into secure stack\n");
 	test_params=put_fun_params_into_secure_stack_and_free(test_params);
+	
+	//print_stack_mem(entire_stack_memory_chunk);
 	
 	printf("Printing chars\n");
 	for (i=0;i<5;i++)

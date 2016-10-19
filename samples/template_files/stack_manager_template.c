@@ -2,8 +2,8 @@
 
 
 /* The stack memory image should be like ('o'=useful data, 'x'=keyshares):
-oooxxxxxxooo.....xxxxxxoooxxxxxxooo
-Which means: n times useful data, (n-1) times keyshares
+oooxxxxxxooo.....xxxxxxoooxxxxxx
+Which means: n times useful data, n times keyshares
 Let's call these groups of bytes as chunks (of useful data, and of keyshares)
 Allocation is done as allocation of a whole number of useful chunks. A chunk is not broken between different allocations.
 */
@@ -68,14 +68,14 @@ typedef struct chunks_and_old_memory{
 
 
 /*Returns the number of the useful chunks in stack memory*/
-/*This number (let it be "n") satisfies the equation <useful_bytes_chunk_length>*(n) + <keyshare_bytes_chunk_length>*(n-1)= total_allocated_bytes */
+/*This number (let it be "n") satisfies the equation <useful_bytes_chunk_length>*(n) + <keyshare_bytes_chunk_length>*(n)= total_allocated_bytes */
 long find_number_of_useful_stack_chunks(long allocated_bytes) //most often allocated bytes == total_bytes_allocated
 {
   long a=allocated_bytes;
   long b=stack_bytes_used_for_keyshares;
   long c=stack_bytes_between_keyshares;
 
-  return ((a+b)/(b+c));
+  return ((a)/(b+c));
 }
 
 
@@ -114,8 +114,8 @@ unsigned char get_next_stack_keyshare()
 
 /*Allocates the entire chunck of stack memory.*/
 /*The goal is to allocate a space where we can have useful("o") bytes with keyshare bytes("x"). The memory image should be like:
-oooxxxxxxooo.....xxxxxxoooxxxxxxooo
-Which means: n times useful data, (n-1) times keyshares
+oooxxxxxxooo.....xxxxxxoooxxxxxx
+Which means: n times useful data, n times keyshares
 */
 unsigned char * allocate_stack_mem()
 {
@@ -126,9 +126,9 @@ unsigned char * allocate_stack_mem()
   long c=stack_bytes_between_keyshares;
   long element_appearances_in_stack_mem;
 
-  element_appearances_in_stack_mem=(a+b)/(b+c); //this should be an integer, If not, we should allocate a bit more. 
+  element_appearances_in_stack_mem=(a)/(b+c); //this should be an integer, If not, we should allocate a bit more. 
 
-  if (element_appearances_in_stack_mem*c + (element_appearances_in_stack_mem-1)*b == a) 
+  if (element_appearances_in_stack_mem*c + (element_appearances_in_stack_mem)*b == a) 
   {
 	printf("Stack: Great!. No need to allocate more than the defined amount.\n");
 	stack_bytes_to_allocate=a;
@@ -137,7 +137,7 @@ unsigned char * allocate_stack_mem()
   {
 	printf("Stack: Whoops. We need to allocate a bit more space.\n");
 	element_appearances_in_stack_mem++;
-	stack_bytes_to_allocate=element_appearances_in_stack_mem*c + (element_appearances_in_stack_mem-1)*b;
+	stack_bytes_to_allocate=element_appearances_in_stack_mem*c + (element_appearances_in_stack_mem)*b;
   }
  
   stack_mem = error_checking_malloc(stack_bytes_to_allocate,__func__,__LINE__);
@@ -459,20 +459,20 @@ chunks_and_old_mem allocate_mem_into_secure_stack(long stack_bytes_to_allocate)
 		ret.old_mem=NULL;
 		return ret;
 	}
-		
+	
 	chunks_needed_to_allocate=stack_bytes_to_allocate/c;
 	
 	if (chunks_needed_to_allocate*c<stack_bytes_to_allocate)
 		chunks_needed_to_allocate++;
-		
+	
 	ret.chunks_allocated=chunks_needed_to_allocate;
 	
 	//perform the allocation
 	last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) + (chunks_needed_to_allocate*c+ chunks_needed_to_allocate*b);
 	
 	//stack overflow check
-	//this way, allocating the last chunk results in overflow, but that's ok for now. //FIX ME
-	if ((unsigned char*)last_unused_stack_memory >= ((unsigned char*)entire_stack_memory_chunk) + total_stack_bytes_allocated)
+	//this way, allocating the last chunk results in the last_unused_stack_memory to reach out of the stack.
+	if ((unsigned char*)last_unused_stack_memory > ((unsigned char*)entire_stack_memory_chunk) + total_stack_bytes_allocated)
 	{
 		//cancel last increase
 		last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_needed_to_allocate*c+ chunks_needed_to_allocate*b);

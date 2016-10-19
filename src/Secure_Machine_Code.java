@@ -4,7 +4,7 @@ import java.io.*;
  * This code reads a compiled exe file and then locates the nop instructions
  * and replaces them with the key share values.
  * 
- */
+ */ 
 
 public class Secure_Machine_Code {
 	public static void main(String[] args) throws Exception
@@ -141,12 +141,12 @@ public class Secure_Machine_Code {
 	    
 	  //inserting keyshares into stack keyshare file
 
-	    useful_chunks_in_stack=find_useful_chunks_needed_to_allocate_in_stack(
+	    useful_chunks_in_stack=find_useful_chunks_needed_to_allocate_in_mem(
 	    				total_bytes_trying_to_allocate_in_stack,
 	    				useful_bytes_between_keys_in_stack,
 	    				num_of_keys_in_stack);
 	    //Now we don't care about the useful chunks, but the keys (chunks -1)
-	    for (int i=0;i<useful_chunks_in_stack-1;i++)
+	    for (int i=0;i<useful_chunks_in_stack;i++)
 	    {
 		    //insert into stack_keyshares file
 		    for(int j=0;j<number_of_interleaved_nops;j++)
@@ -229,18 +229,7 @@ public class Secure_Machine_Code {
 		}
 	}
 	
-	static long find_useful_chunks_needed_to_allocate_in_stack(long ttl_bytes,int useful_bytes,int key_bytes)
-	{
-		long useful_chunks=(long)((ttl_bytes+key_bytes)/(useful_bytes+key_bytes)); //this should be an integer, If not, we should allocate a bit more. 
-		
-		if (useful_chunks*useful_bytes+(useful_chunks-1)*key_bytes==ttl_bytes)
-			return (useful_chunks);
-		else
-		{
-			return (useful_chunks+1);
-		}
-	}
-	
+
 	static boolean produced_bad_opcode( byte[] random_bytes_generated,int number_of_interleaved_nops, int number_of_canaries,int pos,byte canary_value)
 	{
 		for (int i=0;i<number_of_canaries;i++)
