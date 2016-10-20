@@ -68,7 +68,7 @@ int main()
 
 
 	/*
-	//find_keyshares();
+	//find_keyshares(-1);
 	//mem_test();
 	//list_test();
 	printf("\nSimple array tests in heap\n");
@@ -77,7 +77,7 @@ int main()
 	stack_fun_params_test();
 	printf("\nEnd of tests\n");
 	printf("Going to find keyshares\n");
-	find_keyshares();
+	find_keyshares(-1);
 	*/
 	
 	/*
@@ -87,7 +87,7 @@ int main()
 	*/
 	
 	/*
-	int hanoi_up_to=25;
+	int hanoi_up_to=26;
 	//towerOfHanoi_secure_using_template(hanoi_up_to,'A','C','B');
 	//towerOfHanoi_secure(hanoi_up_to,'A','C','B');
 	//towerOfHanoi_secure_using_changed_accesses(hanoi_up_to,'A','C','B'); //don't do this
@@ -126,7 +126,7 @@ int main()
 	
 	printf("\n");
 	printf("Going to find keyshares.\n");
-	find_keyshares();
+	find_keyshares(-1);
 	
 	
 	

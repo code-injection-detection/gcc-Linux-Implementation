@@ -1,6 +1,18 @@
 #include "headers_needed.h"
 
 
+/*For the socket communication code thanks to Vangelis Koukis <vkoukis@cslab.ece.ntua.gr> */
+
+/* Compile-time options */
+#define TCP_PORT    42000
+#define TCP_BACKLOG 5
+#define BUFFER_SIZE 300
+#define KEYOUT_BUFFER_SIZE 8192
+
+/*Recognized commands by socket server*/
+typedef enum commands {UNRECOGNIZED_CMD,VERIFY,CMD_ENUM_SIZE} verification_command;
+
+
 extern char __executable_start;   //in order to find limits of .text section in ELF files.
 extern char __etext;
 
@@ -15,6 +27,37 @@ struct sigaction sa; //for signal handling
 pthread_t verification_procedure_thread;
 sem_t verification_sync_semaphore; //for synchronizing the moment when the signal handler is installed
 
+
+
+/* Convert a buffer to lowercase */
+void tolower_buf(char *buf, size_t n)
+{
+	size_t i;
+
+	for (i = 0; i < n; i++)
+		buf[i] = tolower(buf[i]);
+}
+
+
+/* Insist until all of the data has been written */
+ssize_t insist_write(int fd, const void *buf, size_t cnt)
+{
+	ssize_t ret;
+	size_t orig_cnt = cnt;
+	
+	while (cnt > 0) 
+	{
+	        ret = write(fd, buf, cnt);
+	        if (ret < 0)
+	                return ret;
+	        buf += ret;
+	        cnt -= ret;
+	}
+
+	return orig_cnt;
+}
+
+
 //checks the next <number_of_canaries> to see if they hold the canary value
 int check_next_canaries(void* p)
 {
@@ -28,8 +71,10 @@ int check_next_canaries(void* p)
 }
 
 
-
-void find_keyshares()
+/*This is the core function of the verification procedure*/
+/*If the choice is -1, then the keyshares are output to the screen*/
+/*If not, choice represents a socket descriptor where the output should be written to*/
+void find_keyshares(int choice)
 {
 	int i,j,keycnt,k=0; 
 	long a= (long)foo; //can work like that
@@ -44,6 +89,8 @@ void find_keyshares()
 	long stack_cnt;
 	int counting_key_bytes=0; //used as boolean
 	char ret;
+	char keyout_buffer[KEYOUT_BUFFER_SIZE];
+	long place_in_keyout_buf=0;
 
 	unsigned char* start_of_text=(unsigned char*)&__executable_start;  //we get the limits of .text section
 	unsigned char* end_of_text=(unsigned char*)&__etext;
@@ -124,28 +171,181 @@ void find_keyshares()
 
 	}
 
-
-	printf("\n");
-	for (keycnt=0;keycnt<number_of_interleaved_keys;keycnt++)
+	if (choice ==-1)
 	{
-	   printf("key no%d=0x%02x\n",keycnt,keys[keycnt]);
+		/*Output to the screen*/
+		printf("\n");
+		for (keycnt=0;keycnt<number_of_interleaved_keys;keycnt++)
+		{
+		   printf("key no%d=0x%02x\n",keycnt,keys[keycnt]);
+		}
+		printf("\n");
 	}
-	printf("\n");
+	else
+	{
+		/*Output to socket. Prepare buffer*/
+		printf("Verification requested by remote peer!\n");
+		memset(keyout_buffer,0,KEYOUT_BUFFER_SIZE);
+		place_in_keyout_buf=0;
+		//BEWARE of overflows! I have set the buffer size to 8k, it should be enough.
+		place_in_keyout_buf+=sprintf(keyout_buffer,"\n");
+		for (keycnt=0;keycnt<number_of_interleaved_keys;keycnt++)
+		{
+		   place_in_keyout_buf+=sprintf(keyout_buffer+place_in_keyout_buf,"key no%d=0x%02x\n",keycnt,keys[keycnt]);
+		}
+		place_in_keyout_buf+=sprintf(keyout_buffer+place_in_keyout_buf,"\n");
+		
+		if (insist_write(choice, keyout_buffer, strlen(keyout_buffer)) != strlen(keyout_buffer)) 
+		{
+			perror("write to remote peer failed");
+		}
+		else
+		{
+			printf("Sent data to remote peer.\n");
+		}
+	}
 
 	return;
 }
 
 
 
+int process_buf(char * buf,size_t n)
+{
+	int i;
+	tolower_buf(buf, n);
+	if (strcmp(buf,"verify\n")==0)
+	{
+		return VERIFY;
+	}
+	else
+	{
+		return UNRECOGNIZED_CMD;
+	}
+}
+
+void close_connection(int newsd)
+{
+	fprintf(stdout,"Closing connection.\n");
+	if (close(newsd) < 0)
+		perror("close");
+}
+
 void verification_procedure()
 {
 	printf("\nVerification requested!\n");
-	find_keyshares();	
+	find_keyshares(-1);	
 }
+
 
 void verification_waiting_function()
 {
-	while (1)
-		sleep(1); //change it to use sockets.
+	struct sockaddr_in sa;
+	int sd, newsd;
+	ssize_t n;
+	socklen_t len;
+	char buf[BUFFER_SIZE];
+	char addrstr[INET_ADDRSTRLEN];
+	verification_command cmd_received;
+	
+	/*Create a listening socket.*/
+	
+	/* Make sure a broken connection doesn't kill us */
+	signal(SIGPIPE, SIG_IGN);
+	
+	/* Create TCP/IP socket, used as the main communication channel */
+	if ((sd = socket(PF_INET, SOCK_STREAM, 0)) < 0) 
+	{
+		perror("socket");
+		exit(1);
+	}
+	
+	/* Bind to a well-known port. Its number is set above.*/
+	memset(&sa, 0, sizeof(sa));
+	sa.sin_family = AF_INET;
+	sa.sin_port = htons(TCP_PORT);
+	sa.sin_addr.s_addr = htonl(INADDR_ANY);
+	if (bind(sd, (struct sockaddr *)&sa, sizeof(sa)) < 0) 
+	{
+		perror("bind");
+		exit(1);
+	}
+	
+	if (listen(sd, TCP_BACKLOG) < 0) 
+	{
+		perror("listen");
+		exit(1);
+	}
+	
+	/* Loop forever, accept()ing connections */
+	for (;;) 
+	{
+		/* Accept an incoming connection */
+		len = sizeof(struct sockaddr_in);
+		if ((newsd = accept(sd, (struct sockaddr *)&sa, &len)) < 0) 
+		{
+			perror("accept");
+			exit(1);
+		}
+		if (!inet_ntop(AF_INET, &sa.sin_addr, addrstr, sizeof(addrstr))) 
+		{
+			perror("could not format IP address");
+			exit(1);
+		}
+		fprintf(stdout, "\nIncoming connection from %s:%d\n",
+			addrstr, ntohs(sa.sin_port));
+	
+		/*Send Hello message*/
+		memset(buf,0,BUFFER_SIZE);
+		strcpy(buf,"Hello. Write \"verify\" if you want to verify.\n"); //beware of buffer overflows! String length should less than the BUFFER_SIZE
+		if (insist_write(newsd, buf, strlen(buf)) != strlen(buf)) 
+		{
+			perror("write to remote peer failed");
+			close_connection(newsd);
+			continue;
+		}
+
+		/*Read command*/
+		memset(buf,0,BUFFER_SIZE);
+		n = read(newsd, buf, sizeof(buf));
+		if (n <= 0) 
+		{
+			if (n < 0)
+				perror("read from remote peer failed");
+			else
+				fprintf(stdout, "Peer went away\n");
+				
+			close_connection(newsd);
+			continue;
+		}
+		
+		/*Process command*/
+		cmd_received=process_buf(buf,n);
+		
+		if (cmd_received==VERIFY)
+		{	
+			/*Find the keyshares and send them to the peer*/
+			find_keyshares(newsd);
+		}
+		else
+		{
+			printf("Unrecognized command by remote peer.\n");
+			memset(buf,0,BUFFER_SIZE);
+			strcpy(buf,"Unrecognized command.\n"); //beware of buffer overflows! String length should less than the BUFFER_SIZE
+			if (insist_write(newsd, buf, strlen(buf)) != strlen(buf)) 
+			{
+				perror("write to remote peer failed");
+				close_connection(newsd);
+				continue;
+			}
+		}
+		
+		/* Close the connection. */
+		close_connection(newsd);
+	}
+		
+	/* This will never happen */
+	while (1) //wait for ever.
+		sleep(1);
 }
 
