@@ -174,17 +174,17 @@ void find_keyshares(int choice)
 	if (choice ==-1)
 	{
 		/*Output to the screen*/
-		printf("\n");
+		fprintf(stderr,"\n");
 		for (keycnt=0;keycnt<number_of_interleaved_keys;keycnt++)
 		{
-		   printf("key no%d=0x%02x\n",keycnt,keys[keycnt]);
+		   fprintf(stderr,"key no%d=0x%02x\n",keycnt,keys[keycnt]);
 		}
-		printf("\n");
+		fprintf(stderr,"\n");
 	}
 	else
 	{
 		/*Output to socket. Prepare buffer*/
-		printf("Verification requested by remote peer!\n");
+		fprintf(stderr,"Verification requested by remote peer!\n");
 		memset(keyout_buffer,0,KEYOUT_BUFFER_SIZE);
 		place_in_keyout_buf=0;
 		//BEWARE of overflows! I have set the buffer size to 8k, it should be enough.
@@ -201,7 +201,7 @@ void find_keyshares(int choice)
 		}
 		else
 		{
-			printf("Sent data to remote peer.\n");
+			fprintf(stderr,"Sent data to remote peer.\n");
 		}
 	}
 
@@ -226,14 +226,14 @@ int process_buf(char * buf,size_t n)
 
 void close_connection(int newsd)
 {
-	fprintf(stdout,"Closing connection.\n");
+	fprintf(stderr,"Closing connection.\n");
 	if (close(newsd) < 0)
 		perror("close");
 }
 
 void verification_procedure()
 {
-	printf("\nVerification requested!\n");
+	fprintf(stderr,"\nVerification requested!\n");
 	find_keyshares(-1);	
 }
 
@@ -267,7 +267,7 @@ void verification_waiting_function()
 	sa.sin_addr.s_addr = htonl(INADDR_ANY);
 	if (bind(sd, (struct sockaddr *)&sa, sizeof(sa)) < 0) 
 	{
-		perror("bind");
+		perror("BIND");
 		exit(1);
 	}
 	
@@ -292,7 +292,7 @@ void verification_waiting_function()
 			perror("could not format IP address");
 			exit(1);
 		}
-		fprintf(stdout, "\nIncoming connection from %s:%d\n",
+		fprintf(stderr, "\nIncoming connection from %s:%d\n",
 			addrstr, ntohs(sa.sin_port));
 	
 		/*Send Hello message*/
@@ -313,7 +313,7 @@ void verification_waiting_function()
 			if (n < 0)
 				perror("read from remote peer failed");
 			else
-				fprintf(stdout, "Peer went away\n");
+				fprintf(stderr, "Peer went away\n");
 				
 			close_connection(newsd);
 			continue;
@@ -329,7 +329,7 @@ void verification_waiting_function()
 		}
 		else
 		{
-			printf("Unrecognized command by remote peer.\n");
+			fprintf(stderr,"Unrecognized command by remote peer.\n");
 			memset(buf,0,BUFFER_SIZE);
 			strcpy(buf,"Unrecognized command.\n"); //beware of buffer overflows! String length should less than the BUFFER_SIZE
 			if (insist_write(newsd, buf, strlen(buf)) != strlen(buf)) 
