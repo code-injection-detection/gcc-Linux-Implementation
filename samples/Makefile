@@ -3,7 +3,7 @@ PG= #-pg
 FLAGS_to_assembly= -O0
 FLAGS_to_object= -O0
 FLAGS_to_secure_object = -O0
-FLAGS_in_the_end= -lm -lpthread
+FLAGS_in_the_end= -lm -pthread
 
 ifeq ($(filter-out secure,$(MAKECMDGOALS)),static)
  FLAGS_to_assembly+=  -static
