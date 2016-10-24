@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS=0
+SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS=1
 
 if [ "$#" -ne 7 ]; then
     echo "Please execute as following:"
@@ -101,7 +101,7 @@ echo "Changed defines."
 
 if [ "$SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS" != "0" ]; then
 	echo "Inserting keys among global variables and copying templates...."
-	
+	./insert_keys_among_globals.py $NUM_OF_INTERLEAVED_KEYS 1
 	echo "Inserted keys among global variables and copied templates."
 else
 	echo "Copying templates to target files"
@@ -109,6 +109,9 @@ else
 	cp ./template_files/verification_procedure_template.c verification_procedure.c
 	cp ./template_files/stack_manager_template.c stack_manager.c
 	cp ./template_files/functions_needed_template.c functions_needed.c
+	cp ./template_files/Helloworldadd_template.c Helloworldadd.c
+	cp ./template_files/memory_manager_test_suite_template.c memory_manager_test_suite.c
+	cp ./template_files/stack_manager_test_suite_template.c stack_manager_test_suite.c
 	echo "Copied templates"
 fi
 

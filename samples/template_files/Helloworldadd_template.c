@@ -4,8 +4,11 @@
 
 #include "functions_needed.c" //Including the C file because all the functions must be in the same file in order to be secured
 
+//ATTENTION: GLOBAL VARIABLE FOLLOWING!
 static int static_global_variable_for_testing;
 
+//ATTENTION: GLOBAL VARIABLE FOLLOWING!
+int test_global;
 
 int foo(int x)
 {

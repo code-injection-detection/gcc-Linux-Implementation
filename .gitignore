@@ -8,7 +8,11 @@ headers_needed.h
 verification_procedure.c
 memory_manager.c
 stack_manager.c
-general_tests.c
 functions_needed.c
+
+memory_manager_test_suite.c
+stack_manager_test_suite.c
+Helloworldadd.c
+general_tests.c
 #.classpath
 #.project

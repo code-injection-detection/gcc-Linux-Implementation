@@ -9,9 +9,9 @@ inputfiles=[ './template_files/memory_manager_template.c',
 			 './template_files/verification_procedure_template.c',
 			 './template_files/stack_manager_template.c',
 			 './template_files/functions_needed_template.c',
-			 'memory_manager_test_suite.c',
-			 'stack_manager_test_suite.c'
-			 'Helloworldadd.c'
+			 './template_files/memory_manager_test_suite_template.c',
+			 './template_files/stack_manager_test_suite_template.c',
+			 './template_files/Helloworldadd_template.c'
 		   ]
 
 outputfiles=[ 'memory_manager.c',
@@ -19,7 +19,7 @@ outputfiles=[ 'memory_manager.c',
 			 'stack_manager.c',
 			 'functions_needed.c',
 			 'memory_manager_test_suite.c',
-			 'stack_manager_test_suite.c'
+			 'stack_manager_test_suite.c',
 			 'Helloworldadd.c'
 		   ]
 
@@ -30,11 +30,42 @@ number_of_keys=0
 
 if (len(sys.argv)!=3):
 	print("insert_keys_among_globals:Wrong number of arguments.")
+	print("Usage:"+str(sys.argv[0])+ "<a> <b>")
+	print("Where a=number of interleaved keys")
+	print("b=Whether (1) or not (0) to insert the kys in one line as an array")
 	sys.exit(1)
 else:
 	number_of_keys=int(sys.argv[1])
 	insert_keys_in_one_line=int(sys.argv[2])
 	
+
+
+
+def get_next_keyshare():
+	return random.randint(0,255)   #of course this can be changed
+
+def add_keys():
+	global keycnt_major
+	global filelines_out
+	
+	keycnt_major+=1
+	for i in range(1,number_of_keys+1):
+		filelines_out.append("const unsigned char key_"+str(keycnt_major)+"_"+str(i) +" = "+str(get_next_keyshare())+"; \n")
+
+
+def add_keys_one_line():
+	global keycnt_major
+	global filelines_out
+	
+	keycnt_major+=1
+	s="const unsigned char key_"+str(keycnt_major)+"["+str(number_of_keys)+"] = {" 
+	for i in range(1,number_of_keys+1):
+		s+=" "+str(get_next_keyshare())
+		if i<number_of_keys:
+			s+=","
+		
+	s+="};\n"
+	filelines_out.append(s)
 
 
 
@@ -46,7 +77,7 @@ for fileindex,filein in enumerate(inputfiles):
 	#read lines
 	filehandler=open(filein,'r')
 	filelines_in = filehandler.readlines()
-	filein.close()
+	filehandler.close()
 	
 	#write lines
 	filelines_out=[]
@@ -59,7 +90,10 @@ for fileindex,filein in enumerate(inputfiles):
 		else:
 			filelines_out.append(line)
 			if (processing_global):
-				insert_keys()
+				if insert_keys_in_one_line:
+					add_keys_one_line()
+				else:
+					add_keys()
 			processing_global=0
 	for line in filelines_out:
 		filehandler.write(line)
@@ -67,80 +101,3 @@ for fileindex,filein in enumerate(inputfiles):
 	filelines_out=[]
 	filelines_in=[]
 	gc.collect()
-
-
-
-def get_next_keyshare():
-	return random.randint(0,255)   #of course this can be changed
-
-def add_keys():
-	global keycnt_major
-	global filelines_out
-	
-	keycnt_major+=1
-	for i in range(1,keyshare_bytes+1):
-		filelines_out.append("const unsigned char key_"+str(keycnt_major)+"_"+str(i) +" = "+str(get_next_keyshare())+"; \n")
-
-
-def add_keys_one_line():
-	global keycnt_major
-	global out_lines
-	
-	keycnt_major+=1
-	s="key_"+str(keycnt_major)+" DB "
-	for i in range(1,keyshare_bytes+1):
-		s+=" "+str(get_next_keyshare())
-		if i<keyshare_bytes:
-			s+=","
-		
-	s+="\n"
-	out_lines.append(s)
-
-
-
-keyshare_bytes=0
-
-if (len(sys.argv)==3):
-	infile=str(sys.argv[1])
-	keyshare_bytes=int(sys.argv[2])
-
-if (len(sys.argv)==4):
-	infile=str(sys.argv[1])
-	keyshare_bytes=int(sys.argv[2])
-	outfile=sys.argv[3]
-
-
-in_global_vars=0
-in_lines=[]
-out_lines=[]
-
-
-with open(infile) as f:
-	for line in f:
-		in_lines.append(line)
-		out_lines.append(line)
-		lowercase_line=line.lower()
-		if len(lowercase_line.split(';', 1))>1:
-			lowercase_line=lowercase_line.split(';', 1)[0] #remove all comments
-			lowercase_line+="\n"
-
-		#if (in_global_vars==1 and ((".code" in lowercase_line) or (".text" in lowercase_line) or (".stack" in lowercase_line)): #better way to deteck end of data segment?
-		if (in_global_vars==1 and ("." in lowercase_line)): #SUPER unsafe. We need something better.
-			in_global_vars=0
-
-		if (in_global_vars and lowercase_line.strip()!=""):
-			add_keys()
-			#add_keys_one_line() #change to this if you want the keys to be in one line as an array
-			
-		if ".data" in lowercase_line:
-			in_global_vars=1
-		
-		
-if (outfile==''):
-	for i in out_lines:
-		print(i,end="")
-else:
-	f = open(outfile,'w')
-	for i in out_lines:
-		f.write(i)
-	f.close()

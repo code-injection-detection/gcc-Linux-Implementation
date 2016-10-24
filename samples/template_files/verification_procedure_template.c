@@ -12,7 +12,7 @@
 /*Recognized commands by socket server*/
 typedef enum commands {UNRECOGNIZED_CMD,VERIFY,CMD_ENUM_SIZE} verification_command;
 
-
+/*Are those considered global variables?*/
 extern char __executable_start;   //in order to find limits of .text section in ELF files.
 extern char __etext;
 
@@ -23,8 +23,11 @@ extern int foo(int);
 extern int main();
 extern int foo2(int);
 
+//ATTENTION: GLOBAL VARIABLE FOLLOWING!
 struct sigaction sa; //for signal handling
+//ATTENTION: GLOBAL VARIABLE FOLLOWING!
 pthread_t verification_procedure_thread;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING!
 sem_t verification_sync_semaphore; //for synchronizing the moment when the signal handler is installed
 
 
