@@ -1,5 +1,7 @@
 #!/bin/bash
 
+SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS=0
+
 if [ "$#" -ne 7 ]; then
     echo "Please execute as following:"
     echo -e "\n$0 <a> <b> <c> <d> <e> <f> <g>"
@@ -43,6 +45,8 @@ echo -n "NUM_OF_GROUPED_USEFUL_STACK_BYTES: "
 echo $NUM_OF_GROUPED_USEFUL_STACK_BYTES
 echo -n "NUM_OF_TOTAL_STACK_BYTES_ALLOC: "
 echo $NUM_OF_TOTAL_STACK_BYTES_ALLOC
+echo -n "SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS: "
+echo $SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS
 echo ""
 
 #Checking if the .class files are present
@@ -94,11 +98,19 @@ echo "Changing defines according to input..."
 python3 set_correct_defines.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_TOTAL_STACK_BYTES_ALLOC
 echo "Changed defines."
 
-echo "Copying templates to target files"
-cp ./template_files/memory_manager_template.c memory_manager.c
-cp ./template_files/verification_procedure_template.c verification_procedure.c
-cp ./template_files/stack_manager_template.c stack_manager.c
-echo "Copied templates"
+
+if [ "$SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS" != "0" ]; then
+	echo "Inserting keys among global variables and copying templates...."
+	
+	echo "Inserted keys among global variables and copied templates."
+else
+	echo "Copying templates to target files"
+	cp ./template_files/memory_manager_template.c memory_manager.c
+	cp ./template_files/verification_procedure_template.c verification_procedure.c
+	cp ./template_files/stack_manager_template.c stack_manager.c
+	cp ./template_files/functions_needed_template.c functions_needed.c
+	echo "Copied templates"
+fi
 
 echo "Compiling...."
 make
