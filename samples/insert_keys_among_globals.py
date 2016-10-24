@@ -3,6 +3,7 @@
 import sys
 import copy
 import random
+import gc
 
 inputfiles=[ './template_files/memory_manager_template.c',
 			 './template_files/verification_procedure_template.c',
@@ -10,6 +11,7 @@ inputfiles=[ './template_files/memory_manager_template.c',
 			 './template_files/functions_needed_template.c',
 			 'memory_manager_test_suite.c',
 			 'stack_manager_test_suite.c'
+			 'Helloworldadd.c'
 		   ]
 
 outputfiles=[ 'memory_manager.c',
@@ -18,7 +20,54 @@ outputfiles=[ 'memory_manager.c',
 			 'functions_needed.c',
 			 'memory_manager_test_suite.c',
 			 'stack_manager_test_suite.c'
+			 'Helloworldadd.c'
 		   ]
+
+canary_str='ATTENTION: GLOBAL VARIABLE FOLLOWING!'
+keycnt_major=0
+insert_keys_in_one_line=0
+number_of_keys=0
+
+if (len(sys.argv)!=3):
+	print("insert_keys_among_globals:Wrong number of arguments.")
+	sys.exit(1)
+else:
+	number_of_keys=int(sys.argv[1])
+	insert_keys_in_one_line=int(sys.argv[2])
+	
+
+
+
+filelines_out=[]
+filelines_in=[]
+processing_global=0
+
+for fileindex,filein in enumerate(inputfiles):
+	#read lines
+	filehandler=open(filein,'r')
+	filelines_in = filehandler.readlines()
+	filein.close()
+	
+	#write lines
+	filelines_out=[]
+	fileout=outputfiles[fileindex]
+	filehandler=open(fileout,'w')
+	processing_global=0
+	for line in filelines_in:
+		if canary_str in line:
+			processing_global=1
+		else:
+			filelines_out.append(line)
+			if (processing_global):
+				insert_keys()
+			processing_global=0
+	for line in filelines_out:
+		filehandler.write(line)
+	filehandler.close()
+	filelines_out=[]
+	filelines_in=[]
+	gc.collect()
+
 
 
 def get_next_keyshare():
@@ -26,11 +75,11 @@ def get_next_keyshare():
 
 def add_keys():
 	global keycnt_major
-	global out_lines
+	global filelines_out
 	
 	keycnt_major+=1
 	for i in range(1,keyshare_bytes+1):
-		out_lines.append("key_"+str(keycnt_major)+"_"+str(i) +" DB "+str(get_next_keyshare())+" \n")
+		filelines_out.append("const unsigned char key_"+str(keycnt_major)+"_"+str(i) +" = "+str(get_next_keyshare())+"; \n")
 
 
 def add_keys_one_line():
@@ -48,12 +97,7 @@ def add_keys_one_line():
 	out_lines.append(s)
 
 
-if (len(sys.argv)<3) or (len(sys.argv)>5):
-	usage()
-	sys.exit(1)
 
-infile=''
-outfile=''
 keyshare_bytes=0
 
 if (len(sys.argv)==3):
@@ -69,7 +113,7 @@ if (len(sys.argv)==4):
 in_global_vars=0
 in_lines=[]
 out_lines=[]
-keycnt_major=0
+
 
 with open(infile) as f:
 	for line in f:
