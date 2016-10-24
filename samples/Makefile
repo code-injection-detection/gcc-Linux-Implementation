@@ -40,4 +40,4 @@ Helloworldadd_sec: Helloworldadd_sec.s
 
 clean:
 	rm -f Helloworldadd.s Helloworldadd Helloworldadd_sec.s Helloworldadd_sec Helloworldadd_ksec Helloworldadd_sec.o Helloworldadd.o *.NASM* *.YASM* *.run 
-	rm -f heap_keyshares stack_keyshares headers_needed.h verification_procedure.c stack_manager.c memory_manager.c general_tests.c functions_needed.c Helloworldadd.c memory_manager_test_suite.c stack_manager_test_suite.c
+	rm -f *_keyshares headers_needed.h verification_procedure.c stack_manager.c memory_manager.c general_tests.c functions_needed.c Helloworldadd.c memory_manager_test_suite.c stack_manager_test_suite.c

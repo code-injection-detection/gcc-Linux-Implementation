@@ -1,6 +1,7 @@
 #!/bin/bash
 
 SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS=1
+DECLARE_GLOBAL_KEYS_AS_AN_ARRAY=1
 
 if [ "$#" -ne 7 ]; then
     echo "Please execute as following:"
@@ -101,10 +102,11 @@ echo "Changed defines."
 
 if [ "$SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS" != "0" ]; then
 	echo "Inserting keys among global variables and copying templates...."
-	./insert_keys_among_globals.py $NUM_OF_INTERLEAVED_KEYS 1
+	./insert_keys_among_globals.py $NUM_OF_INTERLEAVED_KEYS $DECLARE_GLOBAL_KEYS_AS_AN_ARRAY
 	echo "Inserted keys among global variables and copied templates."
 else
 	echo "Copying templates to target files"
+	#headers_needed and general_tests are missing, they are taken care of the first python script
 	cp ./template_files/memory_manager_template.c memory_manager.c
 	cp ./template_files/verification_procedure_template.c verification_procedure.c
 	cp ./template_files/stack_manager_template.c stack_manager.c
