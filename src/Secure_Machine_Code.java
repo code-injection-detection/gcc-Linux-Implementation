@@ -166,14 +166,14 @@ public class Secure_Machine_Code {
 			}
 	    }
 	    
-	    
+	    /*
 	    //taking into account the global keyshares as well
 	    for(int i=0;i<global_keys.length;i++)
 			{
 		    	byte temp = global_keys[i];
 		    	keys[i%number_of_interleaved_nops].add(temp);
 			}
-			
+		*/
 	    
 	    System.out.println("");
 	    
