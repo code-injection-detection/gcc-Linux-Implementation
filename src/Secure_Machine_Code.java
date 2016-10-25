@@ -1,5 +1,9 @@
 import java.util.*;
 import java.io.*;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 /*
  * This code reads a compiled exe file and then locates the nop instructions
  * and replaces them with the key share values.
@@ -20,6 +24,7 @@ public class Secure_Machine_Code {
 		String heap_keys_filename=new File("../samples/heap_keyshares").getAbsolutePath();
 		String stack_keys_filename=new File("../samples/stack_keyshares").getAbsolutePath();
 		String memory_manager_filename=new File("../samples/memory_manager.c").getAbsolutePath();
+		String global_keys_filename=new File("../samples/global_keyshares").getAbsolutePath();
 		
 		String newfilename = filename.substring(0,filename.length()-3)+"ksec";
 		Runtime r = Runtime.getRuntime();
@@ -44,6 +49,8 @@ public class Secure_Machine_Code {
 
 		FileOutputStream heap_keyshares_file = new FileOutputStream(new File(heap_keys_filename));
 		FileOutputStream stack_keyshares_file = new FileOutputStream(new File(stack_keys_filename));
+		Path path = FileSystems.getDefault().getPath(global_keys_filename);
+		byte [] global_keys = Files.readAllBytes(path);
 		
 		if (args.length==6)
 		{
@@ -159,6 +166,14 @@ public class Secure_Machine_Code {
 			}
 	    }
 	    
+	    
+	    //taking into account the global keyshares as well
+	    for(int i=0;i<global_keys.length;i++)
+			{
+		    	byte temp = global_keys[i];
+		    	keys[i%number_of_interleaved_nops].add(temp);
+			}
+			
 	    
 	    System.out.println("");
 	    
