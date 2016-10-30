@@ -2,12 +2,13 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "functions_needed.c" //Including the C file because all the functions must be in the same file in order to be secured
 
-//ATTENTION: GLOBAL VARIABLE FOLLOWING!
+#include "functions_needed_header.c" //Including the C file because all the functions must be in the same file in order to be secured
+
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:int | TYPE:static
 static int static_global_variable_for_testing;
 
-//ATTENTION: GLOBAL VARIABLE FOLLOWING!
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:int | TYPE:normal
 int test_global;
 
 int foo(int x)
@@ -149,4 +150,5 @@ int foo2(int x)
 	return k;
 }
 
+#include "functions_needed_footer.c" //And let's include the functions that must be in the end (like the verification procedure)
 

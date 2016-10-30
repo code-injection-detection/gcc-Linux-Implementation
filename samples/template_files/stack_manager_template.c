@@ -8,13 +8,13 @@ Let's call these groups of bytes as chunks (of useful data, and of keyshares)
 Allocation is done as allocation of a whole number of useful chunks. A chunk is not broken between different allocations.
 */
 
-//ATTENTION: GLOBAL VARIABLE FOLLOWING!
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:long | TYPE:NORMAL
 long total_stack_bytes_allocated; /*total bytes allocated for the secure stack (perhaps different than the amount asked)*/
-//ATTENTION: GLOBAL VARIABLE FOLLOWING!
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:ptr
 unsigned char * entire_stack_memory_chunk; /*points to the start of the secure stack*/
-//ATTENTION: GLOBAL VARIABLE FOLLOWING!
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:ptr
 unsigned char* last_unused_stack_memory; /*practically the stack pointer*/
-//ATTENTION: GLOBAL VARIABLE FOLLOWING!
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:ptr
 FILE *stack_keyshare_input_file;
 
 

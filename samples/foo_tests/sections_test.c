@@ -10,6 +10,7 @@ extern char __data_start;
 extern char _init;
 extern char _fini;
 
+
 int b[10]={1,2,3,4,5,6,7,8,9,10};
 
 int a[2][2];

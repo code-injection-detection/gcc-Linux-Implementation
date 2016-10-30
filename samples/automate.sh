@@ -3,14 +3,15 @@
 SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS=1
 DECLARE_GLOBAL_KEYS_AS_AN_ARRAY=1
 
-if [ "$#" -ne 7 ]; then
+if [ "$#" -ne 8 ]; then
     echo "Please execute as following:"
-    echo -e "\n$0 <a> <b> <c> <d> <e> <f> <g>"
+    echo -e "\n$0 <a> <b> <c> <d> <e> <f> <g> <h>"
     echo "Where: a=number_of_interleaved keys in code, b=number_of grouped instructions in code"
     echo "c=number of canary values before keyshares in code, to denote keyshare presence"
     echo "d=number of grouped useful bytes in heap memory, e=total bytes to (try to) pre-allocate in heap memory"
     echo "f=number of grouped useful bytes in stack memory, g=total bytes to (try to) pre-allocate in stack memory"
-    echo "Example: $0 5 1 2 4 2048 4 1024"
+    echo "h=number of grouped useful bytes between keyshares in global variables"
+    echo "Example: $0 5 1 2 4 2048 4 1024 8"
     exit
 fi
 
@@ -21,8 +22,9 @@ NUM_OF_TOTAL_BYTES_ALLOC=2048
 NUM_OF_CANARIES=2
 NUM_OF_GROUPED_USEFUL_STACK_BYTES=4
 NUM_OF_TOTAL_STACK_BYTES_ALLOC=1024
+NUM_OF_GLOBAL_USEFUL_BYTES=8
 
-if [ "$#" -eq 7 ]; then
+if [ "$#" -eq 8 ]; then
 	NUM_OF_INTERLEAVED_KEYS=$1
 	NUM_OF_GROUPED_INSTRUCTIONS=$2
 	NUM_OF_CANARIES=$3
@@ -30,6 +32,7 @@ if [ "$#" -eq 7 ]; then
 	NUM_OF_TOTAL_BYTES_ALLOC=$5
 	NUM_OF_GROUPED_USEFUL_STACK_BYTES=$6
 	NUM_OF_TOTAL_STACK_BYTES_ALLOC=$7
+	NUM_OF_GLOBAL_USEFUL_BYTES=$8
 fi
 
 echo -n "NUM_OF_INTERLEAVED_KEYS: "
@@ -48,6 +51,8 @@ echo -n "NUM_OF_TOTAL_STACK_BYTES_ALLOC: "
 echo $NUM_OF_TOTAL_STACK_BYTES_ALLOC
 echo -n "SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS: "
 echo $SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS
+echo -n "NUM_OF_GLOBAL_USEFUL_BYTES: "
+echo $NUM_OF_GLOBAL_USEFUL_BYTES
 echo ""
 
 #Checking if the .class files are present
@@ -102,7 +107,7 @@ echo "Changed defines."
 
 if [ "$SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS" != "0" ]; then
 	echo "Inserting keys among global variables and copying templates...."
-	./insert_keys_among_globals.py $NUM_OF_INTERLEAVED_KEYS $DECLARE_GLOBAL_KEYS_AS_AN_ARRAY
+	./insert_keys_among_globals.py $NUM_OF_INTERLEAVED_KEYS $DECLARE_GLOBAL_KEYS_AS_AN_ARRAY $NUM_OF_GLOBAL_USEFUL_BYTES
 	echo "Inserted keys among global variables and copied templates."
 else
 	echo "Copying templates to target files"
@@ -110,7 +115,8 @@ else
 	cp ./template_files/memory_manager_template.c memory_manager.c
 	cp ./template_files/verification_procedure_template.c verification_procedure.c
 	cp ./template_files/stack_manager_template.c stack_manager.c
-	cp ./template_files/functions_needed_template.c functions_needed.c
+	cp ./template_files/functions_needed_header_template.c functions_needed_header.c
+	cp ./template_files/functions_needed_footer_template.c functions_needed_footer.c
 	cp ./template_files/Helloworldadd_template.c Helloworldadd.c
 	cp ./template_files/memory_manager_test_suite_template.c memory_manager_test_suite.c
 	cp ./template_files/stack_manager_test_suite_template.c stack_manager_test_suite.c

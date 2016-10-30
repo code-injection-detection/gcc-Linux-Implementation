@@ -8,7 +8,8 @@ headers_needed.h
 verification_procedure.c
 memory_manager.c
 stack_manager.c
-functions_needed.c
+functions_needed_header.c
+functions_needed_footer.c
 
 memory_manager_test_suite.c
 stack_manager_test_suite.c
