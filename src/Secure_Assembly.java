@@ -31,21 +31,29 @@ public class Secure_Assembly {
 		int num_of_grouped_orig_instr= 1;
 		int label_counter = 0;
 		int i = 0;
-		int  num_of_interleaved_nops = 5;   //this should be equal to the number of keys we use in Secure_Machine_Code.java (now that we assume that 1 NOP = 1key)
+		int  num_of_interleaved_keys = 5;   //this should be equal to the number of keys we use in Secure_Machine_Code.java (now that we assume that 1 NOP = 1key)
 		int  number_of_canaries=2;
-
+		int  num_of_mac_bytes=4;
+		
 		if (args.length==1)
-			num_of_interleaved_nops=Integer.parseInt(args[0]);
+			num_of_interleaved_keys=Integer.parseInt(args[0]);
 		else if (args.length==2)
 		{
-			num_of_interleaved_nops=Integer.parseInt(args[0]);
+			num_of_interleaved_keys=Integer.parseInt(args[0]);
 			num_of_grouped_orig_instr=Integer.parseInt(args[1]);
 		}
 		else if (args.length==3)
 		{
-			num_of_interleaved_nops=Integer.parseInt(args[0]);
+			num_of_interleaved_keys=Integer.parseInt(args[0]);
 			num_of_grouped_orig_instr=Integer.parseInt(args[1]);
 			number_of_canaries=Integer.parseInt(args[2]);
+		}
+		else if (args.length==4)
+		{
+			num_of_interleaved_keys=Integer.parseInt(args[0]);
+			num_of_grouped_orig_instr=Integer.parseInt(args[1]);
+			number_of_canaries=Integer.parseInt(args[2]);
+			num_of_mac_bytes=Integer.parseInt(args[3]);
 		}
 		
 		//we parse the file once to find the functions
@@ -133,7 +141,7 @@ public class Secure_Assembly {
 				if (i == num_of_grouped_orig_instr)
 				{
 					list_of_lines.add(" jmp " + "." + ulabel + label_counter);
-					for (int j = 0; j < num_of_interleaved_nops+number_of_canaries; j++)
+					for (int j = 0; j < num_of_interleaved_keys+number_of_canaries+num_of_mac_bytes; j++)
 						list_of_lines.add("NOP"); 
 					list_of_lines.add("."+ ulabel + label_counter + ": " );          //we are just adding the label, not any command
 					//System.out.println(line);

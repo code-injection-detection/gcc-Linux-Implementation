@@ -29,7 +29,9 @@ for line in src_lines:
 	if '#define stack_bytes_between_keyshares' in line:
 		newline='#define stack_bytes_between_keyshares ('+sys.argv[5]+')\n'
 	if '#define stack_bytes_to_allocate_on_start' in line:
-		newline='#define stack_bytes_to_allocate_on_start ('+sys.argv[6]+')\n'		
+		newline='#define stack_bytes_to_allocate_on_start ('+sys.argv[6]+')\n'	
+	if '#define number_of_mac_bytes' in line:
+		newline='#define number_of_mac_bytes ('+sys.argv[7]+')\n'		
 		
 	headers_dst.write(newline)
 

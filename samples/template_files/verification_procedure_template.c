@@ -109,15 +109,20 @@ void find_keyshares(int choice)
    
 
 	//using start and end of text section
-	for (p=start_of_text;p<=end_of_text;p++)
+	for (p=start_of_text;p<=end_of_text;)
 	{
-		if (*p==0xEB && *(p+1)==number_of_interleaved_keys+number_of_canaries && check_next_canaries(p+2)) //JMP <number of keys>+<number_of_canaries>
+		if (*p==0xEB && *(p+1)==(number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes) && check_next_canaries(p+2)) //JMP <number of keys>+<number_of_canaries>+<number_of_mac_bytes>
 		{ 
-		 //printf("0x%02x ",*(p+2));
-		 for (keycnt=0;keycnt<number_of_interleaved_keys;keycnt++)
-		 {
-			 keys[keycnt]^= (unsigned char) *(p+2+keycnt+number_of_canaries);
-		 }			
+			//printf("0x%02x ",*(p+2));
+			for (keycnt=0;keycnt<number_of_interleaved_keys;keycnt++)
+			{
+				keys[keycnt]^= (unsigned char) *(p+2+keycnt+number_of_canaries);
+			}
+			p+=(number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes)+1; //jump over all the canaries,keys,macs
+		}
+		else
+		{
+			p++;
 		}
 	}
 

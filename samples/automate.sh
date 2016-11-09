@@ -3,15 +3,16 @@
 SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS=1
 DECLARE_GLOBAL_KEYS_AS_AN_ARRAY=1
 
-if [ "$#" -ne 8 ]; then
+if [ "$#" -ne 9 ]; then
     echo "Please execute as following:"
-    echo -e "\n$0 <a> <b> <c> <d> <e> <f> <g> <h>"
+    echo -e "\n$0 <a> <b> <c> <d> <e> <f> <g> <h> <i>"
     echo "Where: a=number_of_interleaved keys in code, b=number_of grouped instructions in code"
     echo "c=number of canary values before keyshares in code, to denote keyshare presence"
     echo "d=number of grouped useful bytes in heap memory, e=total bytes to (try to) pre-allocate in heap memory"
     echo "f=number of grouped useful bytes in stack memory, g=total bytes to (try to) pre-allocate in stack memory"
     echo "h=number of grouped useful bytes between keyshares in global variables"
-    echo "Example: $0 5 1 2 4 2048 4 1024 8"
+    echo "i=number of bytes for MACs"
+    echo "Example: $0 5 1 2 4 2048 4 1024 8 4"
     exit
 fi
 
@@ -23,8 +24,9 @@ NUM_OF_CANARIES=2
 NUM_OF_GROUPED_USEFUL_STACK_BYTES=4
 NUM_OF_TOTAL_STACK_BYTES_ALLOC=1024
 NUM_OF_GLOBAL_USEFUL_BYTES=8
+NUM_OF_MAC_BYTES=4
 
-if [ "$#" -eq 8 ]; then
+if [ "$#" -eq 9 ]; then
 	NUM_OF_INTERLEAVED_KEYS=$1
 	NUM_OF_GROUPED_INSTRUCTIONS=$2
 	NUM_OF_CANARIES=$3
@@ -33,6 +35,7 @@ if [ "$#" -eq 8 ]; then
 	NUM_OF_GROUPED_USEFUL_STACK_BYTES=$6
 	NUM_OF_TOTAL_STACK_BYTES_ALLOC=$7
 	NUM_OF_GLOBAL_USEFUL_BYTES=$8
+	NUM_OF_MAC_BYTES=$9
 fi
 
 echo -n "NUM_OF_INTERLEAVED_KEYS: "
@@ -53,6 +56,8 @@ echo -n "SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS: "
 echo $SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS
 echo -n "NUM_OF_GLOBAL_USEFUL_BYTES: "
 echo $NUM_OF_GLOBAL_USEFUL_BYTES
+echo -n "NUM_OF_MAC_BYTES: "
+echo $NUM_OF_MAC_BYTES
 echo ""
 
 #Checking if the .class files are present
@@ -101,7 +106,7 @@ else
 fi
 
 echo "Changing defines according to input..."
-python3 set_correct_defines.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_TOTAL_STACK_BYTES_ALLOC
+python3 set_correct_defines.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_TOTAL_STACK_BYTES_ALLOC $NUM_OF_MAC_BYTES
 echo "Changed defines."
 
 
@@ -128,7 +133,7 @@ make
 echo "Compiled."
 
 echo "Inserting NOPs into assembly..."
-java -cp ../bin Secure_Assembly $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_INSTRUCTIONS $NUM_OF_CANARIES
+java -cp ../bin Secure_Assembly $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_INSTRUCTIONS $NUM_OF_CANARIES $NUM_OF_MAC_BYTES
 echo "NOPs inserted."
 
 echo "Assembling code with NOPs..."
@@ -136,6 +141,6 @@ make secure
 echo "Assembled."
 
 echo "Replacing NOPs with keys..."
-java -cp ../bin Secure_Machine_Code $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_TOTAL_STACK_BYTES_ALLOC
+java -cp ../bin Secure_Machine_Code $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_TOTAL_STACK_BYTES_ALLOC $NUM_OF_MAC_BYTES
 echo "NOPs replaced with keys."
 

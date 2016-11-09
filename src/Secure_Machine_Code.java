@@ -31,11 +31,12 @@ public class Secure_Machine_Code {
 		int number_of_nop_groups_replaced=0;
 		//int n = 2;
 		
-		int number_of_interleaved_nops = 5; //this should be equal to the number of nops we insert in Secure_Assembly.java (now that we assume that 1 NOP = 1key)
+		int number_of_interleaved_keys = 5; //this should be equal to the number of nops we insert in Secure_Assembly.java (now that we assume that 1 NOP = 1key)
 		int num_of_keys_in_heap=5; //this should be equal to the number of keys we interleave in the heap
 		int num_of_keys_in_stack=5; //this should be equal to the number of keys we interleave in the stack
 		int useful_bytes_between_keys_in_heap=4;
 		int useful_bytes_between_keys_in_stack=4;
+		int num_of_mac_bytes=4;
 		long total_bytes_trying_to_allocate_in_heap=2048;
 		long total_bytes_trying_to_allocate_in_stack=1024;
 		long useful_chunks_in_heap;
@@ -52,16 +53,17 @@ public class Secure_Machine_Code {
 		Path path = FileSystems.getDefault().getPath(global_keys_filename);
 		byte [] global_keys = Files.readAllBytes(path);
 		
-		if (args.length==6)
+		if (args.length==7)
 		{
-			number_of_interleaved_nops=Integer.parseInt(args[0]);
-			num_of_keys_in_heap=number_of_interleaved_nops;
-			num_of_keys_in_stack=number_of_interleaved_nops;
+			number_of_interleaved_keys=Integer.parseInt(args[0]);
+			num_of_keys_in_heap=number_of_interleaved_keys;
+			num_of_keys_in_stack=number_of_interleaved_keys;
 			number_of_canaries=Integer.parseInt(args[1]);
 			useful_bytes_between_keys_in_heap=Integer.parseInt(args[2]);
 			total_bytes_trying_to_allocate_in_heap=Long.parseLong(args[3]);
 			useful_bytes_between_keys_in_stack=Integer.parseInt(args[4]);
 			total_bytes_trying_to_allocate_in_stack=Long.parseLong(args[5]);
+			num_of_mac_bytes=Integer.parseInt(args[6]);
 		}
 		else
 		{
@@ -69,9 +71,9 @@ public class Secure_Machine_Code {
 			System.exit(-1);
 		}
 		
-		ArrayList[] keys = new ArrayList[number_of_interleaved_nops];
+		ArrayList[] keys = new ArrayList[number_of_interleaved_keys];
 		
-		for(int i=0;i<number_of_interleaved_nops;i++)
+		for(int i=0;i<number_of_interleaved_keys;i++)
 		{
 			keys[i] =new  ArrayList<Byte>();
 		}
@@ -88,9 +90,9 @@ public class Secure_Machine_Code {
 	    	arr[i] = list.get(i);
 	    }
 	    int n = arr.length;
-	    for(int i=0;i<n-(2+number_of_interleaved_nops+number_of_canaries);i++)
+	    for(int i=0;i<n-(2+number_of_interleaved_keys+number_of_canaries+num_of_mac_bytes);i++)
 	    {
-	    	if(arr[i]==-21 && (arr[i+1] == (byte)(number_of_interleaved_nops+number_of_canaries)) && k_nops_after_us(number_of_interleaved_nops+number_of_canaries,arr,i)) // int -21 = jmp opcode, and the arr[i+1] has to be the offset (number of nops + 1 ) , and we have to have num_of_keys NOPs after us
+	    	if(arr[i]==-21 && (arr[i+1] == (byte)(number_of_interleaved_keys+number_of_canaries+num_of_mac_bytes)) && k_nops_after_us(number_of_interleaved_keys+number_of_canaries+num_of_mac_bytes,arr,i)) // int -21 = jmp opcode, and the arr[i+1] has to be the offset (number of nops + 1 ) , and we have to have num_of_keys NOPs after us
 	    	{
 				number_of_nop_groups_replaced++;
 				for(int j=0;j<number_of_canaries;j++)
@@ -98,15 +100,15 @@ public class Secure_Machine_Code {
 					arr[i+2+j] = (byte)canary_value;
 				}
 				
-				byte[] random_bytes_generated= new byte[number_of_interleaved_nops]; //to check accidental creation of "used" opcodes
-	    		for(int j=0;j<number_of_interleaved_nops;j++)
+				byte[] random_bytes_generated= new byte[number_of_interleaved_keys]; //to check accidental creation of "used" opcodes
+	    		for(int j=0;j<number_of_interleaved_keys;j++)
 	    		{
 	    			byte temp = randomByte();
 	    					
 	    			random_bytes_generated[j]=temp;
 	    			
 	    			//check not to accidentally produce opcode for <jmp> (<number of nops>+<number of canaries>) and the canary bytes afterwards
-	    			while (j>=2+number_of_canaries-1 /*minus 1!*/ && produced_bad_opcode(random_bytes_generated,number_of_interleaved_nops,number_of_canaries,j,canary_value))
+	    			while (j>=2+number_of_canaries-1 /*minus 1!*/ && produced_bad_opcode(random_bytes_generated,number_of_interleaved_keys,number_of_canaries,j,canary_value))
 	    			{
 	    				System.out.println("Accidentally created JMP <nops number + number of canaries> opcode, and inserted canaries after it!");
 	    				temp = randomByte();
@@ -136,7 +138,7 @@ public class Secure_Machine_Code {
 	    for (int i=0;i<useful_chunks_in_heap;i++)
 	    {
 		    //insert into heap_keyshares file
-		    for(int j=0;j<number_of_interleaved_nops;j++)
+		    for(int j=0;j<number_of_interleaved_keys;j++)
 			{
 		    	byte temp = randomByte();
 		    	byte[] temparray=new byte[1];
@@ -156,7 +158,7 @@ public class Secure_Machine_Code {
 	    for (int i=0;i<useful_chunks_in_stack;i++)
 	    {
 		    //insert into stack_keyshares file
-		    for(int j=0;j<number_of_interleaved_nops;j++)
+		    for(int j=0;j<number_of_interleaved_keys;j++)
 			{
 		    	byte temp = randomByte();
 		    	byte[] temparray=new byte[1];
@@ -171,13 +173,13 @@ public class Secure_Machine_Code {
 	    for(int i=0;i<global_keys.length;i++)
 			{
 		    	byte temp = global_keys[i];
-		    	keys[i%number_of_interleaved_nops].add(temp);
+		    	keys[i%number_of_interleaved_keys].add(temp);
 			}
 		
 	    
 	    System.out.println("");
 	    
-	    for(int i=0;i<number_of_interleaved_nops;i++)
+	    for(int i=0;i<number_of_interleaved_keys;i++)
 	    {
 	    	try
 	    	{
@@ -185,7 +187,7 @@ public class Secure_Machine_Code {
 	    	}
 	    	catch(IndexOutOfBoundsException e)
 	    	{
-	    		System.out.println("Index out of bounds in Xor! Perhaps none of the keys were populated with values... And most likey this is because arr[i+1] did not have the value we expected it to have");
+	    		System.out.println("Index out of bounds in Xor! Perhaps none of the keys were populated with values... And most likely this is because arr[i+1] did not have the value we expected it to have");
 	    		System.out.println("Index of error: i="+i);
 	    		System.exit(-1);
 	    	}
