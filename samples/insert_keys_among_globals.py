@@ -29,24 +29,28 @@ outputfiles=[ 'memory_manager.c',
 canary_str='ATTENTION: GLOBAL VARIABLE FOLLOWING!'
 verifivation_canary_str='PLEASE PYTHON ADD CODE FOR GLOBAL KEYS VERIFICATION'
 keycnt_major=0
-insert_keys_in_one_line=0
+maccnt_major=0
+insert_keys_and_macs_in_one_line=0
 number_of_keys=0
 keys_generated=[]
 keys_generated_cnt=0
 useful_bytes_size=8
 useless_bytes_cnt=0
+num_of_mac_bytes=0
 
-if (len(sys.argv)!=4):
+if (len(sys.argv)!=5):
 	print("insert_keys_among_globals:Wrong number of arguments.")
-	print("Usage:"+str(sys.argv[0])+ "<a> <b> <c>")
+	print("Usage:"+str(sys.argv[0])+ "<a> <b> <c> <d>")
 	print("Where a=number of interleaved keys")
 	print("b=Whether (1) or not (0) to insert the keys in one line as an array")
 	print("c=The size of the useful bytes that are left between keyshares")
+	print("d=The number of the mac bytes to insert after the keyshares")
 	sys.exit(1)
 else:
 	number_of_keys=int(sys.argv[1])
-	insert_keys_in_one_line=int(sys.argv[2])
+	insert_keys_and_macs_in_one_line=int(sys.argv[2])
 	useful_bytes_size=int(sys.argv[3])
+	num_of_mac_bytes=int(sys.argv[4])
 	
 
 def process_var_type(var_type):
@@ -82,10 +86,10 @@ def get_next_keyshare():
 	return key
 	
 
-def add_keys(var_type):
+def add_keys_and_macs(var_type):
 	global keycnt_major
 	global filelines_out
-	
+	global maccnt_major
 	
 	if number_of_keys>0:
 		keycnt_major+=1
@@ -94,11 +98,19 @@ def add_keys(var_type):
 			s+=process_var_type(var_type)+" "
 			s+="unsigned char key_"+str(keycnt_major)+"_"+str(i) +" = "+str(get_next_keyshare())+"; \n"
 			filelines_out.append(s)
+	if num_of_mac_bytes>0:
+		maccnt_major+=1
+		for i in range(1,num_of_mac_bytes+1):
+			s=''
+			s+=process_var_type(var_type)+" "
+			s+="unsigned char mac_"+str(maccnt_major)+"_"+str(i) +" = "+str(0)+"; \n"
+			filelines_out.append(s)
+		
 
-
-def add_keys_one_line(var_type):
+def add_keys_and_macs_one_line(var_type):
 	global keycnt_major
 	global filelines_out
+	global maccnt_major
 	
 	s=''
 	if number_of_keys>0:
@@ -109,9 +121,20 @@ def add_keys_one_line(var_type):
 			s+=" "+str(get_next_keyshare())
 			if i<number_of_keys:
 				s+=","
-			
 		s+="};\n"
 		filelines_out.append(s)
+	s=''
+	if num_of_mac_bytes>0:
+		s+=process_var_type(var_type)+" "
+		maccnt_major+=1
+		s+="unsigned char mac_"+str(maccnt_major)+"["+str(num_of_mac_bytes)+"] = {" 
+		for i in range(1,num_of_mac_bytes+1):
+			s+=" "+str(0)
+			if i<num_of_mac_bytes:
+				s+=","
+		s+="};\n"
+		filelines_out.append(s)
+
 
 def pad_random_useless_bytes(var_type,num):
 	global filelines_out
@@ -177,15 +200,15 @@ for fileindex,filein in enumerate(inputfiles):
 				chunk_bytes_cnt+=var_size  #Ok so far we add keyshares for EACH global variable. Will be a pain to change this.
 				pad_random_useless_bytes(var_type,useful_bytes_size-chunk_bytes_cnt) #pad with random useless bytes	
 				chunk_bytes_cnt=0
-				if insert_keys_in_one_line:
-					add_keys_one_line(var_type)
+				if insert_keys_and_macs_in_one_line:
+					add_keys_and_macs_one_line(var_type)
 				else:
-					add_keys(var_type)
+					add_keys_and_macs(var_type)
 			processing_global=0
 		
 		#if we found the verification procedure
 		if verifivation_canary_str in line:
-			if insert_keys_in_one_line:
+			if insert_keys_and_macs_in_one_line:
 				add_verification_one_line()
 			else:
 				add_verification()
