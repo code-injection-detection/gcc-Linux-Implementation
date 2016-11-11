@@ -90,7 +90,7 @@ void find_keyshares(int choice)
 	long fun_name;
 	long heap_cnt;
 	long stack_cnt;
-	int counting_key_bytes=0; //used as boolean
+	int type_of_bytes=0; //0->useful bytes, 1-> keyshares, 2->mac bytes
 	char ret;
 	char keyout_buffer[KEYOUT_BUFFER_SIZE];
 	long place_in_keyout_buf=0;
@@ -128,16 +128,16 @@ void find_keyshares(int choice)
 
 
 	//taking into account the heap keys
-	counting_key_bytes=0;
+	type_of_bytes=0;
 	for (p=entire_memory_chunk,heap_cnt=0;heap_cnt<total_bytes_allocated;)
 	{
 
-		if (counting_key_bytes==0)
+		if (type_of_bytes==0)
 		{
-			heap_cnt+=bytes_between_keyshares;
-			counting_key_bytes=1;
+			heap_cnt+=bytes_for_useful_data;
+			type_of_bytes=1;
 		}
-		else
+		else if (type_of_bytes==1)
 		{
 			//checking the keys
 			for (keycnt=0;keycnt<number_of_interleaved_keys;keycnt++)
@@ -146,36 +146,42 @@ void find_keyshares(int choice)
 			}
 
 			heap_cnt+=bytes_used_for_keyshares;
-			counting_key_bytes=0;
-
-			
-		}  
+			type_of_bytes=2;
+		}
+		else if (type_of_bytes==2)
+		{
+			heap_cnt+=number_of_mac_bytes;
+			type_of_bytes=0;
+		}
 
 	}
 
 	//taking into account the stack keys
-	counting_key_bytes=0;
+	type_of_bytes=0;
 	for (p=entire_stack_memory_chunk,stack_cnt=0;stack_cnt<total_stack_bytes_allocated;)
 	{
 
-		if (counting_key_bytes==0)
+		if (type_of_bytes==0)
 		{
-			stack_cnt+=stack_bytes_between_keyshares;
-			counting_key_bytes=1;
+			stack_cnt+=stack_bytes_for_useful_data;
+			type_of_bytes=1;
 		}
-		else
+		else if (type_of_bytes==1)
 		{
 			//checking the keys
 			for (keycnt=0;keycnt<number_of_interleaved_keys;keycnt++)
 			{
-				 keys[keycnt]^=(unsigned char) *(p+stack_cnt+keycnt);
+				keys[keycnt]^=(unsigned char) *(p+stack_cnt+keycnt);
 			}
 
 			stack_cnt+=stack_bytes_used_for_keyshares;
-			counting_key_bytes=0;
-
-			
-		}  
+			type_of_bytes=2;
+		}
+		else if (type_of_bytes==2)
+		{
+			stack_cnt+=number_of_mac_bytes;
+			type_of_bytes=0;
+		}
 
 	}
 	

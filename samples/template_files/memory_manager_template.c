@@ -1,9 +1,9 @@
 #include "headers_needed.h"
 
-/* The memory image should be like ('o'=useful data, 'x'=keyshares):
-oooxxxxxxooo.....xxxxxxoooxxxxxx
-Which means: n times useful data, n times keyshares
-Let's call these groups of bytes as chunks (of useful data, and of keyshares)
+/* The memory image should be like ('o'=useful data, 'x'=keyshares ,'m'= MAC bytes):
+oooxxxxxxmmmooo.....xxxxxxmmmoooxxxxxxmmm
+Which means: n times useful data, n times keyshares, n times mac bytes
+Let's call these groups of bytes as chunks (of useful data, and of keyshares+macs)
 Allocation is done as allocation of a whole number of useful chunks. A chunk is not broken between different allocations.
 The heap memory manager uses two lists: One for free consecutive chunks (which are grouped together  whenever they don't have data among them),
 and one for allocated groups of chunks, one group for every managed_secure_malloc() call.
@@ -220,14 +220,15 @@ void print_lists()
 /***************************** END OF LIST MANIPULATION FUNCTIONS ******************************************/
 
 /*Returns the number of the useful chunks in memory*/
-/*This number (let it be "n") satisfies the equation <useful_bytes_chunk_length>*(n) + <keyshare_bytes_chunk_length>*(n)= total_allocated_bytes */
+/*This number (let it be "n") satisfies the equation <useful_bytes_chunk_length>*(n) + <keyshare_bytes_chunk_length>*(n) + <mac_bytes_chunk_length)*(n)= total_allocated_bytes */
 long find_number_of_useful_chunks(long allocated_bytes) //most often allocated bytes == total_bytes_allocated
 {
   long a=allocated_bytes;
   long b=bytes_used_for_keyshares;
-  long c=bytes_between_keyshares;
+  long c=bytes_for_useful_data;
+  long d=number_of_mac_bytes;
 
-  return ((a)/(b+c));
+  return ((a)/(b+c+d));
 }
 
 /*Initialises memory manager's data structures*/
@@ -270,9 +271,9 @@ void free_memory_manager_structures()
 }
 
 /*Allocates the entire chunck of memory.*/
-/*The goal is to allocate a space where we can have useful("o") bytes with keyshare bytes("x"). The memory image should be like:
-oooxxxxxxooo.....xxxxxxoooxxxxxx
-Which means: n times useful data, n times keyshares
+/*The goal is to allocate a space where we can have useful("o") bytes with keyshare bytes("x"), and with mac bytes("m"). The memory image should be like:
+oooxxxxxxmmmooo.....xxxxxxmmmoooxxxxxxmmm
+Which means: n times useful data, n times keyshares, n times mac bytes
 */
 unsigned char * allocate_mem()
 {
@@ -280,12 +281,13 @@ unsigned char * allocate_mem()
   unsigned char * mem;
   long a=bytes_to_allocate_on_start;
   long b=bytes_used_for_keyshares;
-  long c=bytes_between_keyshares;
+  long c=bytes_for_useful_data;
+  long d=number_of_mac_bytes;
   long element_appearances_in_mem;
 
-  element_appearances_in_mem=(a)/(b+c); //this should be an integer, If not, we should allocate a bit more. 
+  element_appearances_in_mem=(a)/(b+c+d); //this should be an integer, If not, we should allocate a bit more. 
 
-  if (element_appearances_in_mem*c + (element_appearances_in_mem)*b == a) 
+  if (element_appearances_in_mem*c + (element_appearances_in_mem)*b +(element_appearances_in_mem)*d == a) 
   {
 	printf("Great!. No need to allocate more than the defined amount.\n");
 	bytes_to_allocate=a;
@@ -294,7 +296,7 @@ unsigned char * allocate_mem()
   {
 	printf("Whoops. We need to allocate a bit more space.\n");
 	element_appearances_in_mem++;
-	bytes_to_allocate=element_appearances_in_mem*c + (element_appearances_in_mem)*b;
+	bytes_to_allocate=element_appearances_in_mem*c + (element_appearances_in_mem)*b+(element_appearances_in_mem)*d;
   }
  
   mem = error_checking_malloc(bytes_to_allocate,__func__,__LINE__);
@@ -311,7 +313,8 @@ void * secure_malloc(long bytes_for_allocation )
   unsigned char* last_unused_mem=last_unused_memory;
   long ttl_bts_alloc=total_bytes_allocated;
   long b=bytes_used_for_keyshares;
-  long c=bytes_between_keyshares;
+  long c=bytes_for_useful_data;
+  long d=number_of_mac_bytes;
   unsigned char * memstart=entire_memory_chunk;
   long useful_chunks;
   long chunks_needed;
@@ -321,7 +324,7 @@ void * secure_malloc(long bytes_for_allocation )
 
   total_bytes_left_free=ttl_bts_alloc-(last_unused_mem-memstart);
 
-  useful_chunks=(total_bytes_left_free)/(b+c);
+  useful_chunks=(total_bytes_left_free)/(b+c+d);
 
   if (useful_chunks*c<bytes_for_allocation)
   {
@@ -337,7 +340,7 @@ void * secure_malloc(long bytes_for_allocation )
   
   //practically move unused memory pointer
   start_of_allocated_data=last_unused_mem;
-  last_unused_memory+=(chunks_needed)*c+(chunks_needed-1)*b + b; //the last b is added because we want last_unused_memory to point to a useful area
+  last_unused_memory+=(chunks_needed)*c+(chunks_needed)*b+(chunks_needed)*d; //we want last_unused_memory to point to a useful area
   return start_of_allocated_data;  
 
 }
@@ -370,42 +373,46 @@ void insert_keys_into_mem(unsigned char * mem)
 {
   long i,j;
   unsigned char * p;
-  long keyshare_bytecounter;
-  int counting_key_bytes=0; //used as boolean
-
+  int type_of_bytes=0; //0->useful bytes, 1-> keyshares, 2->mac bytes
   
   p=&(mem[0]);
   
-  keyshare_bytecounter=0;
 
   //insert keyshares
   for (i=0;i<total_bytes_allocated;)
   {
 
-    if (counting_key_bytes)
+    if (type_of_bytes==1)
     {
-		//inserting keys
-    	p[i]=get_next_keyshare();
-		//printf("got keyshare:0x%02x\n",p[i]);
-        keyshare_bytecounter++;
-		i++;
+		for (j=0;j<bytes_used_for_keyshares;j++)
+		{
+			//inserting keys
+			p[i]=get_next_keyshare();
+			//printf("got keyshare:0x%02x\n",p[i]);
+			i++;
+		}
+		type_of_bytes=2;
     }
-    else
+    else if (type_of_bytes==0)
     {
 		//for printing purposes, insert NULLs
-		for (j=0;j<bytes_between_keyshares;j++)
-			p[i+j]='\0';
-
-		i+=bytes_between_keyshares;
-		counting_key_bytes=1;
+		for (j=0;j<bytes_for_useful_data;j++)
+		{
+			p[i]='\0';
+			i++;
+		}
+		type_of_bytes=1;
     }
-
-    if(keyshare_bytecounter==bytes_used_for_keyshares)
+    else if (type_of_bytes==2)
     {
-		counting_key_bytes=0;
-		keyshare_bytecounter=0;
-    }
-     
+		//for printing purposes, insert NULLs
+		for (j=0;j<number_of_mac_bytes;j++)
+		{
+			p[i]='\0';
+			i++;
+		}
+		type_of_bytes=0;
+	}
   }
 
 }
@@ -449,17 +456,17 @@ long insert_data_into_mem(long data_size,unsigned char * data, unsigned char * m
 	chunks++;
 	data_remaining=data_size-total_data_inserted;
 	//actual insertion
-	if (data_remaining<=bytes_between_keyshares)
+	if (data_remaining<=bytes_for_useful_data)
 	{
 		memcpy(&p[i],&data[total_data_inserted],data_remaining);
 		total_data_inserted=data_size;
 	}
 	else
 	{
-		memcpy(&p[i],&data[total_data_inserted],bytes_between_keyshares);
-		total_data_inserted+=bytes_between_keyshares;
+		memcpy(&p[i],&data[total_data_inserted],bytes_for_useful_data);
+		total_data_inserted+=bytes_for_useful_data;
 	}
-	i+=bytes_between_keyshares+bytes_used_for_keyshares;
+	i+=bytes_for_useful_data+bytes_used_for_keyshares+number_of_mac_bytes;
   }
 
   return chunks;
@@ -500,32 +507,32 @@ void get_secure_data(void * res,long data_size, unsigned char * data_start, int 
   if (isarray)
   {
 	
-	chunks_forward=(arrayindex*data_size_for_offset)/(bytes_between_keyshares);
-	if (chunks_forward*bytes_between_keyshares==(arrayindex*data_size_for_offset))
+	chunks_forward=(arrayindex*data_size_for_offset)/(bytes_for_useful_data);
+	if (chunks_forward*bytes_for_useful_data==(arrayindex*data_size_for_offset))
 	{
-		p+=chunks_forward*(bytes_between_keyshares + bytes_used_for_keyshares); //We set p to point to the next useful area
+		p+=chunks_forward*(bytes_for_useful_data + bytes_used_for_keyshares+ number_of_mac_bytes); //We set p to point to the next useful area
 	}
 	else
 	{
 		//Well that's a problem. We have to start in the middle of a chunk.
 		//What we'll do is that we will retrieve the part up to the end of the chunk.
-		p+=chunks_forward*(bytes_between_keyshares + bytes_used_for_keyshares);
-		j=(arrayindex*data_size_for_offset)-(chunks_forward*bytes_between_keyshares);
+		p+=chunks_forward*(bytes_for_useful_data + bytes_used_for_keyshares+number_of_mac_bytes);
+		j=(arrayindex*data_size_for_offset)-(chunks_forward*bytes_for_useful_data);
 
 
-		if(data_size<=bytes_between_keyshares-j)
+		if(data_size<=bytes_for_useful_data-j)
 		{
 			data_remaining_till_end_of_chunk=data_size;
 		}
 		else
 		{
-			data_remaining_till_end_of_chunk=bytes_between_keyshares-j;
+			data_remaining_till_end_of_chunk=bytes_for_useful_data-j;
 		}
 		
 		memcpy(&result[total_data_retrieved],&p[j],data_remaining_till_end_of_chunk);
 
 		total_data_retrieved+=data_remaining_till_end_of_chunk;
-		p+=bytes_between_keyshares + bytes_used_for_keyshares;
+		p+=bytes_for_useful_data + bytes_used_for_keyshares+number_of_mac_bytes;
 		
 	}
   }
@@ -535,17 +542,17 @@ void get_secure_data(void * res,long data_size, unsigned char * data_start, int 
   {
 	//actual retrieval
 	data_remaining=data_size-total_data_retrieved;
-	if (data_remaining<=bytes_between_keyshares)
+	if (data_remaining<=bytes_for_useful_data)
 	{
 		memcpy(&result[total_data_retrieved],&p[i],data_remaining);
 		total_data_retrieved=data_size;
 	}
 	else
 	{
-		memcpy(&result[total_data_retrieved],&p[i],bytes_between_keyshares);
-		total_data_retrieved+=bytes_between_keyshares;
+		memcpy(&result[total_data_retrieved],&p[i],bytes_for_useful_data);
+		total_data_retrieved+=bytes_for_useful_data;
 	}
-	i+=bytes_between_keyshares+bytes_used_for_keyshares;
+	i+=bytes_for_useful_data+bytes_used_for_keyshares+number_of_mac_bytes;
   }
 
 }
@@ -575,31 +582,31 @@ void set_secure_data(void * source,long data_size, unsigned char * data_start, i
   i=0;
   if (isarray)
   {
-	chunks_forward=(arrayindex*data_size_for_offset)/(bytes_between_keyshares);
-	if (chunks_forward*bytes_between_keyshares==(arrayindex*data_size_for_offset))
+	chunks_forward=(arrayindex*data_size_for_offset)/(bytes_for_useful_data);
+	if (chunks_forward*bytes_for_useful_data==(arrayindex*data_size_for_offset))
 	{
-		p+=chunks_forward*(bytes_between_keyshares + bytes_used_for_keyshares); //We set p to point to the next useful area
+		p+=chunks_forward*(bytes_for_useful_data + bytes_used_for_keyshares+number_of_mac_bytes); //We set p to point to the next useful area
 	}
 	else
 	{
 		//Well that's a problem. We have to start in the middle of a chunk.
 		//What we'll do is that we will set the part up to the end of the chunk.
-		p+=chunks_forward*(bytes_between_keyshares + bytes_used_for_keyshares);
-		j=(arrayindex*data_size_for_offset)-(chunks_forward*bytes_between_keyshares);
+		p+=chunks_forward*(bytes_for_useful_data + bytes_used_for_keyshares+number_of_mac_bytes);
+		j=(arrayindex*data_size_for_offset)-(chunks_forward*bytes_for_useful_data);
 
-		if(data_size<=bytes_between_keyshares-j)
+		if(data_size<=bytes_for_useful_data-j)
 		{
 			data_remaining_till_end_of_chunk=data_size;
 		}
 		else
 		{
-			data_remaining_till_end_of_chunk=bytes_between_keyshares-j;
+			data_remaining_till_end_of_chunk=bytes_for_useful_data-j;
 		}
 		
 		memcpy(&p[j],&src[total_data_set],data_remaining_till_end_of_chunk);
 
 		total_data_set+=data_remaining_till_end_of_chunk;
-		p+=bytes_between_keyshares + bytes_used_for_keyshares;
+		p+=bytes_for_useful_data + bytes_used_for_keyshares+number_of_mac_bytes;
 		
 	}
   }
@@ -609,17 +616,17 @@ void set_secure_data(void * source,long data_size, unsigned char * data_start, i
   {
 	//actual set
 	data_remaining=data_size-total_data_set;
-	if (data_remaining<=bytes_between_keyshares)
+	if (data_remaining<=bytes_for_useful_data)
 	{
 		memcpy(&p[i],&src[total_data_set],data_remaining);
 		total_data_set=data_size;
 	}
 	else
 	{
-		memcpy(&p[i],&src[total_data_set],bytes_between_keyshares);
-		total_data_set+=bytes_between_keyshares;
+		memcpy(&p[i],&src[total_data_set],bytes_for_useful_data);
+		total_data_set+=bytes_for_useful_data;
 	}
-	i+=bytes_between_keyshares+bytes_used_for_keyshares;
+	i+=bytes_for_useful_data+bytes_used_for_keyshares+number_of_mac_bytes;
 
   }
 
@@ -940,7 +947,7 @@ list_node * check_and_merge(list_node* a, list_node* b , list_node ** head) //ca
 	list_node *temp;
 	
 	//if the memory is consecutive
-	if ((long)(a->pointer_to_mem) + a->length*(bytes_between_keyshares+bytes_used_for_keyshares) == (long)(b->pointer_to_mem))
+	if ((long)(a->pointer_to_mem) + a->length*(bytes_for_useful_data+bytes_used_for_keyshares+number_of_mac_bytes) == (long)(b->pointer_to_mem))
 	{ //yes they can be merged
 		temp=error_checking_malloc(sizeof(list_node),__func__,__LINE__);
 		//merge
@@ -976,9 +983,9 @@ void * managed_secure_malloc(long bytes_for_allocation)
 	
 	if (bytes_for_allocation==0) return NULL;
 	//find correct number of needed chunks
-	chunks_needed=bytes_for_allocation/bytes_between_keyshares;
+	chunks_needed=bytes_for_allocation/bytes_for_useful_data;
 	
-	if (chunks_needed*bytes_between_keyshares<bytes_for_allocation)
+	if (chunks_needed*bytes_for_useful_data<bytes_for_allocation)
 		chunks_needed++;
 	
 	//so, we need to allocate a group of <chunks_needed> chunks.
@@ -1009,7 +1016,7 @@ void * managed_secure_malloc(long bytes_for_allocation)
 		else //if we allocated just a portion of the free group
 		{
 			temp->length=temp->length-chunks_needed;
-			temp->pointer_to_mem=(unsigned char*)((unsigned char*)(temp->pointer_to_mem)+(bytes_used_for_keyshares+bytes_between_keyshares)*chunks_needed);
+			temp->pointer_to_mem=(unsigned char*)((unsigned char*)(temp->pointer_to_mem)+(bytes_used_for_keyshares+bytes_for_useful_data+number_of_mac_bytes)*chunks_needed);
 		}
 		
 		return new_node.pointer_to_mem;

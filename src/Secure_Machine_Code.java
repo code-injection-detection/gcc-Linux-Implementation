@@ -133,7 +133,8 @@ public class Secure_Machine_Code {
 	    useful_chunks_in_heap=find_useful_chunks_needed_to_allocate_in_mem(
 	    				total_bytes_trying_to_allocate_in_heap,
 	    				useful_bytes_between_keys_in_heap,
-	    				num_of_keys_in_heap);
+	    				num_of_keys_in_heap,
+						num_of_mac_bytes);
 	    //Now we don't care about the useful chunks, but the keys ( whose groups are the same as the number of chunks)
 	    for (int i=0;i<useful_chunks_in_heap;i++)
 	    {
@@ -153,8 +154,9 @@ public class Secure_Machine_Code {
 	    useful_chunks_in_stack=find_useful_chunks_needed_to_allocate_in_mem(
 	    				total_bytes_trying_to_allocate_in_stack,
 	    				useful_bytes_between_keys_in_stack,
-	    				num_of_keys_in_stack);
-	    //Now we don't care about the useful chunks, but the keys (chunks -1)
+	    				num_of_keys_in_stack,
+						num_of_mac_bytes);
+	    //Now we don't care about the useful chunks, but the keys
 	    for (int i=0;i<useful_chunks_in_stack;i++)
 	    {
 		    //insert into stack_keyshares file
@@ -233,10 +235,10 @@ public class Secure_Machine_Code {
 		return true;
 	}
 	
-	static long find_useful_chunks_needed_to_allocate_in_mem(long ttl_bytes,int useful_bytes,int key_bytes)
+	static long find_useful_chunks_needed_to_allocate_in_mem(long ttl_bytes,int useful_bytes,int key_bytes, int mac_bytes)
 	{
-		long useful_chunks=(long)((ttl_bytes)/(useful_bytes+key_bytes)); //this should be an integer, If not, we should allocate a bit more. 
-		if (useful_chunks*useful_bytes+(useful_chunks)*key_bytes==ttl_bytes)
+		long useful_chunks=(long)((ttl_bytes)/(useful_bytes+key_bytes+mac_bytes)); //this should be an integer, If not, we should allocate a bit more. 
+		if (useful_chunks*useful_bytes+(useful_chunks)*key_bytes+(useful_chunks)*mac_bytes==ttl_bytes)
 		{
 			return (useful_chunks);
 		}
@@ -247,14 +249,14 @@ public class Secure_Machine_Code {
 	}
 	
 
-	static boolean produced_bad_opcode( byte[] random_bytes_generated,int number_of_interleaved_nops, int number_of_canaries,int pos,byte canary_value)
+	static boolean produced_bad_opcode( byte[] random_bytes_generated,int number_of_interleaved_keys, int number_of_canaries,int pos,byte canary_value)
 	{
 		for (int i=0;i<number_of_canaries;i++)
 		{
 			if (random_bytes_generated[pos-i]!=canary_value)
 				return false;
 		}
-		if (random_bytes_generated[pos-number_of_canaries]!=(number_of_interleaved_nops+number_of_canaries))
+		if (random_bytes_generated[pos-number_of_canaries]!=(number_of_interleaved_keys+number_of_canaries))
 			return false;
 		if (random_bytes_generated[pos-number_of_canaries-1]!=-21) // -21=jmp opcode
 			return false;
