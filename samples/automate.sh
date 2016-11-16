@@ -12,19 +12,19 @@ if [ "$#" -ne 9 ]; then
     echo "f=number of grouped useful bytes in stack memory, g=total bytes to (try to) pre-allocate in stack memory"
     echo "h=number of grouped useful bytes between keyshares in global variables"
     echo "i=number of bytes for MACs"
-    echo "Example: $0 5 1 2 4 2048 4 1024 8 4"
+    echo "Example: $0 5 1 2 4 10000 4 8000 8 16"
     exit
 fi
 
 NUM_OF_INTERLEAVED_KEYS=5
 NUM_OF_GROUPED_INSTRUCTIONS=1
 NUM_OF_GROUPED_USEFUL_BYTES=4
-NUM_OF_TOTAL_BYTES_ALLOC=2048
+NUM_OF_TOTAL_BYTES_ALLOC=10000
 NUM_OF_CANARIES=2
 NUM_OF_GROUPED_USEFUL_STACK_BYTES=4
-NUM_OF_TOTAL_STACK_BYTES_ALLOC=1024
+NUM_OF_TOTAL_STACK_BYTES_ALLOC=8000
 NUM_OF_GLOBAL_USEFUL_BYTES=8
-NUM_OF_MAC_BYTES=4
+NUM_OF_MAC_BYTES=16
 
 if [ "$#" -eq 9 ]; then
 	NUM_OF_INTERLEAVED_KEYS=$1
