@@ -215,3 +215,28 @@ void towerOfHanoi_secure_using_changed_accesses(int n, char fromrod, char torod,
 	free_fun_params_that_point_to_stack(hanoi_params);
 }
 
+
+void check_stack_macs()
+{
+	unsigned char *p=entire_stack_memory_chunk;
+	char shasum[SHA256_BLOCK_SIZE];
+	char mac[number_of_mac_bytes];
+	int error=0;
+	
+	while (p<entire_stack_memory_chunk+total_stack_bytes_allocated)
+	{
+		calculate_sha256_sum(p,stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,shasum);
+		truncate_sha256sum(shasum,mac);
+		if (0!=memcmp(p+stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,mac,number_of_mac_bytes))
+		{	
+			printf("Error in stack macs, p=%ld, start of secure stack=%ld\n",(long) p,(long)entire_stack_memory_chunk);
+			error=1;
+		}
+		p+=stack_bytes_for_useful_data+stack_bytes_used_for_keyshares+number_of_mac_bytes;
+	}
+	if (error==0)
+	{
+		printf("All stack macs ok!\n");
+	}
+	
+}

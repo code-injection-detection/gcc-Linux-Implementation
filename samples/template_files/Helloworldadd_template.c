@@ -73,12 +73,12 @@ int main()
 
 	/*
 	//find_keyshares(-1);
-	mem_test();
-	list_test();
+	//mem_test();
+	//list_test();
 	printf("\nSimple array tests in heap\n");
-	simple_array_tests();
+	//simple_array_tests();
 	printf("\nStack fun params test\n");
-	//stack_fun_params_test();
+	stack_fun_params_test();
 	printf("\nEnd of tests\n");
 	printf("Going to find keyshares\n");
 	//find_keyshares(-1);
@@ -118,7 +118,7 @@ int main()
 	*/						
 	
 	/*
-	int matrix_size=400;
+	int matrix_size=100;
 	fill_matrices_for_multiplication(matrix_size,2000);
 	TEST_NORMAL_AND_SECURE_TIME(matrix multiplication,matrix_multiplication(matrix_size,2000),
 								user_friendly_secure_matrix_multiplication(matrix_size,2000))
@@ -132,6 +132,7 @@ int main()
 	printf("Going to find keyshares.\n");
 	find_keyshares(-1);
 	check_heap_macs();
+	check_stack_macs();
 	
 	
 	//free memory

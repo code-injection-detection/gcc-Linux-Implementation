@@ -200,11 +200,16 @@ void insert_keys_into_stack_mem(unsigned char * stack_mem)
     }
     else if (type_of_bytes==2)
     {
-		for (j=0;j<number_of_mac_bytes;j++)
+		/*for (j=0;j<number_of_mac_bytes;j++)
 		{
 			p[i]='\0';
 			i++;
-		}
+		}*/
+		//Insert the truncated sha256sum of the previous bytes
+		calc_and_set_mac_of_data(&p[i]-stack_bytes_for_useful_data-stack_bytes_used_for_keyshares,
+								 stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,
+								 &p[i]);
+		i+=number_of_mac_bytes;
 		type_of_bytes=0;
 	}
      
@@ -269,11 +274,19 @@ long insert_data_into_stack_mem(long data_size,unsigned char * data, unsigned ch
 	{
 		memcpy(&p[i],&data[total_data_inserted],data_remaining);
 		total_data_inserted=data_size;
+		//update mac
+		calc_and_set_mac_of_data(&p[i],
+								 stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,
+								 &p[i]+stack_bytes_for_useful_data+stack_bytes_used_for_keyshares);
 	}
 	else
 	{
 		memcpy(&p[i],&data[total_data_inserted],stack_bytes_for_useful_data);
 		total_data_inserted+=stack_bytes_for_useful_data;
+		//update mac
+		calc_and_set_mac_of_data(&p[i],
+								 stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,
+								 &p[i]+stack_bytes_for_useful_data+stack_bytes_used_for_keyshares);
 	}
 	i+=stack_bytes_for_useful_data+stack_bytes_used_for_keyshares+number_of_mac_bytes;
 	
@@ -416,6 +429,10 @@ void set_secure_stack_data(void * source,long data_size, unsigned char * data_st
 		}
 		
 		memcpy(&p[j],&src[total_data_set],data_remaining_till_end_of_chunk);
+		//update macs
+		calc_and_set_mac_of_data(p,
+								 stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,
+								 p+stack_bytes_for_useful_data+stack_bytes_used_for_keyshares);
 
 		total_data_set+=data_remaining_till_end_of_chunk;
 		p+=stack_bytes_for_useful_data + stack_bytes_used_for_keyshares+number_of_mac_bytes;
@@ -431,11 +448,19 @@ void set_secure_stack_data(void * source,long data_size, unsigned char * data_st
 	if (data_remaining<=stack_bytes_for_useful_data)
 	{
 		memcpy(&p[i],&src[total_data_set],data_remaining);
+		//update macs
+		calc_and_set_mac_of_data(&p[i],
+								 stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,
+								 &p[i]+stack_bytes_for_useful_data+stack_bytes_used_for_keyshares);
 		total_data_set=data_size;
 	}
 	else
 	{
 		memcpy(&p[i],&src[total_data_set],stack_bytes_for_useful_data);
+		//update macs
+		calc_and_set_mac_of_data(&p[i],
+								 stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,
+								 &p[i]+stack_bytes_for_useful_data+stack_bytes_used_for_keyshares);
 		total_data_set+=stack_bytes_for_useful_data;
 	}
 	i+=stack_bytes_for_useful_data+stack_bytes_used_for_keyshares+number_of_mac_bytes;
