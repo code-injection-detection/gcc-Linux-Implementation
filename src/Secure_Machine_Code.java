@@ -25,6 +25,7 @@ public class Secure_Machine_Code {
 		String stack_keys_filename=new File("../samples/stack_keyshares").getAbsolutePath();
 		String memory_manager_filename=new File("../samples/memory_manager.c").getAbsolutePath();
 		String global_keys_filename=new File("../samples/global_keyshares").getAbsolutePath();
+		String all_keyshares_filename=new File("../samples/all_keyshares_for_verification").getAbsolutePath();
 		
 		String newfilename = filename.substring(0,filename.length()-3)+"ksec";
 		Runtime r = Runtime.getRuntime();
@@ -50,6 +51,7 @@ public class Secure_Machine_Code {
 
 		FileOutputStream heap_keyshares_file = new FileOutputStream(new File(heap_keys_filename));
 		FileOutputStream stack_keyshares_file = new FileOutputStream(new File(stack_keys_filename));
+		FileOutputStream all_keyshares_file_for_verification=new FileOutputStream(new File(all_keyshares_filename));
 		Path path = FileSystems.getDefault().getPath(global_keys_filename);
 		byte [] global_keys = Files.readAllBytes(path);
 		
@@ -177,6 +179,7 @@ public class Secure_Machine_Code {
 		    	byte temp = global_keys[i];
 		    	keys[i%number_of_interleaved_keys].add(temp);
 			}
+			
 		
 	    
 	    System.out.println("");
@@ -186,6 +189,11 @@ public class Secure_Machine_Code {
 	    	try
 	    	{
 	    		System.out.printf("Keyshare %d : 0x%02X \n",i, xor(keys[i]));
+	    		//write all keyshares into the file for verification
+	    		byte[] temparray=new byte[1];
+	    		temparray[0]=xor(keys[i]);
+	    		all_keyshares_file_for_verification.write(temparray);
+	    		
 	    	}
 	    	catch(IndexOutOfBoundsException e)
 	    	{
@@ -202,6 +210,8 @@ public class Secure_Machine_Code {
 	    heap_keyshares_file.close();
 	    stack_keyshares_file.flush();
 	    stack_keyshares_file.close();
+	    all_keyshares_file_for_verification.flush();
+	    all_keyshares_file_for_verification.close();
 	    /*Giving execute permissions*/
 	    Process p = r.exec("chmod +x " + newfilename );
 	    p.waitFor();

@@ -4,6 +4,7 @@
 *.s
 Helloworldadd
 *_keyshares
+all_keyshares_for_verification
 headers_needed.h
 verification_procedure.c
 memory_manager.c

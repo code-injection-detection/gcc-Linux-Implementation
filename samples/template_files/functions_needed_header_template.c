@@ -16,6 +16,48 @@ void * error_checking_malloc(long size_in_bytes, const char * fun_name,int line)
 }
 
 
+void verify_all_keyshares_from_file(unsigned char * keys_array)
+{
+	FILE *all_keyshares_file;
+	int i;
+	int error=0;
+	unsigned char ret;
+	
+	all_keyshares_file=fopen("all_keyshares_for_verification","rb");
+	if(all_keyshares_file==NULL)
+	{
+		perror("all_keyshares file opening error\n");
+		exit(48);
+	}
+	
+	for (i=0;i<number_of_interleaved_keys;i++)
+	{
+		if (feof(all_keyshares_file))
+		{
+			perror("All keyshares:Attempted to read more keyshares that the ones stored\n");
+			exit(49);
+		}
+		//reads one byte
+		if( fread(&ret,1,1,all_keyshares_file) != 1 )
+		{
+			perror("Did not read byte in fread(), for all keyshares\n");
+			exit(50);
+		}
+		if (ret!=keys_array[i])
+		{
+			error=1;
+			fprintf(stderr,"ERROR in all keyshares verification! Position:%d Keyshare at first:0x%02x, Keyshare now:0x%02x\n",i,keys_array[i],ret);
+		}
+	}
+	if (error==0)
+	{
+		fprintf(stderr,"Keyshares ok!\n");
+	}
+	fclose(all_keyshares_file);
+	
+}
+
+
 #include "./crypto_algorithms/sha256.h"
 #include "./crypto_algorithms/sha256.c"
 

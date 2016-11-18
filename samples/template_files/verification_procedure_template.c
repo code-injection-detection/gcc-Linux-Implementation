@@ -197,6 +197,7 @@ void find_keyshares(int choice)
 		   fprintf(stderr,"key no%d=0x%02x\n",keycnt,keys[keycnt]);
 		}
 		fprintf(stderr,"\n");
+		verify_all_keyshares_from_file(keys);
 	}
 	else
 	{
