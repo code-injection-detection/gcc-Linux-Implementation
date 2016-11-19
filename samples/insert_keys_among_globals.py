@@ -13,6 +13,7 @@ inputfiles=[ './template_files/memory_manager_template.c',
 			 './template_files/memory_manager_test_suite_template.c',
 			 './template_files/stack_manager_test_suite_template.c',
 			 './template_files/Helloworldadd_template.c',
+			 './template_files/mac_handling_functions_template.c',
 			 './template_files/verification_procedure_template.c' #verification procedure must be last!
 		   ]
 
@@ -23,6 +24,7 @@ outputfiles=[ 'memory_manager.c',
 			 'memory_manager_test_suite.c',
 			 'stack_manager_test_suite.c',
 			 'Helloworldadd.c',
+			 'mac_handling_functions.c',
 			 'verification_procedure.c'
 		   ]
 

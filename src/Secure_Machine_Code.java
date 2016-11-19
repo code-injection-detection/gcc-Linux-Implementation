@@ -3,6 +3,7 @@ import java.io.*;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.*;
 
 /*
  * This code reads a compiled exe file and then locates the nop instructions
@@ -48,6 +49,7 @@ public class Secure_Machine_Code {
 		int number_of_nops_to_denote_program_start=130;
 		byte canary_value=0x42; //says:after me, keyshares follow!
 		
+		MessageDigest md = MessageDigest.getInstance("SHA-256");
 		FileInputStream fr = new FileInputStream(new File(filename));
 		FileOutputStream fw = new FileOutputStream(new File(newfilename));
 		ArrayList<Byte> list = new ArrayList<Byte>();
@@ -57,6 +59,7 @@ public class Secure_Machine_Code {
 		FileOutputStream all_keyshares_file_for_verification=new FileOutputStream(new File(all_keyshares_filename));
 		Path path = FileSystems.getDefault().getPath(global_keys_filename);
 		byte [] global_keys = Files.readAllBytes(path);
+		byte[] stuff_in_code_to_be_MACed=new byte[1000];
 		
 		if (args.length==7)
 		{
@@ -143,8 +146,26 @@ public class Secure_Machine_Code {
     				arr[i+2+j+number_of_canaries+bytes_for_instr_len] = temp;
     				keys[j].add(temp);    				
 	    		}
+	    		
+				i+=(number_of_interleaved_keys+number_of_canaries+bytes_for_instr_len+2); //jump above them and reach the mac bytes
+	    		
+	    		//time to set the proper MACs
+	    		for (int j=0;j<cnt_for_instr_bytes+number_of_canaries+bytes_for_instr_len+number_of_interleaved_keys;j++)
+	    		{
+					//copy bytes
+					stuff_in_code_to_be_MACed[j]=arr[i-(cnt_for_instr_bytes+number_of_interleaved_keys+number_of_canaries+bytes_for_instr_len)+j];
+				}
+				//give them to the hash handler and calculate the hash
+				md.update(stuff_in_code_to_be_MACed,0,cnt_for_instr_bytes+number_of_canaries+bytes_for_instr_len+number_of_interleaved_keys);
+	    		byte[] digest = md.digest();
+	    		//and write the mac bytes
+	    		for (int j=0;j<num_of_mac_bytes;j++)
+	    		{
+					arr[i+j]=digest[j];
+				}
+								
+	    		i+=num_of_mac_bytes; //and jump over the mac bytes too
 	    		cnt_for_instr_bytes=0;
-	    		i+=(number_of_interleaved_keys+number_of_canaries+num_of_mac_bytes+bytes_for_instr_len+2);
 	    	}
 	    	else
 	    	{
@@ -158,7 +179,6 @@ public class Secure_Machine_Code {
 	    
 	    
 	    //inserting keyshares into heap keyshare file
-
 	    useful_chunks_in_heap=find_useful_chunks_needed_to_allocate_in_mem(
 	    				total_bytes_trying_to_allocate_in_heap,
 	    				useful_bytes_between_keys_in_heap,
@@ -178,8 +198,7 @@ public class Secure_Machine_Code {
 			}
 	    }
 	    
-	  //inserting keyshares into stack keyshare file
-
+	    //inserting keyshares into stack keyshare file
 	    useful_chunks_in_stack=find_useful_chunks_needed_to_allocate_in_mem(
 	    				total_bytes_trying_to_allocate_in_stack,
 	    				useful_bytes_between_keys_in_stack,

@@ -554,28 +554,3 @@ void multiple_secure_mallocs_and_frees(int loopcount,int pointercount)
 	
 }
 
-
-void check_heap_macs()
-{
-	unsigned char *p=entire_memory_chunk;
-	char shasum[SHA256_BLOCK_SIZE];
-	char mac[number_of_mac_bytes];
-	int error=0;
-	
-	while (p<entire_memory_chunk+total_bytes_allocated)
-	{
-		calculate_sha256_sum(p,bytes_for_useful_data+bytes_used_for_keyshares,shasum);
-		truncate_sha256sum(shasum,mac);
-		if (0!=memcmp(p+bytes_for_useful_data+bytes_used_for_keyshares,mac,number_of_mac_bytes))
-		{	
-			printf("Error in heap macs, p=%ld, start of secure heap=%ld\n",(long) p,(long)entire_memory_chunk);
-			error=1;
-		}
-		p+=bytes_for_useful_data+bytes_used_for_keyshares+number_of_mac_bytes;
-	}
-	if (error==0)
-	{
-		printf("All heap macs ok!\n");
-	}
-	
-}

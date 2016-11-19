@@ -138,6 +138,7 @@ int main()
 	find_keyshares(-1);
 	check_heap_macs();
 	check_stack_macs();
+	check_code_macs();
 	
 	
 	//free memory

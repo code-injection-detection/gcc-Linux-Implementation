@@ -125,6 +125,7 @@ else
 	cp ./template_files/Helloworldadd_template.c Helloworldadd.c
 	cp ./template_files/memory_manager_test_suite_template.c memory_manager_test_suite.c
 	cp ./template_files/stack_manager_test_suite_template.c stack_manager_test_suite.c
+	cp ./template_files/mac_handling_functions_template.c mac_handling_functions.c
 	echo "Copied templates"
 fi
 
