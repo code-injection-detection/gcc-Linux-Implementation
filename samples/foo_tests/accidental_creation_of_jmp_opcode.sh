@@ -4,10 +4,10 @@
 #run it and wait. At less than 30 iterations, the error should appear. It's a matter of probability. 
 #Now the problem is fixed though
 cd ..
-for ((i=1;i<=10000;i++)); do
+for ((i=1;i<=20000;i++)); do
 
 	echo $i
-	x=$(./automate.sh 100 1 1 4 1024 4 1024)
+	x=$(./automate.sh 110 1 1 8 10000 8 8000 8 1)
 	a=$(echo $x | grep "Acc")
 	if [ "$a" != "" ]; then
 		echo $x

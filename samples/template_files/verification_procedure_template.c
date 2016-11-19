@@ -90,6 +90,7 @@ void find_keyshares(int choice)
 	long fun_name;
 	long heap_cnt;
 	long stack_cnt;
+	int bytes_for_instr_len=1;
 	int type_of_bytes=0; //0->useful bytes, 1-> keyshares, 2->mac bytes
 	char ret;
 	char keyout_buffer[KEYOUT_BUFFER_SIZE];
@@ -111,14 +112,14 @@ void find_keyshares(int choice)
 	//using start and end of text section
 	for (p=start_of_text;p<=end_of_text;)
 	{
-		if (*p==0xEB && *(p+1)==(number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes) && check_next_canaries(p+2)) //JMP <number of keys>+<number_of_canaries>+<number_of_mac_bytes>
+		if (*p==0xEB && *(p+1)==(number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len) && check_next_canaries(p+2)) //JMP <number of keys>+<number_of_canaries>+<number_of_mac_bytes>
 		{ 
 			//printf("0x%02x ",*(p+2));
 			for (keycnt=0;keycnt<number_of_interleaved_keys;keycnt++)
 			{
-				keys[keycnt]^= (unsigned char) *(p+2+keycnt+number_of_canaries);
+				keys[keycnt]^= (unsigned char) *(p+2+keycnt+number_of_canaries+bytes_for_instr_len);
 			}
-			p+=(number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes)+1; //jump over all the canaries,keys,macs
+			p+=(number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len)+2; //jump over all the canaries,keys,macs
 		}
 		else
 		{

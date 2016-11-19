@@ -34,6 +34,8 @@ public class Secure_Assembly {
 		int  num_of_interleaved_keys = 5;   //this should be equal to the number of keys we use in Secure_Machine_Code.java (now that we assume that 1 NOP = 1key)
 		int  number_of_canaries=2;
 		int  num_of_mac_bytes=4;
+		int bytes_for_instr_len=1;
+		int number_of_nops_to_denote_program_start=130;
 		
 		if (args.length==1)
 			num_of_interleaved_keys=Integer.parseInt(args[0]);
@@ -81,6 +83,12 @@ public class Secure_Assembly {
 		sc = new Scanner(new File(filename));
 		sc.useDelimiter("\n");
 		
+		// Adding these NOPs help identify the beginning of code for the Secure_Machine_code program
+		for (int cnt=0;cnt<number_of_nops_to_denote_program_start;cnt++)
+		{
+			list_of_lines.add("NOP");
+		}
+
 		for (String fun:function_names)
 		{	
 			while (sc.hasNext())
@@ -99,9 +107,6 @@ public class Secure_Assembly {
 				
 			}
 			
-			// Adding these NOPs help identify the beginning of code for the Secure_Machine_code program
-			list_of_lines.add("NOP");
-			list_of_lines.add("NOP");
 			
 			// This inserts the jumps and NOPs in the code.
 			// It breaks at the end of the code ("end")
@@ -141,7 +146,7 @@ public class Secure_Assembly {
 				if (i == num_of_grouped_orig_instr)
 				{
 					list_of_lines.add(" jmp " + "." + ulabel + label_counter);
-					for (int j = 0; j < num_of_interleaved_keys+number_of_canaries+num_of_mac_bytes; j++)
+					for (int j = 0; j < num_of_interleaved_keys+number_of_canaries+num_of_mac_bytes+bytes_for_instr_len; j++)
 						list_of_lines.add("NOP"); 
 					list_of_lines.add("."+ ulabel + label_counter + ": " );          //we are just adding the label, not any command
 					//System.out.println(line);
