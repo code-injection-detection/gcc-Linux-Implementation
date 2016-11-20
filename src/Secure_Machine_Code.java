@@ -116,7 +116,7 @@ public class Secure_Machine_Code {
 					arr[i+2+j] = (byte)canary_value;
 				}
 				
-				if (cnt_for_instr_bytes/255>bytes_for_instr_len || bytes_for_instr_len!=1)
+				if (cnt_for_instr_bytes/255.0>bytes_for_instr_len || bytes_for_instr_len!=1)
 				{
 					System.out.println("Error. Too many assembly commands (255 bytes in size) in one chunk of useful bytes. Count: "+cnt_for_instr_bytes+" at position: "+i);
 				}

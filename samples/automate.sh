@@ -60,6 +60,13 @@ echo -n "NUM_OF_MAC_BYTES: "
 echo $NUM_OF_MAC_BYTES
 echo ""
 
+if [ "$NUM_OF_GROUPED_INSTRUCTIONS" -gt "20" ]; then
+	echo "Caution! The length of the grouped instructions should not be >253 bytes under no circumstances!"
+	echo "Your value of grouped instructions is big enough to cause concerns. Exiting for safety."
+	echo "If you REALLY want such a value (it is big however), change the automate.sh script."
+	exit
+fi
+
 #Checking if the .class files are present
 if [ ! -d "../bin" ]; then  #if directory does not exist
 	echo "The 'bin' directory with the class files is not present!" 
@@ -105,8 +112,12 @@ else
 	fi
 fi
 
+echo "Compiling hash and encryption calculators."
+(cd crypto_algorithms; make >/dev/null)
+echo "Compiled hash and encryption calculators."
+
 echo "Changing defines according to input..."
-python3 set_correct_defines.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_TOTAL_STACK_BYTES_ALLOC $NUM_OF_MAC_BYTES
+python3 set_correct_defines.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_TOTAL_STACK_BYTES_ALLOC $NUM_OF_GLOBAL_USEFUL_BYTES $NUM_OF_MAC_BYTES
 echo "Changed defines."
 
 

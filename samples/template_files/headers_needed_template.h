@@ -58,6 +58,10 @@
 #endif				//practically the "useful" bytes in the stack. Important: It is not (currently) possible to split this bytegroup into multiple parts.
 				    //which means that should someone allocate x bytegroups but does not need the last one as a whole, we cannot give the rest of it to someone else
 
+#ifndef number_of_global_useful_bytes
+#define number_of_global_useful_bytes (8)
+#endif				//The size of the global useful bytes
+
 #ifndef number_of_mac_bytes
 #define number_of_mac_bytes (4)
 #endif				//The size of the Message Authentication Code (MAC) in bytes. The MAC follows the keyshares

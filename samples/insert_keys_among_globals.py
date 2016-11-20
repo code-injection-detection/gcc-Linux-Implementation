@@ -29,7 +29,7 @@ outputfiles=[ 'memory_manager.c',
 		   ]
 
 canary_str='ATTENTION: GLOBAL VARIABLE FOLLOWING!'
-verifivation_canary_str='PLEASE PYTHON ADD CODE FOR GLOBAL KEYS VERIFICATION'
+verification_canary_str='PLEASE PYTHON ADD CODE FOR GLOBAL KEYS VERIFICATION'
 keycnt_major=0
 maccnt_major=0
 insert_keys_and_macs_in_one_line=0
@@ -209,7 +209,7 @@ for fileindex,filein in enumerate(inputfiles):
 			processing_global=0
 		
 		#if we found the verification procedure
-		if verifivation_canary_str in line:
+		if verification_canary_str in line:
 			if insert_keys_and_macs_in_one_line:
 				add_verification_one_line()
 			else:
