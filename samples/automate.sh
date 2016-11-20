@@ -112,7 +112,7 @@ else
 	fi
 fi
 
-echo "Compiling hash and encryption calculators."
+echo "Compiling hash and encryption calculators..."
 (cd crypto_algorithms; make >/dev/null)
 echo "Compiled hash and encryption calculators."
 
