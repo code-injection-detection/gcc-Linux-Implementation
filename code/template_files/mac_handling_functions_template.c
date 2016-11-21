@@ -158,12 +158,4 @@ void check_code_macs()
 }
 
 
-void init_global_macs()
-{
-	//PLEASE PYTHON ADD CODE FOR GLOBAL MACS INITIALISATION
-}
-
-void check_global_macs()
-{
-	//PLEASE PYTHON ADD CODE FOR GLOBAL MACS VERIFICATION
-}
+void check_global_macs(); //implemented in functions_needed_footer.c, as it needs to take all globals into account

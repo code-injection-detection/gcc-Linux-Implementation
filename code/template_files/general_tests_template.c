@@ -602,3 +602,39 @@ int the_matrices_are_the_same(int size)
 }
 
 
+int unsecured_i;
+long unsecured_sum;
+
+void global_sum_calculator(int times,int maxval)
+{
+	int k;
+	for (k=0;k<times;k++)
+	{
+		unsecured_sum=0;
+		for (unsecured_i=0;unsecured_i<maxval;unsecured_i++)
+		{
+			unsecured_sum+=unsecured_i;
+		}
+	}
+	printf("unsecured sum:%ld\n",unsecured_sum);
+}
+
+//these variables are declared in the global struct
+//ATTENTION: FORMER GLOBAL VARIABLE FOLLOWING! | SIZE:int 
+//int secured_i=0;
+//ATTENTION: FORMER GLOBAL VARIABLE FOLLOWING! | SIZE:long
+//long secured_sum=0;
+
+void secure_global_sum_calculator(int times,int maxval)
+{
+	int k;
+	for (k=0;k<times;k++)
+	{
+		UPDATE_GLOBAL_VAR(globals.secured_sum,0);
+		for (UPDATE_GLOBAL_VAR_FOR_LOOPS(globals.secured_i,0);globals.secured_i<maxval;UPDATE_GLOBAL_VAR_FOR_LOOPS(globals.secured_i,globals.secured_i+1))
+		{
+			UPDATE_GLOBAL_VAR(globals.secured_sum,globals.secured_sum+globals.secured_i);
+		}
+	}
+	printf("secured sum:%ld\n",globals.secured_sum);
+}

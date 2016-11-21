@@ -1,9 +1,23 @@
 #include "headers_needed.h"
 
 
+
+void check_global_macs()
+{
+	//PLEASE PYTHON ADD CODE FOR GLOBAL MACS VERIFICATION
+	
+	/*currently broken*/
+	/*
+	long k;
+	printf("positions: mac_2:%ld, test_global:%ld\n",(long)&(mac_2),(long)&(test_global));
+	for (k=((long)&(mac_2))-(bytes_used_for_keyshares+number_of_global_useful_bytes);k<((long)&(mac_2))+number_of_mac_bytes;k++)
+		printf("%d ",*((unsigned char*)k));
+	printf("\n");
+	*/
+}
+
+
 #include "verification_procedure.c" //verification procedure must be included last! No global variables should follow.
-
-
 
 void install_signal_handler()
 {

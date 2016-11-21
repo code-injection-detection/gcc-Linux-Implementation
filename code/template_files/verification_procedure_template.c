@@ -23,11 +23,9 @@ extern int foo(int);
 extern int main();
 extern int foo2(int);
 
-//WHAT TO DO WITH THAT? MOST LIKELY LEAVE IT AS IS!
+
 struct sigaction sa; //for signal handling
-//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:long
 pthread_t verification_procedure_thread;
-//WHAT TO DO WITH THAT? MOST LIKELY LEAVE IT AS IS!
 sem_t verification_sync_semaphore; //for synchronizing the moment when the signal handler is installed
 
 

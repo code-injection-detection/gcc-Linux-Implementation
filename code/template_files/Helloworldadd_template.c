@@ -3,13 +3,29 @@
 #include <time.h>
 
 
-#include "functions_needed_header.c" //Including the C file because all the functions must be in the same file in order to be secured
-
-//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:int | TYPE:static
-static int static_global_variable_for_testing;
-
-//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:int | TYPE:normal
+typedef struct
+{
+//ATTENTION: FIX GLOBAL VARIABLE FOLLOWING! | SIZE:int
+double global_double_variable_for_testing;
+//ATTENTION: FIX GLOBAL VARIABLE FOLLOWING! | SIZE:int
 int test_global;
+//ATTENTION: FIX FORMER GLOBAL VARIABLE FOLLOWING! | SIZE:int 
+int secured_i;
+//ATTENTION: FIX FORMER GLOBAL VARIABLE FOLLOWING! | SIZE:long
+long secured_sum;
+}global_vars;
+
+global_vars globals = {
+//PLEASE PYTHON INITIALISE THE GLOBAL VARS
+0,
+0,
+0,
+0
+};
+
+
+
+#include "functions_needed_header.c" //Including the C file because all the functions must be in the same file in order to be secured
 
 int foo(int x)
 {
@@ -18,28 +34,6 @@ int foo(int x)
  
 return k;
 }
-
-
-#define TEST_NORMAL_AND_SECURE_TIME(operation,function_call_normal,function_call_secure) { \
-					printf("\n"); \
-					printf("Calculating time for " #operation ". Normal " #operation ":\n"); \
-					simplestart=clock(); \
-					function_call_normal ;\
-					simpleend=clock(); \
-					simpletime=((double) (simpleend - simplestart)) / CLOCKS_PER_SEC; \
-					printf("\n"); \
-					printf("Normal " #operation ":%lg cpu seconds\n",simpletime); \
-					printf("Secure "  #operation ":\n"); \
-					securestart=clock(); \
-					function_call_secure ;\
-					secureend=clock(); \
-					securetime=((double) (secureend - securestart)) / CLOCKS_PER_SEC; \
-					printf("\n"); \
-					printf("Normal " #operation " time:%lg cpu seconds\n",simpletime); \
-					printf("Secure " #operation " time:%lg cpu seconds\n",securetime); \
-					printf("\n"); \
-					printf("Ratio: %lg times slowdown\n",securetime/simpletime); \
-				} 
 
 
 int main()
@@ -51,14 +45,7 @@ int main()
 	int j;
 	int n;
 	static int static_main_variable_for_testing;
-	clock_t simplestart;
-	clock_t simpleend;
-	clock_t securestart;
-	clock_t secureend;
-	double securetime;
-	double simpletime;
 
-	
 	//initialise memory
 	init_heap_and_stack_mem();
 	
@@ -104,6 +91,15 @@ int main()
 	TEST_NORMAL_AND_SECURE_TIME(primes not very fast version,find_primes_up_to_a_number(primes_up_to);,
 								secure_find_primes_up_to_a_number(primes_up_to);)
 	
+	
+	/*currently broken*/
+	/* 
+	int Times=100;
+	int maxval=3000;			
+	TEST_NORMAL_AND_SECURE_TIME(global sum calculation,global_sum_calculator(Times,maxval);,
+								secure_global_sum_calculator(Times,maxval);)
+	*/
+	
 	//Yay.break some stuff plox
 	//break keys! (and corresponding mac)
 	//*(entire_memory_chunk+bytes_for_useful_data)=1;
@@ -139,6 +135,7 @@ int main()
 	check_heap_macs();
 	check_stack_macs();
 	check_code_macs();
+	//check_global_macs(); //currently broken
 	
 	
 	//free memory

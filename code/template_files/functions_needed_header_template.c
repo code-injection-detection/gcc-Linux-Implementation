@@ -62,10 +62,19 @@ void calculate_sha256_sum(char * input, long length, char * output);
 void truncate_sha256sum(char * input, char * output);
 void calc_and_set_mac_of_data(char * input, long length, char * output);
 
+/*
+void update_global_var(unsigned char * global var, unsigned char * new_value, long length_of_new_value)
+{
+	memcpy(global_var,new_value,length_of_new_value
+}*/
+
 #define UPDATE_GLOBAL_VAR(global_var,new_value) { \
 							global_var=(new_value); \
-							calc_and_set_mac_of_data(&(global_var),number_of_global_useful_bytes+bytes_used_for_keyshares,((unsigned char*) &(global_var))+(number_of_global_useful_bytes+bytes_used_for_keyshares)) ; \
+							calc_and_set_mac_of_data((unsigned char *)&(global_var),number_of_global_useful_bytes+bytes_used_for_keyshares,((unsigned char*) &(global_var))+(number_of_global_useful_bytes+bytes_used_for_keyshares)) ;\
 						}
+						
+#define UPDATE_GLOBAL_VAR_FOR_LOOPS(global_var,new_value) global_var=(new_value), \
+							calc_and_set_mac_of_data((unsigned char *)&(global_var),number_of_global_useful_bytes+bytes_used_for_keyshares,((unsigned char*) &(global_var))+(number_of_global_useful_bytes+bytes_used_for_keyshares))
 
 #include "memory_manager.c" //Including the C files because all the functions must be in the same file in order to be secured
 #include "stack_manager.c"
@@ -105,3 +114,32 @@ void free_heap_and_stack_memory()
 }
 
 #include "mac_handling_functions.c"
+
+
+clock_t _simplestart;
+clock_t _simpleend;
+clock_t _securestart;
+clock_t _secureend;
+double _securetime;
+double _simpletime;
+#define TEST_NORMAL_AND_SECURE_TIME(operation,function_call_normal,function_call_secure) { \
+					printf("\n"); \
+					printf("Calculating time for " #operation ". Normal " #operation ":\n"); \
+					_simplestart=clock(); \
+					function_call_normal ;\
+					_simpleend=clock(); \
+					_simpletime=((double) (_simpleend - _simplestart)) / CLOCKS_PER_SEC; \
+					printf("\n"); \
+					printf("Normal " #operation ":%lg cpu seconds\n",_simpletime); \
+					printf("Secure "  #operation ":\n"); \
+					_securestart=clock(); \
+					function_call_secure ;\
+					_secureend=clock(); \
+					_securetime=((double) (_secureend - _securestart)) / CLOCKS_PER_SEC; \
+					printf("\n"); \
+					printf("Normal " #operation " time:%lg cpu seconds\n",_simpletime); \
+					printf("Secure " #operation " time:%lg cpu seconds\n",_securetime); \
+					printf("\n"); \
+					printf("Ratio: %lg times slowdown\n",_securetime/_simpletime); \
+				} 
+

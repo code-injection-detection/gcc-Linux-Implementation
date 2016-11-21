@@ -18,24 +18,21 @@ typedef struct node_of_a_list {
 	struct node_of_a_list * previous;
 } list_node;
 
-//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:long | TYPE:NORMAL
+
 long total_bytes_allocated; /*total bytes allocated for the secure heap (perhaps different than the amount asked)*/
-//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:ptr
 unsigned char * entire_memory_chunk; /*points to the start of the secure heap*/
-//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:ptr
 unsigned char* last_unused_memory; /*old, use memory manager functions instead*/
-//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:ptr
 FILE *keyshare_input_file;
 
 /*memory manager lists*/
 /*Each node they contain, represents one group of chunks that has been allocated as one, or is one continuous free space in the heap*/
-//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:ptr
+//ATTENTION: FORMER GLOBAL VARIABLE FOLLOWING! | SIZE:ptr
 list_node * free_chunks_list; 
-//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:long
+//ATTENTION: FORMER GLOBAL VARIABLE FOLLOWING! | SIZE:long
 long free_chunks_num;
-//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:ptr
+//ATTENTION: FORMER GLOBAL VARIABLE FOLLOWING! | SIZE:ptr
 list_node * allocated_chunks_list;
-//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:long
+//ATTENTION: FORMER GLOBAL VARIABLE FOLLOWING! | SIZE:long
 long allocated_chunks_num;
 
 
