@@ -5,22 +5,18 @@
 
 typedef struct
 {
-//ATTENTION: FIX GLOBAL VARIABLE FOLLOWING! | SIZE:int
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:int
 double global_double_variable_for_testing;
-//ATTENTION: FIX GLOBAL VARIABLE FOLLOWING! | SIZE:int
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:int
 int test_global;
-//ATTENTION: FIX FORMER GLOBAL VARIABLE FOLLOWING! | SIZE:int 
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:int 
 int secured_i;
-//ATTENTION: FIX FORMER GLOBAL VARIABLE FOLLOWING! | SIZE:long
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:long
 long secured_sum;
 }global_vars;
 
 global_vars globals = {
 //PLEASE PYTHON INITIALISE THE GLOBAL VARS
-0,
-0,
-0,
-0
 };
 
 
@@ -91,9 +87,7 @@ int main()
 	TEST_NORMAL_AND_SECURE_TIME(primes not very fast version,find_primes_up_to_a_number(primes_up_to);,
 								secure_find_primes_up_to_a_number(primes_up_to);)
 	
-	
-	/*currently broken*/
-	/* 
+	/*
 	int Times=100;
 	int maxval=3000;			
 	TEST_NORMAL_AND_SECURE_TIME(global sum calculation,global_sum_calculator(Times,maxval);,
@@ -135,7 +129,7 @@ int main()
 	check_heap_macs();
 	check_stack_macs();
 	check_code_macs();
-	//check_global_macs(); //currently broken
+	check_global_macs();
 	
 	
 	//free memory

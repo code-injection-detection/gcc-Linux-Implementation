@@ -6,6 +6,7 @@ import random
 import gc
 import platform
 import hashlib
+from collections import Iterable
 
 inputfiles=[ './template_files/memory_manager_template.c',
 			 './template_files/stack_manager_template.c',
@@ -34,6 +35,7 @@ outputfiles=[ 'memory_manager.c',
 canary_str='ATTENTION: GLOBAL VARIABLE FOLLOWING!'
 verification_canary_str='PLEASE PYTHON ADD CODE FOR GLOBAL KEYS VERIFICATION'
 mac_verification_canary_str='PLEASE PYTHON ADD CODE FOR GLOBAL MACS VERIFICATION'
+initialization_canary_str='PLEASE PYTHON INITIALISE THE GLOBAL VARS'
 keycnt_major=0
 maccnt_major=0
 insert_keys_and_macs_in_one_line=0
@@ -46,6 +48,7 @@ num_of_mac_bytes=0
 hash_handler=hashlib.sha256()
 bytes_to_be_hashed=[]
 value_of_useless_bytes=1
+global_variable_values=[]
 
 if (len(sys.argv)!=5):
 	print("insert_keys_among_globals:Wrong number of arguments.")
@@ -101,6 +104,7 @@ def add_keys_and_macs(var_type):
 	global maccnt_major
 	global bytes_to_be_hashed
 	global hash_handler
+	global global_variable_values
 	
 	if number_of_keys>0:
 		keycnt_major+=1
@@ -109,7 +113,8 @@ def add_keys_and_macs(var_type):
 			s+=process_var_type(var_type)+" "
 			keyshare=get_next_keyshare()
 			bytes_to_be_hashed.append(keyshare)
-			s+="unsigned char key_"+str(keycnt_major)+"_"+str(i) +" = "+str(keyshare)+"; \n"
+			s+="unsigned char key_"+str(keycnt_major)+"_"+str(i) +";\n"
+			global_variable_values.append(keyshare)
 			filelines_out.append(s)
 	if num_of_mac_bytes>0:
 		hash_handler.update(bytes(bytes_to_be_hashed))
@@ -120,7 +125,8 @@ def add_keys_and_macs(var_type):
 		for i in range(1,num_of_mac_bytes+1):
 			s=''
 			s+=process_var_type(var_type)+" "
-			s+="unsigned char mac_"+str(maccnt_major)+"_"+str(i) +" = "+str(sha_hash[i-1])+"; \n"
+			s+="unsigned char mac_"+str(maccnt_major)+"_"+str(i) +";\n"
+			global_variable_values.append(sha_hash[i-1])
 			filelines_out.append(s)
 		
 
@@ -130,19 +136,19 @@ def add_keys_and_macs_one_line(var_type):
 	global maccnt_major
 	global bytes_to_be_hashed
 	global hash_handler
+	global global_variable_values
 	
 	s=''
 	if number_of_keys>0:
 		s+=process_var_type(var_type)+" "
 		keycnt_major+=1
-		s+="unsigned char key_"+str(keycnt_major)+"["+str(number_of_keys)+"] = {" 
+		s+="unsigned char key_"+str(keycnt_major)+"["+str(number_of_keys)+"];\n" 
+		values_of_array=[]
 		for i in range(1,number_of_keys+1):
 			keyshare=get_next_keyshare()
 			bytes_to_be_hashed.append(keyshare)
-			s+=" "+str(keyshare)
-			if i<number_of_keys:
-				s+=","
-		s+="};\n"
+			values_of_array.append(keyshare)
+		global_variable_values.append(values_of_array)
 		filelines_out.append(s)
 	
 	s=''
@@ -153,12 +159,11 @@ def add_keys_and_macs_one_line(var_type):
 		#print("sha_hash:",sha_hash)
 		s+=process_var_type(var_type)+" "
 		maccnt_major+=1
-		s+="unsigned char mac_"+str(maccnt_major)+"["+str(num_of_mac_bytes)+"] = {" 
+		s+="unsigned char mac_"+str(maccnt_major)+"["+str(num_of_mac_bytes)+"];\n" 
+		values_of_array=[]
 		for i in range(1,num_of_mac_bytes+1):
-			s+=" "+str(sha_hash[i-1])
-			if i<num_of_mac_bytes:
-				s+=","
-		s+="};\n"
+			values_of_array.append(sha_hash[i-1])
+		global_variable_values.append(values_of_array)
 		filelines_out.append(s)
 
 
@@ -167,11 +172,13 @@ def pad_random_useless_bytes(var_type,num):
 	global useless_bytes_cnt
 	global bytes_to_be_hashed
 	global hash_handler
+	global global_variable_values
 	
 	for i in range(num):
 		useless_bytes_cnt+=1
 		bytes_to_be_hashed.append(value_of_useless_bytes)
-		filelines_out.append(process_var_type(var_type)+' char useless_byte_'+ str(useless_bytes_cnt)+ ' = ' +str(value_of_useless_bytes) +';\n')
+		filelines_out.append(process_var_type(var_type)+' char useless_byte_'+ str(useless_bytes_cnt)+ ';\n')
+		global_variable_values.append(value_of_useless_bytes)
 
 
 def add_verification_one_line():
@@ -181,7 +188,7 @@ def add_verification_one_line():
 	for i in range(1,keycnt_major+1):
 		filelines_out.append('for (keycnt=0;keycnt<number_of_interleaved_keys;keycnt++) \n')
 		filelines_out.append('{ \n')
-		filelines_out.append('keys[keycnt]^=(unsigned char) key_'+str(i)+'[keycnt]; \n')
+		filelines_out.append('keys[keycnt]^=(unsigned char) globals.key_'+str(i)+'[keycnt]; \n')
 		filelines_out.append('} \n')
 
 def add_verification():
@@ -191,7 +198,7 @@ def add_verification():
 
 	for j in range(1,number_of_keys+1):
 		for i in range(1,keycnt_major+1):
-			filelines_out.append('keys['+str(j-1)+'] ^=(unsigned char) key_'+str(i)+'_'+str(j)+';\n')
+			filelines_out.append('keys['+str(j-1)+'] ^=(unsigned char) globals.key_'+str(i)+'_'+str(j)+';\n')
 
 
 def add_mac_verification():
@@ -201,9 +208,9 @@ def add_mac_verification():
 
 	s='int error=0;\n char shasum[SHA256_BLOCK_SIZE];\n char mac[number_of_mac_bytes];\n'
 	for i in range(1,maccnt_major+1):
-		s+='calculate_sha256_sum((unsigned char *)&(mac_'+str(i)+'_1)-(number_of_global_useful_bytes+bytes_used_for_keyshares),number_of_global_useful_bytes+bytes_used_for_keyshares,shasum);\n'
+		s+='calculate_sha256_sum((unsigned char *)&(globals.mac_'+str(i)+'_1)-(number_of_global_useful_bytes+bytes_used_for_keyshares),number_of_global_useful_bytes+bytes_used_for_keyshares,shasum);\n'
 		s+='truncate_sha256sum(shasum,mac);\n'
-		s+='if (0!=memcmp((unsigned char *)&(mac_'+str(i)+'_1),mac,number_of_mac_bytes))\n'
+		s+='if (0!=memcmp((unsigned char *)&(globals.mac_'+str(i)+'_1),mac,number_of_mac_bytes))\n'
 		s+='{\n'	
 		s+='	printf("Error in global macs, mac no %d\\n",'+str(i)+');\n'
 		s+='	error=1;\n'
@@ -221,9 +228,9 @@ def add_mac_verification_one_line():
 	
 	s='int error=0;\n char shasum[SHA256_BLOCK_SIZE];\n char mac[number_of_mac_bytes];\n'
 	for i in range(1,maccnt_major+1):
-		s+='calculate_sha256_sum((unsigned char *)&(mac_'+str(i)+')-(number_of_global_useful_bytes+bytes_used_for_keyshares),number_of_global_useful_bytes+bytes_used_for_keyshares,shasum);\n'
+		s+='calculate_sha256_sum((unsigned char *)&(globals.mac_'+str(i)+')-(number_of_global_useful_bytes+bytes_used_for_keyshares),number_of_global_useful_bytes+bytes_used_for_keyshares,shasum);\n'
 		s+='truncate_sha256sum(shasum,mac);\n'
-		s+='if (0!=memcmp((unsigned char *)&(mac_'+str(i)+'),mac,number_of_mac_bytes))\n'
+		s+='if (0!=memcmp((unsigned char *)&(globals.mac_'+str(i)+'),mac,number_of_mac_bytes))\n'
 		s+='{\n'	
 		s+='	printf("Error in global macs, mac no %d\\n",'+str(i)+');\n'
 		s+='	error=1;\n'
@@ -233,8 +240,6 @@ def add_mac_verification_one_line():
 	s+='	printf("All global macs ok!\\n");\n'
 	s+='}\n'
 	filelines_out.append(s)
-
-
 
 
 filelines_out=[]
@@ -272,6 +277,7 @@ for fileindex,filein in enumerate(inputfiles):
 			filelines_out.append(line)
 			if (processing_global):
 				chunk_bytes_cnt+=var_size  #Ok so far we add keyshares for EACH global variable. Will be a pain to change this.
+				global_variable_values.append(0)
 				for i in range(var_size):
 					bytes_to_be_hashed.append(0)
 				pad_random_useless_bytes(var_type,useful_bytes_size-chunk_bytes_cnt) #pad with random useless bytes	
@@ -295,6 +301,25 @@ for fileindex,filein in enumerate(inputfiles):
 				add_mac_verification_one_line()
 			else:
 				add_mac_verification()
+				
+		#if we found the place where we must initialise the global variables
+		if initialization_canary_str in line:
+			for i in range(len(global_variable_values)):
+				s=''
+				if isinstance(global_variable_values[i], Iterable):  #check if it is a list
+					s+='{'
+					for j in range(len(global_variable_values[i])):
+						s+=str(global_variable_values[i][j])
+						if (j<len(global_variable_values[i])-1):
+							s+=','
+					s+='}'
+				else:							   #if not a list
+					s+=str(global_variable_values[i])
+					
+				if (i<len(global_variable_values)-1):
+					s+=','
+				s+='\n'
+				filelines_out.append(s)
 		
 	for line in filelines_out:
 		filehandler.write(line)
