@@ -5,7 +5,7 @@
 
 typedef struct
 {
-//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:int
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:double
 double global_double_variable_for_testing;
 //ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:int
 int test_global;
@@ -95,6 +95,8 @@ int main()
 	*/
 	
 	//Yay.break some stuff plox
+	//break globals!  (and corresponding mac)
+	//globals.test_global=2;
 	//break keys! (and corresponding mac)
 	//*(entire_memory_chunk+bytes_for_useful_data)=1;
 	//break macs!
