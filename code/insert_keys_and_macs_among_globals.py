@@ -215,10 +215,14 @@ def add_mac_verification():
 		s+='	printf("Error in global macs, mac no %d\\n",'+str(i)+');\n'
 		s+='	error=1;\n'
 		s+='}\n'
-	s+='if (error==0)\n'
-	s+='{\n'
-	s+='	printf("All global macs ok!\\n");\n'
-	s+='}\n'
+		
+	if (maccnt_major>0):
+		s+='if (error==0)\n'
+		s+='{\n'
+		s+='	printf("All global macs ok!\\n");\n'
+		s+='}\n'
+	else:
+		s+='printf("No globals to calculate macs on!\\n");\n'
 	filelines_out.append(s)
 
 def add_mac_verification_one_line():
@@ -235,10 +239,14 @@ def add_mac_verification_one_line():
 		s+='	printf("Error in global macs, mac no %d\\n",'+str(i)+');\n'
 		s+='	error=1;\n'
 		s+='}\n'
-	s+='if (error==0)\n'
-	s+='{\n'
-	s+='	printf("All global macs ok!\\n");\n'
-	s+='}\n'
+		
+	if (maccnt_major>0):
+		s+='if (error==0)\n'
+		s+='{\n'
+		s+='	printf("All global macs ok!\\n");\n'
+		s+='}\n'
+	else:
+		s+='printf("No globals to calculate macs on!\\n");\n'
 	filelines_out.append(s)
 
 

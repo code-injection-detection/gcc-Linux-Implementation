@@ -23,7 +23,10 @@ void check_heap_macs()
 	}
 	if (error==0)
 	{
-		printf("All heap macs ok!\n");
+		if (total_bytes_allocated>0)
+			printf("All heap macs ok!\n");
+		else
+			printf("No heap detected to chech macs!\n");
 	}
 	
 }
@@ -50,7 +53,10 @@ void check_stack_macs()
 	}
 	if (error==0)
 	{
-		printf("All stack macs ok!\n");
+		if (total_stack_bytes_allocated>0)
+			printf("All stack macs ok!\n");
+		else
+			printf("No stack detected to chech macs!\n");
 	}
 	
 }
@@ -69,6 +75,7 @@ void check_code_macs()
 	char mac[number_of_mac_bytes];
 	int length_of_useful_data;
 	int error=0;
+	long mac_cnt=0;
 	
 	
 	//using start and end of text section
@@ -76,6 +83,7 @@ void check_code_macs()
 	{
 		if (*p==0xEB && *(p+1)==(number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len) && check_next_canaries(p+2)) //JMP <number of keys>+<number_of_canaries>+<number_of_mac_bytes>+<bytes_for_instr_len>
 		{ 
+			mac_cnt=0;
 			length_of_useful_data=*(p+2+number_of_canaries);
 			calculate_sha256_sum(p-(length_of_useful_data-2),length_of_useful_data+number_of_interleaved_keys+number_of_canaries+bytes_for_instr_len,shasum);
 			truncate_sha256sum(shasum,mac);
@@ -93,7 +101,10 @@ void check_code_macs()
 	}
 	if (error==0)
 	{
-		printf("All code macs ok!\n");
+		if (mac_cnt>0)
+			printf("All code macs ok!\n");
+		else
+			printf("No mac groups to check in code!\n");
 	}
 	
 }

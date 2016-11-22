@@ -115,7 +115,7 @@ int main()
 	*/						
 	
 	/*
-	int matrix_size=100;
+	int matrix_size=200;
 	fill_matrices_for_multiplication(matrix_size,2000);
 	TEST_NORMAL_AND_SECURE_TIME(matrix multiplication,matrix_multiplication(matrix_size,2000),
 								user_friendly_secure_matrix_multiplication(matrix_size,2000))
