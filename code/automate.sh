@@ -142,7 +142,9 @@ echo "Compiling hash and encryption calculators..."
 	 cp sha256_for_us.c ../sha256.c ; 
 	 cp sha256.h ../ ; 
 	 cd .. ; 
-	 gcc -O3 -c sha256.c)
+	 gcc -O3 -c sha256.c;
+	 rm -f sha256.c sha256.h  #removing the sha stuff that we don't need.
+	 )
 echo "Compiled hash and encryption calculators."
 
 echo "Compiling...."
@@ -157,7 +159,6 @@ echo "Assembling code with NOPs..."
 make secure
 echo "Assembled."
 
-rm -f sha256.c sha256.h #removing the sha stuff that we don't need.
 
 echo "Replacing NOPs with keys..."
 java -cp ../bin Secure_Machine_Code $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_TOTAL_STACK_BYTES_ALLOC $NUM_OF_MAC_BYTES
