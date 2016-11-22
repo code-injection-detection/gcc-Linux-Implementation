@@ -15,11 +15,11 @@ aes_test.o: aes.h aes_test.c
 sha256: sha256.h sha256.o sha256_test.o
 	gcc sha256_test.o sha256.o -o sha256 $(FLAGS)
 
-sha256.o: sha256.h sha256_local_compilation.c
-	gcc -c sha256_local_compilation.c -o sha256.o $(FLAGS)
-
 sha256_test.o: sha256.h sha256_test.c
 	gcc -c sha256_test.c $(FLAGS)
+
+sha256.o: sha256.h sha256.c
+	gcc -c sha256.c -o sha256.o $(FLAGS)
 
 clean:
 	 rm -f *.o aes sha256

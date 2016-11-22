@@ -113,7 +113,12 @@ else
 fi
 
 echo "Compiling hash and encryption calculators..."
-(cd crypto_algorithms; make >/dev/null)
+	(cd crypto_algorithms; make >/dev/null ;
+	 cp sha256_for_us.c ../sha256.c ; 
+	 cp sha256.h ../ ; 
+	 cd .. ; 
+	 gcc -O3 -c sha256.c;
+	 rm -f sha256.c sha256.h)
 echo "Compiled hash and encryption calculators."
 
 echo "Changing defines according to input..."

@@ -88,7 +88,7 @@ int main()
 								secure_find_primes_up_to_a_number(primes_up_to);)
 	
 	/*
-	int Times=100;
+	int Times=1000;
 	int maxval=3000;			
 	TEST_NORMAL_AND_SECURE_TIME(global sum calculation,global_sum_calculator(Times,maxval);,
 								secure_global_sum_calculator(Times,maxval);)
