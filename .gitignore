@@ -18,5 +18,7 @@ memory_manager_test_suite.c
 stack_manager_test_suite.c
 Helloworldadd.c
 general_tests.c
+code/sha256.c
+code/sha256.h
 #.classpath
 #.project
