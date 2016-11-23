@@ -167,30 +167,33 @@ void calculate_sha256_sum(char * input, long length, char * output)
 	long iterations;
 	int last_size;
 	
-	sha256_init(&ctx);
-	if (length % SHA256_BLOCK_SIZE ==0)
+	if (number_of_mac_bytes>0)
 	{
-		iterations=length/SHA256_BLOCK_SIZE;
-		last_size=SHA256_BLOCK_SIZE;
-	}
-	else
-	{
-		iterations=length/SHA256_BLOCK_SIZE+1;
-		last_size=length % SHA256_BLOCK_SIZE;
-	}
-	
-	for (i=0;i<iterations;i++)
-	{
-		if (i==iterations-1)
+		sha256_init(&ctx);
+		if (length % SHA256_BLOCK_SIZE ==0)
 		{
-			sha256_update(&ctx, input+(i*SHA256_BLOCK_SIZE), last_size);
+			iterations=length/SHA256_BLOCK_SIZE;
+			last_size=SHA256_BLOCK_SIZE;
 		}
 		else
 		{
-			sha256_update(&ctx, input+(i*SHA256_BLOCK_SIZE), SHA256_BLOCK_SIZE);
+			iterations=length/SHA256_BLOCK_SIZE+1;
+			last_size=length % SHA256_BLOCK_SIZE;
 		}
+	
+		for (i=0;i<iterations;i++)
+		{
+			if (i==iterations-1)
+			{
+				sha256_update(&ctx, input+(i*SHA256_BLOCK_SIZE), last_size);
+			}
+			else
+			{
+				sha256_update(&ctx, input+(i*SHA256_BLOCK_SIZE), SHA256_BLOCK_SIZE);
+			}
+		}
+		sha256_final(&ctx, output);
 	}
-	sha256_final(&ctx, output);
 }
 
 
@@ -198,14 +201,17 @@ void calculate_sha256_sum(char * input, long length, char * output)
 void truncate_sha256sum(char * input, char * output)
 {
 	int i;
-	if (SHA256_BLOCK_SIZE>=number_of_mac_bytes)
+	if (number_of_mac_bytes>0)
 	{
-		memcpy(output,input,number_of_mac_bytes);		
-	}
-	else
-	{
-		memcpy(output,input,SHA256_BLOCK_SIZE);
-		memset(output+SHA256_BLOCK_SIZE,0,number_of_mac_bytes-SHA256_BLOCK_SIZE);
+		if (SHA256_BLOCK_SIZE>=number_of_mac_bytes)
+		{
+			memcpy(output,input,number_of_mac_bytes);		
+		}
+		else
+		{
+			memcpy(output,input,SHA256_BLOCK_SIZE);
+			memset(output+SHA256_BLOCK_SIZE,0,number_of_mac_bytes-SHA256_BLOCK_SIZE);
+		}
 	}
 }
 
@@ -213,7 +219,10 @@ void calc_and_set_mac_of_data(char * input, long length, char * output)
 {
 	char shasum[SHA256_BLOCK_SIZE];
 	
-	calculate_sha256_sum(input,length,shasum);
-	truncate_sha256sum(shasum,output);
+	if (number_of_mac_bytes>0)
+	{
+		calculate_sha256_sum(input,length,shasum);
+		truncate_sha256sum(shasum,output);
+	}
 }
 

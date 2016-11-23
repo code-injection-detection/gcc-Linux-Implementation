@@ -57,6 +57,9 @@ public class Secure_Assembly {
 			number_of_canaries=Integer.parseInt(args[2]);
 			num_of_mac_bytes=Integer.parseInt(args[3]);
 		}
+
+		if (num_of_mac_bytes==0)
+			bytes_for_instr_len=0;
 		
 		//we parse the file once to find the functions
 		//System.out.println("These are the function names:");

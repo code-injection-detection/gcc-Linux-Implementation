@@ -106,6 +106,8 @@ void find_keyshares(int choice)
 
 	//printf("start of .text=0x%lx, end of .text=0x%lx, init=0x%lx, fini=0x%lx\n",(unsigned long)&__executable_start,(unsigned long)&__etext, (unsigned long)&_init,(unsigned long)&_fini);
    
+	if (number_of_mac_bytes==0)
+		bytes_for_instr_len=0;
 
 	//using start and end of text section
 	for (p=start_of_text;p<=end_of_text;)

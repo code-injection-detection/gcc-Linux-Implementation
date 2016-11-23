@@ -99,6 +99,10 @@ public class Secure_Machine_Code {
 	    }
 	    int n = arr.length;
 	    cnt_for_instr_bytes=0;
+
+		if (num_of_mac_bytes==0)
+			bytes_for_instr_len=0;
+
 	    for(int i=0;i<n-(2+number_of_interleaved_keys+number_of_canaries+num_of_mac_bytes+bytes_for_instr_len);)
 	    {
 			if (k_nops_after_us(number_of_nops_to_denote_program_start,arr,i-2) && arr[i+number_of_nops_to_denote_program_start]!=(byte)0x90)  //-2 because the funtions adds +2
@@ -109,14 +113,17 @@ public class Secure_Machine_Code {
 			}
 	    	if(arr[i]==-21 && (arr[i+1] == (byte)(number_of_interleaved_keys+number_of_canaries+num_of_mac_bytes+bytes_for_instr_len)) && k_nops_after_us(number_of_interleaved_keys+number_of_canaries+num_of_mac_bytes+bytes_for_instr_len,arr,i)) // int -21 = jmp opcode, and the arr[i+1] has to be the offset (number of nops + 1 ) , and we have to have num_of_keys NOPs after us
 	    	{
+				
+				if (num_of_mac_bytes>0)
+					cnt_for_instr_bytes+=2;
+
 				number_of_nop_groups_replaced++;
-				cnt_for_instr_bytes+=2;
 				for(int j=0;j<number_of_canaries;j++)
 				{
 					arr[i+2+j] = (byte)canary_value;
 				}
 				
-				if (cnt_for_instr_bytes/255.0>bytes_for_instr_len || bytes_for_instr_len!=1)
+				if (cnt_for_instr_bytes>0 && (cnt_for_instr_bytes/255.0>bytes_for_instr_len || bytes_for_instr_len>1 ))
 				{
 					System.out.println("Error. Too many assembly commands (255 bytes in size) in one chunk of useful bytes. Count: "+cnt_for_instr_bytes+" at position: "+i);
 				}
@@ -149,34 +156,38 @@ public class Secure_Machine_Code {
 	    		
 				i+=(number_of_interleaved_keys+number_of_canaries+bytes_for_instr_len+2); //jump above them and reach the mac bytes
 	    		
-	    		//time to set the proper MACs
-	    		for (int j=0;j<cnt_for_instr_bytes+number_of_canaries+bytes_for_instr_len+number_of_interleaved_keys;j++)
-	    		{
-					//copy bytes
-					stuff_in_code_to_be_MACed[j]=arr[i-(cnt_for_instr_bytes+number_of_interleaved_keys+number_of_canaries+bytes_for_instr_len)+j];
-				}
-				//give them to the hash handler and calculate the hash
-				md.update(stuff_in_code_to_be_MACed,0,cnt_for_instr_bytes+number_of_canaries+bytes_for_instr_len+number_of_interleaved_keys);
-	    		byte[] digest = md.digest();
-	    		//and write the mac bytes
-	    		for (int j=0;j<num_of_mac_bytes;j++)
-	    		{
-					if (j<digest.length)
+				if (num_of_mac_bytes>0)
+				{
+					//time to set the proper MACs
+					for (int j=0;j<cnt_for_instr_bytes+number_of_canaries+bytes_for_instr_len+number_of_interleaved_keys;j++)
 					{
-						arr[i+j]=digest[j];
+						//copy bytes
+						stuff_in_code_to_be_MACed[j]=arr[i-(cnt_for_instr_bytes+number_of_interleaved_keys+number_of_canaries+bytes_for_instr_len)+j];
 					}
-					else
+					//give them to the hash handler and calculate the hash
+					md.update(stuff_in_code_to_be_MACed,0,cnt_for_instr_bytes+number_of_canaries+bytes_for_instr_len+number_of_interleaved_keys);
+					byte[] digest = md.digest();
+					//and write the mac bytes
+					for (int j=0;j<num_of_mac_bytes;j++)
 					{
-						arr[i+j]=0;
+						if (j<digest.length)
+						{
+							arr[i+j]=digest[j];
+						}
+						else
+						{
+							arr[i+j]=0;
+						}
 					}
-				}
 								
-	    		i+=num_of_mac_bytes; //and jump over the mac bytes too
-	    		cnt_for_instr_bytes=0;
+					i+=num_of_mac_bytes; //and jump over the mac bytes too
+					cnt_for_instr_bytes=0;
+				}
 	    	}
 	    	else
 	    	{
-				cnt_for_instr_bytes++;
+				if (num_of_mac_bytes>0)
+					cnt_for_instr_bytes++;
 				i++;
 			}
 	    }
