@@ -20,5 +20,7 @@ Helloworldadd.c
 general_tests.c
 code/sha256.c
 code/sha256.h
+secure_getters_setters.c
+secure_getters_setters.h
 #.classpath
 #.project

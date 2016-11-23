@@ -15,6 +15,8 @@ inputfiles=[ './template_files/memory_manager_template.c',
 			 './template_files/stack_manager_test_suite_template.c',
 			 './template_files/Helloworldadd_template.c',
 			 './template_files/mac_handling_functions_template.c',
+			 './template_files/secure_getters_setters_template.c',
+			 './template_files/secure_getters_setters_template.h',
 			 'general_tests.c',
 			 './template_files/functions_needed_footer_template.c', #verification procedure and functions_needed_footer must be last!
 			 './template_files/verification_procedure_template.c'
@@ -27,6 +29,8 @@ outputfiles=[ 'memory_manager.c',
 			 'stack_manager_test_suite.c',
 			 'Helloworldadd.c',
 			 'mac_handling_functions.c',
+			 'secure_getters_setters.c',
+			 'secure_getters_setters.h',
 			 'general_tests.c',
 			 'functions_needed_footer.c',
 			 'verification_procedure.c'
@@ -97,6 +101,11 @@ def get_next_keyshare():
 	keys_generated_cnt+=1
 	return key
 	
+def enlarge_hash_if_needed(sha_hash):
+	if(num_of_mac_bytes>len(sha_hash)):
+		x=[0 for i in range(num_of_mac_bytes-len(sha_hash))]
+		for k in x:
+			sha_hash.append(k) 
 
 def add_keys_and_macs(var_type):
 	global keycnt_major
@@ -119,6 +128,7 @@ def add_keys_and_macs(var_type):
 	if num_of_mac_bytes>0:
 		hash_handler.update(bytes(bytes_to_be_hashed))
 		sha_hash=list(hash_handler.digest())
+		enlarge_hash_if_needed(sha_hash)
 		#print("bytes_to_be_hashed:",bytes_to_be_hashed)
 		#print("sha_hash:",sha_hash)
 		maccnt_major+=1
@@ -155,6 +165,7 @@ def add_keys_and_macs_one_line(var_type):
 	if num_of_mac_bytes>0:
 		hash_handler.update(bytes(bytes_to_be_hashed))
 		sha_hash=list(hash_handler.digest())
+		enlarge_hash_if_needed(sha_hash)
 		#print("bytes_to_be_hashed:",bytes_to_be_hashed)
 		#print("sha_hash:",sha_hash)
 		s+=process_var_type(var_type)+" "

@@ -161,7 +161,14 @@ public class Secure_Machine_Code {
 	    		//and write the mac bytes
 	    		for (int j=0;j<num_of_mac_bytes;j++)
 	    		{
-					arr[i+j]=digest[j];
+					if (j<digest.length)
+					{
+						arr[i+j]=digest[j];
+					}
+					else
+					{
+						arr[i+j]=0;
+					}
 				}
 								
 	    		i+=num_of_mac_bytes; //and jump over the mac bytes too

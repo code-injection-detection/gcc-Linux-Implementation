@@ -112,10 +112,10 @@ int main()
 	int sieve_size=1000;
 	TEST_NORMAL_AND_SECURE_TIME(sieve of Eratosthenes,simple_sieve_of_Eratosthenes(sieve_size);,
 								user_friendly_secure_sieve_of_Eratosthenes(sieve_size))
-	*/						
+	*/				
 	
 	/*
-	int matrix_size=200;
+	int matrix_size=300;
 	fill_matrices_for_multiplication(matrix_size,2000);
 	TEST_NORMAL_AND_SECURE_TIME(matrix multiplication,matrix_multiplication(matrix_size,2000),
 								user_friendly_secure_matrix_multiplication(matrix_size,2000))

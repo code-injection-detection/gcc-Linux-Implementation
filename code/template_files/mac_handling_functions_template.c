@@ -83,7 +83,7 @@ void check_code_macs()
 	{
 		if (*p==0xEB && *(p+1)==(number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len) && check_next_canaries(p+2)) //JMP <number of keys>+<number_of_canaries>+<number_of_mac_bytes>+<bytes_for_instr_len>
 		{ 
-			mac_cnt=0;
+			mac_cnt++;
 			length_of_useful_data=*(p+2+number_of_canaries);
 			calculate_sha256_sum(p-(length_of_useful_data-2),length_of_useful_data+number_of_interleaved_keys+number_of_canaries+bytes_for_instr_len,shasum);
 			truncate_sha256sum(shasum,mac);

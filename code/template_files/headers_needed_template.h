@@ -1,3 +1,6 @@
+#ifndef HEADERS_NEEDED_H
+#define HEADERS_NEEDED_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -16,7 +19,6 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
-
 
 #ifndef number_of_interleaved_keys 
 #define number_of_interleaved_keys (5)
@@ -65,3 +67,8 @@
 #ifndef number_of_mac_bytes
 #define number_of_mac_bytes (4)
 #endif				//The size of the Message Authentication Code (MAC) in bytes. The MAC follows the keyshares
+
+
+#include "secure_getters_setters.h"
+
+#endif

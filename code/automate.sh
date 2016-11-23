@@ -134,6 +134,8 @@ else
 	cp ./template_files/memory_manager_test_suite_template.c memory_manager_test_suite.c
 	cp ./template_files/stack_manager_test_suite_template.c stack_manager_test_suite.c
 	cp ./template_files/mac_handling_functions_template.c mac_handling_functions.c
+	cp ./template_files/secure_getters_setters_template.c secure_getters_setters.c
+	cp ./template_files/secure_getters_setters_template.h secure_getters_setters.h
 	echo "Copied templates"
 fi
 
@@ -146,6 +148,10 @@ echo "Compiling hash and encryption calculators..."
 	 rm -f sha256.c sha256.h  #removing the sha stuff that we don't need.
 	 )
 echo "Compiled hash and encryption calculators."
+
+echo "Compiling secure getters and setters..."
+	gcc -O3 -c secure_getters_setters.c
+echo "Compiled secure getters and setters."
 
 echo "Compiling...."
 make
@@ -160,7 +166,7 @@ make secure
 echo "Assembled."
 
 
-echo "Replacing NOPs with keys..."
+echo "Replacing NOPs with canaries,keys and macs..."
 java -cp ../bin Secure_Machine_Code $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_TOTAL_STACK_BYTES_ALLOC $NUM_OF_MAC_BYTES
 echo "NOPs replaced with keys."
 
