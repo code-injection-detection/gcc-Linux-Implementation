@@ -5,4 +5,4 @@ More info here: https://eprint.iacr.org/2015/728
 
 An effort to port the First-Implementation repo into gcc and Linux.
 
-Packages needed: python3, gcc, javac (java compiler)
+Packages needed: python3, gcc, javac (java compiler),libssl-dev
