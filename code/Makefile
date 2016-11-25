@@ -3,7 +3,7 @@ PG= #-pg
 FLAGS_to_assembly= -O0
 FLAGS_to_object= -O0
 FLAGS_to_secure_object = -O0
-FLAGS_in_the_end= -lm -pthread
+FLAGS_in_the_end= -lm -pthread -lcrypto -lgmp
 OBJECT_FILES_TO_BE_LINKED= ./sha256.o ./secure_getters_setters.o
 
 ifeq ($(filter-out secure,$(MAKECMDGOALS)),static)

@@ -19,6 +19,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <gmp.h>
 
 #ifndef number_of_interleaved_keys 
 #define number_of_interleaved_keys (5)

@@ -12,7 +12,7 @@ if [ "$#" -ne 9 ]; then
     echo "f=number of grouped useful bytes in stack memory, g=total bytes to (try to) pre-allocate in stack memory"
     echo "h=number of grouped useful bytes between keyshares in global variables"
     echo "i=number of bytes for MACs"
-    echo "Example: $0 5 1 2 4 10000 4 8000 8 16"
+    echo "Example: $0 32 1 2 4 10000 4 8000 8 16"
     exit
 fi
 
