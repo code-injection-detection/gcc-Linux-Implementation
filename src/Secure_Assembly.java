@@ -135,7 +135,15 @@ public class Secure_Assembly {
 					//System.out.println("I came to end");
 					list_of_lines.add(line);
 					reached_end_of_function = true;
-					//continue;
+					
+					list_of_lines.add(" jmp " + "." + ulabel + label_counter);
+					for (int j = 0; j < num_of_interleaved_keys+number_of_canaries+num_of_mac_bytes+bytes_for_instr_len; j++)
+						list_of_lines.add("NOP"); 
+					list_of_lines.add("."+ ulabel + label_counter + ": " );          //we are just adding the label, not any command
+					//System.out.println(line);
+					i = 0;
+					label_counter++;
+
 					break;
 				}
 				
@@ -155,7 +163,7 @@ public class Secure_Assembly {
 					//System.out.println(line);
 					i = 0;
 					label_counter++;
-					//continue;
+	
 				}
 				
 				list_of_lines.add(line);  //the default behavior is the program to add the next command
