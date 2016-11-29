@@ -103,7 +103,7 @@ void calc_and_set_mac_of_data_aes_ecb(char * input, long length_of_all,long leng
 {
 	if (number_of_mac_bytes>0)
 	{
-		encrypt_aes_ecb(input,length_of_all);
+		encrypt_aes_ecb((unsigned char*)(input)+length_of_useful,length_of_all-length_of_useful);
 		calc_mac(input, length_of_useful);
 		set_mac(output);
 	}

@@ -12,6 +12,8 @@ extern unsigned char* last_unused_stack_memory; /*practically the stack pointer*
 extern unsigned char get_next_keyshare();
 extern unsigned char get_next_stack_keyshare();
 extern void calc_and_set_mac_of_data_sha256(char * input, long length, char * output);
+extern void calc_and_set_mac_of_data_aes_ecb(char * input, long length_of_all,long length_of_useful, char * output);
+
 
 /************************************************************************************************/
 /************************************************************************************************/
@@ -66,9 +68,10 @@ void insert_keys_into_mem(unsigned char * mem)
 			i++;
 		}
 		*/
-		//Insert the truncated sha256sum of the previous bytes
-		calc_and_set_mac_of_data_sha256(&p[i]-bytes_for_useful_data-bytes_used_for_keyshares,
+		//Insert the truncated mac of the previous bytes
+		calc_and_set_mac_of_data(&p[i]-bytes_for_useful_data-bytes_used_for_keyshares,
 								 bytes_for_useful_data+bytes_used_for_keyshares,
+								 bytes_for_useful_data,
 								 &p[i]);
 		i+=number_of_mac_bytes;
 		type_of_bytes=0;
@@ -107,8 +110,9 @@ long insert_data_into_mem(long data_size,unsigned char * data, unsigned char * m
 		memcpy(&p[i],&data[total_data_inserted],data_remaining);
 		total_data_inserted=data_size;
 		//update mac
-		calc_and_set_mac_of_data_sha256(&p[i],
+		calc_and_set_mac_of_data(&p[i],
 								 bytes_for_useful_data+bytes_used_for_keyshares,
+								 bytes_for_useful_data,
 								 &p[i]+bytes_for_useful_data+bytes_used_for_keyshares);
 	}
 	else
@@ -116,8 +120,9 @@ long insert_data_into_mem(long data_size,unsigned char * data, unsigned char * m
 		memcpy(&p[i],&data[total_data_inserted],bytes_for_useful_data);
 		total_data_inserted+=bytes_for_useful_data;
 		//update mac
-		calc_and_set_mac_of_data_sha256(&p[i],
+		calc_and_set_mac_of_data(&p[i],
 								 bytes_for_useful_data+bytes_used_for_keyshares,
+								 bytes_for_useful_data,
 								 &p[i]+bytes_for_useful_data+bytes_used_for_keyshares);
 	}
 	i+=bytes_for_useful_data+bytes_used_for_keyshares+number_of_mac_bytes;
@@ -259,8 +264,9 @@ void set_secure_data(void * source,long data_size, unsigned char * data_start, i
 		
 		memcpy(&p[j],&src[total_data_set],data_remaining_till_end_of_chunk);
 		//update macs
-		calc_and_set_mac_of_data_sha256(p,
+		calc_and_set_mac_of_data(p,
 								 bytes_for_useful_data+bytes_used_for_keyshares,
+								 bytes_for_useful_data,
 								 p+bytes_for_useful_data+bytes_used_for_keyshares);
 
 		total_data_set+=data_remaining_till_end_of_chunk;
@@ -278,8 +284,9 @@ void set_secure_data(void * source,long data_size, unsigned char * data_start, i
 	{
 		memcpy(&p[i],&src[total_data_set],data_remaining);
 		//update macs
-		calc_and_set_mac_of_data_sha256(&p[i],
+		calc_and_set_mac_of_data(&p[i],
 								 bytes_for_useful_data+bytes_used_for_keyshares,
+								 bytes_for_useful_data,
 								 &p[i]+bytes_for_useful_data+bytes_used_for_keyshares);
 		total_data_set=data_size;
 	}
@@ -287,8 +294,9 @@ void set_secure_data(void * source,long data_size, unsigned char * data_start, i
 	{
 		memcpy(&p[i],&src[total_data_set],bytes_for_useful_data);
 		//update macs
-		calc_and_set_mac_of_data_sha256(&p[i],
+		calc_and_set_mac_of_data(&p[i],
 								 bytes_for_useful_data+bytes_used_for_keyshares,
+								 bytes_for_useful_data,
 								 &p[i]+bytes_for_useful_data+bytes_used_for_keyshares);
 		total_data_set+=bytes_for_useful_data;
 	}
@@ -571,9 +579,10 @@ void insert_keys_into_stack_mem(unsigned char * stack_mem)
 			p[i]='\0';
 			i++;
 		}*/
-		//Insert the truncated sha256sum of the previous bytes
-		calc_and_set_mac_of_data_sha256(&p[i]-stack_bytes_for_useful_data-stack_bytes_used_for_keyshares,
+		//Insert the truncated mac of the previous bytes
+		calc_and_set_mac_of_data(&p[i]-stack_bytes_for_useful_data-stack_bytes_used_for_keyshares,
 								 stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,
+								 stack_bytes_for_useful_data,
 								 &p[i]);
 		i+=number_of_mac_bytes;
 		type_of_bytes=0;
@@ -613,8 +622,9 @@ long insert_data_into_stack_mem(long data_size,unsigned char * data, unsigned ch
 		memcpy(&p[i],&data[total_data_inserted],data_remaining);
 		total_data_inserted=data_size;
 		//update mac
-		calc_and_set_mac_of_data_sha256(&p[i],
+		calc_and_set_mac_of_data(&p[i],
 								 stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,
+								 stack_bytes_for_useful_data,
 								 &p[i]+stack_bytes_for_useful_data+stack_bytes_used_for_keyshares);
 	}
 	else
@@ -622,8 +632,9 @@ long insert_data_into_stack_mem(long data_size,unsigned char * data, unsigned ch
 		memcpy(&p[i],&data[total_data_inserted],stack_bytes_for_useful_data);
 		total_data_inserted+=stack_bytes_for_useful_data;
 		//update mac
-		calc_and_set_mac_of_data_sha256(&p[i],
+		calc_and_set_mac_of_data(&p[i],
 								 stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,
+								 stack_bytes_for_useful_data,
 								 &p[i]+stack_bytes_for_useful_data+stack_bytes_used_for_keyshares);
 	}
 	i+=stack_bytes_for_useful_data+stack_bytes_used_for_keyshares+number_of_mac_bytes;
@@ -768,8 +779,9 @@ void set_secure_stack_data(void * source,long data_size, unsigned char * data_st
 		
 		memcpy(&p[j],&src[total_data_set],data_remaining_till_end_of_chunk);
 		//update macs
-		calc_and_set_mac_of_data_sha256(p,
+		calc_and_set_mac_of_data(p,
 								 stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,
+								 stack_bytes_for_useful_data,
 								 p+stack_bytes_for_useful_data+stack_bytes_used_for_keyshares);
 
 		total_data_set+=data_remaining_till_end_of_chunk;
@@ -787,8 +799,9 @@ void set_secure_stack_data(void * source,long data_size, unsigned char * data_st
 	{
 		memcpy(&p[i],&src[total_data_set],data_remaining);
 		//update macs
-		calc_and_set_mac_of_data_sha256(&p[i],
+		calc_and_set_mac_of_data(&p[i],
 								 stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,
+								 stack_bytes_for_useful_data,
 								 &p[i]+stack_bytes_for_useful_data+stack_bytes_used_for_keyshares);
 		total_data_set=data_size;
 	}
@@ -796,8 +809,9 @@ void set_secure_stack_data(void * source,long data_size, unsigned char * data_st
 	{
 		memcpy(&p[i],&src[total_data_set],stack_bytes_for_useful_data);
 		//update macs
-		calc_and_set_mac_of_data_sha256(&p[i],
+		calc_and_set_mac_of_data(&p[i],
 								 stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,
+								 stack_bytes_for_useful_data,
 								 &p[i]+stack_bytes_for_useful_data+stack_bytes_used_for_keyshares);
 		total_data_set+=stack_bytes_for_useful_data;
 	}

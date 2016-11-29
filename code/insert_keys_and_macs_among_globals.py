@@ -223,7 +223,7 @@ def add_mac_verification():
 
 	s='int error=0;\n char mac[number_of_mac_bytes];\n'
 	for i in range(1,maccnt_major+1):
-		s+='calc_and_set_mac_of_data_sha256((unsigned char *)&(globals.mac_'+str(i)+'_1)-(number_of_global_useful_bytes+bytes_used_for_keyshares),number_of_global_useful_bytes+bytes_used_for_keyshares,mac);\n'
+		s+='calc_and_set_mac_of_data((unsigned char *)&(globals.mac_'+str(i)+'_1)-(number_of_global_useful_bytes+bytes_used_for_keyshares),number_of_global_useful_bytes+bytes_used_for_keyshares,number_of_global_useful_bytes,mac);\n'
 		s+='if (0!=memcmp((unsigned char *)&(globals.mac_'+str(i)+'_1),mac,number_of_mac_bytes))\n'
 		s+='{\n'	
 		s+='	printf("Error in global macs, mac no %d\\n",'+str(i)+');\n'
@@ -246,7 +246,7 @@ def add_mac_verification_one_line():
 	
 	s='int error=0;\n char mac[number_of_mac_bytes];\n'
 	for i in range(1,maccnt_major+1):
-		s+='calc_and_set_mac_of_data_sha256((unsigned char *)&(globals.mac_'+str(i)+')-(number_of_global_useful_bytes+bytes_used_for_keyshares),number_of_global_useful_bytes+bytes_used_for_keyshares,mac);\n'
+		s+='calc_and_set_mac_of_data((unsigned char *)&(globals.mac_'+str(i)+')-(number_of_global_useful_bytes+bytes_used_for_keyshares),number_of_global_useful_bytes+bytes_used_for_keyshares,number_of_global_useful_bytes,mac);\n'
 		s+='if (0!=memcmp((unsigned char *)&(globals.mac_'+str(i)+'),mac,number_of_mac_bytes))\n'
 		s+='{\n'	
 		s+='	printf("Error in global macs, mac no %d\\n",'+str(i)+');\n'
