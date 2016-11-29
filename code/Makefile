@@ -3,8 +3,8 @@ PG= #-pg
 FLAGS_to_assembly= -O0
 FLAGS_to_object= -O0
 FLAGS_to_secure_object = -O0
-FLAGS_in_the_end= -lm -pthread -lcrypto -lgmp
-OBJECT_FILES_TO_BE_LINKED= ./sha256.o ./secure_getters_setters.o
+FLAGS_in_the_end= -lm -pthread -lcrypto
+OBJECT_FILES_TO_BE_LINKED= ./sha256.o ./secure_getters_setters.o ./crypto_functions.o
 
 ifeq ($(filter-out secure,$(MAKECMDGOALS)),static)
  FLAGS_to_assembly+=  -static
@@ -42,4 +42,4 @@ Helloworldadd_sec: Helloworldadd_sec.s
 clean:
 	rm -f Helloworldadd.s Helloworldadd Helloworldadd_sec.s Helloworldadd_sec Helloworldadd_ksec *.o *.NASM* *.YASM* *.run 
 	rm -f sha256.c sha256.h *_keyshares headers_needed.h verification_procedure.c stack_manager.c memory_manager.c general_tests.c functions_needed_header.c functions_needed_footer.c  Helloworldadd.c memory_manager_test_suite.c stack_manager_test_suite.c mac_handling_functions.c all_keyshares_for_verification
-	rm -f secure_getters_setters.c secure_getters_setters.h
+	rm -f secure_getters_setters.c secure_getters_setters.h crypto_functions.c

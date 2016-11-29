@@ -135,6 +135,7 @@ else
 	cp ./template_files/stack_manager_test_suite_template.c stack_manager_test_suite.c
 	cp ./template_files/mac_handling_functions_template.c mac_handling_functions.c
 	cp ./template_files/secure_getters_setters_template.c secure_getters_setters.c
+	cp ./template_files/crypto_functions_template.c crypto_functions.c
 	cp ./template_files/secure_getters_setters_template.h secure_getters_setters.h
 	echo "Copied templates"
 fi
@@ -146,6 +147,7 @@ echo "Compiling hash and encryption calculators..."
 	 cd .. ; 
 	 gcc -O3 -c sha256.c;
 	 rm -f sha256.c sha256.h  #removing the sha stuff that we don't need.
+	 gcc -O3 -c crypto_functions.c -lcrypto
 	 )
 echo "Compiled hash and encryption calculators."
 

@@ -42,9 +42,12 @@ int main()
 	int n;
 	static int static_main_variable_for_testing;
 
+	//initialise crypto structures
+	init_crypto_stuctures();
+
 	//initialise memory
 	init_heap_and_stack_mem();
-	
+
 	
 	//initialise the verification procedure thread that will wait to be called
 	init_verification_procedure_thread();
@@ -134,8 +137,12 @@ int main()
 	check_global_macs();
 	
 	
+	
 	//free memory
 	free_heap_and_stack_memory();
+	
+	//clear crypto structures
+	clear_crypto_structures();
 	
 	return 0;
 }

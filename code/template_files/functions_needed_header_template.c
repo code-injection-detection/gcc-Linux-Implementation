@@ -57,16 +57,13 @@ void verify_all_keyshares_from_file(unsigned char * keys_array)
 	
 }
 
+
 //forward declaration of mac calculation functions
 void calculate_sha256_sum(char * input, long length, char * output);
 void truncate_sha256sum(char * input, char * output);
 void calc_and_set_mac_of_data(char * input, long length, char * output);
 
-/*
-void update_global_var(unsigned char * global var, unsigned char * new_value, long length_of_new_value)
-{
-	memcpy(global_var,new_value,length_of_new_value
-}*/
+
 
 #define UPDATE_GLOBAL_VAR(global_var,new_value) { \
 							global_var=(new_value); \
@@ -103,7 +100,7 @@ void init_heap_and_stack_mem()
     printf("Init_stack_mem, alloc+key insertion\n");
 	init_stack_mem();
 	printf("If successful, total bytes allocated:%ld\n",total_stack_bytes_allocated);
-	
+		
 }
 
 
