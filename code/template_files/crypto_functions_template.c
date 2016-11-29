@@ -48,11 +48,11 @@ void set_mac(unsigned char * output)
 	int length_of_mac;
 	
 	length_of_mac=BN_num_bytes(&bn_mac);
-	if(length_of_mac<len_2power128)
+	if(length_of_mac<len_2power128-1)
 	{
-		memset(mac_in_bytes,0,(len_2power128-length_of_mac));
+		memset(mac_in_bytes,0,(len_2power128-1-length_of_mac));
 	}
-	BN_bn2bin(&bn_mac,((unsigned char*)mac_in_bytes)+(len_2power128-length_of_mac));
+	BN_bn2bin(&bn_mac,((unsigned char*)mac_in_bytes)+(len_2power128-1-length_of_mac));
 	memcpy(output,mac_in_bytes,number_of_mac_bytes);
 }
 
