@@ -1,10 +1,10 @@
 #include "headers_needed.h"
 
 #define safe_length_for_buffer_storage 2048
+#define len_2power128 17 //2^128-1 is 16 bytes.
 
 EVP_CIPHER_CTX aes_ctx;
 unsigned char aes_key[] = {42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57};
-
 
 BIGNUM bn_a;
 BIGNUM bn_b;
@@ -13,9 +13,11 @@ BIGNUM bn_useful_data;
 BIGNUM bn_mac;
 BIGNUM *bn_2power128=NULL;
 char str_2power128[]="340282366920938463463374607431768211456"; //2^128
-int len_2power128;
 BN_CTX *bn_ctx;
 unsigned char mac_in_bytes[safe_length_for_buffer_storage];
+unsigned char encrypted_data[safe_length_for_buffer_storage];
+int length_of_encrypted_data;
+int tmplen;
 
 
 void init_crypto_stuctures()
@@ -23,16 +25,17 @@ void init_crypto_stuctures()
 	printf("Initializing crypto structures.\n");
 	EVP_CIPHER_CTX_init(&aes_ctx);
 	EVP_EncryptInit_ex(&aes_ctx, EVP_aes_128_ecb(), NULL, aes_key, NULL);
+	EVP_CIPHER_CTX_set_padding(&aes_ctx, 0); //disable padding
 	BN_init(&bn_a);
 	BN_init(&bn_b);
 	BN_init(&bn_temp);
 	BN_init(&bn_useful_data);
 	BN_init(&bn_mac);
 	BN_dec2bn(&bn_2power128,str_2power128);
-	len_2power128=BN_num_bytes(bn_2power128);
 	printf("%d\n",len_2power128);
 	bn_ctx=BN_CTX_new();
 	memset(mac_in_bytes,0,safe_length_for_buffer_storage);
+	memset(encrypted_data,0,safe_length_for_buffer_storage);
 	printf("Crypto structures initialized.\n");
 }
 
@@ -40,6 +43,8 @@ void calc_mac(unsigned char *useful_data, long length_in_bytes)
 {
 	if (number_of_mac_bytes>0)
 	{
+		BN_bin2bn(encrypted_data,(length_of_encrypted_data/2)*8,&bn_a);
+		BN_bin2bn(((unsigned char*)encrypted_data)+(length_of_encrypted_data/2),(length_of_encrypted_data/2)*8,&bn_b);
 		BN_bin2bn(useful_data,length_in_bytes*8,&bn_useful_data);
 		BN_mod_mul(&bn_temp,&bn_useful_data,&bn_a,bn_2power128,bn_ctx);
 		BN_mod_add(&bn_mac,&bn_temp,&bn_b,bn_2power128,bn_ctx);
@@ -71,18 +76,51 @@ void set_mac(unsigned char * output)
 	}
 }
 
+void encrypt_aes_ecb(unsigned char *buf_to_be_encrypted,long len_of_buf)
+{
+	if (number_of_mac_bytes>0)
+	{
+		if(!EVP_EncryptUpdate(&aes_ctx, encrypted_data, &length_of_encrypted_data,buf_to_be_encrypted, len_of_buf)) 
+		{
+			fprintf(stderr,"Error in EncryptUpdate\n");
+		}
+		if(!EVP_EncryptFinal_ex(&aes_ctx, encrypted_data + length_of_encrypted_data, &tmplen))
+		{
+			fprintf(stderr,"Error in EncryptFinal!!!!!!\n");
+		}
+		if (tmplen!=0)
+		{
+			printf("tmplen is !=0!\n");
+			exit(1);
+		}
+		length_of_encrypted_data+=tmplen;
+	}
+	
+}
 
 
+void calc_and_set_mac_of_data_aes_ecb(char * input, long length_of_all,long length_of_useful, char * output)
+{
+	if (number_of_mac_bytes>0)
+	{
+		encrypt_aes_ecb(input,length_of_all);
+		calc_mac(input, length_of_useful);
+		set_mac(output);
+	}
+}
 
 
 void clear_crypto_structures()
 {
 	EVP_CIPHER_CTX_cleanup(&aes_ctx);
+	//are these safe?
+	/*
 	BN_free(&bn_a);
 	BN_free(&bn_b);
 	BN_free(&bn_temp);
 	BN_free(&bn_useful_data);
 	BN_free(&bn_mac);
+	*/
 	BN_free(bn_2power128);
 	BN_CTX_free(bn_ctx);
 }

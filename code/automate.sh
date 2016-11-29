@@ -67,6 +67,11 @@ if [ "$NUM_OF_GROUPED_INSTRUCTIONS" -gt "20" ]; then
 	exit
 fi
 
+if [ "$NUM_OF_INTERLEAVED_KEYS" -ne "32" ]; then
+	echo "Keys should be 32 bytes long (16 bytes [=128 bits] for each key). Other sizes currently not supported."
+	exit
+fi
+
 #Checking if the .class files are present
 if [ ! -d "../bin" ]; then  #if directory does not exist
 	echo "The 'bin' directory with the class files is not present!" 

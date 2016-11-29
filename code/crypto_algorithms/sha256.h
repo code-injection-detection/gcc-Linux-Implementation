@@ -35,6 +35,6 @@ void sha256_final(SHA256_CTX *ctx, BYTE hash[]);
 //our functions
 void calculate_sha256_sum(char * input, long length, char * output);
 void truncate_sha256sum(char * input, char * output);
-void calc_and_set_mac_of_data(char * input, long length, char * output);
+void calc_and_set_mac_of_data_sha256(char * input, long length, char * output);
 
 #endif   // SHA256_H

@@ -61,17 +61,17 @@ void verify_all_keyshares_from_file(unsigned char * keys_array)
 //forward declaration of mac calculation functions
 void calculate_sha256_sum(char * input, long length, char * output);
 void truncate_sha256sum(char * input, char * output);
-void calc_and_set_mac_of_data(char * input, long length, char * output);
+void calc_and_set_mac_of_data_sha256(char * input, long length, char * output);
 
 
 
 #define UPDATE_GLOBAL_VAR(global_var,new_value) { \
 							global_var=(new_value); \
-							calc_and_set_mac_of_data((unsigned char *)&(global_var),number_of_global_useful_bytes+bytes_used_for_keyshares,((unsigned char*) &(global_var))+(number_of_global_useful_bytes+bytes_used_for_keyshares)) ;\
+							calc_and_set_mac_of_data_sha256((unsigned char *)&(global_var),number_of_global_useful_bytes+bytes_used_for_keyshares,((unsigned char*) &(global_var))+(number_of_global_useful_bytes+bytes_used_for_keyshares)) ;\
 						}
 						
 #define UPDATE_GLOBAL_VAR_FOR_LOOPS(global_var,new_value) global_var=(new_value), \
-							calc_and_set_mac_of_data((unsigned char *)&(global_var),number_of_global_useful_bytes+bytes_used_for_keyshares,((unsigned char*) &(global_var))+(number_of_global_useful_bytes+bytes_used_for_keyshares))
+							calc_and_set_mac_of_data_sha256((unsigned char *)&(global_var),number_of_global_useful_bytes+bytes_used_for_keyshares,((unsigned char*) &(global_var))+(number_of_global_useful_bytes+bytes_used_for_keyshares))
 
 #include "memory_manager.c" //Including the C files because all the functions must be in the same file in order to be secured
 #include "stack_manager.c"

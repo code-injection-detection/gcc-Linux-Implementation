@@ -6,14 +6,12 @@
 void check_heap_macs()
 {
 	unsigned char *p=entire_memory_chunk;
-	char shasum[SHA256_BLOCK_SIZE];
 	char mac[number_of_mac_bytes];
 	int error=0;
 	
 	while (p<entire_memory_chunk+total_bytes_allocated)
 	{
-		calculate_sha256_sum(p,bytes_for_useful_data+bytes_used_for_keyshares,shasum);
-		truncate_sha256sum(shasum,mac);
+		calc_and_set_mac_of_data_sha256(p,bytes_for_useful_data+bytes_used_for_keyshares,mac);
 		if (0!=memcmp(p+bytes_for_useful_data+bytes_used_for_keyshares,mac,number_of_mac_bytes))
 		{	
 			printf("Error in heap macs, p=%ld, start of secure heap=%ld\n",(long) p,(long)entire_memory_chunk);
@@ -36,14 +34,12 @@ void check_heap_macs()
 void check_stack_macs()
 {
 	unsigned char *p=entire_stack_memory_chunk;
-	char shasum[SHA256_BLOCK_SIZE];
 	char mac[number_of_mac_bytes];
 	int error=0;
 	
 	while (p<entire_stack_memory_chunk+total_stack_bytes_allocated)
 	{
-		calculate_sha256_sum(p,stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,shasum);
-		truncate_sha256sum(shasum,mac);
+		calc_and_set_mac_of_data_sha256(p,stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,mac);
 		if (0!=memcmp(p+stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,mac,number_of_mac_bytes))
 		{	
 			printf("Error in stack macs, p=%ld, start of secure stack=%ld\n",(long) p,(long)entire_stack_memory_chunk);
@@ -71,7 +67,6 @@ void check_code_macs()
 	unsigned char *p;
 	unsigned char* start_of_text=(unsigned char*)&__executable_start;  //we get the limits of .text section
 	unsigned char* end_of_text=(unsigned char*)&__etext;
-	char shasum[SHA256_BLOCK_SIZE];
 	char mac[number_of_mac_bytes];
 	int length_of_useful_data;
 	int error=0;
@@ -85,8 +80,7 @@ void check_code_macs()
 		{ 
 			mac_cnt++;
 			length_of_useful_data=*(p+2+number_of_canaries);
-			calculate_sha256_sum(p-(length_of_useful_data-2),length_of_useful_data+number_of_interleaved_keys+number_of_canaries+bytes_for_instr_len,shasum);
-			truncate_sha256sum(shasum,mac);
+			calc_and_set_mac_of_data_sha256(p-(length_of_useful_data-2),length_of_useful_data+number_of_interleaved_keys+number_of_canaries+bytes_for_instr_len,mac);
 			if (0!=memcmp(p+2+number_of_interleaved_keys+number_of_canaries+bytes_for_instr_len,mac,number_of_mac_bytes))
 			{	
 				printf("Error in code macs, p=%ld, start of code=%ld\n",(long) p,(long)start_of_text);

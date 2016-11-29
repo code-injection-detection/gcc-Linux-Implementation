@@ -19,8 +19,11 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <openssl/conf.h>
 #include <openssl/evp.h>
+#include <openssl/err.h>
 #include <openssl/bn.h>
+
 
 #ifndef number_of_interleaved_keys 
 #define number_of_interleaved_keys (5)
