@@ -25,7 +25,7 @@ int main(int argc, char* argv[])
 
 	
 	len_of_all=atoi(argv[1]);
-	len_of_useful=atoi(argv[1]);
+	len_of_useful=atoi(argv[2]);
 	
 	for (i=0;i<len_of_all;i++)
 	{

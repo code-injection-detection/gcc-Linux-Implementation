@@ -24,5 +24,6 @@ secure_getters_setters.c
 secure_getters_setters.h
 crypto_functions.c
 crypto_functions.h
+calc_mac_for_external_programs
 #.classpath
 #.project
