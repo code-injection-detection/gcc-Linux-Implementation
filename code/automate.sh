@@ -122,6 +122,26 @@ echo "Changing defines according to input..."
 python3 set_correct_defines.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_TOTAL_STACK_BYTES_ALLOC $NUM_OF_GLOBAL_USEFUL_BYTES $NUM_OF_MAC_BYTES
 echo "Changed defines."
 
+echo "Copying header files, secure getters/setters and crypto functions..."
+	cp ./template_files/crypto_functions_template.h crypto_functions.h
+	cp ./template_files/secure_getters_setters_template.h secure_getters_setters.h
+	cp ./template_files/secure_getters_setters_template.c secure_getters_setters.c
+	cp ./template_files/crypto_functions_template.c crypto_functions.c
+echo "Copied header files."
+
+echo "Compiling hash and encryption calculators..."
+	(cd crypto_algorithms; make >/dev/null ;
+	 cp sha256_for_us.c ../sha256.c ; 
+	 cp sha256.h ../ ; 
+	 cd .. ; 
+	 gcc -O3 -c sha256.c;
+	 rm -f sha256.c sha256.h  #removing the sha stuff that we don't need.
+	 gcc -O3 -c crypto_functions.c -lcrypto
+	 gcc -c calc_mac_for_external_programs.c -lcrypto
+	 gcc calc_mac_for_external_programs.o ./sha256.o ./crypto_functions.o -o calc_mac_for_external_programs -lcrypto
+	 )
+echo "Compiled hash and encryption calculators."
+
 
 if [ "$SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS" != "0" ]; then
 	echo "Inserting keys among global variables and copying templates...."
@@ -139,25 +159,9 @@ else
 	cp ./template_files/memory_manager_test_suite_template.c memory_manager_test_suite.c
 	cp ./template_files/stack_manager_test_suite_template.c stack_manager_test_suite.c
 	cp ./template_files/mac_handling_functions_template.c mac_handling_functions.c
-	cp ./template_files/secure_getters_setters_template.c secure_getters_setters.c
-	cp ./template_files/crypto_functions_template.c crypto_functions.c
-	cp ./template_files/crypto_functions_template.h crypto_functions.h
-	cp ./template_files/secure_getters_setters_template.h secure_getters_setters.h
 	echo "Copied templates"
 fi
 
-echo "Compiling hash and encryption calculators..."
-	(cd crypto_algorithms; make >/dev/null ;
-	 cp sha256_for_us.c ../sha256.c ; 
-	 cp sha256.h ../ ; 
-	 cd .. ; 
-	 gcc -O3 -c sha256.c;
-	 rm -f sha256.c sha256.h  #removing the sha stuff that we don't need.
-	 gcc -O3 -c crypto_functions.c -lcrypto
-	 gcc -c calc_mac_for_external_programs.c -lcyrpto
-	 gcc calc_mac_for_external_programs.o ./sha256.o ./crypto_functions.o -o calc_mac_for_external_programs -lcrypto
-	 )
-echo "Compiled hash and encryption calculators."
 
 echo "Compiling secure getters and setters..."
 	gcc -O3 -c secure_getters_setters.c
