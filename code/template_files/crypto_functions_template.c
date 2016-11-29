@@ -20,9 +20,10 @@ int length_of_encrypted_data;
 int tmplen;
 
 
-void init_crypto_stuctures()
+void init_crypto_stuctures(int print)
 {
-	printf("Initializing crypto structures.\n");
+	if (print)
+		printf("Initializing crypto structures.\n");
 	EVP_CIPHER_CTX_init(&aes_ctx);
 	EVP_EncryptInit_ex(&aes_ctx, EVP_aes_128_ecb(), NULL, aes_key, NULL);
 	EVP_CIPHER_CTX_set_padding(&aes_ctx, 0); //disable padding
@@ -31,12 +32,12 @@ void init_crypto_stuctures()
 	BN_init(&bn_temp);
 	BN_init(&bn_useful_data);
 	BN_init(&bn_mac);
-	BN_dec2bn(&bn_2power128,str_2power128);
-	printf("%d\n",len_2power128);
+	BN_dec2bn(&bn_2power128,str_2power128);	
 	bn_ctx=BN_CTX_new();
 	memset(mac_in_bytes,0,safe_length_for_buffer_storage);
 	memset(encrypted_data,0,safe_length_for_buffer_storage);
-	printf("Crypto structures initialized.\n");
+	if (print)
+		printf("Crypto structures initialized.\n");
 }
 
 void calc_mac(unsigned char *useful_data, long length_in_bytes)

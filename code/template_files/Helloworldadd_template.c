@@ -43,7 +43,7 @@ int main()
 	static int static_main_variable_for_testing;
 
 	//initialise crypto structures
-	init_crypto_stuctures();
+	init_crypto_stuctures(1);
 
 	//initialise memory
 	init_heap_and_stack_mem();
