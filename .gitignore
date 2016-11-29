@@ -23,5 +23,6 @@ code/sha256.h
 secure_getters_setters.c
 secure_getters_setters.h
 crypto_functions.c
+crypto_functions.h
 #.classpath
 #.project

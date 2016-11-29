@@ -38,22 +38,37 @@ void init_crypto_stuctures()
 
 void calc_mac(unsigned char *useful_data, long length_in_bytes)
 {
-	BN_bin2bn(useful_data,length_in_bytes*8,&bn_useful_data);
-	BN_mod_mul(&bn_temp,&bn_useful_data,&bn_a,bn_2power128,bn_ctx);
-	BN_mod_add(&bn_mac,&bn_temp,&bn_b,bn_2power128,bn_ctx);
+	if (number_of_mac_bytes>0)
+	{
+		BN_bin2bn(useful_data,length_in_bytes*8,&bn_useful_data);
+		BN_mod_mul(&bn_temp,&bn_useful_data,&bn_a,bn_2power128,bn_ctx);
+		BN_mod_add(&bn_mac,&bn_temp,&bn_b,bn_2power128,bn_ctx);
+	}
 }
 
 void set_mac(unsigned char * output)
 {
 	int length_of_mac;
-	
-	length_of_mac=BN_num_bytes(&bn_mac);
-	if(length_of_mac<len_2power128-1)
+
+	if (number_of_mac_bytes>0)
 	{
-		memset(mac_in_bytes,0,(len_2power128-1-length_of_mac));
+		length_of_mac=BN_num_bytes(&bn_mac);
+		if(length_of_mac<len_2power128-1)
+		{
+			memset(mac_in_bytes,0,(len_2power128-1-length_of_mac));
+		}
+		BN_bn2bin(&bn_mac,((unsigned char*)mac_in_bytes)+(len_2power128-1-length_of_mac));
+		length_of_mac=len_2power128-1; //new length
+		if(length_of_mac>=number_of_mac_bytes)
+		{
+			memcpy(output,mac_in_bytes,number_of_mac_bytes);
+		}
+		else
+		{
+			memcpy(output,mac_in_bytes,length_of_mac);
+			memset(((unsigned char*)output)+(length_of_mac),0,number_of_mac_bytes-length_of_mac);
+		}
 	}
-	BN_bn2bin(&bn_mac,((unsigned char*)mac_in_bytes)+(len_2power128-1-length_of_mac));
-	memcpy(output,mac_in_bytes,number_of_mac_bytes);
 }
 
 

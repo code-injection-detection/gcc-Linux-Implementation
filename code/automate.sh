@@ -136,6 +136,7 @@ else
 	cp ./template_files/mac_handling_functions_template.c mac_handling_functions.c
 	cp ./template_files/secure_getters_setters_template.c secure_getters_setters.c
 	cp ./template_files/crypto_functions_template.c crypto_functions.c
+	cp ./template_files/crypto_functions_template.h crypto_functions.h
 	cp ./template_files/secure_getters_setters_template.h secure_getters_setters.h
 	echo "Copied templates"
 fi

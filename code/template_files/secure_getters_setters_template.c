@@ -9,6 +9,9 @@ extern long total_stack_bytes_allocated; /*total bytes allocated for the secure 
 extern unsigned char * entire_stack_memory_chunk; /*points to the start of the secure stack*/
 extern unsigned char* last_unused_stack_memory; /*practically the stack pointer*/
 
+extern unsigned char get_next_keyshare();
+extern unsigned char get_next_stack_keyshare();
+extern void calc_and_set_mac_of_data(char * input, long length, char * output);
 
 /************************************************************************************************/
 /************************************************************************************************/

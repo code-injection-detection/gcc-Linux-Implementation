@@ -72,5 +72,6 @@
 
 
 #include "secure_getters_setters.h"
+#include "crypto_functions.h"
 
 #endif
