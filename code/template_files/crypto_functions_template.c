@@ -1,9 +1,9 @@
 #include "headers_needed.h"
 
+#define safe_length_for_buffer_storage 2048
 
 EVP_CIPHER_CTX aes_ctx;
 unsigned char aes_key[] = {42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57};
-
 
 
 BIGNUM bn_a;
@@ -15,7 +15,7 @@ BIGNUM *bn_2power128=NULL;
 char str_2power128[]="340282366920938463463374607431768211456"; //2^128
 int len_2power128;
 BN_CTX *bn_ctx;
-unsigned char mac_in_bytes[1000];
+unsigned char mac_in_bytes[safe_length_for_buffer_storage];
 
 
 void init_crypto_stuctures()
@@ -30,8 +30,9 @@ void init_crypto_stuctures()
 	BN_init(&bn_mac);
 	BN_dec2bn(&bn_2power128,str_2power128);
 	len_2power128=BN_num_bytes(bn_2power128);
+	printf("%d\n",len_2power128);
 	bn_ctx=BN_CTX_new();
-	memset(mac_in_bytes,0,1000);
+	memset(mac_in_bytes,0,safe_length_for_buffer_storage);
 	printf("Crypto structures initialized.\n");
 }
 
