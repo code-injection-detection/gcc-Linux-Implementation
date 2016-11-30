@@ -137,8 +137,8 @@ echo "Compiling hash and encryption calculators..."
 	 gcc -O3 -c sha256.c;
 	 rm -f sha256.c sha256.h  #removing the sha stuff that we don't need.
 	 gcc -O3 -c crypto_functions.c -lcrypto
-	 gcc -c calc_mac_for_external_programs.c -lcrypto
-	 gcc calc_mac_for_external_programs.o ./sha256.o ./crypto_functions.o -o calc_mac_for_external_programs -lcrypto
+	 gcc -O3 -c calc_mac_for_external_programs.c -lcrypto
+	 gcc -O3 calc_mac_for_external_programs.o ./sha256.o ./crypto_functions.o -o calc_mac_for_external_programs -lcrypto
 	 )
 echo "Compiled hash and encryption calculators."
 

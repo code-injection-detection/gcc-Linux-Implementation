@@ -40,7 +40,7 @@ void init_crypto_stuctures(int print)
 		printf("Crypto structures initialized.\n");
 }
 
-void calc_mac(unsigned char *useful_data, long length_in_bytes_useful)
+void calc_mac_aes_ecb(unsigned char *useful_data, long length_in_bytes_useful)
 {
 	if (number_of_mac_bytes>0)
 	{
@@ -52,7 +52,7 @@ void calc_mac(unsigned char *useful_data, long length_in_bytes_useful)
 	}
 }
 
-void set_mac(unsigned char * output)
+void set_mac_aes_ecb(unsigned char * output)
 {
 	int length_of_mac;
 
@@ -105,8 +105,8 @@ void calc_and_set_mac_of_data_aes_ecb(char * input, long length_of_all,long leng
 	if (number_of_mac_bytes>0)
 	{
 		encrypt_aes_ecb((unsigned char*)(input)+length_of_useful,length_of_all-length_of_useful);
-		calc_mac(input, length_of_useful);
-		set_mac(output);
+		calc_mac_aes_ecb(input, length_of_useful);
+		set_mac_aes_ecb(output);
 	}
 }
 

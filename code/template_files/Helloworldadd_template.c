@@ -135,7 +135,7 @@ int main()
 	check_heap_macs();
 	check_stack_macs();
 	check_global_macs();
-	if(use_aes_for_mac==0) //temporary
+	if(mac_algorithm==0) //temporary
 	{
 		check_code_macs();
 	}

@@ -24,7 +24,7 @@
 #include <openssl/err.h>
 #include <openssl/bn.h>
 
-#define use_aes_for_mac 0
+#define mac_algorithm 0  //0->sha256, 1-> AES_ECB with MAC=x*A+B, 2->CBC_MAC with AES (not implemented yet)
 
 
 #ifndef number_of_interleaved_keys 
@@ -79,10 +79,12 @@
 #include "secure_getters_setters.h"
 #include "crypto_functions.h"
 
-#if use_aes_for_mac
-#define calc_and_set_mac_of_data(input,length_all,length_useful,output) calc_and_set_mac_of_data_aes_ecb((input),(length_all),(length_useful),(output))
-#else
+
+#if mac_algorithm==0
 #define calc_and_set_mac_of_data(input,length_all,length_useful,output) calc_and_set_mac_of_data_sha256((input),(length_all),(output))
+#endif
+#if mac_algorithm==1
+#define calc_and_set_mac_of_data(input,length_all,length_useful,output) calc_and_set_mac_of_data_aes_ecb((input),(length_all),(length_useful),(output))
 #endif
 
 #endif
