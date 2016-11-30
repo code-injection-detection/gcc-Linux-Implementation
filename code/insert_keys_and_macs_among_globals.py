@@ -139,7 +139,6 @@ def add_keys_and_macs(var_type):
 		MAC=[]
 		get_mac_from_c_code(MAC)
 		enlarge_mac_if_needed(MAC)
-		print(MAC)
 		#print("bytes_to_be_maced:",bytes_to_be_maced)
 		#print("MAC:",MAC)
 		maccnt_major+=1
