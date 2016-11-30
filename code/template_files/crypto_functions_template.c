@@ -40,15 +40,15 @@ void init_crypto_stuctures(int print)
 		printf("Crypto structures initialized.\n");
 }
 
-void calc_mac(unsigned char *useful_data, long length_in_bytes)
+void calc_mac(unsigned char *useful_data, long length_in_bytes_useful)
 {
 	if (number_of_mac_bytes>0)
 	{
 		BN_bin2bn(encrypted_data,(length_of_encrypted_data/2),&bn_a);
 		BN_bin2bn(((unsigned char*)encrypted_data)+(length_of_encrypted_data/2),(length_of_encrypted_data/2),&bn_b);
-		BN_bin2bn(useful_data,length_in_bytes,&bn_useful_data);
+		BN_bin2bn(useful_data,length_in_bytes_useful,&bn_useful_data);
 		BN_mod_mul(&bn_temp,&bn_useful_data,&bn_a,bn_2power128,bn_ctx);
-		BN_mod_add(&bn_mac,&bn_temp,&bn_b,bn_2power128,bn_ctx);
+		BN_mod_add(&bn_mac,&bn_temp,&bn_b,bn_2power128,bn_ctx);		
 	}
 }
 

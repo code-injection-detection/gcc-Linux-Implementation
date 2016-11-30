@@ -7,6 +7,7 @@ import gc
 import platform
 import hashlib
 from collections import Iterable
+from subprocess import Popen, PIPE
 
 inputfiles=[ './template_files/memory_manager_template.c',
 			 './template_files/stack_manager_template.c',
@@ -46,7 +47,7 @@ useful_bytes_size=8
 useless_bytes_cnt=0
 num_of_mac_bytes=0
 hash_handler=hashlib.sha256()
-bytes_to_be_hashed=[]
+bytes_to_be_maced=[]
 value_of_useless_bytes=1
 global_variable_values=[]
 
@@ -97,17 +98,30 @@ def get_next_keyshare():
 	keys_generated_cnt+=1
 	return key
 	
-def enlarge_hash_if_needed(sha_hash):
-	if(num_of_mac_bytes>len(sha_hash)):
-		x=[0 for i in range(num_of_mac_bytes-len(sha_hash))]
+def enlarge_mac_if_needed(MAC):
+	if(num_of_mac_bytes>len(MAC)):
+		x=[0 for i in range(num_of_mac_bytes-len(MAC))]
 		for k in x:
-			sha_hash.append(k) 
+			MAC.append(k) 
+
+def get_mac_from_c_code(MAC):
+	global bytes_to_be_maced
+	
+	program='./calc_mac_for_external_programs'
+	mac_as_str=[str(i) for i in bytes_to_be_maced]
+	args=[program,str(len(bytes_to_be_maced)),str(useful_bytes_size)]
+	for i in mac_as_str:
+		args.append(i)
+	process = Popen(args, stdout=PIPE, stderr=PIPE)
+	mac_out=process.stdout.read()
+	for i in list(mac_out.split()):
+		MAC.append(int(i.decode('ascii')))
 
 def add_keys_and_macs(var_type):
 	global keycnt_major
 	global filelines_out
 	global maccnt_major
-	global bytes_to_be_hashed
+	global bytes_to_be_maced
 	global hash_handler
 	global global_variable_values
 	
@@ -117,22 +131,23 @@ def add_keys_and_macs(var_type):
 			s=''
 			s+=process_var_type(var_type)+" "
 			keyshare=get_next_keyshare()
-			bytes_to_be_hashed.append(keyshare)
+			bytes_to_be_maced.append(keyshare)
 			s+="unsigned char key_"+str(keycnt_major)+"_"+str(i) +";\n"
 			global_variable_values.append(keyshare)
 			filelines_out.append(s)
 	if num_of_mac_bytes>0:
-		hash_handler.update(bytes(bytes_to_be_hashed))
-		sha_hash=list(hash_handler.digest())
-		enlarge_hash_if_needed(sha_hash)
-		#print("bytes_to_be_hashed:",bytes_to_be_hashed)
-		#print("sha_hash:",sha_hash)
+		MAC=[]
+		get_mac_from_c_code(MAC)
+		enlarge_mac_if_needed(MAC)
+		print(MAC)
+		#print("bytes_to_be_maced:",bytes_to_be_maced)
+		#print("MAC:",MAC)
 		maccnt_major+=1
 		for i in range(1,num_of_mac_bytes+1):
 			s=''
 			s+=process_var_type(var_type)+" "
 			s+="unsigned char mac_"+str(maccnt_major)+"_"+str(i) +";\n"
-			global_variable_values.append(sha_hash[i-1])
+			global_variable_values.append(MAC[i-1])
 			filelines_out.append(s)
 		
 
@@ -140,7 +155,7 @@ def add_keys_and_macs_one_line(var_type):
 	global keycnt_major
 	global filelines_out
 	global maccnt_major
-	global bytes_to_be_hashed
+	global bytes_to_be_maced
 	global hash_handler
 	global global_variable_values
 	
@@ -152,24 +167,24 @@ def add_keys_and_macs_one_line(var_type):
 		values_of_array=[]
 		for i in range(1,number_of_keys+1):
 			keyshare=get_next_keyshare()
-			bytes_to_be_hashed.append(keyshare)
+			bytes_to_be_maced.append(keyshare)
 			values_of_array.append(keyshare)
 		global_variable_values.append(values_of_array)
 		filelines_out.append(s)
 	
 	s=''
 	if num_of_mac_bytes>0:
-		hash_handler.update(bytes(bytes_to_be_hashed))
-		sha_hash=list(hash_handler.digest())
-		enlarge_hash_if_needed(sha_hash)
-		#print("bytes_to_be_hashed:",bytes_to_be_hashed)
-		#print("sha_hash:",sha_hash)
+		MAC=[]
+		get_mac_from_c_code(MAC)
+		enlarge_mac_if_needed(MAC)
+		#print("bytes_to_be_maced:",bytes_to_be_maced)
+		#print("MAC:",MAC)
 		s+=process_var_type(var_type)+" "
 		maccnt_major+=1
 		s+="unsigned char mac_"+str(maccnt_major)+"["+str(num_of_mac_bytes)+"];\n" 
 		values_of_array=[]
 		for i in range(1,num_of_mac_bytes+1):
-			values_of_array.append(sha_hash[i-1])
+			values_of_array.append(MAC[i-1])
 		global_variable_values.append(values_of_array)
 		filelines_out.append(s)
 
@@ -177,13 +192,13 @@ def add_keys_and_macs_one_line(var_type):
 def pad_random_useless_bytes(var_type,num):
 	global filelines_out
 	global useless_bytes_cnt
-	global bytes_to_be_hashed
+	global bytes_to_be_maced
 	global hash_handler
 	global global_variable_values
 	
 	for i in range(num):
 		useless_bytes_cnt+=1
-		bytes_to_be_hashed.append(value_of_useless_bytes)
+		bytes_to_be_maced.append(value_of_useless_bytes)
 		filelines_out.append(process_var_type(var_type)+' char useless_byte_'+ str(useless_bytes_cnt)+ ';\n')
 		global_variable_values.append(value_of_useless_bytes)
 
@@ -284,7 +299,7 @@ for fileindex,filein in enumerate(inputfiles):
 			if (len(line.split('|')))>2:
 				var_type=line.split('|')[2].split(':')[1].strip().lower()
 			processing_global=1
-			bytes_to_be_hashed=[]
+			bytes_to_be_maced=[]
 			hash_handler=hashlib.sha256()
 		else:
 			filelines_out.append(line)
@@ -292,7 +307,7 @@ for fileindex,filein in enumerate(inputfiles):
 				chunk_bytes_cnt+=var_size  #Ok so far we add keyshares for EACH global variable. Will be a pain to change this.
 				global_variable_values.append(0)
 				for i in range(var_size):
-					bytes_to_be_hashed.append(0)
+					bytes_to_be_maced.append(0)
 				pad_random_useless_bytes(var_type,useful_bytes_size-chunk_bytes_cnt) #pad with random useless bytes	
 				chunk_bytes_cnt=0
 				if insert_keys_and_macs_in_one_line:

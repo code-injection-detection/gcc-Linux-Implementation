@@ -132,13 +132,12 @@ int main()
 	printf("Going to find keyshares.\n");
 	find_keyshares(-1);
 	
-	
+	check_heap_macs();
+	check_stack_macs();
+	check_global_macs();
 	if(use_aes_for_mac==0) //temporary
 	{
-		check_heap_macs();
-		check_stack_macs();
 		check_code_macs();
-		check_global_macs();
 	}
 
 	
