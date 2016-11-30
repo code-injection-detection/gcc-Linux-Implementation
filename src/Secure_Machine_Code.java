@@ -59,7 +59,7 @@ public class Secure_Machine_Code {
 		FileOutputStream all_keyshares_file_for_verification=new FileOutputStream(new File(all_keyshares_filename));
 		Path path = FileSystems.getDefault().getPath(global_keys_filename);
 		byte [] global_keys = Files.readAllBytes(path);
-		byte[] stuff_in_code_to_be_MACed=new byte[1000];
+		byte[] stuff_in_code_to_be_MACed=new byte[2048];
 		
 		if (args.length==7)
 		{
@@ -164,9 +164,9 @@ public class Secure_Machine_Code {
 						//copy bytes
 						stuff_in_code_to_be_MACed[j]=arr[i-(cnt_for_instr_bytes+number_of_interleaved_keys+number_of_canaries+bytes_for_instr_len)+j];
 					}
-					//give them to the hash handler and calculate the hash
-					md.update(stuff_in_code_to_be_MACed,0,cnt_for_instr_bytes+number_of_canaries+bytes_for_instr_len+number_of_interleaved_keys);
-					byte[] digest = md.digest();
+					//give them to the mac handler and calculate the mac
+					byte[] digest=calculate_mac(cnt_for_instr_bytes+number_of_canaries+bytes_for_instr_len+number_of_interleaved_keys,cnt_for_instr_bytes+number_of_canaries+bytes_for_instr_len,stuff_in_code_to_be_MACed,num_of_mac_bytes);
+					
 					//and write the mac bytes
 					for (int j=0;j<num_of_mac_bytes;j++)
 					{
@@ -337,4 +337,56 @@ public class Secure_Machine_Code {
 			
 		return true;
 	}
+	
+	static byte[] calculate_mac(int length_of_mac, int length_of_useful_bytes, byte[] stuff_to_be_maced,int num_of_mac_bytes) throws IOException,InterruptedException
+	{
+		byte[] mac= new byte[num_of_mac_bytes];
+		int[] args= new int[2048];
+		char[] mac_as_chars=new char[4096];
+		int cnt=0;
+		int cnt2=0;
+		String mac_calculator_filename=new File("../code/calc_mac_for_external_programs").getAbsolutePath();
+		String exec_str="";
+		
+		args[0]=length_of_mac;
+		args[1]=length_of_useful_bytes;
+		for (int i=0;i<length_of_mac;i++)
+		{
+			args[i+2]=(int)stuff_to_be_maced[i];
+		}
+		exec_str+=mac_calculator_filename+" "+args[0]+" "+args[1]+" ";
+		for (int i=0;i<length_of_mac;i++)
+		{
+			exec_str+=args[i+2]+" ";
+		}
+		
+		//exec the mac calculator
+		Runtime runtime = Runtime.getRuntime();
+		Process process = runtime.exec(exec_str);
+		BufferedInputStream macinputstream= new BufferedInputStream(process.getInputStream());
+		process.waitFor();
+		
+		while(macinputstream.available()>0)
+        {
+            // read the byte and convert the integer to character
+            char c = (char)macinputstream.read();
+            mac_as_chars[cnt]=c;
+            cnt++;
+		}
+		String mac_as_str=new String(mac_as_chars);
+		String[] mac_parts=mac_as_str.split(" ");
+		
+		cnt2=0;
+		for (String i:mac_parts)
+		{
+			if (i.trim().length()>0)
+			{
+				mac[cnt2]=(byte)Integer.parseInt(i.trim());
+				cnt2++;
+			}
+		}
+		
+		return mac;
+	}
+	
 }

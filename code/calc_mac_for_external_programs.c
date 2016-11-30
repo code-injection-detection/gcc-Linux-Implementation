@@ -32,6 +32,7 @@ int main(int argc, char* argv[])
 		bytes[i]=atoi(argv[3+i]);
 	}
 	
+	
 	calc_and_set_mac_of_data(bytes,len_of_all,len_of_useful,mac);
 	
 	for (i=0;i<number_of_mac_bytes;i++)

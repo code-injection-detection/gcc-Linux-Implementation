@@ -24,7 +24,7 @@
 #include <openssl/err.h>
 #include <openssl/bn.h>
 
-#define mac_algorithm 0  //0->sha256, 1-> AES_ECB with MAC=x*A+B, 2->CBC_MAC with AES (not implemented yet)
+#define mac_algorithm 1  //0->sha256, 1-> AES_ECB with MAC=x*A+B, 2->CBC_MAC with AES (not implemented yet)
 
 
 #ifndef number_of_interleaved_keys 
