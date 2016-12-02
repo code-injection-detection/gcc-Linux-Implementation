@@ -16,6 +16,7 @@ char str_2power128[]="340282366920938463463374607431768211456"; //2^128
 BN_CTX *bn_ctx;
 unsigned char mac_in_bytes[safe_length_for_buffer_storage];
 unsigned char encrypted_data[safe_length_for_buffer_storage];
+unsigned char mac_to_be_verified[number_of_mac_bytes];
 int length_of_encrypted_data;
 int tmplen;
 
@@ -25,17 +26,20 @@ void init_crypto_stuctures(int print)
 	if (print)
 		printf("Initializing crypto structures.\n");
 	EVP_CIPHER_CTX_init(&aes_ctx);
-	EVP_EncryptInit_ex(&aes_ctx, EVP_aes_128_ecb(), NULL, aes_key, NULL);
-	EVP_CIPHER_CTX_set_padding(&aes_ctx, 0); //disable padding
-	BN_init(&bn_a);
-	BN_init(&bn_b);
-	BN_init(&bn_temp);
-	BN_init(&bn_useful_data);
-	BN_init(&bn_mac);
-	BN_dec2bn(&bn_2power128,str_2power128);	
-	bn_ctx=BN_CTX_new();
+	#if mac_algorithm==1
+		EVP_EncryptInit_ex(&aes_ctx, EVP_aes_128_ecb(), NULL, aes_key, NULL);
+		EVP_CIPHER_CTX_set_padding(&aes_ctx, 0); //disable padding
+		BN_init(&bn_a);
+		BN_init(&bn_b);
+		BN_init(&bn_temp);
+		BN_init(&bn_useful_data);
+		BN_init(&bn_mac);
+		BN_dec2bn(&bn_2power128,str_2power128);	
+		bn_ctx=BN_CTX_new();
+	#endif
 	memset(mac_in_bytes,0,safe_length_for_buffer_storage);
 	memset(encrypted_data,0,safe_length_for_buffer_storage);
+	memset(mac_to_be_verified,99,number_of_mac_bytes); //a value that will find the errors
 	if (print)
 		printf("Crypto structures initialized.\n");
 }
@@ -114,14 +118,27 @@ void calc_and_set_mac_of_data_aes_ecb(char * input, long length_of_all,long leng
 void clear_crypto_structures()
 {
 	EVP_CIPHER_CTX_cleanup(&aes_ctx);
-	//are these safe?
-	/*
-	BN_free(&bn_a);
-	BN_free(&bn_b);
-	BN_free(&bn_temp);
-	BN_free(&bn_useful_data);
-	BN_free(&bn_mac);
-	*/
-	BN_free(bn_2power128);
-	BN_CTX_free(bn_ctx);
+	#if mac_algorithm==1
+		//are these safe?
+		/*
+		BN_free(&bn_a);
+		BN_free(&bn_b);
+		BN_free(&bn_temp);
+		BN_free(&bn_useful_data);
+		BN_free(&bn_mac);
+		*/
+		BN_free(bn_2power128);
+		BN_CTX_free(bn_ctx);
+	#endif
+}
+
+int check_mac_for_error(unsigned char * input, long total_mac_bytes, long useful_mac_bytes)
+{
+	int error=0;
+	calc_and_set_mac_of_data(input,total_mac_bytes,useful_mac_bytes,mac_to_be_verified);
+	if (0!=memcmp(input+total_mac_bytes,mac_to_be_verified,number_of_mac_bytes))
+	{	
+		error=1;
+	}
+	return error;
 }

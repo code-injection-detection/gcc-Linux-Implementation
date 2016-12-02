@@ -227,10 +227,9 @@ def add_mac_verification():
 	global maccnt_major
 	global number_of_keys
 
-	s='int error=0;\n char mac[number_of_mac_bytes];\n'
+	s='int error=0;\n \n'
 	for i in range(1,maccnt_major+1):
-		s+='calc_and_set_mac_of_data((unsigned char *)&(globals.mac_'+str(i)+'_1)-(number_of_global_useful_bytes+bytes_used_for_keyshares),number_of_global_useful_bytes+bytes_used_for_keyshares,number_of_global_useful_bytes,mac);\n'
-		s+='if (0!=memcmp((unsigned char *)&(globals.mac_'+str(i)+'_1),mac,number_of_mac_bytes))\n'
+		s+='if (check_mac_for_error((unsigned char *)&(globals.mac_'+str(i)+'_1)-(number_of_global_useful_bytes+bytes_used_for_keyshares),number_of_global_useful_bytes+bytes_used_for_keyshares,number_of_global_useful_bytes))\n'
 		s+='{\n'	
 		s+='	printf("Error in global macs, mac no %d\\n",'+str(i)+');\n'
 		s+='	error=1;\n'
@@ -250,10 +249,9 @@ def add_mac_verification_one_line():
 	global maccnt_major
 	global number_of_keys
 	
-	s='int error=0;\n char mac[number_of_mac_bytes];\n'
+	s='int error=0;\n \n'
 	for i in range(1,maccnt_major+1):
-		s+='calc_and_set_mac_of_data((unsigned char *)&(globals.mac_'+str(i)+')-(number_of_global_useful_bytes+bytes_used_for_keyshares),number_of_global_useful_bytes+bytes_used_for_keyshares,number_of_global_useful_bytes,mac);\n'
-		s+='if (0!=memcmp((unsigned char *)&(globals.mac_'+str(i)+'),mac,number_of_mac_bytes))\n'
+		s+='if(check_mac_for_error((unsigned char *)&(globals.mac_'+str(i)+')-(number_of_global_useful_bytes+bytes_used_for_keyshares),number_of_global_useful_bytes+bytes_used_for_keyshares,number_of_global_useful_bytes))\n'
 		s+='{\n'	
 		s+='	printf("Error in global macs, mac no %d\\n",'+str(i)+');\n'
 		s+='	error=1;\n'

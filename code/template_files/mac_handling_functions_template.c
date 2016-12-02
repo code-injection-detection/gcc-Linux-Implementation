@@ -6,13 +6,11 @@
 void check_heap_macs()
 {
 	unsigned char *p=entire_memory_chunk;
-	char mac[number_of_mac_bytes];
 	int error=0;
 	
 	while (p<entire_memory_chunk+total_bytes_allocated)
 	{
-		calc_and_set_mac_of_data(p,bytes_for_useful_data+bytes_used_for_keyshares,bytes_for_useful_data,mac);
-		if (0!=memcmp(p+bytes_for_useful_data+bytes_used_for_keyshares,mac,number_of_mac_bytes))
+		if(check_mac_for_error(p,bytes_for_useful_data+bytes_used_for_keyshares,bytes_for_useful_data))
 		{	
 			printf("Error in heap macs, p=%ld, start of secure heap=%ld\n",(long) p,(long)entire_memory_chunk);
 			error=1;
@@ -34,13 +32,11 @@ void check_heap_macs()
 void check_stack_macs()
 {
 	unsigned char *p=entire_stack_memory_chunk;
-	char mac[number_of_mac_bytes];
 	int error=0;
 	
 	while (p<entire_stack_memory_chunk+total_stack_bytes_allocated)
 	{
-		calc_and_set_mac_of_data(p,stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,stack_bytes_for_useful_data,mac);
-		if (0!=memcmp(p+stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,mac,number_of_mac_bytes))
+		if (check_mac_for_error(p,stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,stack_bytes_for_useful_data))
 		{	
 			printf("Error in stack macs, p=%ld, start of secure stack=%ld\n",(long) p,(long)entire_stack_memory_chunk);
 			error=1;
@@ -67,7 +63,6 @@ void check_code_macs()
 	unsigned char *p;
 	unsigned char* start_of_text=(unsigned char*)&__executable_start;  //we get the limits of .text section
 	unsigned char* end_of_text=(unsigned char*)&__etext;
-	char mac[number_of_mac_bytes];
 	int length_of_useful_data;
 	int error=0;
 	long mac_cnt=0;
@@ -80,8 +75,7 @@ void check_code_macs()
 		{ 
 			mac_cnt++;
 			length_of_useful_data=*(p+2+number_of_canaries);
-			calc_and_set_mac_of_data(p-(length_of_useful_data-2),length_of_useful_data+number_of_interleaved_keys+number_of_canaries+bytes_for_instr_len,length_of_useful_data+number_of_canaries+bytes_for_instr_len,mac);
-			if (0!=memcmp(p+2+number_of_interleaved_keys+number_of_canaries+bytes_for_instr_len,mac,number_of_mac_bytes))
+			if (check_mac_for_error(p-(length_of_useful_data-2),length_of_useful_data+number_of_interleaved_keys+number_of_canaries+bytes_for_instr_len,length_of_useful_data+number_of_canaries+bytes_for_instr_len))
 			{	
 				printf("Error in code macs, p=%ld, start of code=%ld\n",(long) p,(long)start_of_text);
 				error=1;

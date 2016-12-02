@@ -1,7 +1,7 @@
 #!/bin/bash
 
 SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS=1
-DECLARE_GLOBAL_KEYS_AS_AN_ARRAY=1
+DECLARE_GLOBAL_KEYS_AS_AN_ARRAY=0
 
 if [ "$#" -ne 9 ]; then
     echo "Please execute as following:"
