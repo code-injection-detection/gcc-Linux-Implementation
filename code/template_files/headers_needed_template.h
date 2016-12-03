@@ -23,8 +23,9 @@
 #include <openssl/evp.h>
 #include <openssl/err.h>
 #include <openssl/bn.h>
+#include <openssl/cmac.h>
 
-#define mac_algorithm 1  //0->sha256, 1-> AES_ECB with MAC=x*A+B, 2->CBC_MAC with AES (not implemented yet)
+#define mac_algorithm 1  //0->sha256, 1-> AES_ECB with MAC=x*A+B, 2->CMAC with AES
 
 
 #ifndef number_of_interleaved_keys 
@@ -85,6 +86,9 @@
 #endif
 #if mac_algorithm==1
 #define calc_and_set_mac_of_data(input,length_all,length_useful,output) calc_and_set_mac_of_data_aes_ecb((input),(length_all),(length_useful),(output))
+#endif
+#if mac_algorithm==2
+#define calc_and_set_mac_of_data(input,length_all,length_useful,output) calc_and_set_mac_of_data_aes_cmac((input),(length_all),(output))
 #endif
 
 #endif

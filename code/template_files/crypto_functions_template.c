@@ -5,6 +5,9 @@
 
 EVP_CIPHER_CTX aes_ctx;
 unsigned char aes_key[] = {42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57};
+unsigned char initialization_vector[]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+
+CMAC_CTX *cmac_ctx;
 
 BIGNUM bn_a;
 BIGNUM bn_b;
@@ -18,6 +21,7 @@ unsigned char mac_in_bytes[safe_length_for_buffer_storage];
 unsigned char encrypted_data[safe_length_for_buffer_storage];
 unsigned char mac_to_be_verified[number_of_mac_bytes];
 int length_of_encrypted_data;
+size_t length_of_maced_data;
 int tmplen;
 
 
@@ -37,12 +41,21 @@ void init_crypto_stuctures(int print)
 		BN_dec2bn(&bn_2power128,str_2power128);	
 		bn_ctx=BN_CTX_new();
 	#endif
+	#if mac_algorithm==2
+		cmac_ctx = CMAC_CTX_new();
+		CMAC_Init(cmac_ctx, aes_key, 16, EVP_aes_128_cbc(), NULL);
+	#endif
 	memset(mac_in_bytes,0,safe_length_for_buffer_storage);
 	memset(encrypted_data,0,safe_length_for_buffer_storage);
-	memset(mac_to_be_verified,99,number_of_mac_bytes); //a value that will find the errors
+	memset(mac_to_be_verified,99,number_of_mac_bytes); //a value (99) that will result in error
 	if (print)
 		printf("Crypto structures initialized.\n");
 }
+
+/*********************************************************************************/
+/****************************** AES ECB ******************************************/
+/*********************************************************************************/
+
 
 void calc_mac_aes_ecb(unsigned char *useful_data, long length_in_bytes_useful)
 {
@@ -115,6 +128,54 @@ void calc_and_set_mac_of_data_aes_ecb(char * input, long length_of_all,long leng
 }
 
 
+
+
+
+/*************************************************************************************/
+/*********************************** CMAC (AES) ***********************************/
+/*************************************************************************************/
+
+void set_mac_aes_cmac(unsigned char * output)
+{
+	int length_of_mac=16; //128 bits=16 bytes
+	if (length_of_maced_data!=length_of_mac)
+	{
+		printf("Error!: Lengths of MACs are different! %ld\n",length_of_maced_data);
+	}
+	
+	if(length_of_mac>=number_of_mac_bytes)
+		{
+			memcpy(output,mac_in_bytes,number_of_mac_bytes);
+		}
+		else
+		{
+			memcpy(output,mac_in_bytes,length_of_mac);
+			memset(((unsigned char*)output)+(length_of_mac),0,number_of_mac_bytes-length_of_mac);
+		}
+}
+
+
+void calc_mac_aes_cmac(char * input, long length_of_all)
+{
+	CMAC_Update(cmac_ctx, input,length_of_all);
+	CMAC_Final(cmac_ctx, mac_in_bytes, &length_of_maced_data);
+	CMAC_Init(cmac_ctx, aes_key, 16, EVP_aes_128_cbc(), NULL);
+}
+
+
+void calc_and_set_mac_of_data_aes_cmac(char * input, long length_of_all, char * output)
+{
+	if (number_of_mac_bytes>0)
+	{
+		calc_mac_aes_cmac(input,length_of_all);
+		set_mac_aes_cmac(output);
+	}
+}
+
+
+
+
+
 void clear_crypto_structures()
 {
 	EVP_CIPHER_CTX_cleanup(&aes_ctx);
@@ -130,15 +191,21 @@ void clear_crypto_structures()
 		BN_free(bn_2power128);
 		BN_CTX_free(bn_ctx);
 	#endif
+	#if mac_algorithm==2
+		CMAC_CTX_free(cmac_ctx);
+	#endif
 }
 
 int check_mac_for_error(unsigned char * input, long total_mac_bytes, long useful_mac_bytes)
 {
 	int error=0;
-	calc_and_set_mac_of_data(input,total_mac_bytes,useful_mac_bytes,mac_to_be_verified);
-	if (0!=memcmp(input+total_mac_bytes,mac_to_be_verified,number_of_mac_bytes))
-	{	
-		error=1;
+	if (number_of_mac_bytes>0)
+	{
+		calc_and_set_mac_of_data(input,total_mac_bytes,useful_mac_bytes,mac_to_be_verified);
+		if (0!=CRYPTO_memcmp(input+total_mac_bytes,mac_to_be_verified,number_of_mac_bytes))
+		{	
+			error=1;
+		}
 	}
 	return error;
 }
