@@ -2,6 +2,7 @@
 
 #define safe_length_for_buffer_storage 2048
 #define len_2power128 17 //2^128-1 is 16 bytes.
+#define block_length 16
 
 EVP_CIPHER_CTX aes_ctx;
 unsigned char aes_key[] = {42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57};
@@ -20,6 +21,7 @@ BN_CTX *bn_ctx;
 unsigned char mac_in_bytes[safe_length_for_buffer_storage];
 unsigned char encrypted_data[safe_length_for_buffer_storage];
 unsigned char mac_to_be_verified[number_of_mac_bytes];
+unsigned char intermediate_buf_for_macing[safe_length_for_buffer_storage];
 int length_of_encrypted_data;
 size_t length_of_maced_data;
 int tmplen;
@@ -45,8 +47,12 @@ void init_crypto_stuctures(int print)
 		cmac_ctx = CMAC_CTX_new();
 		CMAC_Init(cmac_ctx, aes_key, 16, EVP_aes_128_cbc(), NULL);
 	#endif
+	#if mac_algorithm==3
+		EVP_EncryptInit_ex(&aes_ctx, EVP_aes_128_cbc(), NULL, aes_key,initialization_vector);
+	#endif
 	memset(mac_in_bytes,0,safe_length_for_buffer_storage);
 	memset(encrypted_data,0,safe_length_for_buffer_storage);
+	memset(intermediate_buf_for_macing,0,safe_length_for_buffer_storage);
 	memset(mac_to_be_verified,99,number_of_mac_bytes); //a value (99) that will result in error
 	if (print)
 		printf("Crypto structures initialized.\n");
@@ -57,7 +63,7 @@ void init_crypto_stuctures(int print)
 /*********************************************************************************/
 
 
-void calc_mac_aes_ecb(unsigned char *useful_data, long length_in_bytes_useful)
+void calc_mac_aes_ecb(unsigned char *useful_data, int length_in_bytes_useful)
 {
 	if (number_of_mac_bytes>0)
 	{
@@ -94,10 +100,11 @@ void set_mac_aes_ecb(unsigned char * output)
 	}
 }
 
-void encrypt_aes_ecb(unsigned char *buf_to_be_encrypted,long len_of_buf)
+void encrypt_aes_ecb(unsigned char *buf_to_be_encrypted,int len_of_buf)
 {
 	if (number_of_mac_bytes>0)
 	{
+		//EVP_EncryptInit_ex(&aes_ctx, NULL, NULL, NULL, NULL);
 		if(!EVP_EncryptUpdate(&aes_ctx, encrypted_data, &length_of_encrypted_data,buf_to_be_encrypted, len_of_buf)) 
 		{
 			fprintf(stderr,"Error in EncryptUpdate\n");
@@ -117,7 +124,7 @@ void encrypt_aes_ecb(unsigned char *buf_to_be_encrypted,long len_of_buf)
 }
 
 
-void calc_and_set_mac_of_data_aes_ecb(char * input, long length_of_all,long length_of_useful, char * output)
+void calc_and_set_mac_of_data_aes_ecb(char * input, int length_of_all,int length_of_useful, char * output)
 {
 	if (number_of_mac_bytes>0)
 	{
@@ -132,7 +139,7 @@ void calc_and_set_mac_of_data_aes_ecb(char * input, long length_of_all,long leng
 
 
 /*************************************************************************************/
-/*********************************** CMAC (AES) ***********************************/
+/*********************************** CMAC (AES) **************************************/
 /*************************************************************************************/
 
 void set_mac_aes_cmac(unsigned char * output)
@@ -155,7 +162,7 @@ void set_mac_aes_cmac(unsigned char * output)
 }
 
 
-void calc_mac_aes_cmac(char * input, long length_of_all)
+void calc_mac_aes_cmac(char * input, int length_of_all)
 {
 	CMAC_Update(cmac_ctx, input,length_of_all);
 	CMAC_Final(cmac_ctx, mac_in_bytes, &length_of_maced_data);
@@ -163,7 +170,7 @@ void calc_mac_aes_cmac(char * input, long length_of_all)
 }
 
 
-void calc_and_set_mac_of_data_aes_cmac(char * input, long length_of_all, char * output)
+void calc_and_set_mac_of_data_aes_cmac(char * input, int length_of_all, char * output)
 {
 	if (number_of_mac_bytes>0)
 	{
@@ -172,6 +179,78 @@ void calc_and_set_mac_of_data_aes_cmac(char * input, long length_of_all, char * 
 	}
 }
 
+
+/*************************************************************************************/
+/*********************************** AES CBC *****************************************/
+/*************************************************************************************/
+
+
+void encrypt_aes_cbc(unsigned char *buf_to_be_encrypted,int len_of_buf)
+{
+	int i;
+	if (number_of_mac_bytes>0)
+	{
+		EVP_EncryptInit_ex(&aes_ctx, NULL, NULL, NULL, NULL);
+		EVP_EncryptUpdate(&aes_ctx, encrypted_data, &length_of_encrypted_data,buf_to_be_encrypted, len_of_buf);
+		EVP_EncryptFinal_ex(&aes_ctx, encrypted_data + length_of_encrypted_data, &tmplen);
+		length_of_encrypted_data+=tmplen;
+	}	
+}
+
+
+void set_mac_aes_cbc(unsigned char * output)
+{
+	int length_of_mac=block_length; //128 bits=16 bytes
+
+	if(length_of_mac>=number_of_mac_bytes)
+		{
+			memcpy(output,encrypted_data+length_of_encrypted_data-block_length,number_of_mac_bytes);
+		}
+		else
+		{
+			memcpy(output,encrypted_data+length_of_encrypted_data-block_length,length_of_mac);
+			memset(((unsigned char*)output)+(length_of_mac),0,number_of_mac_bytes-length_of_mac);
+		}
+}
+
+int prepend_length_aes_cbc(char * input,int length)
+{
+	char char_length;
+	int len_padded;
+	
+	/*
+	//for inserting the length in an entire block
+	memset(intermediate_buf_for_macing,0,(block_length- sizeof(long)));
+	memcpy(intermediate_buf_for_macing+(block_length- sizeof(long)),&length,sizeof(long));
+	memcpy(intermediate_buf_for_macing+block_length,input,length_of_all);
+	*/
+	if (length<=255) //practically always happens
+	{
+		char_length=(char)length;
+		len_padded=sizeof(char);
+		memcpy(intermediate_buf_for_macing,&char_length,len_padded);
+		memcpy(intermediate_buf_for_macing+len_padded,input,length);
+		return (len_padded);
+	}
+	else
+	{
+		len_padded=sizeof(int);
+		memcpy(intermediate_buf_for_macing,&length,len_padded);
+		memcpy(intermediate_buf_for_macing+len_padded,input,length);
+		return (len_padded);
+	}	
+}
+
+void calc_and_set_mac_of_data_aes_cbc(char * input, int length_of_all, char * output)
+{
+	int len_padded;
+	if (number_of_mac_bytes>0)
+	{
+		len_padded=prepend_length_aes_cbc(input,length_of_all);
+		encrypt_aes_cbc(intermediate_buf_for_macing,length_of_all+len_padded);
+		set_mac_aes_cbc(output);
+	}
+}
 
 
 
@@ -196,7 +275,7 @@ void clear_crypto_structures()
 	#endif
 }
 
-int check_mac_for_error(unsigned char * input, long total_mac_bytes, long useful_mac_bytes)
+int check_mac_for_error(unsigned char * input, int total_mac_bytes, int useful_mac_bytes)
 {
 	int error=0;
 	if (number_of_mac_bytes>0)

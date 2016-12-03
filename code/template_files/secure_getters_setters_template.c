@@ -12,7 +12,6 @@ extern unsigned char* last_unused_stack_memory; /*practically the stack pointer*
 extern unsigned char get_next_keyshare();
 extern unsigned char get_next_stack_keyshare();
 extern void calc_and_set_mac_of_data_sha256(char * input, long length, char * output);
-extern void calc_and_set_mac_of_data_aes_ecb(char * input, long length_of_all,long length_of_useful, char * output);
 
 
 /************************************************************************************************/

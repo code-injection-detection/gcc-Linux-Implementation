@@ -32,14 +32,16 @@ int main(int argc, char* argv[])
 		bytes[i]=atoi(argv[3+i]);
 	}
 	
-	
-	calc_and_set_mac_of_data(bytes,len_of_all,len_of_useful,mac);
-	
-	for (i=0;i<number_of_mac_bytes;i++)
+	//for (j=0;j<3;j++) //let's do it 3 times, for debugging reasons
 	{
-		printf("%d ",mac[i]);
+		calc_and_set_mac_of_data(bytes,len_of_all,len_of_useful,mac);
+		
+		for (i=0;i<number_of_mac_bytes;i++)
+		{
+			printf("%d ",mac[i]);
+		}
+		printf("\n");
 	}
-	printf("\n");
 	
 	clear_crypto_structures();
 	

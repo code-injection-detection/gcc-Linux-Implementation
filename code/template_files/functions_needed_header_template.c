@@ -60,7 +60,6 @@ void verify_all_keyshares_from_file(unsigned char * keys_array)
 
 //forward declaration of mac calculation functions
 void calc_and_set_mac_of_data_sha256(char * input, long length, char * output);
-void calc_and_set_mac_of_data_aes_ecb(char * input, long length_of_all,long length_of_useful, char * output);
 
 
 #define UPDATE_GLOBAL_VAR(global_var,new_value) { \
