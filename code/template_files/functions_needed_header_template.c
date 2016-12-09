@@ -62,14 +62,6 @@ void verify_all_keyshares_from_file(unsigned char * keys_array)
 void calc_and_set_mac_of_data_sha256(char * input, long length, char * output);
 
 
-#define UPDATE_GLOBAL_VAR(global_var,new_value) { \
-							global_var=(new_value); \
-							calc_and_set_mac_of_data((unsigned char *)&(global_var),number_of_global_useful_bytes+bytes_used_for_keyshares,number_of_global_useful_bytes,((unsigned char*) &(global_var))+(number_of_global_useful_bytes+bytes_used_for_keyshares)) ;\
-						}
-						
-#define UPDATE_GLOBAL_VAR_FOR_LOOPS(global_var,new_value) global_var=(new_value), \
-							calc_and_set_mac_of_data((unsigned char *)&(global_var),number_of_global_useful_bytes+bytes_used_for_keyshares,number_of_global_useful_bytes,((unsigned char*) &(global_var))+(number_of_global_useful_bytes+bytes_used_for_keyshares))
-
 #include "memory_manager.c" //Including the C files because all the functions must be in the same file in order to be secured
 #include "stack_manager.c"
 #include "general_tests.c"

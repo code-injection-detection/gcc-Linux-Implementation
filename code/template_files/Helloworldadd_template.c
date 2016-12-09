@@ -92,7 +92,7 @@ int main()
 	
 	
 	/*
-	int Times=20000;
+	int Times=2000;
 	int maxval=3000;			
 	TEST_NORMAL_AND_SECURE_TIME(global sum calculation,global_sum_calculator(Times,maxval);,
 								secure_global_sum_calculator(Times,maxval);)
