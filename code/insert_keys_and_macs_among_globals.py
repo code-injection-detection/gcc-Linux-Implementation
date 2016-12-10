@@ -17,6 +17,7 @@ inputfiles=[ './template_files/memory_manager_template.c',
 			 './template_files/Helloworldadd_template.c',
 			 './template_files/mac_handling_functions_template.c',
 			 'general_tests.c',
+			 'tests_with_new_stack.c',
 			 './template_files/functions_needed_footer_template.c', #verification procedure and functions_needed_footer must be last!
 			 './template_files/verification_procedure_template.c'
 		   ]
@@ -29,6 +30,7 @@ outputfiles=[ 'memory_manager.c',
 			 'Helloworldadd.c',
 			 'mac_handling_functions.c',
 			 'general_tests.c',
+			 'tests_with_new_stack.c',
 			 'functions_needed_footer.c',
 			 'verification_procedure.c'
 		   ]

@@ -42,4 +42,4 @@ Helloworldadd_sec: Helloworldadd_sec.s
 clean:
 	rm -f Helloworldadd.s Helloworldadd Helloworldadd_sec.s Helloworldadd_sec Helloworldadd_ksec *.o *.NASM* *.YASM* *.run 
 	rm -f sha256.c sha256.h *_keyshares headers_needed.h verification_procedure.c stack_manager.c memory_manager.c general_tests.c functions_needed_header.c functions_needed_footer.c  Helloworldadd.c memory_manager_test_suite.c stack_manager_test_suite.c mac_handling_functions.c all_keyshares_for_verification
-	rm -f secure_getters_setters.c secure_getters_setters.h crypto_functions.c crypto_functions.h calc_mac_for_external_programs
+	rm -f secure_getters_setters.c secure_getters_setters.h crypto_functions.c crypto_functions.h calc_mac_for_external_programs tests_with_new_stack.c
