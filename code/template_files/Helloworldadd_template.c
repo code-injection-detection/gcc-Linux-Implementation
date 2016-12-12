@@ -90,6 +90,7 @@ int main()
 	TEST_NORMAL_AND_SECURE_TIME(primes not very fast version,find_primes_up_to_a_number(primes_up_to);,
 								secure_find_primes_up_to_a_number(primes_up_to);)
 	
+	great_function_that_wraps_the_tests();
 	
 	/*
 	int Times=2000;

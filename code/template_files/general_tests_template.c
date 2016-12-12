@@ -360,41 +360,41 @@ void user_friendly_secure_sieve_of_Eratosthenes(int num)
 	*/
 	
 	//square_root=sqrt(num);
-	SET_STACK_DOUBLE(sieve_params,SQUARE_ROOT,sqrt(GET_STACK_INT(sieve_params,NUM)));
+	SET_OLD_STACK_DOUBLE(sieve_params,SQUARE_ROOT,sqrt(GET_OLD_STACK_INT(sieve_params,NUM)));
 	
 	
 	//numbers=error_checking_malloc((num+1)*sizeof(char),__func__,__LINE__);
-	SET_STACK_PTR(sieve_params,NUMBERS,error_checking_managed_secure_malloc(  sizeof(char)*(GET_STACK_INT(sieve_params,NUM)+1)  ,__func__,__LINE__)
+	SET_OLD_STACK_PTR(sieve_params,NUMBERS,error_checking_managed_secure_malloc(  sizeof(char)*(GET_OLD_STACK_INT(sieve_params,NUM)+1)  ,__func__,__LINE__)
 				 );
 	
 	
 	//for (i=2;i<=num;i++)
-	for (SET_STACK_INT(sieve_params,I,2);
-		 GET_STACK_INT(sieve_params,I)<=GET_STACK_INT(sieve_params,NUM);
-		 SET_STACK_INT(sieve_params,I,GET_STACK_INT(sieve_params,I)+1) )
+	for (SET_OLD_STACK_INT(sieve_params,I,2);
+		 GET_OLD_STACK_INT(sieve_params,I)<=GET_OLD_STACK_INT(sieve_params,NUM);
+		 SET_OLD_STACK_INT(sieve_params,I,GET_OLD_STACK_INT(sieve_params,I)+1) )
 	{
 		//numbers[i]=1;
-		 set_char_array_element(GET_STACK_PTR(sieve_params,NUMBERS),GET_STACK_INT(sieve_params,I),1);
+		 set_char_array_element(GET_OLD_STACK_PTR(sieve_params,NUMBERS),GET_OLD_STACK_INT(sieve_params,I),1);
 	}
 
 									
 	//for (i=2;i<=square_root+1;i++)
-	for (SET_STACK_INT(sieve_params,I,2);
-		 GET_STACK_INT(sieve_params,I)<=GET_STACK_DOUBLE(sieve_params,SQUARE_ROOT)+1;
-		 SET_STACK_INT(sieve_params,I,GET_STACK_INT(sieve_params,I)+1) )
+	for (SET_OLD_STACK_INT(sieve_params,I,2);
+		 GET_OLD_STACK_INT(sieve_params,I)<=GET_OLD_STACK_DOUBLE(sieve_params,SQUARE_ROOT)+1;
+		 SET_OLD_STACK_INT(sieve_params,I,GET_OLD_STACK_INT(sieve_params,I)+1) )
 	{
 		
 		//if (numbers[i]==1)
-		if (get_char_array_element(GET_STACK_PTR(sieve_params,NUMBERS),GET_STACK_INT(sieve_params,I))==1)
+		if (get_char_array_element(GET_OLD_STACK_PTR(sieve_params,NUMBERS),GET_OLD_STACK_INT(sieve_params,I))==1)
 		{
 			
 			//for (j=2*i;j<=num;j+=i)
-			for (SET_STACK_INT(sieve_params,J,2*GET_STACK_INT(sieve_params,I));
-				 GET_STACK_INT(sieve_params,J)<=GET_STACK_INT(sieve_params,NUM);
-				 SET_STACK_INT(sieve_params,J,GET_STACK_INT(sieve_params,J)+GET_STACK_INT(sieve_params,I)) )
+			for (SET_OLD_STACK_INT(sieve_params,J,2*GET_OLD_STACK_INT(sieve_params,I));
+				 GET_OLD_STACK_INT(sieve_params,J)<=GET_OLD_STACK_INT(sieve_params,NUM);
+				 SET_OLD_STACK_INT(sieve_params,J,GET_OLD_STACK_INT(sieve_params,J)+GET_OLD_STACK_INT(sieve_params,I)) )
 			{
 				//numbers[j]=0;
-				set_char_array_element(GET_STACK_PTR(sieve_params,NUMBERS), GET_STACK_INT(sieve_params,J),0);
+				set_char_array_element(GET_OLD_STACK_PTR(sieve_params,NUMBERS), GET_OLD_STACK_INT(sieve_params,J),0);
 			}
 		}
 	}
@@ -403,27 +403,27 @@ void user_friendly_secure_sieve_of_Eratosthenes(int num)
 	printf("\n");
 	printf("Primes with secure sieve:\n");
 	//for (i=2;i<=num;i++)
-	for (SET_STACK_INT(sieve_params,I,2);
-		 GET_STACK_INT(sieve_params,I)<=GET_STACK_INT(sieve_params,NUM);
-		 SET_STACK_INT(sieve_params,I,GET_STACK_INT(sieve_params,I)+1) )
+	for (SET_OLD_STACK_INT(sieve_params,I,2);
+		 GET_OLD_STACK_INT(sieve_params,I)<=GET_OLD_STACK_INT(sieve_params,NUM);
+		 SET_OLD_STACK_INT(sieve_params,I,GET_OLD_STACK_INT(sieve_params,I)+1) )
 	{
 		//if (numbers[i]==1)
-		if (get_char_array_element(GET_STACK_PTR(sieve_params,NUMBERS),GET_STACK_INT(sieve_params,I))==1)
+		if (get_char_array_element(GET_OLD_STACK_PTR(sieve_params,NUMBERS),GET_OLD_STACK_INT(sieve_params,I))==1)
 		{
 			//printf("%d ",i);
-			printf("%d ",GET_STACK_INT(sieve_params,I));
+			printf("%d ",GET_OLD_STACK_INT(sieve_params,I));
 			
 			//prime_cnt++;
-			SET_STACK_INT(sieve_params,PRIME_CNT,GET_STACK_INT(sieve_params,PRIME_CNT)+1);
+			SET_OLD_STACK_INT(sieve_params,PRIME_CNT,GET_OLD_STACK_INT(sieve_params,PRIME_CNT)+1);
 		}
 	} 
 	printf("\n");
 	//printf("Total: %d primes.\n",prime_cnt);
-	printf("Total: %d primes.\n",GET_STACK_INT(sieve_params,PRIME_CNT));
+	printf("Total: %d primes.\n",GET_OLD_STACK_INT(sieve_params,PRIME_CNT));
 	
 	
 	//free(numbers);
-	managed_secure_free(GET_STACK_PTR(sieve_params,NUMBERS));
+	managed_secure_free(GET_OLD_STACK_PTR(sieve_params,NUMBERS));
 
 
 	//user friendly parameter undefinition
@@ -508,67 +508,67 @@ void user_friendly_secure_matrix_multiplication(int size,int maxnum)
 	END_OF_PARAM_INIT	
 	
 	
-	for (SET_STACK_INT(mm_params,I,0);
-		 GET_STACK_INT(mm_params,I)<GET_STACK_INT(mm_params,SIZE);
-		 SET_STACK_INT(mm_params,I,GET_STACK_INT(mm_params,I)+1)
+	for (SET_OLD_STACK_INT(mm_params,I,0);
+		 GET_OLD_STACK_INT(mm_params,I)<GET_OLD_STACK_INT(mm_params,SIZE);
+		 SET_OLD_STACK_INT(mm_params,I,GET_OLD_STACK_INT(mm_params,I)+1)
 		)
 	{
 		
-		for (SET_STACK_INT(mm_params,J,0);
-			 GET_STACK_INT(mm_params,J)<GET_STACK_INT(mm_params,SIZE);
-			 SET_STACK_INT(mm_params,J,GET_STACK_INT(mm_params,J)+1)
+		for (SET_OLD_STACK_INT(mm_params,J,0);
+			 GET_OLD_STACK_INT(mm_params,J)<GET_OLD_STACK_INT(mm_params,SIZE);
+			 SET_OLD_STACK_INT(mm_params,J,GET_OLD_STACK_INT(mm_params,J)+1)
 			)
 		 {
 			//a[i][j]=matrix1[i][j];
 			//b[i][j]=matrix2[i][j];
 			
 			//those two need to write in *res:
-			//set_arbitrary_block_in_stack_with_offset(sizeof(int),STACK_ARB_PTR_PARAMS[A],GET_STACK_INT(mm_params,I)*GET_STACK_INT(mm_params,SIZE)+GET_STACK_INT(mm_params,J),matrix1[GET_STACK_INT(mm_params,I)][GET_STACK_INT(mm_params,J)]);
-			//set_arbitrary_block_in_stack_with_offset(sizeof(int),STACK_ARB_PTR_PARAMS[B],GET_STACK_INT(mm_params,I)*GET_STACK_INT(mm_params,SIZE)+GET_STACK_INT(mm_params,J),matrix2[GET_STACK_INT(mm_params,I)][GET_STACK_INT(mm_params,J)]);
+			//set_arbitrary_block_in_stack_with_offset(sizeof(int),STACK_ARB_PTR_PARAMS[A],GET_OLD_STACK_INT(mm_params,I)*GET_OLD_STACK_INT(mm_params,SIZE)+GET_OLD_STACK_INT(mm_params,J),matrix1[GET_OLD_STACK_INT(mm_params,I)][GET_OLD_STACK_INT(mm_params,J)]);
+			//set_arbitrary_block_in_stack_with_offset(sizeof(int),STACK_ARB_PTR_PARAMS[B],GET_OLD_STACK_INT(mm_params,I)*GET_OLD_STACK_INT(mm_params,SIZE)+GET_OLD_STACK_INT(mm_params,J),matrix2[GET_OLD_STACK_INT(mm_params,I)][GET_OLD_STACK_INT(mm_params,J)]);
 			
-			set_stack_int_array_element(STACK_ARB_PTR_PARAMS(mm_params)[A],GET_STACK_INT(mm_params,I)*GET_STACK_INT(mm_params,SIZE)+GET_STACK_INT(mm_params,J),matrix1[GET_STACK_INT(mm_params,I)][GET_STACK_INT(mm_params,J)]);
-			set_stack_int_array_element(STACK_ARB_PTR_PARAMS(mm_params)[B],GET_STACK_INT(mm_params,I)*GET_STACK_INT(mm_params,SIZE)+GET_STACK_INT(mm_params,J),matrix2[GET_STACK_INT(mm_params,I)][GET_STACK_INT(mm_params,J)]);
+			set_stack_int_array_element(STACK_ARB_PTR_PARAMS(mm_params)[A],GET_OLD_STACK_INT(mm_params,I)*GET_OLD_STACK_INT(mm_params,SIZE)+GET_OLD_STACK_INT(mm_params,J),matrix1[GET_OLD_STACK_INT(mm_params,I)][GET_OLD_STACK_INT(mm_params,J)]);
+			set_stack_int_array_element(STACK_ARB_PTR_PARAMS(mm_params)[B],GET_OLD_STACK_INT(mm_params,I)*GET_OLD_STACK_INT(mm_params,SIZE)+GET_OLD_STACK_INT(mm_params,J),matrix2[GET_OLD_STACK_INT(mm_params,I)][GET_OLD_STACK_INT(mm_params,J)]);
 			
 		 }
 	}
 	
-	for (SET_STACK_INT(mm_params,I,0);
-		 GET_STACK_INT(mm_params,I)<GET_STACK_INT(mm_params,SIZE);
-		 SET_STACK_INT(mm_params,I,GET_STACK_INT(mm_params,I)+1)
+	for (SET_OLD_STACK_INT(mm_params,I,0);
+		 GET_OLD_STACK_INT(mm_params,I)<GET_OLD_STACK_INT(mm_params,SIZE);
+		 SET_OLD_STACK_INT(mm_params,I,GET_OLD_STACK_INT(mm_params,I)+1)
 		)
 	{
 		
-		for (SET_STACK_INT(mm_params,J,0);
-			 GET_STACK_INT(mm_params,J)<GET_STACK_INT(mm_params,SIZE);
-			 SET_STACK_INT(mm_params,J,GET_STACK_INT(mm_params,J)+1)
+		for (SET_OLD_STACK_INT(mm_params,J,0);
+			 GET_OLD_STACK_INT(mm_params,J)<GET_OLD_STACK_INT(mm_params,SIZE);
+			 SET_OLD_STACK_INT(mm_params,J,GET_OLD_STACK_INT(mm_params,J)+1)
 			)
 		 {
-			 SET_STACK_INT(mm_params,SUM,0);
-			 for (SET_STACK_INT(mm_params,K,0);
-				 GET_STACK_INT(mm_params,K)<GET_STACK_INT(mm_params,SIZE);
-				 SET_STACK_INT(mm_params,K,GET_STACK_INT(mm_params,K)+1)
+			 SET_OLD_STACK_INT(mm_params,SUM,0);
+			 for (SET_OLD_STACK_INT(mm_params,K,0);
+				 GET_OLD_STACK_INT(mm_params,K)<GET_OLD_STACK_INT(mm_params,SIZE);
+				 SET_OLD_STACK_INT(mm_params,K,GET_OLD_STACK_INT(mm_params,K)+1)
 				 )
 			 {
-				 SET_STACK_INT(mm_params,SUM,GET_STACK_INT(mm_params,SUM)+
-										(get_stack_int_array_element(STACK_ARB_PTR_PARAMS(mm_params)[A],GET_STACK_INT(mm_params,I)*GET_STACK_INT(mm_params,SIZE)+GET_STACK_INT(mm_params,K))*
-										 get_stack_int_array_element(STACK_ARB_PTR_PARAMS(mm_params)[B],GET_STACK_INT(mm_params,K)*GET_STACK_INT(mm_params,SIZE)+GET_STACK_INT(mm_params,J))
+				 SET_OLD_STACK_INT(mm_params,SUM,GET_OLD_STACK_INT(mm_params,SUM)+
+										(get_stack_int_array_element(STACK_ARB_PTR_PARAMS(mm_params)[A],GET_OLD_STACK_INT(mm_params,I)*GET_OLD_STACK_INT(mm_params,SIZE)+GET_OLD_STACK_INT(mm_params,K))*
+										 get_stack_int_array_element(STACK_ARB_PTR_PARAMS(mm_params)[B],GET_OLD_STACK_INT(mm_params,K)*GET_OLD_STACK_INT(mm_params,SIZE)+GET_OLD_STACK_INT(mm_params,J))
 										)
 							  );
 				 
 			 }
-			 matrix_res2[GET_STACK_INT(mm_params,I)][GET_STACK_INT(mm_params,J)]=GET_STACK_INT(mm_params,SUM);
+			 matrix_res2[GET_OLD_STACK_INT(mm_params,I)][GET_OLD_STACK_INT(mm_params,J)]=GET_OLD_STACK_INT(mm_params,SUM);
 			 
 		 }
 	
 	}
 	
 	printf("Test array:\n");
-	for (SET_STACK_INT(mm_params,I,0);
-		 GET_STACK_INT(mm_params,I)<4;
-		 SET_STACK_INT(mm_params,I,GET_STACK_INT(mm_params,I)+1)
+	for (SET_OLD_STACK_INT(mm_params,I,0);
+		 GET_OLD_STACK_INT(mm_params,I)<4;
+		 SET_OLD_STACK_INT(mm_params,I,GET_OLD_STACK_INT(mm_params,I)+1)
 		)
 	{
-		printf("%d ",get_stack_int_array_element(STACK_ARB_PTR_PARAMS(mm_params)[TEST_ARRAY],GET_STACK_INT(mm_params,I)));
+		printf("%d ",get_stack_int_array_element(STACK_ARB_PTR_PARAMS(mm_params)[TEST_ARRAY],GET_OLD_STACK_INT(mm_params,I)));
 	}
 	printf("\n");
 	
