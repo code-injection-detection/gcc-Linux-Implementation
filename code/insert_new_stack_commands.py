@@ -423,7 +423,10 @@ for line in src_lines:
 				list_of_params_currently_called=line.split('|')[1].strip().split(':')[1].strip().split(',')
 		dst_lines.append(line)
 		add_code_for_function_calling(function_name,write_result_to_currently_called,list_of_params_currently_called)
-		function_dict['num_of_times_called_in_code']=str(int(function_dict['num_of_times_called_in_code'])+1)
+		if (function_name==function_dict['name']):
+			function_dict['num_of_times_called_in_code']=str(int(function_dict['num_of_times_called_in_code'])+1)
+		else:
+			all_functions_dict[function_name]['num_of_times_called_in_code']=str(int(all_functions_dict[function_name]['num_of_times_called_in_code'])+1)
 		continue
 	
 	if (return_point_of_function_str in line) and (in_function_code==1):
