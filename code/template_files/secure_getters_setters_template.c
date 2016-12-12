@@ -187,6 +187,7 @@ void get_secure_data(void * res,long data_size, unsigned char * data_start, int 
 			data_remaining_till_end_of_chunk=bytes_for_useful_data-j;
 		}
 		
+		verify_mac_on_the_fly(p,bytes_for_useful_data+bytes_used_for_keyshares,bytes_for_useful_data);
 		memcpy(&result[total_data_retrieved],&p[j],data_remaining_till_end_of_chunk);
 
 		total_data_retrieved+=data_remaining_till_end_of_chunk;
@@ -202,11 +203,13 @@ void get_secure_data(void * res,long data_size, unsigned char * data_start, int 
 	data_remaining=data_size-total_data_retrieved;
 	if (data_remaining<=bytes_for_useful_data)
 	{
+		verify_mac_on_the_fly(&(p[i]),bytes_for_useful_data+bytes_used_for_keyshares,bytes_for_useful_data);
 		memcpy(&result[total_data_retrieved],&p[i],data_remaining);
 		total_data_retrieved=data_size;
 	}
 	else
 	{
+		verify_mac_on_the_fly(&(p[i]),bytes_for_useful_data+bytes_used_for_keyshares,bytes_for_useful_data);
 		memcpy(&result[total_data_retrieved],&p[i],bytes_for_useful_data);
 		total_data_retrieved+=bytes_for_useful_data;
 	}
@@ -701,6 +704,7 @@ void get_secure_stack_data(void * res,long data_size, unsigned char * data_start
 			data_remaining_till_end_of_chunk=stack_bytes_for_useful_data-j;
 		}
 		
+		verify_mac_on_the_fly(p,stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,stack_bytes_for_useful_data);
 		memcpy(&result[total_data_retrieved],&p[j],data_remaining_till_end_of_chunk);
 
 		total_data_retrieved+=data_remaining_till_end_of_chunk;
@@ -716,11 +720,13 @@ void get_secure_stack_data(void * res,long data_size, unsigned char * data_start
 	data_remaining=data_size-total_data_retrieved;
 	if (data_remaining<=stack_bytes_for_useful_data)
 	{
+		verify_mac_on_the_fly(&(p[i]),stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,stack_bytes_for_useful_data);
 		memcpy(&result[total_data_retrieved],&p[i],data_remaining);
 		total_data_retrieved=data_size;
 	}
 	else
 	{
+		verify_mac_on_the_fly(&(p[i]),stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,stack_bytes_for_useful_data);
 		memcpy(&result[total_data_retrieved],&p[i],stack_bytes_for_useful_data);
 		total_data_retrieved+=stack_bytes_for_useful_data;
 	}
