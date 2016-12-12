@@ -118,12 +118,12 @@ void set_arbitrary_block_in_stack_with_offset(long data_size,void * start,long o
 
 /*FOR GLOBALS */
 
-char get_global_char(char global_var);
-int get_global_int(int global_var);
-long int get_global_long_int(long global_var);
-float get_global_float(float global_var);
-double get_global_double(double global_var);
-void * get_global_ptr(void* global_var);
+char get_global_char(char * global_var);
+int get_global_int(int * global_var);
+long int get_global_long_int(long * global_var);
+float get_global_float(float * global_var);
+double get_global_double(double * global_var);
+void * get_global_ptr(void** global_var);
 
 #define UPDATE_GLOBAL_VAR(global_var,new_value) { \
 							global_var=(new_value); \
@@ -134,6 +134,12 @@ void * get_global_ptr(void* global_var);
 							update_mac_when_setting_data((unsigned char *)&(global_var),number_of_global_useful_bytes+bytes_used_for_keyshares,number_of_global_useful_bytes,((unsigned char*) &(global_var))+(number_of_global_useful_bytes+bytes_used_for_keyshares))
 
 
+#define GET_GLOBAL_CHAR(global_var) get_global_char(&(global_var))
+#define GET_GLOBAL_INT(global_var) get_global_int(&(global_var))
+#define GET_GLOBAL_LONG(global_var) get_global_long_int(&(global_var))
+#define GET_GLOBAL_FLOAT(global_var) get_global_float(&(global_var))
+#define GET_GLOBAL_DOUBLE(global_var) get_global_double(&(global_var))
+#define GET_GLOBAL_PTR(global_var) get_global_ptr(&(global_var))
 
 
 

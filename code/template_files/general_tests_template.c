@@ -631,10 +631,10 @@ void secure_global_sum_calculator(int times,int maxval)
 	for (k=0;k<times;k++)
 	{
 		UPDATE_GLOBAL_VAR(globals.secured_sum,0);
-		for (UPDATE_GLOBAL_VAR_FOR_LOOPS(globals.secured_i,0);globals.secured_i<maxval;UPDATE_GLOBAL_VAR_FOR_LOOPS(globals.secured_i,globals.secured_i+1))
+		for (UPDATE_GLOBAL_VAR_FOR_LOOPS(globals.secured_i,0);GET_GLOBAL_INT(globals.secured_i)<maxval;UPDATE_GLOBAL_VAR_FOR_LOOPS(globals.secured_i,GET_GLOBAL_INT(globals.secured_i)+1))
 		{
-			UPDATE_GLOBAL_VAR(globals.secured_sum,globals.secured_sum+globals.secured_i);
+			UPDATE_GLOBAL_VAR(globals.secured_sum,GET_GLOBAL_LONG(globals.secured_sum)+GET_GLOBAL_INT(globals.secured_i));
 		}
 	}
-	printf("secured sum:%ld\n",globals.secured_sum);
+	printf("secured sum:%ld\n",GET_GLOBAL_LONG(globals.secured_sum));
 }

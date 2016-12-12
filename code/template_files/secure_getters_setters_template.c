@@ -1066,35 +1066,41 @@ void set_arbitrary_block_in_stack_with_offset(long data_size,void * start,long o
 /************************************************************************************************/
 
 
-char get_global_char(char global_var)
+char get_global_char(char *global_var)
 {
-	return global_var;
+	verify_mac_on_the_fly(global_var,number_of_global_useful_bytes+number_of_interleaved_keys,number_of_global_useful_bytes);
+	return *global_var;
 }
 
-int get_global_int(int global_var)
+int get_global_int(int *global_var)
 {
-	return global_var;
+	verify_mac_on_the_fly(global_var,number_of_global_useful_bytes+number_of_interleaved_keys,number_of_global_useful_bytes);
+	return *global_var;
 }
 
-long int get_global_long_int(long global_var)
+long int get_global_long_int(long *global_var)
 {
-	return global_var;
+	verify_mac_on_the_fly(global_var,number_of_global_useful_bytes+number_of_interleaved_keys,number_of_global_useful_bytes);
+	return *global_var;
 }
 
-float get_global_float(float global_var)
-{
-	return global_var;
+float get_global_float(float *global_var)
+{	
+	verify_mac_on_the_fly(global_var,number_of_global_useful_bytes+number_of_interleaved_keys,number_of_global_useful_bytes);
+	return *global_var;
 }
 
 
-double get_global_double(double global_var)
+double get_global_double(double *global_var)
 {
-	return global_var;
+	verify_mac_on_the_fly(global_var,number_of_global_useful_bytes+number_of_interleaved_keys,number_of_global_useful_bytes);
+	return *global_var;
 }
 
-void * get_global_ptr(void* global_var)
+void * get_global_ptr(void* *global_var)
 {
-	return global_var;
+	verify_mac_on_the_fly(global_var,number_of_global_useful_bytes+number_of_interleaved_keys,number_of_global_useful_bytes);
+	return *global_var;
 }
 
 /************************************************************************************************/
