@@ -304,3 +304,8 @@ void verify_mac_onthefly(unsigned char * input, int total_mac_bytes, int useful_
 		}
 	}
 }
+
+void update_mac_when_setting_data(unsigned char * input, int total_mac_bytes, int useful_mac_bytes, unsigned char* output)
+{
+	calc_and_set_mac_of_data(input,total_mac_bytes,useful_mac_bytes,output);
+}

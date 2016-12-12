@@ -21,5 +21,6 @@ void verify_mac_onthefly(unsigned char * input, int total_mac_bytes, int useful_
 
 #define verify_mac_on_the_fly(input,total_mac_bytes,useful_mac_bytes) verify_mac_onthefly((input),(total_mac_bytes),(useful_mac_bytes),__func__,__LINE__);
 
+void update_mac_when_setting_data(unsigned char * input, int total_mac_bytes, int useful_mac_bytes, unsigned char* output);
 
 #endif
