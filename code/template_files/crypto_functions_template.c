@@ -47,8 +47,11 @@ void init_crypto_stuctures(int print)
 		cmac_ctx = CMAC_CTX_new();
 		CMAC_Init(cmac_ctx, aes_key, 16, EVP_aes_128_cbc(), NULL);
 	#endif
-	#if mac_algorithm==3
+	#if mac_algorithm==3 || mac_algorithm==4
 		EVP_EncryptInit_ex(&aes_ctx, EVP_aes_128_cbc(), NULL, aes_key,initialization_vector);
+		#if mac_algorithm==4
+			EVP_CIPHER_CTX_set_padding(&aes_ctx, 0); //disable padding
+		#endif
 	#endif
 	memset(mac_in_bytes,0,safe_length_for_buffer_storage);
 	memset(encrypted_data,0,safe_length_for_buffer_storage);
@@ -194,6 +197,7 @@ void encrypt_aes_cbc(unsigned char *buf_to_be_encrypted,int len_of_buf)
 		EVP_EncryptUpdate(&aes_ctx, encrypted_data, &length_of_encrypted_data,buf_to_be_encrypted, len_of_buf);
 		EVP_EncryptFinal_ex(&aes_ctx, encrypted_data + length_of_encrypted_data, &tmplen);
 		length_of_encrypted_data+=tmplen;
+		//printf("length_of_encrypted_data:%d\n",length_of_encrypted_data);
 	}	
 }
 
@@ -217,6 +221,8 @@ int prepend_length_aes_cbc(char * input,int length)
 {
 	char char_length;
 	int len_padded;
+	char num_of_zeros_to_pad_up_to_full_block;
+	int number_above_full_block;
 	
 	/*
 	//for inserting the length in an entire block
@@ -229,6 +235,16 @@ int prepend_length_aes_cbc(char * input,int length)
 		char_length=(char)length;
 		len_padded=sizeof(char);
 		memcpy(intermediate_buf_for_macing,&char_length,len_padded);
+		#if mac_algorithm==4
+			number_above_full_block=(length+sizeof(char))%block_length;
+			if (number_above_full_block!=0)
+			{
+				num_of_zeros_to_pad_up_to_full_block=block_length-number_above_full_block;
+				//pad with zeros after the length
+				memset(intermediate_buf_for_macing+len_padded,0,num_of_zeros_to_pad_up_to_full_block);
+				len_padded+=num_of_zeros_to_pad_up_to_full_block;
+			}
+		#endif
 		memcpy(intermediate_buf_for_macing+len_padded,input,length);
 		return (len_padded);
 	}
@@ -236,6 +252,16 @@ int prepend_length_aes_cbc(char * input,int length)
 	{
 		len_padded=sizeof(int);
 		memcpy(intermediate_buf_for_macing,&length,len_padded);
+		#if mac_algorithm==4
+			number_above_full_block=(length+sizeof(int))%block_length;
+			if (number_above_full_block!=0)
+			{
+				num_of_zeros_to_pad_up_to_full_block=block_length-number_above_full_block;
+				//pad with zeros after the length
+				memset(intermediate_buf_for_macing+len_padded,0,num_of_zeros_to_pad_up_to_full_block);
+				len_padded+=num_of_zeros_to_pad_up_to_full_block;
+			}
+		#endif
 		memcpy(intermediate_buf_for_macing+len_padded,input,length);
 		return (len_padded);
 	}	

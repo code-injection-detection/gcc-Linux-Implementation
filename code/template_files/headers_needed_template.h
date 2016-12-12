@@ -25,7 +25,11 @@
 #include <openssl/bn.h>
 #include <openssl/cmac.h>
 
-#define mac_algorithm 3  //0->sha256, 1-> AES_ECB with MAC=x*A+B, 2->CMAC with AES , 3->AES_CBC with length prepending
+#define mac_algorithm 3  //0->sha256, 
+						 //1-> AES_ECB with MAC=x*A+B, 
+						 //2->CMAC with AES , 
+						 //3->AES_CBC with length prepending, 
+						 //4->AES_CBC with length prepending and padding after length to reach full block
 
 
 #ifndef number_of_interleaved_keys 
@@ -92,6 +96,9 @@
 #define calc_and_set_mac_of_data(input,length_all,length_useful,output) calc_and_set_mac_of_data_aes_cmac((input),(length_all),(output))
 #endif
 #if mac_algorithm==3
+#define calc_and_set_mac_of_data(input,length_all,length_useful,output) calc_and_set_mac_of_data_aes_cbc((input),(length_all),(output))
+#endif
+#if mac_algorithm==4
 #define calc_and_set_mac_of_data(input,length_all,length_useful,output) calc_and_set_mac_of_data_aes_cbc((input),(length_all),(output))
 #endif
 
