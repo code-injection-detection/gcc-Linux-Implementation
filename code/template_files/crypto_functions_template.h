@@ -17,5 +17,9 @@ void set_mac_aes_cbc(unsigned char * output);
 int prepend_length_aes_cbc(char * input,int length);
 void calc_and_set_mac_of_data_aes_cbc(char * input, int length_of_all, char * output);
 
+void verify_mac_onthefly(unsigned char * input, int total_mac_bytes, int useful_mac_bytes,const char * fun_name,int line);
+
+#define verify_mac_on_the_fly(input,total_mac_bytes,useful_mac_bytes) verify_mac_onthefly((input),(total_mac_bytes),(useful_mac_bytes),__FUNC__,__LINE__);
+
 
 #endif

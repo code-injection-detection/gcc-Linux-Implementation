@@ -288,3 +288,19 @@ int check_mac_for_error(unsigned char * input, int total_mac_bytes, int useful_m
 	}
 	return error;
 }
+
+void verify_mac_onthefly(unsigned char * input, int total_mac_bytes, int useful_mac_bytes,const char * fun_name,int line)
+{
+	unsigned char mac_for_verification[number_of_mac_bytes];
+	if (number_of_mac_bytes>0)
+	{
+		calc_and_set_mac_of_data(input,total_mac_bytes,useful_mac_bytes,mac_for_verification);
+		if (0!=CRYPTO_memcmp(input+total_mac_bytes,mac_for_verification,number_of_mac_bytes))
+		{	
+			fprintf(stderr,"ERROR in on the fly mac verification!. Address:%ld, total mac bytes:%d, useful mac bytes:%d, function:%s, line:%d\n",
+					(long)input,total_mac_bytes,useful_mac_bytes,fun_name,line
+					);
+			exit(17);
+		}
+	}
+}
