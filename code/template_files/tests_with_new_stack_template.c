@@ -43,11 +43,11 @@ void great_function_that_wraps_the_tests()
 	RETURN_EXPRESSION: get_stack_long_int(SUM)
 	START_OF_FUNCTION : test_custom_function_sum
 	
-		set_stack_long_int(SUM,get_stack_int(X)+get_stack_int(Y));
-		set_stack_pointer(FOO1,STUFF); //careful here! not get_stack_pointer(STUFF)!
-		for (set_stack_int(I,0);get_stack_int(I)<5;set_stack_int(I,get_stack_int(I)+1))
+		SET_STACK_LONG(SUM,GET_STACK_INT(X)+GET_STACK_INT(Y));
+		SET_STACK_PTR(FOO1,STUFF); //careful here! not get_stack_pointer(STUFF)!
+		for (SET_STACK_INT(I,0);GET_STACK_INT(I)<5;SET_STACK_INT(I,GET_STACK_INT(I)+1))
 		{
-			printf("%c ",get_stack_char_array_element(get_stack_pointer(FOO1),get_stack_int(I)));
+			printf("%c ",get_stack_char_array_element(GET_STACK_PTR(FOO1),GET_STACK_INT(I)));
 		}
 		printf("\n");
 		RETURN_POINT_OF_FUNCTION: test_custom_function_sum
