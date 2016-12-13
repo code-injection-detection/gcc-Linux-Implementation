@@ -118,7 +118,7 @@ def calculate_chunks_for_params_locals(type_of_vars):
 		
 		
 		
-def find_name_of_getter(type_of_var):
+def find_name_of_getter(type_of_var,use_array=0):
 	name_of_getter='get_stack_'
 	if( type_of_var=='long' or type_of_var=='long int'):
 		name_of_getter+='long_int'
@@ -126,11 +126,13 @@ def find_name_of_getter(type_of_var):
 		name_of_getter+='pointer'
 	if (name_of_getter=='get_stack_'): #not changed
 		name_of_getter+=type_of_var
+	if (use_array):
+		name_of_getter+='_array_element'
 	return name_of_getter
 	
 	
 	
-def find_name_of_setter(type_of_var):
+def find_name_of_setter(type_of_var,use_array=0):
 	name_of_setter='set_stack_'
 	if( type_of_var=='long' or type_of_var=='long int'):
 		name_of_setter+='long_int'
@@ -138,6 +140,8 @@ def find_name_of_setter(type_of_var):
 		name_of_setter+='pointer'
 	if (name_of_setter=='set_stack_'): #not changed
 		name_of_setter+=type_of_var
+	if (use_array):
+		name_of_setter+='_array_element'
 	return name_of_setter
 	
 

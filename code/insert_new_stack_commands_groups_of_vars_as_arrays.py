@@ -207,15 +207,15 @@ def add_code_for_function_calling(fun_name,write_to,params):
 	for type_of_var in ['char','int','long','float','double','ptr']: #in that order!
 		num_of_var=int(fun_dict['params'][type_of_var]['number'])
 		lines_to_append.append('size_of_array_for_array_fun_parameters='+str(num_of_var)+'*'+str(process_var_size(type_of_var))+';\n')
-		lines_to_append.append(find_type_of_var_in_C(type_of_var)+'* array_for_'+type_of_var+'_fun_'+fun_name+'_params_no_'+num_of_times_called_in_code+'=malloc(size_of_array_for_array_fun_parameters);\n')
+		#lines_to_append.append(find_type_of_var_in_C(type_of_var)+'* array_for_'+type_of_var+'_fun_'+fun_name+'_params_no_'+num_of_times_called_in_code+'=malloc(size_of_array_for_array_fun_parameters);\n')
 		for i in range(num_of_var):
 			value_of_var=params[params_cnt]
 			params_cnt+=1
 			if(value_of_var.lower()=='null'):
 				value_of_var='0'
-			lines_to_append.append('array_for_'+type_of_var+'_fun_'+fun_name+'_params_no_'+num_of_times_called_in_code+'['+str(i)+']='+value_of_var+';\n')
-		lines_to_append.append('insert_data_into_stack_mem(size_of_array_for_array_fun_parameters,(unsigned char*)array_for_'+type_of_var+'_fun_'+fun_name+'_params_no_'+num_of_times_called_in_code+',(unsigned char*)returned_addr_after_allocating+('+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
-		lines_to_append.append('free(array_for_'+type_of_var+'_fun_'+fun_name+'_params_no_'+num_of_times_called_in_code+ ');\n')
+			lines_to_append.append('array_for_'+type_of_var+'_fun_'+fun_name+'_params['+str(i)+']='+value_of_var+';\n')
+		lines_to_append.append('insert_data_into_stack_mem(size_of_array_for_array_fun_parameters,(unsigned char*)array_for_'+type_of_var+'_fun_'+fun_name+'_params,(unsigned char*)returned_addr_after_allocating+('+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
+		#lines_to_append.append('free(array_for_'+type_of_var+'_fun_'+fun_name+'_params_no_'+num_of_times_called_in_code+ ');\n')
 		offset_for_params_in_chunks+=int(fun_dict['chunks_for_'+type_of_var+'_params'])
 
 	#same for the arbitrary pointers
@@ -264,6 +264,7 @@ def add_the_function_header():
 			name_of_var=function_dict['params'][type_of_var]['names'][i]
 			lines_to_append.append('#define '+name_of_var+' '+start_of_parameters+'+'+str(offset_in_chunks)+'*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data),'+str(i)+' \n')
 			defines.append(name_of_var)
+		lines_to_append.append(';'+find_type_of_var_in_C(type_of_var)+' array_for_'+type_of_var+'_fun_'+fun_name+'_params['+str(num_of_var)+'];\n')
 		offset_in_chunks+=int(function_dict['chunks_for_'+type_of_var+'_params'])
 	#arb_ptrs
 	num_of_var=int(function_dict['params']['arb_ptr']['number'])
