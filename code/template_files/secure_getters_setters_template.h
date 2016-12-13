@@ -116,7 +116,7 @@ void set_arbitrary_block_in_stack_with_offset(long data_size,void * start,long o
 											 }
 
 
-#if insert_parameters_into_new_secure_stack_as_arrays==0
+#if insert_parameters_into_new_secure_stack_as_arrays == 0
 	#define GET_STACK_CHAR(var) (get_stack_char((var)))
 	#define GET_STACK_INT(var) (get_stack_int((var)))
 	#define GET_STACK_LONG(var) (get_stack_long_int((var)))
@@ -132,7 +132,7 @@ void set_arbitrary_block_in_stack_with_offset(long data_size,void * start,long o
 	#define SET_STACK_PTR(var,src) (set_stack_pointer((var),src))
 #endif
 
-#if insert_parameters_into_new_secure_stack_as_arrays==1
+#if insert_parameters_into_new_secure_stack_as_arrays == 1
 	#define GET_STACK_CHAR(var) GET_STACK_CHAR_AUX(var)
 	#define GET_STACK_INT(var) GET_STACK_INT_AUX(var)
 	#define GET_STACK_LONG(var) GET_STACK_LONG_AUX(var)
@@ -140,27 +140,28 @@ void set_arbitrary_block_in_stack_with_offset(long data_size,void * start,long o
 	#define GET_STACK_DOUBLE(var) GET_STACK_DOUBLE_AUX(var)
 	#define GET_STACK_PTR(var) GET_STACK_PTR_AUX(var)
 
-	#define GET_STACK_CHAR_AUX(var) (get_stack_char_array_element(var))
-	#define GET_STACK_INT_AUX(var) (get_stack_int_array_element(var))
-	#define GET_STACK_LONG_AUX(var) (get_stack_long_int_array_element(var))
-	#define GET_STACK_FLOAT_AUX(var) (get_stack_float_array_element(var))
-	#define GET_STACK_DOUBLE_AUX(var) (get_stack_double_array_element(var))
-	#define GET_STACK_PTR_AUX(var) (get_stack_pointer_array_element(var))
+	#define GET_STACK_CHAR_AUX(ptr,ind) (get_stack_char_array_element(ptr,ind))
+	#define GET_STACK_INT_AUX(ptr,ind) (get_stack_int_array_element(ptr,ind))
+	#define GET_STACK_LONG_AUX(ptr,ind) (get_stack_long_int_array_element(ptr,ind))
+	#define GET_STACK_FLOAT_AUX(ptr,ind) (get_stack_float_array_element(ptr,ind))
+	#define GET_STACK_DOUBLE_AUX(ptr,ind) (get_stack_double_array_element(ptr,ind))
+	#define GET_STACK_PTR_AUX(ptr,ind) (get_stack_pointer_array_element(ptr,ind))
 	
-	#define SET_STACK_CHAR(var,src) GET_STACK_CHAR_AUX(var,src)
-	#define SET_STACK_INT(var,src) GET_STACK_INT_AUX(var,src)
-	#define SET_STACK_LONG(var,src) GET_STACK_LONG_AUX(var,src)
-	#define SET_STACK_FLOAT(var,src) GET_STACK_FLOAT_AUX(var,src)
-	#define SET_STACK_DOUBLE(var,src) GET_STACK_DOUBLE_AUX(var,src)
-	#define SET_STACK_PTR(var,src) GET_STACK_PTR_AUX(var,src)
+	#define SET_STACK_CHAR(var,src) SET_STACK_CHAR_AUX(var,src)
+	#define SET_STACK_INT(var,src) SET_STACK_INT_AUX(var,src)
+	#define SET_STACK_LONG(var,src) SET_STACK_LONG_AUX(var,src)
+	#define SET_STACK_FLOAT(var,src) SET_STACK_FLOAT_AUX(var,src)
+	#define SET_STACK_DOUBLE(var,src) SET_STACK_DOUBLE_AUX(var,src)
+	#define SET_STACK_PTR(var,src) SET_STACK_PTR_AUX(var,src)
 
-	#define SET_STACK_CHAR_AUX(var,src) (set_stack_char_array_element(var,src))
-	#define SET_STACK_INT_AUX(var,src) (set_stack_int_array_element(var,src))
-	#define SET_STACK_LONG_AUX(var,src) (set_stack_long_int_array_element(var,src))
-	#define SET_STACK_FLOAT_AUX(var,src) (set_stack_float_array_element(var,src))
-	#define SET_STACK_DOUBLE_AUX(var,src) (set_stack_double_array_element(var,src))
-	#define SET_STACK_PTR_AUX(var,src) (set_stack_pointer_array_element(var,src))
+	#define SET_STACK_CHAR_AUX(ptr,ind,src) (set_stack_char_array_element(ptr,ind,src))
+	#define SET_STACK_INT_AUX(ptr,ind,src) (set_stack_int_array_element(ptr,ind,src))
+	#define SET_STACK_LONG_AUX(ptr,ind,src) (set_stack_long_int_array_element(ptr,ind,src))
+	#define SET_STACK_FLOAT_AUX(ptr,ind,src) (set_stack_float_array_element(ptr,ind,src))
+	#define SET_STACK_DOUBLE_AUX(ptr,ind,src) (set_stack_double_array_element(ptr,ind,src))
+	#define SET_STACK_PTR_AUX(ptr,ind,src) (set_stack_pointer_array_element(ptr,ind,src))
 #endif
+
 
 
 /*FOR GLOBALS */

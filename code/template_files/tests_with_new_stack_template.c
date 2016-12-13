@@ -40,7 +40,7 @@ void great_function_that_wraps_the_tests()
 		pointers: 2 | names: FOO1,FOO2 | size_of_pointed_elements: 1,200
 		arb_pointers: 0
 	END_OF_LOCAL_VARIABLES
-	RETURN_EXPRESSION: get_stack_long_int(SUM)
+	RETURN_EXPRESSION: GET_STACK_LONG(SUM)
 	START_OF_FUNCTION : test_custom_function_sum
 	
 		SET_STACK_LONG(SUM,GET_STACK_INT(X)+GET_STACK_INT(Y));
