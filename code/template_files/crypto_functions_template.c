@@ -56,7 +56,10 @@ void init_crypto_stuctures(int print)
 	memset(mac_in_bytes,0,safe_length_for_buffer_storage);
 	memset(encrypted_data,0,safe_length_for_buffer_storage);
 	memset(intermediate_buf_for_macing,0,safe_length_for_buffer_storage);
-	memset(mac_to_be_verified,99,number_of_mac_bytes); //a value (99) that will result in error
+	if (number_of_mac_bytes>0)
+	{
+		memset(mac_to_be_verified,99,number_of_mac_bytes); //a value (99) that will result in error
+	}	
 	if (print)
 		printf("Crypto structures initialized.\n");
 }

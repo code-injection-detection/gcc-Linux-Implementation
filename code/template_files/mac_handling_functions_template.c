@@ -17,12 +17,19 @@ void check_heap_macs()
 		}
 		p+=bytes_for_useful_data+bytes_used_for_keyshares+number_of_mac_bytes;
 	}
-	if (error==0)
+	if (number_of_mac_bytes>0)
 	{
-		if (total_bytes_allocated>0)
-			printf("All heap macs ok!\n");
-		else
-			printf("No heap detected to chech macs!\n");
+		if (error==0)
+		{
+			if (total_bytes_allocated>0)
+				printf("All heap macs ok!\n");
+			else
+				printf("No heap detected to check macs!\n");
+		}
+	}
+	else
+	{
+		printf("No heap macs to check!\n");
 	}
 	
 }
@@ -43,12 +50,19 @@ void check_stack_macs()
 		}
 		p+=stack_bytes_for_useful_data+stack_bytes_used_for_keyshares+number_of_mac_bytes;
 	}
-	if (error==0)
+	if (number_of_mac_bytes>0)
 	{
-		if (total_stack_bytes_allocated>0)
-			printf("All stack macs ok!\n");
-		else
-			printf("No stack detected to chech macs!\n");
+		if (error==0)
+		{
+			if (total_stack_bytes_allocated>0)
+				printf("All stack macs ok!\n");
+			else
+				printf("No stack detected to check macs!\n");
+		}
+	}
+	else
+	{
+		printf("No stack macs to check!\n");
 	}
 	
 }

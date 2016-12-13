@@ -243,7 +243,7 @@ def add_mac_verification():
 		s+='	printf("All global macs ok!\\n");\n'
 		s+='}\n'
 	else:
-		s+='printf("No globals to calculate macs on!\\n");\n'
+		s+='printf("No macs to check in globals!\\n");\n'
 	filelines_out.append(s)
 
 def add_mac_verification_one_line():
@@ -265,7 +265,7 @@ def add_mac_verification_one_line():
 		s+='	printf("All global macs ok!\\n");\n'
 		s+='}\n'
 	else:
-		s+='printf("No globals to calculate macs on!\\n");\n'
+		s+='printf("No macs to check in globals!\\n");\n'
 	filelines_out.append(s)
 
 
