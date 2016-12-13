@@ -33,7 +33,9 @@ for line in src_lines:
 	if '#define number_of_global_useful_bytes' in line:
 		newline='#define number_of_global_useful_bytes ('+sys.argv[7]+')\n'
 	if '#define number_of_mac_bytes' in line:
-		newline='#define number_of_mac_bytes ('+sys.argv[8]+')\n'				
+		newline='#define number_of_mac_bytes ('+sys.argv[8]+')\n'			
+	if '#define insert_parameters_into_new_secure_stack_as_arrays' in line:
+		newline='#define insert_parameters_into_new_secure_stack_as_arrays ('+sys.argv[9]+')\n'				
 		
 	headers_dst.write(newline)
 

@@ -81,6 +81,11 @@
 #endif				//The size of the Message Authentication Code (MAC) in bytes. The MAC follows the keyshares
 
 
+#ifdef insert_parameters_into_new_secure_stack_as_arrays
+#define insert_parameters_into_new_secure_stack_as_arrays (0)
+#endif				//This a boolean variable that selects if we should insert the parameters of a function into the secure stack as arrays or not
+
+
 #include "crypto_functions.h"
 #include "secure_getters_setters.h"
 

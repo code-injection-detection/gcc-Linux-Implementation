@@ -3,6 +3,9 @@
 
 //DONT USE sizeof() in sizes!! PYTHON does not know that!
 
+int counter_for_array_fun_parameters;
+long size_of_array_for_array_fun_parameters;
+
 void great_function_that_wraps_the_tests()
 {
 	
@@ -80,14 +83,14 @@ void great_function_that_wraps_the_tests()
 	RETURN_EXPRESSION: NULL
 	START_OF_FUNCTION : towers_of_hanoi_sec
 	
-		if (get_stack_int(N)==1)
+		if (GET_STACK_INT(N)==1)
 		{
-			printf("Move disk 1 from rod %c to rod %c\n", get_stack_char(A),get_stack_char(B));
+			printf("Move disk 1 from rod %c to rod %c\n", GET_STACK_CHAR(A),GET_STACK_CHAR(B));
 			RETURN_POINT_OF_FUNCTION: towers_of_hanoi_sec
 		}
-		//HEY PYTHON CALLING FUNCTION : towers_of_hanoi_sec |PARAMETERS TO CALL WITH: get_stack_char(A),get_stack_char(C),get_stack_char(B),get_stack_int(N)-1
-		printf("Move disk %d from rod %c to rod %c\n", get_stack_int(N),get_stack_char(A),get_stack_char(B));
-		//HEY PYTHON CALLING FUNCTION : towers_of_hanoi_sec| PARAMETERS TO CALL WITH: get_stack_char(C),get_stack_char(B),get_stack_char(A),get_stack_int(N)-1
+		//HEY PYTHON CALLING FUNCTION : towers_of_hanoi_sec |PARAMETERS TO CALL WITH: GET_STACK_CHAR(A),GET_STACK_CHAR(C),GET_STACK_CHAR(B),GET_STACK_INT(N)-1
+		printf("Move disk %d from rod %c to rod %c\n", GET_STACK_INT(N),GET_STACK_CHAR(A),GET_STACK_CHAR(B));
+		//HEY PYTHON CALLING FUNCTION : towers_of_hanoi_sec| PARAMETERS TO CALL WITH: GET_STACK_CHAR(C),GET_STACK_CHAR(B),GET_STACK_CHAR(A),GET_STACK_INT(N)-1
 		RETURN_POINT_OF_FUNCTION: towers_of_hanoi_sec
 		
 	END_OF_FUNCTION: towers_of_hanoi_sec

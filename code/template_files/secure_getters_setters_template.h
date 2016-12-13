@@ -116,6 +116,22 @@ void set_arbitrary_block_in_stack_with_offset(long data_size,void * start,long o
 											 }
 
 
+#if insert_parameters_into_new_secure_stack_as_arrays==0
+	#define GET_STACK_CHAR(var) (get_stack_char((var)))
+	#define GET_STACK_INT(var) (get_stack_int((var)))
+	#define GET_STACK_LONG(var) (get_stack_long_int((var)))
+	#define GET_STACK_FLOAT(var) (get_stack_float((var)))
+	#define GET_STACK_DOUBLE(var) (get_stack_double((var)))
+	#define GET_STACK_PTR(var) (get_stack_pointer((var)))
+	
+	#define SET_STACK_CHAR(var,src) (set_stack_char((var),src))
+	#define SET_STACK_INT(var,src) (set_stack_int((var),src))
+	#define SET_STACK_LONG(var,src) (set_stack_long_int((var),src))
+	#define SET_STACK_FLOAT(var,src) (set_stack_float((var),src))
+	#define SET_STACK_DOUBLE(var,src) (set_stack_double((var),src))
+	#define SET_STACK_PTR(var,src) (set_stack_pointer((var),src))
+#endif
+
 /*FOR GLOBALS */
 
 char get_global_char(char * global_var);
