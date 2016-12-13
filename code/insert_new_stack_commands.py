@@ -160,11 +160,15 @@ def calc_size_of_fun_in_stack():
 	function_dict['chunks_for_return_address']=str(chunks_for_return_address)
 	for type_of_var in ['char','int','long','float','double','ptr']:
 		num_of_var=int(function_dict['params'][type_of_var]['number'])
-		chunks_for_type=calculate_chunks_needed_for_a_size(num_of_var*process_var_size(type_of_var))
+		chunks_for_type=0
+		for i in range(num_of_var):
+			chunks_for_type+=calculate_chunks_needed_for_a_size(process_var_size(type_of_var))
 		function_dict['chunks_for_'+type_of_var+'_params']=str(chunks_for_type)
 	for type_of_var in ['char','int','long','float','double','ptr']:
 		num_of_var=int(function_dict['locals'][type_of_var]['number'])
-		chunks_for_type=calculate_chunks_needed_for_a_size(num_of_var*process_var_size(type_of_var))
+		chunks_for_type=0
+		for i in range(num_of_var):
+			chunks_for_type+=calculate_chunks_needed_for_a_size(process_var_size(type_of_var))
 		function_dict['chunks_for_'+type_of_var+'_locals']=str(chunks_for_type)
 	
 	
@@ -446,7 +450,7 @@ for line in src_lines:
 		dst_lines.append(line)
 
 
-print(all_functions_dict)
+#print(all_functions_dict)
 
 for line in dst_lines:
 	tests_dst.write(line)
