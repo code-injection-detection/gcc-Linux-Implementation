@@ -117,7 +117,7 @@ def calculate_chunks_for_params_locals(type_of_vars):
 		
 		
 		
-def find_name_of_getter(type_of_var):
+def find_name_of_getter(type_of_var,use_array=1):
 	name_of_getter='get_stack_'
 	if( type_of_var=='long' or type_of_var=='long int'):
 		name_of_getter+='long_int'
@@ -125,12 +125,13 @@ def find_name_of_getter(type_of_var):
 		name_of_getter+='pointer'
 	if (name_of_getter=='get_stack_'): #not changed
 		name_of_getter+=type_of_var
-	name_of_getter+='_array_element'
+	if (use_array):
+		name_of_getter+='_array_element'
 	return name_of_getter
 	
 	
 	
-def find_name_of_setter(type_of_var):
+def find_name_of_setter(type_of_var,use_array=1):
 	name_of_setter='set_stack_'
 	if( type_of_var=='long' or type_of_var=='long int'):
 		name_of_setter+='long_int'
@@ -138,7 +139,8 @@ def find_name_of_setter(type_of_var):
 		name_of_setter+='pointer'
 	if (name_of_setter=='set_stack_'): #not changed
 		name_of_setter+=type_of_var
-	name_of_setter+='_array_element'
+	if (use_array):
+		name_of_setter+='_array_element'
 	return name_of_setter
 	
 
@@ -234,7 +236,7 @@ def add_code_for_function_calling(fun_name,write_to,params):
 	lines_to_append.append('return_label_'+fun_name+'_no_'+num_of_times_called_in_code+':\n')
 	#write result to
 	if (fun_dict['return_value_type']!='' and fun_dict['return_value_type'].lower()!='none' and fun_dict['return_value_type'].lower!='null'):
-		name_of_getter=find_name_of_getter(fun_dict['return_value_type'])
+		name_of_getter=find_name_of_getter(fun_dict['return_value_type'],0)
 		lines_to_append.append(write_to+'='+name_of_getter+'(returned_addr_after_allocating+('+chunks_for_params+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
 	for line in lines_to_append:
 		dst_lines.append(line)
@@ -333,7 +335,7 @@ def copy_result_to_return_space():
 	lines_to_append=[]
 	start_of_return_place='base_pointer_for_stack-('+str(int(chunks_for_return_address)+int(chunks_for_return_value))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
 	if (function_dict['return_value_type']!='' and function_dict['return_value_type'].lower()!='none' and function_dict['return_value_type'].lower!='null'):
-		setter_name=find_name_of_setter(function_dict['return_value_type'])
+		setter_name=find_name_of_setter(function_dict['return_value_type'],0)
 		lines_to_append.append(setter_name+'(('+start_of_return_place+'),'+function_dict['return_expression']+');\n')
 	for line in lines_to_append:
 		dst_lines.append(line)
