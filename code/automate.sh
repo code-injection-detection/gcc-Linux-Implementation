@@ -124,7 +124,7 @@ python3 set_correct_defines.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF
 if [ "$INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS" == "0" ]; then
 	python3 insert_new_stack_commands.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_MAC_BYTES
 fi
-if [ "$INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS" == "0" ]; then
+if [ "$INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS" == "1" ]; then
 	python3 insert_new_stack_commands_groups_of_vars_as_arrays.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_MAC_BYTES
 fi
 echo "Changed defines."

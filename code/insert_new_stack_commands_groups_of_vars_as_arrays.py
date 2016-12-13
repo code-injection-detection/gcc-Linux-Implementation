@@ -167,6 +167,14 @@ def calc_size_of_fun_in_stack():
 	function_dict['chunks_for_return_value']=str(chunks_for_return_value)
 	function_dict['chunks_for_base_pointer']=str(chunks_for_base_pointer)
 	function_dict['chunks_for_return_address']=str(chunks_for_return_address)
+	for type_of_var in ['char','int','long','float','double','ptr']:
+		num_of_var=int(function_dict['params'][type_of_var]['number'])
+		chunks_for_type=calculate_chunks_needed_for_a_size(num_of_var*process_var_size(type_of_var))
+		function_dict['chunks_for_'+type_of_var+'_params']=str(chunks_for_type)
+	for type_of_var in ['char','int','long','float','double','ptr']:
+		num_of_var=int(function_dict['locals'][type_of_var]['number'])
+		chunks_for_type=calculate_chunks_needed_for_a_size(num_of_var*process_var_size(type_of_var))
+		function_dict['chunks_for_'+type_of_var+'_locals']=str(chunks_for_type)
 	
 	
 	
@@ -206,7 +214,8 @@ def add_code_for_function_calling(fun_name,write_to,params):
 			lines_to_append.append('array_for_'+type_of_var+'_params_no_'+num_of_times_called_in_code+'['+str(i)+']='+value_of_var+';\n')
 		lines_to_append.append('insert_data_into_stack_mem(size_of_array_for_array_fun_parameters,array_for_'+type_of_var+'_params_no_'+num_of_times_called_in_code+',returned_addr_after_allocating+('+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
 		lines_to_append.append('free(array_for_'+type_of_var+'_params_no_'+num_of_times_called_in_code+ ');\n')
-		offset_for_params_in_chunks+=calculate_chunks_needed_for_a_size(num_of_var*process_var_size(type_of_var))
+		offset_for_params_in_chunks+=int(fun_dict['chunks_for_'+type_of_var+'_params'])
+
 	#same for the arbitrary pointers
 	num_of_var=int(fun_dict['params']['arb_ptr']['number'])
 	for i in range(num_of_var):
