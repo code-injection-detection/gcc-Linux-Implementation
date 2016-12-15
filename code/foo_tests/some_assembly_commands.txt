@@ -1,0 +1,9 @@
+lea  (%rip),%rax  #save current instruction address to rax
+
+
+push %rax
+lea  (%rip),%rax
+movq %rax,address_of_command(%rip)
+movq $5,total_bytes_to_mac(%rip)
+call foo_macer
+pop %rax
