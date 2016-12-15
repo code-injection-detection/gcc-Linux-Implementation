@@ -310,7 +310,7 @@ int check_mac_for_error(unsigned char * input, int total_mac_bytes, int useful_m
 	if (number_of_mac_bytes>0)
 	{
 		calc_and_set_mac_of_data(input,total_mac_bytes,useful_mac_bytes,mac_to_be_verified);
-		if (0!=CRYPTO_memcmp(input+total_mac_bytes,mac_to_be_verified,number_of_mac_bytes))
+		if (0!=memcmp(input+total_mac_bytes,mac_to_be_verified,number_of_mac_bytes))
 		{	
 			error=1;
 		}
@@ -318,16 +318,34 @@ int check_mac_for_error(unsigned char * input, int total_mac_bytes, int useful_m
 	return error;
 }
 
+unsigned char mac_for_verification[number_of_mac_bytes];
 void verify_mac_onthefly(unsigned char * input, int total_mac_bytes, int useful_mac_bytes,const char * fun_name,int line)
 {
-	unsigned char mac_for_verification[number_of_mac_bytes];
 	if (number_of_mac_bytes>0)
 	{
 		calc_and_set_mac_of_data(input,total_mac_bytes,useful_mac_bytes,mac_for_verification);
-		if (0!=CRYPTO_memcmp(input+total_mac_bytes,mac_for_verification,number_of_mac_bytes))
+		if (0!=memcmp(input+total_mac_bytes,mac_for_verification,number_of_mac_bytes)) //CRYPTO_memcmp?
 		{	
 			fprintf(stderr,"ERROR in on the fly mac verification!. Address:%ld, total mac bytes:%d, useful mac bytes:%d, function:%s, line:%d\n",
 					(long)input,total_mac_bytes,useful_mac_bytes,fun_name,line
+					);
+			exit(17);
+		}
+	}
+}
+
+long num_of_useful_bytes_to_mac_in_code;
+long code_where_to_start_macing;
+unsigned char mac_for_code_verification[number_of_mac_bytes];
+void verify_code_on_the_fly()
+{
+	if (number_of_mac_bytes>0)
+	{
+		calc_and_set_mac_of_data((unsigned char*)code_where_to_start_macing,num_of_useful_bytes_to_mac_in_code+bytes_used_for_keyshares,num_of_useful_bytes_to_mac_in_code,mac_for_code_verification);
+		if (0!=memcmp((unsigned char*)code_where_to_start_macing+num_of_useful_bytes_to_mac_in_code+bytes_used_for_keyshares,mac_for_code_verification,number_of_mac_bytes)) //CRYPTO_memcmp?
+		{	
+			fprintf(stderr,"ERROR in on the fly code mac verification!. Address:%ld, total mac bytes:%ld, useful mac bytes:%ld\n",
+					code_where_to_start_macing,num_of_useful_bytes_to_mac_in_code+bytes_used_for_keyshares,num_of_useful_bytes_to_mac_in_code
 					);
 			exit(17);
 		}
