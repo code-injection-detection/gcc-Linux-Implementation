@@ -3,6 +3,7 @@
 SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS=1
 DECLARE_GLOBAL_KEYS_AS_AN_ARRAY=0
 INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS=1
+ADD_CODE_ON_THE_FLY_VERIFICATION=0
 
 if [ "$#" -ne 9 ]; then
     echo "Please execute as following:"
@@ -13,7 +14,7 @@ if [ "$#" -ne 9 ]; then
     echo "f=number of grouped useful bytes in stack memory, g=total bytes to (try to) pre-allocate in stack memory"
     echo "h=number of grouped useful bytes between keyshares in global variables"
     echo "i=number of bytes for MACs"
-    echo "Example: $0 32 1 2 4 10000 4 8000 8 16"
+    echo "Example: $0 32 1 2 4 25000 4 20000 8 16"
     exit
 fi
 
@@ -179,7 +180,7 @@ make
 echo "Compiled."
 
 echo "Inserting NOPs into assembly..."
-java -cp ../bin Secure_Assembly $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_INSTRUCTIONS $NUM_OF_CANARIES $NUM_OF_MAC_BYTES
+java -cp ../bin Secure_Assembly $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_INSTRUCTIONS $NUM_OF_CANARIES $NUM_OF_MAC_BYTES $ADD_CODE_ON_THE_FLY_VERIFICATION
 echo "NOPs inserted."
 
 echo "Assembling code with NOPs..."
