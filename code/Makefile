@@ -18,28 +18,28 @@ endif
 #If you type "make static [secure]", static linking is activated
 
 
-default: Helloworldadd.s Helloworldadd
+default: main_program.s main_program
 
-secure: Helloworldadd_sec
+secure: main_program_sec
 
-all: Helloworldadd.s Helloworldadd Helloworldadd_sec
+all: main_program.s main_program main_program_sec
 
 
 static: default
 	
 
-Helloworldadd.s: Helloworldadd.c memory_manager.c verification_procedure.c memory_manager_test_suite.c stack_manager.c stack_manager_test_suite.c general_tests.c
-	$(CC) $(FLAGS_to_assembly) Helloworldadd.c -S $(FLAGS_in_the_end)
+main_program.s: main_program.c memory_manager.c verification_procedure.c memory_manager_test_suite.c stack_manager.c stack_manager_test_suite.c general_tests.c
+	$(CC) $(FLAGS_to_assembly) main_program.c -S $(FLAGS_in_the_end)
 
-Helloworldadd: Helloworldadd.s
-	$(CC) $(FLAGS_to_object) Helloworldadd.s -c -o Helloworldadd.o $(FLAGS_in_the_end)
-	$(CC) $(FLAGS_to_object) Helloworldadd.o $(OBJECT_FILES_TO_BE_LINKED) -o Helloworldadd $(FLAGS_in_the_end)
+main_program: main_program.s
+	$(CC) $(FLAGS_to_object) main_program.s -c -o main_program.o $(FLAGS_in_the_end)
+	$(CC) $(FLAGS_to_object) main_program.o $(OBJECT_FILES_TO_BE_LINKED) -o main_program $(FLAGS_in_the_end)
 
-Helloworldadd_sec: Helloworldadd_sec.s
-	$(CC) $(FLAGS_to_secure_object) Helloworldadd_sec.s -c -o Helloworldadd_sec.o $(FLAGS_in_the_end)
-	$(CC) $(FLAGS_to_secure_object) Helloworldadd_sec.o $(OBJECT_FILES_TO_BE_LINKED) -o Helloworldadd_sec $(FLAGS_in_the_end)
+main_program_sec: main_program_sec.s
+	$(CC) $(FLAGS_to_secure_object) main_program_sec.s -c -o main_program_sec.o $(FLAGS_in_the_end)
+	$(CC) $(FLAGS_to_secure_object) main_program_sec.o $(OBJECT_FILES_TO_BE_LINKED) -o main_program_sec $(FLAGS_in_the_end)
 
 clean:
-	rm -f Helloworldadd.s Helloworldadd Helloworldadd_sec.s Helloworldadd_sec Helloworldadd_ksec *.o *.NASM* *.YASM* *.run 
-	rm -f sha256.c sha256.h *_keyshares headers_needed.h verification_procedure.c stack_manager.c memory_manager.c general_tests.c functions_needed_header.c functions_needed_footer.c  Helloworldadd.c memory_manager_test_suite.c stack_manager_test_suite.c mac_handling_functions.c all_keyshares_for_verification
+	rm -f main_program.s main_program main_program_sec.s main_program_sec main_program_ksec *.o *.NASM* *.YASM* *.run 
+	rm -f sha256.c sha256.h *_keyshares headers_needed.h verification_procedure.c stack_manager.c memory_manager.c general_tests.c functions_needed_header.c functions_needed_footer.c  main_program.c memory_manager_test_suite.c stack_manager_test_suite.c mac_handling_functions.c all_keyshares_for_verification
 	rm -f secure_getters_setters.c secure_getters_setters.h crypto_functions.c crypto_functions.h calc_mac_for_external_programs tests_with_new_stack.c

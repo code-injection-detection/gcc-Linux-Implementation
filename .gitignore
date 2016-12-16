@@ -4,7 +4,7 @@ aes
 sha256
 *sec
 *.s
-Helloworldadd
+main_program
 *_keyshares
 all_keyshares_for_verification
 headers_needed.h
@@ -16,7 +16,7 @@ functions_needed_footer.c
 mac_handling_functions.c
 memory_manager_test_suite.c
 stack_manager_test_suite.c
-Helloworldadd.c
+main_program.c
 general_tests.c
 code/sha256.c
 code/sha256.h

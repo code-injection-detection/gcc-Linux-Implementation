@@ -15,13 +15,13 @@ public class Secure_Machine_Code {
 	public static void main(String[] args) throws Exception
 	{
 		//use this if executing manually
-		//String filename = new File("code/Helloworldadd_sec").getAbsolutePath();
+		//String filename = new File("code/main_program_sec").getAbsolutePath();
 		//String heap_keys_filename=new File("code/heap_keyshares").getAbsolutePath();
 		//String memory_manager_filename=new File("code/memory_manager.c").getAbsolutePath();
 		
 		
 		//use this if executing with automate.sh in code directory
-		String filename = new File("../code/Helloworldadd_sec").getAbsolutePath();	
+		String filename = new File("../code/main_program_sec").getAbsolutePath();	
 		String heap_keys_filename=new File("../code/heap_keyshares").getAbsolutePath();
 		String stack_keys_filename=new File("../code/stack_keyshares").getAbsolutePath();
 		String memory_manager_filename=new File("../code/memory_manager.c").getAbsolutePath();

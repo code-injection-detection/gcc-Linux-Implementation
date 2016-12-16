@@ -15,10 +15,10 @@ public class Secure_Assembly {
 	public static void main(String[] args) throws Exception
 	{
 		//use this if executing manually
-		//String filename = new File("code/Helloworldadd.s").getAbsolutePath();
+		//String filename = new File("code/main_program.s").getAbsolutePath();
 		
 		//use this if executing with automate.sh in code directory
-		String filename = new File("../code/Helloworldadd.s").getAbsolutePath();
+		String filename = new File("../code/main_program.s").getAbsolutePath();
 		
 		Scanner sc = new Scanner(new File(filename));
 		ArrayList<String> list_of_lines = new ArrayList<String>();
