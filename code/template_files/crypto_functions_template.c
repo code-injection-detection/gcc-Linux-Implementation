@@ -337,20 +337,22 @@ void verify_mac_onthefly(unsigned char * input, int total_mac_bytes, int useful_
 long num_of_useful_bytes_to_mac_in_code;
 long code_where_to_start_macing;
 unsigned char mac_for_code_verification[number_of_mac_bytes];
+#define size_of_commands_before_getting_addr 4
 void verify_code_on_the_fly()
 {
 	if (number_of_mac_bytes>0)
 	{
-		calc_and_set_mac_of_data((unsigned char*)code_where_to_start_macing,num_of_useful_bytes_to_mac_in_code+bytes_used_for_keyshares,num_of_useful_bytes_to_mac_in_code,mac_for_code_verification);
-		if (0!=memcmp((unsigned char*)code_where_to_start_macing+num_of_useful_bytes_to_mac_in_code+bytes_used_for_keyshares,mac_for_code_verification,number_of_mac_bytes)) //CRYPTO_memcmp?
+		calc_and_set_mac_of_data((unsigned char*)code_where_to_start_macing-size_of_commands_before_getting_addr,num_of_useful_bytes_to_mac_in_code+bytes_used_for_keyshares,num_of_useful_bytes_to_mac_in_code,mac_for_code_verification);
+		if (0!=memcmp((unsigned char*)code_where_to_start_macing-size_of_commands_before_getting_addr+num_of_useful_bytes_to_mac_in_code+bytes_used_for_keyshares,mac_for_code_verification,number_of_mac_bytes)) //CRYPTO_memcmp?
 		{	
 			fprintf(stderr,"ERROR in on the fly code mac verification!. Address:%ld, total mac bytes:%ld, useful mac bytes:%ld\n",
-					code_where_to_start_macing,num_of_useful_bytes_to_mac_in_code+bytes_used_for_keyshares,num_of_useful_bytes_to_mac_in_code
+					(long)((unsigned char*)code_where_to_start_macing-size_of_commands_before_getting_addr) ,num_of_useful_bytes_to_mac_in_code+bytes_used_for_keyshares,num_of_useful_bytes_to_mac_in_code
 					);
 			exit(17);
 		}
 	}
 }
+#undef size_of_commands_before_getting_addr
 
 void update_mac_when_setting_data(unsigned char * input, int total_mac_bytes, int useful_mac_bytes, unsigned char* output)
 {

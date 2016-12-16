@@ -262,7 +262,7 @@ public class Secure_Assembly {
         list_of_lines.add("pushq %rdx");
         list_of_lines.add("lea  (%rip),%rax");
         list_of_lines.add("movq %rax,code_where_to_start_macing(%rip)");
-        list_of_lines.add("movq $5,num_of_useful_bytes_to_mac_in_code(%rip)");
+        list_of_lines.add("movq $42,num_of_useful_bytes_to_mac_in_code(%rip)");
         list_of_lines.add("call verify_code_on_the_fly");
         list_of_lines.add("popq %rdx");
         list_of_lines.add("popq %rcx");

@@ -7,3 +7,36 @@ movq %rax,address_of_command(%rip)
 movq $5,total_bytes_to_mac(%rip)
 call foo_macer
 pop %rax
+
+v2:
+pushf
+pushq %rax
+pushq %rcx
+pushq %rdx
+lea  (%rip),%rax
+movq %rax,code_where_to_start_macing(%rip)
+movq $42,num_of_useful_bytes_to_mac_in_code(%rip)
+call verify_code_on_the_fly
+popq %rdx
+popq %rcx
+popq %rax
+popf
+
+
+code:
+pushf  ----------> 9c
+pushq %rax   -----> 50
+pushq %rcx    ----->51
+pushq %rdx    ----->52
+lea  (%rip),%rax     ----------> 48 8d 05 00 00 00 00
+movq %rax,code_where_to_start_macing(%rip)   --------> 48 89 05 dc 59 21 01
+movq $42,num_of_useful_bytes_to_mac_in_code(%rip)   ------> 48 c7 05 f9 59 21 01  2a 00 00 00
+call verify_code_on_the_fly    ----->   e8 1c 61 0c 00
+popq %rdx   ------ > 5a
+popq %rcx   -------> 59
+popq %rax   -------> 58
+popf     ---------->9d
+
+(38 bytes total)
+
+
