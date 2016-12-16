@@ -36,27 +36,26 @@ public class Secure_Assembly {
 		int  num_of_mac_bytes=4;
 		int bytes_for_instr_len=1;
 		int number_of_nops_to_denote_program_start=130;
+		boolean check_code_verification_on_the_fly;
 		
-		if (args.length==1)
-			num_of_interleaved_keys=Integer.parseInt(args[0]);
-		else if (args.length==2)
-		{
-			num_of_interleaved_keys=Integer.parseInt(args[0]);
-			num_of_grouped_orig_instr=Integer.parseInt(args[1]);
-		}
-		else if (args.length==3)
-		{
-			num_of_interleaved_keys=Integer.parseInt(args[0]);
-			num_of_grouped_orig_instr=Integer.parseInt(args[1]);
-			number_of_canaries=Integer.parseInt(args[2]);
-		}
-		else if (args.length==4)
+
+		if (args.length==5)
 		{
 			num_of_interleaved_keys=Integer.parseInt(args[0]);
 			num_of_grouped_orig_instr=Integer.parseInt(args[1]);
 			number_of_canaries=Integer.parseInt(args[2]);
 			num_of_mac_bytes=Integer.parseInt(args[3]);
+			if (Integer.parseInt(args[4])==0)
+				check_code_verification_on_the_fly=false;
+			else
+				check_code_verification_on_the_fly=true;
 		}
+		else
+		{
+			System.out.println("Secure Assembly:Wrong number of arguments");
+			System.exit(2);
+		}
+		
 
 		if (num_of_mac_bytes==0)
 			bytes_for_instr_len=0;
