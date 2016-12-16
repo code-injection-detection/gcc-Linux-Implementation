@@ -263,7 +263,8 @@ def add_the_function_header():
 			name_of_var=function_dict['params'][type_of_var]['names'][i]
 			lines_to_append.append('#define '+name_of_var+' '+start_of_parameters+'+'+str(offset_in_chunks)+'*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data),'+str(i)+' \n')
 			defines.append(name_of_var)
-		lines_to_append.append(';'+find_type_of_var_in_C(type_of_var)+' array_for_'+type_of_var+'_fun_'+fun_name+'_params['+str(num_of_var)+'];\n')
+		if (num_of_var>0):
+			lines_to_append.append(';'+find_type_of_var_in_C(type_of_var)+' array_for_'+type_of_var+'_fun_'+fun_name+'_params['+str(num_of_var)+'];\n')
 		offset_in_chunks+=int(function_dict['chunks_for_'+type_of_var+'_params'])
 	#arb_ptrs
 	num_of_var=int(function_dict['params']['arb_ptr']['number'])
