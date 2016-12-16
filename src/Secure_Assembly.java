@@ -36,7 +36,7 @@ public class Secure_Assembly {
 		int  num_of_mac_bytes=4;
 		int bytes_for_instr_len=1;
 		int number_of_nops_to_denote_program_start=130;
-		boolean check_code_verification_on_the_fly;
+		boolean check_code_verification_on_the_fly=false;
 		
 
 		if (args.length==5)
@@ -104,6 +104,10 @@ public class Secure_Assembly {
 				if (removeSpaces(line).indexOf(".cfi_startproc")!=-1)
 				{
 					//System.out.println("I found the beginning of the function");
+					if (check_code_verification_on_the_fly)
+					{
+						add_code_verification_lines(list_of_lines);
+					}
 					break;
 				}			
 				
@@ -151,6 +155,13 @@ public class Secure_Assembly {
 					list_of_lines.add(line);
 					continue;
 				}
+				
+				//put "ret" and "movq	%rsp, %rbp" into the former block
+				if (check_code_verification_on_the_fly && ( line.trim().equals("ret") || line.trim().equals("movq	%rsp, %rbp")))
+				{
+					list_of_lines.add(line);
+					continue;
+				}
 								
 				//if we have exhausted the group of commands, we need to add a jump and nops, and a label after them
 				if (i == num_of_grouped_orig_instr)
@@ -162,6 +173,11 @@ public class Secure_Assembly {
 					//System.out.println(line);
 					i = 0;
 					label_counter++;
+					
+					if (check_code_verification_on_the_fly)
+					{
+						add_code_verification_lines(list_of_lines);
+					}
 	
 				}
 				
@@ -226,6 +242,7 @@ public class Secure_Assembly {
 		
 		return line;
 	}
+	
 	static String removeNewlines(String s)
 	{
 		String line = "";
@@ -235,6 +252,22 @@ public class Secure_Assembly {
 				line += s.charAt(i);
 		}
 		return line;
+	}
+	
+	static void add_code_verification_lines(ArrayList<String> list_of_lines)
+	{
+		list_of_lines.add("pushf");
+        list_of_lines.add("pushq %rax");  //caller saved registers
+        list_of_lines.add("pushq %rcx");
+        list_of_lines.add("pushq %rdx");
+        list_of_lines.add("lea  (%rip),%rax");
+        list_of_lines.add("movq %rax,code_where_to_start_macing(%rip)");
+        list_of_lines.add("movq $5,num_of_useful_bytes_to_mac_in_code(%rip)");
+        list_of_lines.add("call verify_code_on_the_fly");
+        list_of_lines.add("popq %rdx");
+        list_of_lines.add("popq %rcx");
+        list_of_lines.add("popq %rax");
+        list_of_lines.add("popf");
 	}
 
 }
