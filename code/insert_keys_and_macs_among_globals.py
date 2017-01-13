@@ -9,6 +9,7 @@ import hashlib
 from collections import Iterable
 from subprocess import Popen, PIPE
 
+#input files that are going to be checked if they have global declarations
 inputfiles=[ './template_files/memory_manager_template.c',
 			 './template_files/stack_manager_template.c',
 			 './template_files/functions_needed_header_template.c',
@@ -22,6 +23,7 @@ inputfiles=[ './template_files/memory_manager_template.c',
 			 './template_files/verification_procedure_template.c'
 		   ]
 
+#the corresponding output files
 outputfiles=[ 'memory_manager.c',
 			 'stack_manager.c',
 			 'functions_needed_header.c',
@@ -35,13 +37,14 @@ outputfiles=[ 'memory_manager.c',
 			 'verification_procedure.c'
 		   ]
 
+#canary strings that denote something to the python program
 canary_str='ATTENTION: GLOBAL VARIABLE FOLLOWING!'
 verification_canary_str='PLEASE PYTHON ADD CODE FOR GLOBAL KEYS VERIFICATION'
 mac_verification_canary_str='PLEASE PYTHON ADD CODE FOR GLOBAL MACS VERIFICATION'
 initialization_canary_str='PLEASE PYTHON INITIALISE THE GLOBAL VARS'
 keycnt_major=0
 maccnt_major=0
-insert_keys_and_macs_in_one_line=0
+insert_keys_and_macs_in_one_line=0 #boolean variable that chooses if the keys and macs should be inserted in one line or in multiple lines
 number_of_keys=0
 keys_generated=[]
 keys_generated_cnt=0
@@ -67,14 +70,15 @@ else:
 	useful_bytes_size=int(sys.argv[3])
 	num_of_mac_bytes=int(sys.argv[4])
 	
-
+#functionality for some var types. For example const. Use with caution, not guaranteed to work.
 def process_var_type(var_type):
 	if var_type=='normal':
 		return ''
 	else:
 		return str(var_type)
 		
-def process_var_size(var_size): #This has to be improved in the future
+#returns the variable size, depending on the type. 
+def process_var_size(var_size): #This has to be improved in the future not to have these static values
 	if var_size=='int':
 		return 4
 	if var_size=='char':
@@ -91,6 +95,7 @@ def process_var_size(var_size): #This has to be improved in the future
 	else:
 		print("UNKNOWN VARIABLE SIZE:",var_size)
 
+
 def get_next_keyshare():
 	global keys_generated_cnt
 	global keys_generated
@@ -100,12 +105,14 @@ def get_next_keyshare():
 	keys_generated_cnt+=1
 	return key
 	
+#if the mac is not large enough, zeros are appended. However the C program that outputs the macs does this automatically
 def enlarge_mac_if_needed(MAC):
 	if(num_of_mac_bytes>len(MAC)):
 		x=[0 for i in range(num_of_mac_bytes-len(MAC))]
 		for k in x:
 			MAC.append(k) 
 
+#calls the C program with the correct parameters, to get the mac of the <bytes_to_be_maced>
 def get_mac_from_c_code(MAC):
 	global bytes_to_be_maced
 	
@@ -119,6 +126,7 @@ def get_mac_from_c_code(MAC):
 	for i in list(mac_out.split()):
 		MAC.append(int(i.decode('ascii')))
 
+#for one chunk of useful bytes, adds the keys and the macs (uninitialized)
 def add_keys_and_macs(var_type):
 	global keycnt_major
 	global filelines_out
@@ -127,6 +135,7 @@ def add_keys_and_macs(var_type):
 	global hash_handler
 	global global_variable_values
 	
+	#keys
 	if number_of_keys>0:
 		keycnt_major+=1
 		for i in range(1,number_of_keys+1):
@@ -137,6 +146,7 @@ def add_keys_and_macs(var_type):
 			s+="unsigned char key_"+str(keycnt_major)+"_"+str(i) +";\n"
 			global_variable_values.append(keyshare)
 			filelines_out.append(s)
+	#macs
 	if num_of_mac_bytes>0:
 		MAC=[]
 		get_mac_from_c_code(MAC)
@@ -151,7 +161,7 @@ def add_keys_and_macs(var_type):
 			global_variable_values.append(MAC[i-1])
 			filelines_out.append(s)
 		
-
+#for one chunk of useful bytes, adds the keys and the macs (uninitialized), but in one line as arrays
 def add_keys_and_macs_one_line(var_type):
 	global keycnt_major
 	global filelines_out
@@ -161,6 +171,7 @@ def add_keys_and_macs_one_line(var_type):
 	global global_variable_values
 	
 	s=''
+	#keys
 	if number_of_keys>0:
 		s+=process_var_type(var_type)+" "
 		keycnt_major+=1
@@ -174,6 +185,7 @@ def add_keys_and_macs_one_line(var_type):
 		filelines_out.append(s)
 	
 	s=''
+	#macs
 	if num_of_mac_bytes>0:
 		MAC=[]
 		get_mac_from_c_code(MAC)
@@ -189,7 +201,7 @@ def add_keys_and_macs_one_line(var_type):
 		global_variable_values.append(values_of_array)
 		filelines_out.append(s)
 
-
+#for every chunk, useless bytes are padded so as to make the size of the chunk to be fixed
 def pad_random_useless_bytes(var_type,num):
 	global filelines_out
 	global useless_bytes_cnt
@@ -203,7 +215,7 @@ def pad_random_useless_bytes(var_type,num):
 		filelines_out.append(process_var_type(var_type)+' char useless_byte_'+ str(useless_bytes_cnt)+ ';\n')
 		global_variable_values.append(value_of_useless_bytes)
 
-
+#the verification code for the keys is added here (when they are saved in arrays)
 def add_verification_one_line():
 	global filelines_out
 	global keycnt_major
@@ -214,6 +226,7 @@ def add_verification_one_line():
 		filelines_out.append('keys[keycnt]^=(unsigned char) globals.key_'+str(i)+'[keycnt]; \n')
 		filelines_out.append('} \n')
 
+#the verification code for the keys is added here (when they are saved as discrete variables)
 def add_verification():
 	global filelines_out
 	global keycnt_major
@@ -223,7 +236,7 @@ def add_verification():
 		for i in range(1,keycnt_major+1):
 			filelines_out.append('keys['+str(j-1)+'] ^=(unsigned char) globals.key_'+str(i)+'_'+str(j)+';\n')
 
-
+#adds the verifications code for the macs 
 def add_mac_verification():
 	global filelines_out
 	global maccnt_major
