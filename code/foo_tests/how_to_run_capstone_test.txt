@@ -1,0 +1,2 @@
+javac -cp ./capstone.jar Capstone_Test.java
+java -classpath /usr/share/java/jna.jar:.:./capstone.jar Capstone_Test 
