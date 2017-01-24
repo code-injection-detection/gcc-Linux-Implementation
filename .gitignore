@@ -4,6 +4,8 @@ aes
 sha256
 *sec
 *.s
+a.out
+assembly_commands_for_parsing.txt
 main_program
 *_keyshares
 all_keyshares_for_verification

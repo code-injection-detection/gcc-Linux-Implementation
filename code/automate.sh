@@ -4,17 +4,21 @@ SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS=1
 DECLARE_GLOBAL_KEYS_AS_AN_ARRAY=0
 INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS=1
 ADD_CODE_ON_THE_FLY_VERIFICATION=0
+USE_FIXED_SIZE_CHUNKS_OF_CODE=0
 
-if [ "$#" -ne 9 ]; then
+if [[ ( "$#" -ne 9 ) && ( "$#" -ne 10) ]]; then
     echo "Please execute as following:"
-    echo -e "\n$0 <a> <b> <c> <d> <e> <f> <g> <h> <i>"
+    echo -e "\n$0 <a> <b> <c> <d> <e> <f> <g> <h> <i> <j>"
     echo "Where: a=number_of_interleaved keys in code, b=number_of grouped instructions in code"
     echo "c=number of canary values before keyshares in code, to denote keyshare presence"
     echo "d=number of grouped useful bytes in heap memory, e=total bytes to (try to) pre-allocate in heap memory"
     echo "f=number of grouped useful bytes in stack memory, g=total bytes to (try to) pre-allocate in stack memory"
     echo "h=number of grouped useful bytes between keyshares in global variables"
     echo "i=number of bytes for MACs"
+	echo "j=size of a fixed chunk in code (optional, will not use fixed size if not given)"
     echo "Example: $0 32 1 2 4 25000 4 20000 8 16"
+	echo "OR:"
+	echo "Example: $0 32 1 2 4 25000 4 20000 8 16 16"
     exit
 fi
 
@@ -27,6 +31,7 @@ NUM_OF_GROUPED_USEFUL_STACK_BYTES=4
 NUM_OF_TOTAL_STACK_BYTES_ALLOC=8000
 NUM_OF_GLOBAL_USEFUL_BYTES=8
 NUM_OF_MAC_BYTES=16
+NUM_OF_BYTES_IN_CODE_CHUNK=20
 
 if [ "$#" -eq 9 ]; then
 	NUM_OF_INTERLEAVED_KEYS=$1
@@ -38,6 +43,20 @@ if [ "$#" -eq 9 ]; then
 	NUM_OF_TOTAL_STACK_BYTES_ALLOC=$7
 	NUM_OF_GLOBAL_USEFUL_BYTES=$8
 	NUM_OF_MAC_BYTES=$9
+fi
+
+if [ "$#" -eq 10 ]; then
+	NUM_OF_INTERLEAVED_KEYS=$1
+	NUM_OF_GROUPED_INSTRUCTIONS=$2
+	NUM_OF_CANARIES=$3
+	NUM_OF_GROUPED_USEFUL_BYTES=$4
+	NUM_OF_TOTAL_BYTES_ALLOC=$5
+	NUM_OF_GROUPED_USEFUL_STACK_BYTES=$6
+	NUM_OF_TOTAL_STACK_BYTES_ALLOC=$7
+	NUM_OF_GLOBAL_USEFUL_BYTES=$8
+	NUM_OF_MAC_BYTES=$9
+	NUM_OF_BYTES_IN_CODE_CHUNK=${10}
+	USE_FIXED_SIZE_CHUNKS_OF_CODE=1
 fi
 
 echo -n "NUM_OF_INTERLEAVED_KEYS: "
@@ -60,12 +79,25 @@ echo -n "NUM_OF_GLOBAL_USEFUL_BYTES: "
 echo $NUM_OF_GLOBAL_USEFUL_BYTES
 echo -n "NUM_OF_MAC_BYTES: "
 echo $NUM_OF_MAC_BYTES
+
+if [ "$#" -eq 10 ]; then
+	echo -n "NUM_OF_BYTES_IN_CODE_CHUNK: "
+	echo $NUM_OF_BYTES_IN_CODE_CHUNK
+fi
+
 echo ""
 
 if [ "$NUM_OF_GROUPED_INSTRUCTIONS" -gt "20" ]; then
 	echo "Caution! The length of the grouped instructions should not be >253 bytes under no circumstances!"
 	echo "Your value of grouped instructions is big enough to cause concerns. Exiting for safety."
 	echo "If you REALLY want such a value (it is big however), change the automate.sh script."
+	exit
+fi
+
+if [ "$NUM_OF_BYTES_IN_CODE_CHUNK" -lt "10" ]; then
+	echo "Caution! The length of the code chunk should be bigger or equal than 10"
+	echo "Your value of code chunk length is small enough to cause concerns. Exiting for safety."
+	echo "If you REALLY want such a value (it is small however), change the automate.sh script."
 	exit
 fi
 
