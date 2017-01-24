@@ -16,15 +16,26 @@ with open(filename) as f:
 	lines= [x.strip() for x in lines]
 
 
+#deleting lines until we reach the first function
+while("Disassembly of section .text" not in lines[0]):
+	del lines[0]
+del lines[0]
+		
+		
 in_function=0
 #find functions start
 for line in lines:
-	if (line.startswith("00000"):
+	if (line.startswith("00000")):
 		in_function=1
 		continue
 	elif line=="" :
 		in_function=0
+		print("NEXT_FUNCTION")
 			
 	if (in_function):
-		pass
-
+		address=line.split(":")[0].strip()
+		bytes_and_cmd=line.split(":")[1].strip()
+		bytes_in_hex=bytes_and_cmd.split('\t')[0].strip()
+		cmd=bytes_and_cmd.split('\t')[1].strip()
+		num_of_bytes=len(bytes_in_hex.split(' '))
+		print(num_of_bytes,cmd)
