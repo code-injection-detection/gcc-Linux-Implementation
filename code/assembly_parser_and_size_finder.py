@@ -9,6 +9,10 @@ import gc
 
 num_of_chunks_given=1
 filename="assembly_commands_for_parsing.txt"
+number_of_nops_in_code=int(sys.argv[1])
+linesout=[]
+
+
 
 #read lines
 with open(filename) as f:
@@ -21,7 +25,7 @@ while("Disassembly of section .text" not in lines[0]):
 	del lines[0]
 del lines[0]
 		
-		
+nop_cnt=0
 in_function=0
 #find functions start
 for line in lines:
@@ -30,7 +34,7 @@ for line in lines:
 		continue
 	elif line=="" :
 		in_function=0
-		print("NEXT_FUNCTION")
+		linesout.append("NEXT_FUNCTION")
 			
 	if (in_function):
 		address=line.split(":")[0].strip()
@@ -38,4 +42,18 @@ for line in lines:
 		bytes_in_hex=bytes_and_cmd.split('\t')[0].strip()
 		cmd=bytes_and_cmd.split('\t')[1].strip()
 		num_of_bytes=len(bytes_in_hex.split(' '))
-		print(num_of_bytes,cmd)
+		if (cmd=="nop"):
+			nop_cnt+=1
+		else:
+			nop_cnt=0
+		
+		if nop_cnt==number_of_nops_in_code:
+			for i in range(number_of_nops_in_code-1):
+				del linesout[-1]
+			linesout.append("NOPS_HERE")
+		else:
+			linesout.append(str(num_of_bytes)+" "+str(cmd))
+
+
+for line in linesout:
+	print(line)

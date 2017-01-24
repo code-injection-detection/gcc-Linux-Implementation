@@ -1,1 +1,3 @@
 cat assembly_size_test.s | as && objdump -d
+
+echo 'foo: jmp.d32 foo' | as && objdump -d
