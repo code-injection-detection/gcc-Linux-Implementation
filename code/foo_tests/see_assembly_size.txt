@@ -1,0 +1,1 @@
+cat assembly_size_test.s | as && objdump -d
