@@ -86,7 +86,7 @@ int main()
 	*/
 	
 	
-	int primes_up_to=100;
+	int primes_up_to=60000;
 	TEST_NORMAL_AND_SECURE_TIME(primes not very fast version,find_primes_up_to_a_number(primes_up_to);,
 								secure_find_primes_up_to_a_number(primes_up_to);)
 	

@@ -48,6 +48,8 @@ public class Secure_Machine_Code {
 		int cnt_for_instr_bytes=0; //counts the useful bytes that come before the keyshares
 		int number_of_nops_to_denote_program_start=130;
 		byte canary_value=0x42; //says:after me, keyshares follow!
+		boolean use_fixed_size_chunks_of_code=false;
+		int num_of_bytes_in_code_chunk=20;
 		
 		MessageDigest md = MessageDigest.getInstance("SHA-256");
 		FileInputStream fr = new FileInputStream(new File(filename));
@@ -61,7 +63,7 @@ public class Secure_Machine_Code {
 		byte [] global_keys = Files.readAllBytes(path);
 		byte[] stuff_in_code_to_be_MACed=new byte[2048];
 		
-		if (args.length==7)
+		if (args.length==9)
 		{
 			number_of_interleaved_keys=Integer.parseInt(args[0]);
 			num_of_keys_in_heap=number_of_interleaved_keys;
@@ -72,6 +74,11 @@ public class Secure_Machine_Code {
 			useful_bytes_between_keys_in_stack=Integer.parseInt(args[4]);
 			total_bytes_trying_to_allocate_in_stack=Long.parseLong(args[5]);
 			num_of_mac_bytes=Integer.parseInt(args[6]);
+			if (Integer.parseInt(args[7])==0)
+				use_fixed_size_chunks_of_code=false;
+			else
+				use_fixed_size_chunks_of_code=true;
+			num_of_bytes_in_code_chunk=Integer.parseInt(args[8]);
 		}
 		else
 		{

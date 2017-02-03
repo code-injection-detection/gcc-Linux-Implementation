@@ -35,7 +35,11 @@ for line in src_lines:
 	if '#define number_of_mac_bytes' in line:
 		newline='#define number_of_mac_bytes ('+sys.argv[8]+')\n'			
 	if '#define insert_parameters_into_new_secure_stack_as_arrays' in line:
-		newline='#define insert_parameters_into_new_secure_stack_as_arrays '+sys.argv[9]+'\n'				
+		newline='#define insert_parameters_into_new_secure_stack_as_arrays '+sys.argv[9]+'\n'
+	if '#define use_fixed_size_chunks_of_code' in line:
+		newline='#define use_fixed_size_chunks_of_code '+sys.argv[10]+'\n'	
+	if '#define num_of_bytes_in_code_chunk' in line:
+		newline='#define num_of_bytes_in_code_chunk '+sys.argv[11]+'\n'				
 		
 	headers_dst.write(newline)
 

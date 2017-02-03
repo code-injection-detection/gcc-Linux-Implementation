@@ -37,9 +37,11 @@ public class Secure_Assembly {
 		int bytes_for_instr_len=1;
 		int number_of_nops_to_denote_program_start=130;
 		boolean check_code_verification_on_the_fly=false;
+		boolean use_fixed_size_chunks_of_code=false;
+		int num_of_bytes_in_code_chunk=20;
 		
 
-		if (args.length==5)
+		if (args.length==7)
 		{
 			num_of_interleaved_keys=Integer.parseInt(args[0]);
 			num_of_grouped_orig_instr=Integer.parseInt(args[1]);
@@ -49,6 +51,14 @@ public class Secure_Assembly {
 				check_code_verification_on_the_fly=false;
 			else
 				check_code_verification_on_the_fly=true;
+			
+			if (Integer.parseInt(args[5])==0)
+				use_fixed_size_chunks_of_code=false;
+			else
+				use_fixed_size_chunks_of_code=true;
+			
+			num_of_bytes_in_code_chunk=Integer.parseInt(args[6]);
+			
 		}
 		else
 		{
@@ -156,12 +166,14 @@ public class Secure_Assembly {
 					continue;
 				}
 				
+				
 				//put "ret" and "movq	%rsp, %rbp" into the former block
 				if (check_code_verification_on_the_fly && ( line.trim().equals("ret") || line.trim().equals("movq	%rsp, %rbp")))
 				{
 					list_of_lines.add(line);
 					continue;
 				}
+									
 								
 				//if we have exhausted the group of commands, we need to add a jump and nops, and a label after them
 				if (i == num_of_grouped_orig_instr)
@@ -181,7 +193,21 @@ public class Secure_Assembly {
 	
 				}
 				
-				list_of_lines.add(line);  //the default behavior is the program to add the next command
+				//the default behavior is the program to add the next command
+				//except if we need to change a jump
+				if (use_fixed_size_chunks_of_code && line.trim().startsWith("j"))
+				{
+					String[] parts=line.trim().split("\t");
+					String cmd=parts[0];
+					String operands="";
+					if (parts.length>1)
+						operands=parts[1];
+					list_of_lines.add(cmd+".d32\t"+operands+"\n");
+				}
+				else
+				{
+					list_of_lines.add(line);  //the default behavior is the program to add the next command
+				}
 				i++;
 				
 				//System.out.println(line);

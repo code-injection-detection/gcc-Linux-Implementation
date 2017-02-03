@@ -86,6 +86,17 @@
 #endif				//This a boolean variable that selects if we should insert the parameters of a function into the secure stack as arrays or not
 
 
+#ifndef use_fixed_size_chunks_of_code
+#define use_fixed_size_chunks_of_code 1
+#endif				//This is a boolean variable that selects if we should use fixed size chunks of useful bytes in code
+
+
+#ifndef num_of_bytes_in_code_chunk
+#define num_of_bytes_in_code_chunk 20
+#endif				//This is the number of bytes that each code chunk will be, should the <use_fixed_size_chunks_of_code> is 1
+
+
+
 #include "crypto_functions.h"
 #include "secure_getters_setters.h"
 
