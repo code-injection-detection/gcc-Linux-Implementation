@@ -46,7 +46,7 @@ public class Secure_Machine_Code {
 		int number_of_canaries=2;
 		int bytes_for_instr_len=1;
 		int cnt_for_instr_bytes=0; //counts the useful bytes that come before the keyshares
-		int number_of_nops_to_denote_program_start=130;
+		int number_of_nops_to_denote_program_start=300;
 		byte canary_value=0x42; //says:after me, keyshares follow!
 		boolean use_fixed_size_chunks_of_code=false;
 		int num_of_bytes_in_code_chunk=20;

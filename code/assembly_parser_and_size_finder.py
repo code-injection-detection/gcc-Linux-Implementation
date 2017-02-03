@@ -27,43 +27,45 @@ del lines[0]
 		
 nop_cnt=0
 in_function=0
+linesout.append("NEXT_FUNCTION")
 #find functions start
 for line in lines:
-	if (line.startswith("00000")):
-		in_function=1
+	if line.strip()=="":
 		continue
-	elif line=="" :
-		in_function=0
-		linesout.append("NEXT_FUNCTION")
-			
-	if (in_function):
-		address=line.split(":")[0].strip()
-		bytes_and_cmd=line.split(":")[1].strip()
-		bytes_in_hex=bytes_and_cmd.split('\t')[0].strip()
-		num_of_bytes=len(bytes_in_hex.split(' '))
-		
-		if (len(bytes_and_cmd.split('\t'))<2): #it's a continuation of the former command
-			former_num_of_bytes=int(linesout[-1].split(" ")[0])
-			new_num_of_bytes=former_num_of_bytes+num_of_bytes
-			linesout_parts=linesout[-1].split(" ")
-			linesout[-1]=(str(new_num_of_bytes)+" ")
-			for i in range(1,len(linesout_parts)):
-				linesout[-1]+=linesout_parts[i]+" "
-			continue
-		else: #it's a new command
-			cmd=bytes_and_cmd.split('\t')[1].strip()
-		
-		if (cmd=="nop"):
-			nop_cnt+=1
-		else:
-			nop_cnt=0
-		
-		if nop_cnt==number_of_nops_in_code:
-			for i in range(number_of_nops_in_code-1):
-				del linesout[-1]
-			linesout.append("NOPS_HERE")
-		else:
-			linesout.append(str(num_of_bytes)+" "+str(cmd))
+	if (len(line.split(" "))>1 and line.split(" ")[1].startswith("<")==True and line.split(" ")[1].startswith("<.UNIQUE")==False):
+		linesout.append("NEXT_FUNCTION " + line.split(" ")[1].replace("<","").replace(">","").replace(":","")) #name of function
+		continue
+	if (len(line.split(" "))>1 and line.split(" ")[1].startswith("<.UNIQUE")==True):
+		linesout.append(line)
+		continue
+
+	address=line.split(":")[0].strip()
+	bytes_and_cmd=line.split(":")[1].strip()
+	bytes_in_hex=bytes_and_cmd.split('\t')[0].strip()
+	num_of_bytes=len(bytes_in_hex.split(' '))
+	
+	if (len(bytes_and_cmd.split('\t'))<2): #it's a continuation of the former command
+		former_num_of_bytes=int(linesout[-1].split(" ")[0])
+		new_num_of_bytes=former_num_of_bytes+num_of_bytes
+		linesout_parts=linesout[-1].split(" ")
+		linesout[-1]=(str(new_num_of_bytes)+" ")
+		for i in range(1,len(linesout_parts)):
+			linesout[-1]+=linesout_parts[i]+" "
+		continue
+	else: #it's a new command
+		cmd=bytes_and_cmd.split('\t')[1].strip()
+	
+	if (cmd=="nop"):
+		nop_cnt+=1
+	else:
+		nop_cnt=0
+	
+	if nop_cnt==number_of_nops_in_code:
+		for i in range(number_of_nops_in_code-1):
+			del linesout[-1]
+		linesout.append("NOPS_HERE")
+	else:
+		linesout.append(str(num_of_bytes)+" "+str(cmd))
 
 
 for line in linesout:

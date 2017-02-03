@@ -34,8 +34,8 @@ public class Secure_Assembly {
 		int  num_of_interleaved_keys = 5;   //this should be equal to the number of keys we use in Secure_Machine_Code.java (now that we assume that 1 NOP = 1key)
 		int  number_of_canaries=2;
 		int  num_of_mac_bytes=4;
-		int bytes_for_instr_len=1;
-		int number_of_nops_to_denote_program_start=130;
+		int bytes_for_instr_len=1; //one byte that denotes the length of the useful bytes + 2 bytes for jmp. If fixed chunks of code are active. Does the same. The padded nops are not included.
+		int number_of_nops_to_denote_program_start=300;
 		boolean check_code_verification_on_the_fly=false;
 		boolean use_fixed_size_chunks_of_code=false;
 		int num_of_bytes_in_code_chunk=20;
@@ -114,6 +114,9 @@ public class Secure_Assembly {
 				if (removeSpaces(line).indexOf(".cfi_startproc")!=-1)
 				{
 					//System.out.println("I found the beginning of the function");
+					//add_label_for_sart_of_function
+					list_of_lines.add(".START_OF_FUNCTION_"+list_of_lines.get(list_of_lines.size()-3));
+					
 					if (check_code_verification_on_the_fly)
 					{
 						add_code_verification_lines(list_of_lines);
