@@ -4,6 +4,7 @@ aes
 sha256
 *sec
 *.s
+assembly_sizes.txt
 a.out
 assembly_commands_for_parsing.txt
 main_program

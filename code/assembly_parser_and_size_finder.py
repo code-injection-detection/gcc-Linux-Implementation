@@ -7,7 +7,6 @@ import gc
 
 #takes an assembly output and finds the size of the chunks
 
-num_of_chunks_given=1
 filename="assembly_commands_for_parsing.txt"
 number_of_nops_in_code=int(sys.argv[1])
 linesout=[]
@@ -27,17 +26,17 @@ del lines[0]
 		
 nop_cnt=0
 in_function=0
-linesout.append("NEXT_FUNCTION")
-#find functions start
 for line in lines:
 	if line.strip()=="":
 		continue
 	if (len(line.split(" "))>1 and line.split(" ")[1].startswith("<")==True and line.split(" ")[1].startswith("<.UNIQUE")==False):
 		linesout.append("NEXT_FUNCTION " + line.split(" ")[1].replace("<","").replace(">","").replace(":","")) #name of function
 		continue
+	#add the labels
 	if (len(line.split(" "))>1 and line.split(" ")[1].startswith("<.UNIQUE")==True):
-		linesout.append(line)
+		#linesout.append(line) #nah don't add them
 		continue
+		
 
 	address=line.split(":")[0].strip()
 	bytes_and_cmd=line.split(":")[1].strip()

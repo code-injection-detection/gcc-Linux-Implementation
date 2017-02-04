@@ -15,7 +15,8 @@ if [[ ( "$#" -ne 9 ) && ( "$#" -ne 10) ]]; then
     echo "f=number of grouped useful bytes in stack memory, g=total bytes to (try to) pre-allocate in stack memory"
     echo "h=number of grouped useful bytes between keyshares in global variables"
     echo "i=number of bytes for MACs"
-	echo "j=size of a fixed chunk in code (optional, will not use fixed size if not given)"
+	echo "j=size of a fixed chunk in code (optional, will not use fixed size if not given)."
+	echo "if j is given, b is ignored"
     echo "Example: $0 32 1 2 4 25000 4 20000 8 16"
 	echo "OR:"
 	echo "Example: $0 32 1 2 4 25000 4 20000 8 16 16"
@@ -214,6 +215,17 @@ echo "Compiled."
 echo "Inserting NOPs into assembly..."
 java -cp ../bin Secure_Assembly $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_INSTRUCTIONS $NUM_OF_CANARIES $NUM_OF_MAC_BYTES $ADD_CODE_ON_THE_FLY_VERIFICATION $USE_FIXED_SIZE_CHUNKS_OF_CODE $NUM_OF_BYTES_IN_CODE_CHUNK
 echo "NOPs inserted."
+
+if [ "$#" -eq 10 ]; then
+	echo "Padding the nops for each block of code in order to reach fixed size blocks..."
+	cat main_program_sec.s | as && objdump -d > assembly_commands_for_parsing.txt
+	NUM_OF_NOPS=$(( $NUM_OF_CANARIES + 1 + $NUM_OF_INTERLEAVED_KEYS + $NUM_OF_MAC_BYTES ))
+	./assembly_parser_and_size_finder.py $NUM_OF_NOPS > assembly_sizes.txt
+	./nop_padder_for_fixed_size_code_blocks.py $NUM_OF_NOPS $NUM_OF_BYTES_IN_CODE_CHUNK $ADD_CODE_ON_THE_FLY_VERIFICATION > assembly_with_padded_nops.s
+	mv assembly_with_padded_nops.s main_program_sec.s
+	rm -f assembly_commands_for_parsing.txt assembly_sizes.txt
+	echo "Padded the nops."
+fi
 
 echo "Assembling code with NOPs..."
 make secure
