@@ -57,6 +57,7 @@ while i<len(lines_assembly) and j<len(lines_sizes):
 		
 	#now we have found the same jump in both the codes
 	if (i<len(lines_assembly) and j<len(lines_sizes)):
+		#print ("i,j,unique=",i,j,unique_cnt)
 		former_cmd_and_size=lines_sizes[j-2].strip()
 		size_of_former_cmd=int(former_cmd_and_size.split(" ")[0])
 		if (add_code_on_the_fly_verification):

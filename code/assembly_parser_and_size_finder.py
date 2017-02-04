@@ -12,6 +12,17 @@ number_of_nops_in_code=int(sys.argv[1])
 linesout=[]
 
 
+def get_next_cmd(line):
+	if line=="":
+		return line
+	else:
+		address=line.split(":")[0].strip()
+		bytes_and_cmd=line.split(":")[1].strip()
+		bytes_in_hex=bytes_and_cmd.split('\t')[0].strip()
+		num_of_bytes=len(bytes_in_hex.split(' '))
+		cmd=bytes_and_cmd.split('\t')[1].strip()
+		return cmd
+
 
 #read lines
 with open(filename) as f:
@@ -26,7 +37,7 @@ del lines[0]
 		
 nop_cnt=0
 in_function=0
-for line in lines:
+for linecnt,line in enumerate(lines):
 	if line.strip()=="":
 		continue
 	if (len(line.split(" "))>1 and line.split(" ")[1].startswith("<")==True and line.split(" ")[1].startswith("<.UNIQUE")==False):
@@ -56,15 +67,18 @@ for line in lines:
 	
 	if (cmd=="nop"):
 		nop_cnt+=1
+		if ((linecnt==len(lines)-1) or (get_next_cmd(lines[linecnt+1])!="nop") and nop_cnt>10):
+			linesout.append("NOPS_HERE "+str(nop_cnt))
+			nop_cnt=0
+		if ((linecnt==len(lines)-1) or (get_next_cmd(lines[linecnt+1])!="nop") and nop_cnt<=10): #there are some nops that are alone...
+			for i in range(nop_cnt):
+				linesout.append("1 nop")
+			nop_cnt=0
+		continue
 	else:
 		nop_cnt=0
 	
-	if nop_cnt==number_of_nops_in_code:
-		for i in range(number_of_nops_in_code-1):
-			del linesout[-1]
-		linesout.append("NOPS_HERE")
-	else:
-		linesout.append(str(num_of_bytes)+" "+str(cmd))
+	linesout.append(str(num_of_bytes)+" "+str(cmd))
 
 
 for line in linesout:
