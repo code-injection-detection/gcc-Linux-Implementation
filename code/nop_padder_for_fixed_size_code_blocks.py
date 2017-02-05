@@ -6,10 +6,13 @@ import copy
 #pads enough nops to the proper assembly, so that the fixed size block length for code is reached
 
 
+def RepresentsInt(s):
+    try: 
+        int(s)
+        return True
+    except ValueError:
+        return False
 
-
-def find_command_size(unique_number):
-	pass
 
 
 assembly_sizes_filename="assembly_sizes.txt"
@@ -58,13 +61,25 @@ while i<len(lines_assembly) and j<len(lines_sizes):
 	#now we have found the same jump in both the codes
 	if (i<len(lines_assembly) and j<len(lines_sizes)):
 		#print ("i,j,unique=",i,j,unique_cnt)
-		former_cmd_and_size=lines_sizes[j-2].strip()
-		size_of_former_cmd=int(former_cmd_and_size.split(" ")[0])
+		#go back and add the sizes of the commands until the first number is not an int
+		k=1
+		total_size_of_cmds=0
+		while k<=j:
+			former_cmd_and_size=lines_sizes[j-k].strip()
+			if (RepresentsInt(former_cmd_and_size.split(" ")[0])):	
+				size_of_former_cmd=int(former_cmd_and_size.split(" ")[0])
+				total_size_of_cmds+=size_of_former_cmd
+				k+=1
+			else:
+				break
+		'''
 		if (add_code_on_the_fly_verification):
 			nops_to_pad=num_of_bytes_in_code_chunk-2-5-size_of_former_cmd #jmp is 2 and call is 5 bytes long
 		else:
 			nops_to_pad=num_of_bytes_in_code_chunk-2-size_of_former_cmd #jmp is 2
-			
+		'''	
+		nops_to_pad=num_of_bytes_in_code_chunk-total_size_of_cmds
+		
 		#pad nops
 		for n in range(nops_to_pad):
 			linesout.append("NOP")

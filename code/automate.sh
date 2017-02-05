@@ -95,8 +95,8 @@ if [ "$NUM_OF_GROUPED_INSTRUCTIONS" -gt "20" ]; then
 	exit
 fi
 
-if [ "$NUM_OF_BYTES_IN_CODE_CHUNK" -lt "10" ]; then
-	echo "Caution! The length of the code chunk should be bigger or equal than 10"
+if [ "$NUM_OF_BYTES_IN_CODE_CHUNK" -lt "12" ]; then
+	echo "Caution! The length of the code chunk should be bigger or equal than 12"
 	echo "Your value of code chunk length is small enough to cause concerns. Exiting for safety."
 	echo "If you REALLY want such a value (it is small however), change the automate.sh script."
 	exit
@@ -218,12 +218,29 @@ echo "NOPs inserted."
 
 if [ "$#" -eq 10 ]; then
 	echo "Padding the nops for each block of code in order to reach fixed size blocks..."
+	#assembling and disassembling
 	cat main_program_sec.s | as && objdump -d > assembly_commands_for_parsing.txt
 	NUM_OF_NOPS=$(( $NUM_OF_CANARIES + 1 + $NUM_OF_INTERLEAVED_KEYS + $NUM_OF_MAC_BYTES ))
+	#calculating sizes of commands
 	./assembly_parser_and_size_finder.py $NUM_OF_NOPS > assembly_sizes.txt
+	#padding bytes
 	./nop_padder_for_fixed_size_code_blocks.py $NUM_OF_NOPS $NUM_OF_BYTES_IN_CODE_CHUNK $ADD_CODE_ON_THE_FLY_VERIFICATION > assembly_with_padded_nops.s
 	mv assembly_with_padded_nops.s main_program_sec.s
-	rm -f assembly_commands_for_parsing.txt assembly_sizes.txt
+	
+	
+	#verifying that blocks are fixed size
+	#do the same thing with the new main_program_sec.s
+	cat main_program_sec.s | as && objdump -d > assembly_commands_for_parsing.txt
+	./assembly_parser_and_size_finder.py $NUM_OF_NOPS > assembly_sizes.txt
+	./assembly_fixed_size_verifier.py $NUM_OF_NOPS $NUM_OF_BYTES_IN_CODE_CHUNK $ADD_CODE_ON_THE_FLY_VERIFICATION
+	if [ $? -eq 0 ]; then
+		: #all ok
+	else
+		echo "Error. Could not make the code blocks to be fixed size."
+		exit
+	fi
+	
+	#rm -f assembly_commands_for_parsing.txt assembly_sizes.txt
 	echo "Padded the nops."
 fi
 
