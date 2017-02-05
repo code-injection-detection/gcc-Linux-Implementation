@@ -17,9 +17,9 @@ if [[ ( "$#" -ne 9 ) && ( "$#" -ne 10) ]]; then
     echo "i=number of bytes for MACs"
 	echo "j=size of a fixed chunk in code (optional, will not use fixed size if not given)."
 	echo "if j is given, b is ignored"
-    echo "Example: $0 32 1 2 4 25000 4 20000 8 16"
+    echo "Example: $0 32 1 3 4 25000 4 20000 8 16"
 	echo "OR:"
-	echo "Example: $0 32 1 2 4 25000 4 20000 8 16 16"
+	echo "Example: $0 32 1 3 4 25000 4 20000 8 16 16"
     exit
 fi
 

@@ -106,20 +106,18 @@ void find_keyshares(int choice)
 
 	//printf("start of .text=0x%lx, end of .text=0x%lx, init=0x%lx, fini=0x%lx\n",(unsigned long)&__executable_start,(unsigned long)&__etext, (unsigned long)&_init,(unsigned long)&_fini);
    
-	if (number_of_mac_bytes==0)
-		bytes_for_instr_len=0;
 
 	//using start and end of text section
 	for (p=start_of_text;p<=end_of_text;)
 	{
-		if (*p==0xEB && *(p+1)==(number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len) && check_next_canaries(p+2)) //JMP <number of keys>+<number_of_canaries>+<number_of_mac_bytes>+<bytes_for_instr_len>
+		if (*p==0xEB && *(p+1)==(number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len+get_number_of_padded_nops(p)) && check_next_canaries(p+2)) //JMP <number of keys>+<number_of_canaries>+<number_of_mac_bytes>+<bytes_for_instr_len>
 		{ 
-			//printf("0x%02x ",*(p+2));
+			//printf("0x%02x ",*(p+1));
 			for (keycnt=0;keycnt<number_of_interleaved_keys;keycnt++)
 			{
-				keys[keycnt]^= (unsigned char) *(p+2+keycnt+number_of_canaries+bytes_for_instr_len);
+				keys[keycnt]^= (unsigned char) *(p+2+keycnt+number_of_canaries+bytes_for_instr_len+get_number_of_padded_nops(p));
 			}
-			p+=(number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len)+2; //jump over all the canaries,keys,macs
+			p+=(number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len+get_number_of_padded_nops(p))+2; //jump over all the canaries,keys,macs
 		}
 		else
 		{

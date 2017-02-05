@@ -50,6 +50,8 @@ public class Secure_Machine_Code {
 		byte canary_value=0x42; //says:after me, keyshares follow!
 		boolean use_fixed_size_chunks_of_code=false;
 		int num_of_bytes_in_code_chunk=20;
+		int number_of_padded_nops=0;
+		int cnt_for_useful_bytes=0;
 		
 		MessageDigest md = MessageDigest.getInstance("SHA-256");
 		FileInputStream fr = new FileInputStream(new File(filename));
@@ -106,23 +108,44 @@ public class Secure_Machine_Code {
 	    }
 	    int n = arr.length;
 	    cnt_for_instr_bytes=0;
+	    cnt_for_useful_bytes=0;
+	    if (use_fixed_size_chunks_of_code)
+	    {
+	    	cnt_for_useful_bytes=0;
+	    	number_of_padded_nops=num_of_bytes_in_code_chunk-cnt_for_useful_bytes;
+	    }
+	    else
+	    {
+	    	number_of_padded_nops=0;
+	    }
 
-		if (num_of_mac_bytes==0)
-			bytes_for_instr_len=0;
 
-	    for(int i=0;i<n-(2+number_of_interleaved_keys+number_of_canaries+num_of_mac_bytes+bytes_for_instr_len);)
+	    for(int i=0;i<n-(2+number_of_interleaved_keys+number_of_canaries+num_of_mac_bytes+bytes_for_instr_len+num_of_bytes_in_code_chunk);) //the num_of_bytes_in_code_chunk is not correct, but works since there is no code in the last part of the executable
 	    {
 			if (k_nops_after_us(number_of_nops_to_denote_program_start,arr,i-2) && arr[i+number_of_nops_to_denote_program_start]!=(byte)0x90)  //-2 because the funtions adds +2
 			{
-				//System.out.println("found 130 nops at position "+i);
+				//System.out.println("found 300 nops at position "+i);
 				cnt_for_instr_bytes=0;
 				i+=number_of_nops_to_denote_program_start;
+				if (use_fixed_size_chunks_of_code)
+				{
+					cnt_for_useful_bytes=0;
+					number_of_padded_nops=num_of_bytes_in_code_chunk-cnt_for_useful_bytes;
+				}
 			}
-	    	if(arr[i]==-21 && (arr[i+1] == (byte)(number_of_interleaved_keys+number_of_canaries+num_of_mac_bytes+bytes_for_instr_len)) && k_nops_after_us(number_of_interleaved_keys+number_of_canaries+num_of_mac_bytes+bytes_for_instr_len,arr,i)) // int -21 = jmp opcode, and the arr[i+1] has to be the offset (number of nops + 1 ) , and we have to have num_of_keys NOPs after us
+	    	if(arr[i]==-21 && (arr[i+1] == (byte)(number_of_interleaved_keys+number_of_canaries+num_of_mac_bytes+bytes_for_instr_len+(use_fixed_size_chunks_of_code?(number_of_padded_nops-2):0))) && (use_fixed_size_chunks_of_code?number_of_padded_nops>=0:true) && k_nops_after_us(number_of_interleaved_keys+number_of_canaries+num_of_mac_bytes+bytes_for_instr_len+(use_fixed_size_chunks_of_code?(number_of_padded_nops-2):0),arr,i)) // int -21 = jmp opcode, and the arr[i+1] has to be the offset (number of nops + 1 ) , and we have to have num_of_keys NOPs after us
 	    	{
 				
 				if (num_of_mac_bytes>0)
 					cnt_for_instr_bytes+=2;
+				
+				if (use_fixed_size_chunks_of_code)
+				{
+					cnt_for_useful_bytes+=2;
+					number_of_padded_nops=num_of_bytes_in_code_chunk-cnt_for_useful_bytes;
+				}
+    			//System.out.println("i,number_of_padded_nops,cnt_for_instr_bytes "+i+" "+number_of_padded_nops+" "+cnt_for_instr_bytes);
+				//System.out.flush();
 
 				number_of_nop_groups_replaced++;
 				for(int j=0;j<number_of_canaries;j++)
@@ -130,7 +153,7 @@ public class Secure_Machine_Code {
 					arr[i+2+j] = (byte)canary_value;
 				}
 				
-				if (cnt_for_instr_bytes>0 && (cnt_for_instr_bytes/255.0>bytes_for_instr_len || bytes_for_instr_len>1 ))
+				if (num_of_mac_bytes>0 && cnt_for_instr_bytes>0 && (cnt_for_instr_bytes/255.0>bytes_for_instr_len || bytes_for_instr_len>1 ))
 				{
 					System.out.println("Error. Too many assembly commands (255 bytes in size) in one chunk of useful bytes. Count: "+cnt_for_instr_bytes+" at position: "+i);
 				}
@@ -138,10 +161,16 @@ public class Secure_Machine_Code {
 				{
 					for(int j=0;j<bytes_for_instr_len;j++)
 					{
-						arr[i+2+j+number_of_canaries] = (byte)cnt_for_instr_bytes;
+						if (use_fixed_size_chunks_of_code==false && num_of_mac_bytes==0)
+							arr[i+2+j+number_of_canaries]=(byte)0;
+						else if (use_fixed_size_chunks_of_code)
+							arr[i+2+j+number_of_canaries] = (byte)cnt_for_useful_bytes;
+						else if (num_of_mac_bytes>0)	
+							arr[i+2+j+number_of_canaries] = (byte)cnt_for_instr_bytes;
 					}
 				}
-				
+
+    			
 				byte[] random_bytes_generated= new byte[number_of_interleaved_keys]; //to check accidental creation of "used" opcodes
 	    		for(int j=0;j<number_of_interleaved_keys;j++)
 	    		{
@@ -149,30 +178,30 @@ public class Secure_Machine_Code {
 	    					
 	    			random_bytes_generated[j]=temp;
 	    			
-	    			//check not to accidentally produce opcode for <jmp> (<number of keys>+<number of canaries>+<number of macs>+<bytes_for_instr_len>) and the canary bytes afterwards
-	    			while (j>=2+number_of_canaries-1 /*minus 1!*/ && produced_bad_opcode(random_bytes_generated,number_of_interleaved_keys,number_of_canaries,num_of_mac_bytes,bytes_for_instr_len,j,canary_value))
+	    			//check not to accidentally produce opcode for <jmp> (<number of keys>+<number of canaries>+<number of macs>+<bytes_for_instr_len>+number_of_padded_nops) and the canary bytes afterwards
+	    			while (j>=2+number_of_canaries-1 /*minus 1!*/ && produced_bad_opcode(random_bytes_generated,number_of_interleaved_keys,number_of_canaries,num_of_mac_bytes,bytes_for_instr_len,number_of_padded_nops,j,canary_value))
 	    			{
 	    				System.out.println("Accidentally created JMP <nops number + number of canaries>+<num_of_mac_bytes>+<bytes_for_instr_len> opcode, and inserted canaries after it!");
 	    				temp = randomByte();
 	    				random_bytes_generated[j]=temp;
 	    			}
 	    			
-    				arr[i+2+j+number_of_canaries+bytes_for_instr_len] = temp;
+    				arr[i+2+j+number_of_canaries+bytes_for_instr_len+number_of_padded_nops] = temp;
     				keys[j].add(temp);    				
 	    		}
 	    		
-				i+=(number_of_interleaved_keys+number_of_canaries+bytes_for_instr_len+2); //jump above them and reach the mac bytes
+				i+=(number_of_interleaved_keys+number_of_canaries+bytes_for_instr_len+number_of_padded_nops+2); //jump above them and reach the mac bytes
 	    		
 				if (num_of_mac_bytes>0)
 				{
 					//time to set the proper MACs
-					for (int j=0;j<cnt_for_instr_bytes+number_of_canaries+bytes_for_instr_len+number_of_interleaved_keys;j++)
+					for (int j=0;j<cnt_for_instr_bytes+number_of_canaries+bytes_for_instr_len+number_of_interleaved_keys+number_of_padded_nops;j++)
 					{
 						//copy bytes
-						stuff_in_code_to_be_MACed[j]=arr[i-(cnt_for_instr_bytes+number_of_interleaved_keys+number_of_canaries+bytes_for_instr_len)+j];
+						stuff_in_code_to_be_MACed[j]=arr[i-(cnt_for_instr_bytes+number_of_interleaved_keys+number_of_canaries+bytes_for_instr_len+number_of_padded_nops)+j];
 					}
 					//give them to the mac handler and calculate the mac
-					byte[] digest=calculate_mac(cnt_for_instr_bytes+number_of_canaries+bytes_for_instr_len+number_of_interleaved_keys,cnt_for_instr_bytes+number_of_canaries+bytes_for_instr_len,stuff_in_code_to_be_MACed,num_of_mac_bytes);
+					byte[] digest=calculate_mac(cnt_for_instr_bytes+number_of_canaries+bytes_for_instr_len+number_of_interleaved_keys+number_of_padded_nops,cnt_for_instr_bytes+number_of_canaries+bytes_for_instr_len+number_of_padded_nops,stuff_in_code_to_be_MACed,num_of_mac_bytes);
 					
 					//and write the mac bytes
 					for (int j=0;j<num_of_mac_bytes;j++)
@@ -190,11 +219,22 @@ public class Secure_Machine_Code {
 					i+=num_of_mac_bytes; //and jump over the mac bytes too
 					cnt_for_instr_bytes=0;
 				}
+				
+				if (use_fixed_size_chunks_of_code)
+				{
+					cnt_for_useful_bytes=0;
+					number_of_padded_nops=num_of_bytes_in_code_chunk-cnt_for_useful_bytes;
+				}
 	    	}
 	    	else
 	    	{
 				if (num_of_mac_bytes>0)
 					cnt_for_instr_bytes++;
+				if (use_fixed_size_chunks_of_code)
+				{
+					cnt_for_useful_bytes++;
+					number_of_padded_nops=num_of_bytes_in_code_chunk-cnt_for_useful_bytes;
+				}
 				i++;
 			}
 	    }
@@ -308,6 +348,8 @@ public class Secure_Machine_Code {
 	static boolean k_nops_after_us(int k, byte[] arr, int arrindex)  
 	{
 		int i=arrindex+2; //we start where we expect the first nop to be found
+		if (arr.length<=i+k)
+			return false;
 		for(int j=1;j<=k;j++,i++)
 		{
 			if (arr[i]!= (byte) 0x90) //NOP opcode
@@ -330,14 +372,14 @@ public class Secure_Machine_Code {
 	}
 	
 
-	static boolean produced_bad_opcode( byte[] random_bytes_generated,int number_of_interleaved_keys, int number_of_canaries,int number_of_mac_bytes,int bytes_for_instr_len,int pos,byte canary_value)
+	static boolean produced_bad_opcode( byte[] random_bytes_generated,int number_of_interleaved_keys, int number_of_canaries,int number_of_mac_bytes,int bytes_for_instr_len,int number_of_padded_nops,int pos,byte canary_value)
 	{
 		for (int i=0;i<number_of_canaries;i++)
 		{
 			if (random_bytes_generated[pos-i]!=canary_value)
 				return false;
 		}
-		if (random_bytes_generated[pos-number_of_canaries]!=(number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len))
+		if (random_bytes_generated[pos-number_of_canaries]!=(number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len+number_of_padded_nops))
 			return false;
 		if (random_bytes_generated[pos-number_of_canaries-1]!=-21) // -21=jmp opcode
 			return false;

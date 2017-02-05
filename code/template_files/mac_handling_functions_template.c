@@ -85,16 +85,16 @@ void check_code_macs()
 	//using start and end of text section
 	for (p=start_of_text;p<=end_of_text;)
 	{
-		if (*p==0xEB && *(p+1)==(number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len) && check_next_canaries(p+2)) //JMP <number of keys>+<number_of_canaries>+<number_of_mac_bytes>+<bytes_for_instr_len>
+		if (*p==0xEB && *(p+1)==(number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len+get_number_of_padded_nops(p)) && check_next_canaries(p+2)) //JMP <number of keys>+<number_of_canaries>+<number_of_mac_bytes>+<bytes_for_instr_len>
 		{ 
 			mac_cnt++;
 			length_of_useful_data=*(p+2+number_of_canaries);
-			if (check_mac_for_error(p-(length_of_useful_data-2),length_of_useful_data+number_of_interleaved_keys+number_of_canaries+bytes_for_instr_len,length_of_useful_data+number_of_canaries+bytes_for_instr_len))
+			if (check_mac_for_error(p-(length_of_useful_data-2),length_of_useful_data+number_of_interleaved_keys+number_of_canaries+bytes_for_instr_len+get_number_of_padded_nops(p),length_of_useful_data+number_of_canaries+bytes_for_instr_len+get_number_of_padded_nops(p)))
 			{	
 				printf("Error in code macs, p=%ld, start of code=%ld\n",(long) p,(long)start_of_text);
 				error=1;
 			}
-			p+=(number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len)+2; //jump over all the canaries,keys,macs
+			p+=(number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len+get_number_of_padded_nops(p))+2; //jump over all the canaries,keys,macs
 		}
 		else
 		{
@@ -103,7 +103,7 @@ void check_code_macs()
 	}
 	if (error==0)
 	{
-		if (mac_cnt>0)
+		if (mac_cnt>0 && number_of_mac_bytes>0)
 			printf("All code macs ok!\n");
 		else
 			printf("No mac groups to check in code!\n");
