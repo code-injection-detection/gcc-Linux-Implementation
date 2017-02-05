@@ -104,7 +104,7 @@ void check_code_macs()
 	if (error==0)
 	{
 		if (mac_cnt>0 && number_of_mac_bytes>0)
-			printf("All code macs ok!\n");
+			printf("All code macs ok! Number of macs:%ld\n",mac_cnt);
 		else
 			printf("No mac groups to check in code!\n");
 	}

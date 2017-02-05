@@ -93,6 +93,7 @@ void find_keyshares(int choice)
 	char ret;
 	char keyout_buffer[KEYOUT_BUFFER_SIZE];
 	long place_in_keyout_buf=0;
+	long code_key_groups_found=0;
 
 	unsigned char* start_of_text=(unsigned char*)&__executable_start;  //we get the limits of .text section
 	unsigned char* end_of_text=(unsigned char*)&__etext;
@@ -106,13 +107,13 @@ void find_keyshares(int choice)
 
 	//printf("start of .text=0x%lx, end of .text=0x%lx, init=0x%lx, fini=0x%lx\n",(unsigned long)&__executable_start,(unsigned long)&__etext, (unsigned long)&_init,(unsigned long)&_fini);
    
-
 	//using start and end of text section
 	for (p=start_of_text;p<=end_of_text;)
 	{
 		if (*p==0xEB && *(p+1)==(number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len+get_number_of_padded_nops(p)) && check_next_canaries(p+2)) //JMP <number of keys>+<number_of_canaries>+<number_of_mac_bytes>+<bytes_for_instr_len>
 		{ 
 			//printf("0x%02x ",*(p+1));
+			code_key_groups_found++;
 			for (keycnt=0;keycnt<number_of_interleaved_keys;keycnt++)
 			{
 				keys[keycnt]^= (unsigned char) *(p+2+keycnt+number_of_canaries+bytes_for_instr_len+get_number_of_padded_nops(p));
@@ -124,7 +125,7 @@ void find_keyshares(int choice)
 			p++;
 		}
 	}
-
+	printf("Total key groups found in code:%ld\n",code_key_groups_found);
 
 	//taking into account the heap keys
 	type_of_bytes=0;
