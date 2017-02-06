@@ -14,6 +14,7 @@ int main()
 	x=1;
 	y=2;
 
+	printf("tralala\n");
 
 	if (rand())
 		printf("%d\n",x+foo(y));

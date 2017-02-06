@@ -1,4 +1,5 @@
 import java.util.*;
+import java.util.regex.Pattern;
 import java.io.*;
 /*
  * This program takes as input (has hardcoded name of file in it). The file
@@ -39,6 +40,7 @@ public class Secure_Assembly {
 		boolean check_code_verification_on_the_fly=false;
 		boolean use_fixed_size_chunks_of_code=false;
 		int num_of_bytes_in_code_chunk=20;
+		int line_index=0;
 		
 
 		if (args.length==7)
@@ -97,12 +99,14 @@ public class Secure_Assembly {
 		{
 			list_of_lines.add("NOP");
 		}
-
+		
+		line_index=-1;
 		for (String fun:function_names)
 		{	
 			while (sc.hasNext())
 			{
 				String line = sc.next();
+				line_index++;
 				line = removeNewlines(line);
 				//System.out.println(removeSpaces(line));
 				list_of_lines.add(line);
@@ -130,6 +134,7 @@ public class Secure_Assembly {
 			{
 				boolean reached_end_of_function=false;
 				String line = sc.next();
+				line_index++;
 				line = removeNewlines(line);
 				if (removeSpaces(line) == "")
 				{
@@ -160,19 +165,16 @@ public class Secure_Assembly {
 					break;
 				}
 				
-				if (removeSpaces(line).startsWith("."))
-				{
-					list_of_lines.add(line);
-					continue;
-				}
 				
-				
+				/*
+				//is this really necessary?
 				//put "ret" and "movq	%rsp, %rbp" into the former block
 				if (check_code_verification_on_the_fly && ( line.trim().equals("ret") || line.trim().equals("movq	%rsp, %rbp")))
 				{
 					list_of_lines.add(line);
 					continue;
 				}
+				*/
 									
 								
 				//if we have exhausted the group of commands, we need to add a jump and nops, and a label after them
@@ -186,11 +188,33 @@ public class Secure_Assembly {
 					i = 0;
 					label_counter++;
 					
+					//if next line starts with "." (is a label) or is empty
+					int got_inside_while=0;
+					while (sc.hasNext(Pattern.compile("^[ \t\n]*")) || sc.hasNext(Pattern.compile("^[ \t]*\\..*")) )
+					{
+						line = sc.next();
+						line_index++;
+						line = removeNewlines(line);
+						list_of_lines.add(line);
+						got_inside_while=1;
+					}
+					
 					if (check_code_verification_on_the_fly)
 					{
 						add_code_verification_lines(list_of_lines);
 					}
+					
+					if (got_inside_while==1)
+					{
+						continue;
+					}
 	
+				}
+				
+				if (removeSpaces(line).startsWith("."))
+				{
+					list_of_lines.add(line);
+					continue;
 				}
 				
 				//the default behavior is the program to add the next command
@@ -282,18 +306,49 @@ public class Secure_Assembly {
 	
 	static void add_code_verification_lines(ArrayList<String> list_of_lines)
 	{
-		list_of_lines.add("pushf");
+		list_of_lines.add("pushq %rax");
+		list_of_lines.add("pushq %rsi");
+		list_of_lines.add("popq %rsi");
+		list_of_lines.add("popq %rax");
+		/*list_of_lines.add("pushf");
         list_of_lines.add("pushq %rax");  //caller saved registers
+        list_of_lines.add("pushq %rbx");  //added later
         list_of_lines.add("pushq %rcx");
         list_of_lines.add("pushq %rdx");
+        list_of_lines.add("pushq %rdi");  //added later
+        list_of_lines.add("pushq %rsi");  //added later
         list_of_lines.add("lea  (%rip),%rax");
         list_of_lines.add("movq %rax,code_where_to_start_macing(%rip)");
         list_of_lines.add("movq $42,num_of_useful_bytes_to_mac_in_code(%rip)");
         list_of_lines.add("call verify_code_on_the_fly");
+        list_of_lines.add("popq %rsi");
+        list_of_lines.add("popq %rdi");
         list_of_lines.add("popq %rdx");
         list_of_lines.add("popq %rcx");
+        list_of_lines.add("popq %rbx");
         list_of_lines.add("popq %rax");
-        list_of_lines.add("popf");
+        list_of_lines.add("popf");*/
 	}
+	//as code
+	/*
+		pushf
+		pushq %rax  
+		pushq %rbx
+		pushq %rcx
+		pushq %rdx
+		pushq %rdi
+		pushq %rsi
+		lea  (%rip),%rax
+		movq %rax,code_where_to_start_macing(%rip)
+		movq $42,num_of_useful_bytes_to_mac_in_code(%rip)
+		call verify_code_on_the_fly
+		popq %rsi
+		popq %rdi
+		popq %rdx
+		popq %rcx
+		popq %rbx
+		popq %rax
+		popf
+	*/
 	
 }
