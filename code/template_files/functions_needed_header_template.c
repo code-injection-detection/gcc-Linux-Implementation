@@ -1,20 +1,9 @@
 #include "headers_needed.h"
 
 
-void do_nothing_function()
-{
-	;
-}
 long global_variable_for_rax;
 long global_variable_for_flags;
-
-/*
-void do_nothing() __attribute__ ((naked)) 
-{
-	return; 
-}
-*/
-const char do_nothing[] = "\xc3";
+long global_variable_for_what_is_under_rsp;
 
 
 void * error_checking_malloc(long size_in_bytes, const char * fun_name,int line)

@@ -306,10 +306,29 @@ public class Secure_Assembly {
 	
 	static void add_code_verification_lines(ArrayList<String> list_of_lines)
 	{
-		list_of_lines.add("pushq %rax");
-		list_of_lines.add("pushq %rsi");
-		list_of_lines.add("popq %rsi");
-		list_of_lines.add("popq %rax");
+		list_of_lines.add("movq %rax,global_variable_for_rax(%rip)");
+    	list_of_lines.add("lahf");
+        list_of_lines.add("seto %al");
+        list_of_lines.add("movq %rax,global_variable_for_flags(%rip)");
+        list_of_lines.add("popq %rax");
+        list_of_lines.add("movq %rax,global_variable_for_what_is_under_rsp(%rip)");
+        list_of_lines.add("subq $0x50, %rsp");
+        list_of_lines.add("call do_some_stuff");
+        list_of_lines.add("addq $0x50, %rsp");
+        list_of_lines.add("movq global_variable_for_what_is_under_rsp(%rip),%rax");
+        list_of_lines.add("pushq %rax");
+        list_of_lines.add("movq global_variable_for_flags(%rip),%rax");
+        list_of_lines.add("add $0x7f, %al");
+        list_of_lines.add("sahf");
+        list_of_lines.add("movq global_variable_for_rax(%rip),%rax");
+		//list_of_lines.add("pushfq");
+		//list_of_lines.add("call do_nothing");
+		//list_of_lines.add("popfq");
+		//list_of_lines.add("addq $0x0, %rax");
+		//list_of_lines.add("popq %r10");
+		//list_of_lines.add("call do_nothing");
+		//list_of_lines.add("pushq %r10");
+		//list_of_lines.add("dec %rsp");
 		/*list_of_lines.add("pushf");
         list_of_lines.add("pushq %rax");  //caller saved registers
         list_of_lines.add("pushq %rbx");  //added later
@@ -350,5 +369,37 @@ public class Secure_Assembly {
 		popq %rax
 		popf
 	*/
+	
+	/*Somehing that works*/
+	/*
+	 	list_of_lines.add("movq %rax,global_variable_for_rax(%rip)");
+		list_of_lines.add("popq %rax");
+		list_of_lines.add("movq %rax,global_variable_for_what_is_under_rsp(%rip)");
+		
+		
+		list_of_lines.add("call do_nothing_function");
+		
+		
+		list_of_lines.add("movq global_variable_for_what_is_under_rsp(%rip),%rax");
+		list_of_lines.add("pushq %rax");
+		list_of_lines.add("movq global_variable_for_rax(%rip),%rax");
+	 */
+	/*Other thing that works*/
+	/*
+	 list_of_lines.add("movq %rax,global_variable_for_rax(%rip)");
+    	list_of_lines.add("lahf");
+        list_of_lines.add("seto %al");
+        list_of_lines.add("movq %rax,global_variable_for_flags(%rip)");
+        list_of_lines.add("popq %rax");
+        list_of_lines.add("movq %rax,global_variable_for_what_is_under_rsp(%rip)");
+        list_of_lines.add("call do_nothing");
+        list_of_lines.add("movq global_variable_for_what_is_under_rsp(%rip),%rax");
+        list_of_lines.add("pushq %rax");
+        list_of_lines.add("movq global_variable_for_flags(%rip),%rax");
+        list_of_lines.add("add $0x7f, %al");
+        list_of_lines.add("sahf");
+        list_of_lines.add("movq global_variable_for_rax(%rip),%rax");
+	 */
+	
 	
 }

@@ -361,3 +361,47 @@ void update_mac_when_setting_data(unsigned char * input, int total_mac_bytes, in
 		calc_and_set_mac_of_data(input,total_mac_bytes,useful_mac_bytes,output);
 	}
 }
+
+
+/*Functions that for on-the-fly code verification testing*/
+void do_nothing_function()
+{
+	;
+}
+
+/*
+void do_nothing() __attribute__ ((naked)) 
+{
+	return; 
+}
+*/
+const char do_nothing[] = "\xc3";
+
+void do_some_stuff()
+{
+	//save state
+	__asm__ ( "pushf;"
+			  "subq $0x50,%rsp;"
+			  "pushq %rax;"
+              "pushq %rbx;"
+              "pushq %rcx;"
+              "pushq %rdx;"
+              "pushq %rbp;"
+              "pushq %rdi;"
+              "pushq %rsi;"
+			);
+
+             //printf("bom bom bom\n");
+             
+    //restore state         
+    __asm__ ( "popq %rsi;"
+			  "popq %rdi;"
+			  "popq %rbp;"
+			  "popq %rdx;"
+			  "popq %rcx;"
+			  "popq %rbx;"
+			  "popq %rax;"
+			  "addq $0x50,%rsp;"
+			  "popf;"
+             ); 
+}
