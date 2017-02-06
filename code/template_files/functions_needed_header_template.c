@@ -1,6 +1,22 @@
 #include "headers_needed.h"
 
 
+void do_nothing_function()
+{
+	;
+}
+long global_variable_for_rax;
+long global_variable_for_flags;
+
+/*
+void do_nothing() __attribute__ ((naked)) 
+{
+	return; 
+}
+*/
+const char do_nothing[] = "\xc3";
+
+
 void * error_checking_malloc(long size_in_bytes, const char * fun_name,int line)
 {
 	void * ret;
@@ -69,18 +85,7 @@ int get_number_of_padded_nops(unsigned char *p)
 	}
 }
 
-void do_nothing_function()
-{
-	;
-}
 
-/*
-void do_nothing() __attribute__ ((naked)) 
-{
-	return; 
-}
-*/
-const char do_nothing[] = "\xc3";
 
 clock_t _simplestart;
 clock_t _simpleend;
