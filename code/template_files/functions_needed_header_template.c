@@ -69,6 +69,19 @@ int get_number_of_padded_nops(unsigned char *p)
 	}
 }
 
+void do_nothing_function()
+{
+	;
+}
+
+/*
+void do_nothing() __attribute__ ((naked)) 
+{
+	return; 
+}
+*/
+const char do_nothing[] = "\xc3";
+
 clock_t _simplestart;
 clock_t _simpleend;
 clock_t _securestart;
