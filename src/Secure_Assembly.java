@@ -190,7 +190,7 @@ public class Secure_Assembly {
 					
 					//if next line starts with "." (is a label) or is empty
 					int got_inside_while=0;
-					while (sc.hasNext(Pattern.compile("^[ \t\n]*")) || sc.hasNext(Pattern.compile("^[ \t]*\\..*")) )
+					while (sc.hasNext(Pattern.compile("^[ \t\n]*$")) || sc.hasNext(Pattern.compile("^[ \t]*\\..*")) )
 					{
 						line = sc.next();
 						line_index++;
