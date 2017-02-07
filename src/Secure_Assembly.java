@@ -309,15 +309,11 @@ public class Secure_Assembly {
 		list_of_lines.add("movq %rax,global_variable_for_rax(%rip)");
     	list_of_lines.add("lahf");
         list_of_lines.add("seto %al");
-        list_of_lines.add("movq %rax,global_variable_for_flags(%rip)");
-        list_of_lines.add("popq %rax");
-        list_of_lines.add("movq %rax,global_variable_for_what_is_under_rsp(%rip)");
         list_of_lines.add("subq $0x50, %rsp");
+        list_of_lines.add("pushq %rax"); //push the proper flags
         list_of_lines.add("call do_some_stuff");
+        list_of_lines.add("popq %rax"); //pop the proper flags
         list_of_lines.add("addq $0x50, %rsp");
-        list_of_lines.add("movq global_variable_for_what_is_under_rsp(%rip),%rax");
-        list_of_lines.add("pushq %rax");
-        list_of_lines.add("movq global_variable_for_flags(%rip),%rax");
         list_of_lines.add("add $0x7f, %al");
         list_of_lines.add("sahf");
         list_of_lines.add("movq global_variable_for_rax(%rip),%rax");
@@ -372,17 +368,17 @@ public class Secure_Assembly {
 	
 	/*Somehing that works*/
 	/*
-	 	list_of_lines.add("movq %rax,global_variable_for_rax(%rip)");
-		list_of_lines.add("popq %rax");
-		list_of_lines.add("movq %rax,global_variable_for_what_is_under_rsp(%rip)");
-		
-		
-		list_of_lines.add("call do_nothing_function");
-		
-		
-		list_of_lines.add("movq global_variable_for_what_is_under_rsp(%rip),%rax");
-		list_of_lines.add("pushq %rax");
-		list_of_lines.add("movq global_variable_for_rax(%rip),%rax");
+		list_of_lines.add("movq %rax,global_variable_for_rax(%rip)");
+    	list_of_lines.add("lahf");
+        list_of_lines.add("seto %al");
+        list_of_lines.add("subq $0x50, %rsp");
+        list_of_lines.add("pushq %rax"); //push the proper flags
+        list_of_lines.add("call do_some_stuff");
+        list_of_lines.add("popq %rax"); //pop the proper flags
+        list_of_lines.add("addq $0x50, %rsp");
+        list_of_lines.add("add $0x7f, %al");
+        list_of_lines.add("sahf");
+        list_of_lines.add("movq global_variable_for_rax(%rip),%rax");
 	 */
 	/*Other thing that works*/
 	/*
