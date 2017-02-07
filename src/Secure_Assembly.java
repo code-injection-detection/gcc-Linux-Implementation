@@ -306,9 +306,9 @@ public class Secure_Assembly {
 	
 	static void add_code_verification_lines(ArrayList<String> list_of_lines)
 	{
-        list_of_lines.add("lea -0x7f(%rsp), %rsp"); //decrease %rsp without altering the flags
+       // list_of_lines.add("lea -0x7f(%rsp), %rsp"); //decrease %rsp without altering the flags
         list_of_lines.add("call do_some_stuff");
-        list_of_lines.add("lea  0x7f(%rsp),%rsp");  //bring back %rsp
+       // list_of_lines.add("lea  0x7f(%rsp),%rsp");  //bring back %rsp
 		//list_of_lines.add("pushfq");
 		//list_of_lines.add("call do_nothing");
 		//list_of_lines.add("popfq");
@@ -393,6 +393,16 @@ public class Secure_Assembly {
 	   list_of_lines.add("lea -0x400(%rsp), %rsp");
        list_of_lines.add("call do_some_stuff");
        list_of_lines.add("lea  0x400(%rsp),%rsp");
+	 */
+	
+	/*or use:
+	 * -mno-red-zone
+		Do not use a so called red zone for x86-64 code. 
+		The red zone is mandated by the x86-64 ABI, 
+		it is a 128-byte area beyond the location of the stack pointer 
+		that will not be modified by signal or interrupt handlers and therefore 
+		can be used for temporary data without adjusting the stack pointer. 
+		The flag -mno-red-zone disables this red zone. 
 	 */
 	
 	
