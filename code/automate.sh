@@ -163,14 +163,15 @@ if [ "$INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS" == "1" ]; then
 fi
 echo "Changed defines."
 
-echo "Copying header files, secure getters/setters and crypto functions..."
+echo "Copying header files, secure getters/setters, crypto functions and initializer..."
 	cp ./template_files/crypto_functions_template.h crypto_functions.h
 	cp ./template_files/secure_getters_setters_template.h secure_getters_setters.h
 	cp ./template_files/secure_getters_setters_template.c secure_getters_setters.c
 	cp ./template_files/crypto_functions_template.c crypto_functions.c
-echo "Copied header files."
+	cp ./template_files/initializer_template.c initializer.c
+echo "Copied these files."
 
-echo "Compiling hash and encryption calculators..."
+echo "Compiling hash and encryption calculators, as well as the crypto initializer..."
 	(cd crypto_algorithms; make >/dev/null ;
 	 cp sha256_for_us.c ../sha256.c ; 
 	 cp sha256.h ../ ; 
@@ -180,8 +181,9 @@ echo "Compiling hash and encryption calculators..."
 	 gcc -O3 -c crypto_functions.c -lcrypto
 	 gcc -O3 -c calc_mac_for_external_programs.c -lcrypto
 	 gcc -O3 calc_mac_for_external_programs.o ./sha256.o ./crypto_functions.o -o calc_mac_for_external_programs -lcrypto
+	 gcc -O3 initializer.c -c
 	 )
-echo "Compiled hash and encryption calculators."
+echo "Compiled hash and encryption calculators, and the crypto initializer."
 
 
 if [ "$SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS" != "0" ]; then

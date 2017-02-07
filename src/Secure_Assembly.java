@@ -306,9 +306,9 @@ public class Secure_Assembly {
 	
 	static void add_code_verification_lines(ArrayList<String> list_of_lines)
 	{
-       // list_of_lines.add("lea -0x7f(%rsp), %rsp"); //decrease %rsp without altering the flags
+       // list_of_lines.add("lea -0x200(%rsp), %rsp"); //decrease %rsp without altering the flags
         list_of_lines.add("call do_some_stuff");
-       // list_of_lines.add("lea  0x7f(%rsp),%rsp");  //bring back %rsp
+       // list_of_lines.add("lea  0x200(%rsp),%rsp");  //bring back %rsp
 		//list_of_lines.add("pushfq");
 		//list_of_lines.add("call do_nothing");
 		//list_of_lines.add("popfq");

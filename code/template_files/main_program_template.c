@@ -31,8 +31,8 @@ int foo(int x)
 return k;
 }
 
-
-int main()
+//practically main(), but crypto functions must be initialized beforehand
+int main_program_function()
 {
 	char bob[10];
 	pid_t pid;
@@ -43,14 +43,14 @@ int main()
 	static int static_main_variable_for_testing;
 
 	//initialise crypto structures
-	init_crypto_stuctures(1);
+	//crypto structures are initialized in initializer_template.c
 
 	//initialise memory
 	init_heap_and_stack_mem();
 
 	
 	//initialise the verification procedure thread that will wait to be called
-	//DANGER: Problems may occur with on-the-fly verification!
+	//DANGER: Problems may occur with on-the-fly code verification!
 	init_verification_procedure_thread();
 	
 	
@@ -145,7 +145,7 @@ int main()
 	free_heap_and_stack_memory();
 	
 	//clear crypto structures
-	clear_crypto_structures();
+	//this is done in initializer_template.c
 	
 	return 0;
 }

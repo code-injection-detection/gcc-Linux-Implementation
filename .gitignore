@@ -11,6 +11,7 @@ main_program
 *_keyshares
 all_keyshares_for_verification
 headers_needed.h
+initializer.c
 verification_procedure.c
 memory_manager.c
 stack_manager.c
