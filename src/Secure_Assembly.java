@@ -306,17 +306,9 @@ public class Secure_Assembly {
 	
 	static void add_code_verification_lines(ArrayList<String> list_of_lines)
 	{
-		list_of_lines.add("movq %rax,global_variable_for_rax(%rip)");
-    	list_of_lines.add("lahf");
-        list_of_lines.add("seto %al");
-        list_of_lines.add("subq $0x500, %rsp");
-        list_of_lines.add("pushq %rax"); //push the proper flags
+        list_of_lines.add("lea -0x7f(%rsp), %rsp"); //decrease %rsp without altering the flags
         list_of_lines.add("call do_some_stuff");
-        list_of_lines.add("popq %rax"); //pop the proper flags
-        list_of_lines.add("addq $0x500, %rsp");
-        list_of_lines.add("add $0x7f, %al");
-        list_of_lines.add("sahf");
-        list_of_lines.add("movq global_variable_for_rax(%rip),%rax");
+        list_of_lines.add("lea  0x7f(%rsp),%rsp");  //bring back %rsp
 		//list_of_lines.add("pushfq");
 		//list_of_lines.add("call do_nothing");
 		//list_of_lines.add("popfq");
@@ -398,7 +390,9 @@ public class Secure_Assembly {
 	
 	/*another even better thing*/
 	/*
-	 
+	   list_of_lines.add("lea -0x400(%rsp), %rsp");
+       list_of_lines.add("call do_some_stuff");
+       list_of_lines.add("lea  0x400(%rsp),%rsp");
 	 */
 	
 	
