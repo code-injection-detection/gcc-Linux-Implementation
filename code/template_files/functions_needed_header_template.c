@@ -4,6 +4,7 @@
 long global_variable_for_rax;
 long global_variable_for_flags;
 long global_variable_for_what_is_under_rsp;
+long temp_stack_for_verification[1000];
 
 
 void * error_checking_malloc(long size_in_bytes, const char * fun_name,int line)

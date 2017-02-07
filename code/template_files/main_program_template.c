@@ -50,7 +50,8 @@ int main()
 
 	
 	//initialise the verification procedure thread that will wait to be called
-	init_verification_procedure_thread();
+	//DOES NOT WORK WITH ON-THE-FLY VERIFICATION!
+	//init_verification_procedure_thread();
 	
 	
 	pid=getpid();

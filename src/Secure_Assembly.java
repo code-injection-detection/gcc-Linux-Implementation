@@ -309,11 +309,11 @@ public class Secure_Assembly {
 		list_of_lines.add("movq %rax,global_variable_for_rax(%rip)");
     	list_of_lines.add("lahf");
         list_of_lines.add("seto %al");
-        list_of_lines.add("subq $0x50, %rsp");
+        list_of_lines.add("subq $0x500, %rsp");
         list_of_lines.add("pushq %rax"); //push the proper flags
         list_of_lines.add("call do_some_stuff");
         list_of_lines.add("popq %rax"); //pop the proper flags
-        list_of_lines.add("addq $0x50, %rsp");
+        list_of_lines.add("addq $0x500, %rsp");
         list_of_lines.add("add $0x7f, %al");
         list_of_lines.add("sahf");
         list_of_lines.add("movq global_variable_for_rax(%rip),%rax");
@@ -366,20 +366,19 @@ public class Secure_Assembly {
 		popf
 	*/
 	
-	/*Somehing that works*/
+	/*Something that works*/
 	/*
 		list_of_lines.add("movq %rax,global_variable_for_rax(%rip)");
     	list_of_lines.add("lahf");
         list_of_lines.add("seto %al");
-        list_of_lines.add("subq $0x50, %rsp");
+        list_of_lines.add("subq $0x500, %rsp");
         list_of_lines.add("pushq %rax"); //push the proper flags
         list_of_lines.add("call do_some_stuff");
         list_of_lines.add("popq %rax"); //pop the proper flags
-        list_of_lines.add("addq $0x50, %rsp");
+        list_of_lines.add("addq $0x500, %rsp");
         list_of_lines.add("add $0x7f, %al");
         list_of_lines.add("sahf");
         list_of_lines.add("movq global_variable_for_rax(%rip),%rax");
-	 */
 	/*Other thing that works*/
 	/*
 	 list_of_lines.add("movq %rax,global_variable_for_rax(%rip)");
@@ -395,6 +394,11 @@ public class Secure_Assembly {
         list_of_lines.add("add $0x7f, %al");
         list_of_lines.add("sahf");
         list_of_lines.add("movq global_variable_for_rax(%rip),%rax");
+	 */
+	
+	/*another even better thing*/
+	/*
+	 
 	 */
 	
 	

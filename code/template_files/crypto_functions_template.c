@@ -362,8 +362,11 @@ void update_mac_when_setting_data(unsigned char * input, int total_mac_bytes, in
 	}
 }
 
-
+/*********************************************************************************************************/
+/*********************************************************************************************************/
 /*Functions that for on-the-fly code verification testing*/
+/*********************************************************************************************************/
+/*********************************************************************************************************/
 void do_nothing_function()
 {
 	;
@@ -377,11 +380,71 @@ void do_nothing() __attribute__ ((naked))
 */
 const char do_nothing[] = "\xc3";
 
+
+
+
+
+void test_find_primes_up_to_a_number(int num)
+{
+	
+	//local variables that we will use:
+	int * primes_found_so_far;
+	int i,j;
+	int num_of_primes;
+	char bool=0;
+
+
+	primes_found_so_far=malloc(num*sizeof(int));
+	
+	num_of_primes=1; //2 is a prime
+	primes_found_so_far[num_of_primes-1]=2;
+	
+
+	for (i=3;i<=num;i+=2)
+	{
+		bool=0;
+ 
+		for (j=2;j<=i/2+1;j++) //not using sqrt here
+		{
+			if (i%j==0)
+			{
+				bool=1;
+				break;
+			}			 
+		}
+
+		if (bool==0)
+		{
+			num_of_primes++;
+			primes_found_so_far[num_of_primes-1]=i;
+			
+		}	
+	}
+	
+	free(primes_found_so_far);
+	if (num==1000 && num_of_primes!=168)
+	{
+		printf("Error in number of primes!\n");
+	}
+
+	if (num==100 && num_of_primes!=25)
+	{
+		printf("Error in number of primes!\n");
+	}
+	
+}
+
+
+
+
+
+
+
+
 void do_some_stuff()
 {
 	//save state
-	__asm__ ( "pushf;"
-			  "subq $0x50,%rsp;"
+	__asm__ ( "pushfq;"
 			  "pushq %rax;"
               "pushq %rbx;"
               "pushq %rcx;"
@@ -389,19 +452,54 @@ void do_some_stuff()
               "pushq %rbp;"
               "pushq %rdi;"
               "pushq %rsi;"
+              "pushq %r8;"
+              "pushq %r9;"
+              "pushq %r10;"
+              "pushq %r11;"
+              "pushq %r12;"
+              "pushq %r13;"
+              "pushq %r14;"
+              "pushq %r15;"
 			);
 
+		
+		
+		
+		/*__asm__ ( "mov $120,%rdi;"
+				  "call putchar;"
+				 );
+		*/
+		
+	// __asm__ ( "call do_nothing" );
+	//__asm__ ( "call verify_code_on_the_fly;" );
+		
+			
              //printf("bom bom bom\n");
+            /* if (rand()%3)
+				printf("%d\n",rand());
+			 else
+				printf("haha!\n");
+			*/
+			test_find_primes_up_to_a_number(100);
+             
              
     //restore state         
-    __asm__ ( "popq %rsi;"
+    __asm__ (
+			  "popq %r15;"
+		      "popq %r14;"
+			  "popq %r13;"
+			  "popq %r12;"
+			  "popq %r11;"
+			  "popq %r10;"
+			  "popq %r9;"
+			  "popq %r8;"
+			  "popq %rsi;"
 			  "popq %rdi;"
 			  "popq %rbp;"
 			  "popq %rdx;"
 			  "popq %rcx;"
 			  "popq %rbx;"
 			  "popq %rax;"
-			  "addq $0x50,%rsp;"
-			  "popf;"
+			  "popfq;"
              ); 
 }
