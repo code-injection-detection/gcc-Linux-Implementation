@@ -51,7 +51,7 @@ int main_program_function()
 	
 	//initialise the verification procedure thread that will wait to be called
 	//DANGER: Problems may occur with on-the-fly code verification!
-	init_verification_procedure_thread();
+	//init_verification_procedure_thread();
 	
 	
 	pid=getpid();

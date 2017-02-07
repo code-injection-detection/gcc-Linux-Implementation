@@ -176,12 +176,12 @@ echo "Compiling hash and encryption calculators, as well as the crypto initializ
 	 cp sha256_for_us.c ../sha256.c ; 
 	 cp sha256.h ../ ; 
 	 cd .. ; 
-	 gcc -O3 -c sha256.c;
+	 gcc -O3 -c sha256.c #-mno-red-zone;
 	 rm -f sha256.c sha256.h  #removing the sha stuff that we don't need.
-	 gcc -O3 -c crypto_functions.c -lcrypto
-	 gcc -O3 -c calc_mac_for_external_programs.c -lcrypto
-	 gcc -O3 calc_mac_for_external_programs.o ./sha256.o ./crypto_functions.o -o calc_mac_for_external_programs -lcrypto
-	 gcc -O3 initializer.c -c
+	 gcc -O3 -c crypto_functions.c -lcrypto #-mno-red-zone
+	 gcc -O3 -c calc_mac_for_external_programs.c -lcrypto #-mno-red-zone
+	 gcc -O3 calc_mac_for_external_programs.o ./sha256.o ./crypto_functions.o -o calc_mac_for_external_programs -lcrypto #-mno-red-zone
+	 gcc -O3 initializer.c -c -mno-red-zone
 	 )
 echo "Compiled hash and encryption calculators, and the crypto initializer."
 

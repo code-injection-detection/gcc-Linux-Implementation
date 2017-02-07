@@ -337,7 +337,7 @@ void verify_mac_onthefly(unsigned char * input, int total_mac_bytes, int useful_
 long num_of_useful_bytes_to_mac_in_code;
 long code_where_to_start_macing;
 unsigned char mac_for_code_verification[number_of_mac_bytes];
-#define size_of_commands_before_getting_addr 4
+#define size_of_commands_before_getting_addr (9)
 void verify_code_on_the_fly()
 {
 	if (number_of_mac_bytes>0)
@@ -439,7 +439,22 @@ void test_find_primes_up_to_a_number(int num)
 
 
 
-
+__m128 xmm0_var;
+__m128 xmm1_var;
+__m128 xmm2_var;
+__m128 xmm3_var;
+__m128 xmm4_var;
+__m128 xmm5_var;
+__m128 xmm6_var;
+__m128 xmm7_var;
+__m128 xmm8_var;
+__m128 xmm9_var;
+__m128 xmm10_var;
+__m128 xmm11_var;
+__m128 xmm12_var;
+__m128 xmm13_var;
+__m128 xmm14_var;
+__m128 xmm15_var;
 
 void do_some_stuff()
 {
@@ -462,6 +477,23 @@ void do_some_stuff()
               "pushq %r15;"
 			);
 
+	__asm__(    "movdqu %xmm0,xmm0_var(%rip);"
+				"movdqu %xmm1,xmm1_var(%rip);"
+				"movdqu %xmm2,xmm2_var(%rip);"
+				"movdqu %xmm3,xmm3_var(%rip);"
+				"movdqu %xmm4,xmm4_var(%rip);"
+				"movdqu %xmm5,xmm5_var(%rip);"
+				"movdqu %xmm6,xmm6_var(%rip);"
+				"movdqu %xmm7,xmm7_var(%rip);"
+				"movdqu %xmm8,xmm8_var(%rip);"
+				"movdqu %xmm9,xmm9_var(%rip);"
+				"movdqu %xmm10,xmm10_var(%rip);"
+				"movdqu %xmm11,xmm11_var(%rip);"
+				"movdqu %xmm12,xmm12_var(%rip);"
+				"movdqu %xmm13,xmm13_var(%rip);"
+				"movdqu %xmm14,xmm14_var(%rip);"
+				"movdqu %xmm15,xmm15_var(%rip);"
+				);
 		
 		
 		
@@ -474,13 +506,35 @@ void do_some_stuff()
 	//__asm__ ( "call verify_code_on_the_fly;" );
 		
 			
-             //printf("bom bom bom\n");
+            //printf("bom bom bom\n");
             /* if (rand()%3)
 				printf("%d\n",rand());
 			 else
 				printf("haha!\n");
 			*/
-			test_find_primes_up_to_a_number(100);
+			//test_find_primes_up_to_a_number(100);
+		num_of_useful_bytes_to_mac_in_code=num_of_bytes_in_code_chunk+number_of_canaries+1;
+		verify_code_on_the_fly();
+             
+             
+             
+    __asm__(    "movdqu xmm0_var(%rip),%xmm0;"
+				"movdqu xmm1_var(%rip),%xmm1;"
+				"movdqu xmm2_var(%rip),%xmm2;"
+				"movdqu xmm3_var(%rip),%xmm3;"
+				"movdqu xmm4_var(%rip),%xmm4;"
+				"movdqu xmm5_var(%rip),%xmm5;"
+				"movdqu xmm6_var(%rip),%xmm6;"
+				"movdqu xmm7_var(%rip),%xmm7;"
+				"movdqu xmm8_var(%rip),%xmm8;"
+				"movdqu xmm9_var(%rip),%xmm9;"
+				"movdqu xmm10_var(%rip),%xmm10;"
+				"movdqu xmm11_var(%rip),%xmm11;"
+				"movdqu xmm12_var(%rip),%xmm12;"
+				"movdqu xmm13_var(%rip),%xmm13;"
+				"movdqu xmm14_var(%rip),%xmm14;"
+				"movdqu xmm15_var(%rip),%xmm15;"
+				);        
              
              
     //restore state         

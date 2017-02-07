@@ -306,26 +306,21 @@ public class Secure_Assembly {
 	
 	static void add_code_verification_lines(ArrayList<String> list_of_lines)
 	{
-       // list_of_lines.add("lea -0x200(%rsp), %rsp"); //decrease %rsp without altering the flags
+		list_of_lines.add("pushfq"); //do_some_stuff() subtracts from rsp -.-
+		list_of_lines.add("pushq %rax");
+		list_of_lines.add("lea  (%rip),%rax");
+        list_of_lines.add("movq %rax,code_where_to_start_macing(%rip)");
         list_of_lines.add("call do_some_stuff");
-       // list_of_lines.add("lea  0x200(%rsp),%rsp");  //bring back %rsp
-		//list_of_lines.add("pushfq");
-		//list_of_lines.add("call do_nothing");
-		//list_of_lines.add("popfq");
-		//list_of_lines.add("addq $0x0, %rax");
-		//list_of_lines.add("popq %r10");
-		//list_of_lines.add("call do_nothing");
-		//list_of_lines.add("pushq %r10");
-		//list_of_lines.add("dec %rsp");
-		/*list_of_lines.add("pushf");
-        list_of_lines.add("pushq %rax");  //caller saved registers
+        list_of_lines.add("popq %rax");
+        list_of_lines.add("popfq");
+      /*
+          //caller saved registers
         list_of_lines.add("pushq %rbx");  //added later
         list_of_lines.add("pushq %rcx");
         list_of_lines.add("pushq %rdx");
         list_of_lines.add("pushq %rdi");  //added later
         list_of_lines.add("pushq %rsi");  //added later
-        list_of_lines.add("lea  (%rip),%rax");
-        list_of_lines.add("movq %rax,code_where_to_start_macing(%rip)");
+        
         list_of_lines.add("movq $42,num_of_useful_bytes_to_mac_in_code(%rip)");
         list_of_lines.add("call verify_code_on_the_fly");
         list_of_lines.add("popq %rsi");
@@ -403,6 +398,17 @@ public class Secure_Assembly {
 		that will not be modified by signal or interrupt handlers and therefore 
 		can be used for temporary data without adjusting the stack pointer. 
 		The flag -mno-red-zone disables this red zone. 
+	 */
+	
+	/*
+	 verification code that works:
+	 	list_of_lines.add("pushfq");
+		list_of_lines.add("pushq %rax");
+		list_of_lines.add("lea  (%rip),%rax");
+        list_of_lines.add("movq %rax,code_where_to_start_macing(%rip)");
+        list_of_lines.add("call do_some_stuff");
+        list_of_lines.add("popq %rax");
+        list_of_lines.add("popfq");
 	 */
 	
 	

@@ -24,8 +24,9 @@
 #include <openssl/err.h>
 #include <openssl/bn.h>
 #include <openssl/cmac.h>
+#include <xmmintrin.h>
 
-#define mac_algorithm 3  //0->sha256, 
+#define mac_algorithm 3  //0->sha256,   //PROBLEM WITH code on-the-fly verification
 						 //1-> AES_ECB with MAC=x*A+B, 
 						 //2->CMAC with AES , 
 						 //3->AES_CBC with length prepending, 
