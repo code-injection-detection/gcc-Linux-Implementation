@@ -476,7 +476,7 @@ void do_some_stuff()
               //"pushq %r12;" //saved by the calling convention
               //"pushq %r13;" //saved by the calling convention
               //"pushq %r14;" //saved by the calling convention
-              //"pushq %r15;" //saved by the calling convention
+              "pushq %r15;" //saved by the calling convention but we use it to align the stack
 			);
 
 	__asm__(    "movdqu %xmm0,xmm0_var(%rip);"
@@ -523,8 +523,15 @@ void do_some_stuff()
 		{
 			; //it's going to be filled by the assembly code and java on the fly
 		}
+		
+		__asm__("movq %rsp,%r15;" //align stack to 16 bytes for call, as System V ABI dictates
+				"and $0xfffffffffffffff0,%rsp;"
+				);
+				
 		verify_code_on_the_fly();
              
+        __asm__("movq %r15, %rsp;" //restore stack to the number it was
+				);     
              
              
     __asm__(    "movdqu xmm0_var(%rip),%xmm0;"
@@ -548,7 +555,7 @@ void do_some_stuff()
              
     //restore state         
     __asm__ (
-			  //"popq %r15;" //saved by the calling convention
+			  "popq %r15;" //saved by the calling convention but we use it to align the stack
 		      //"popq %r14;" //saved by the calling convention
 			  //"popq %r13;" //saved by the calling convention
 			  //"popq %r12;" //saved by the calling convention
