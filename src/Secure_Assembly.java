@@ -312,17 +312,26 @@ public class Secure_Assembly {
 	
 	static void add_code_verification_lines(ArrayList<String> list_of_lines, boolean use_fixed_size_chunks_of_code)
 	{
-		//23 bytes overhead with fixed chunks, 30 with variable chunks
-		list_of_lines.add("pushfq"); //do_some_stuff() subtracts from rsp -.-
+		//35 bytes overhead with fixed chunks, 42 with variable chunks
+		list_of_lines.add("pushfq"); //do_some_stuff() subtracts from rsp, so we save the flags
 		list_of_lines.add("pushq %rax");
-		list_of_lines.add("lea  (%rip),%rax");
-        list_of_lines.add("movq %rax,code_where_to_start_macing(%rip)");
+		list_of_lines.add("lea  (%rip),%rax"); //get current address in code
+        list_of_lines.add("movq %rax,code_where_to_start_macing(%rip)"); //and set the global variable.
+        																//the mac verifier knows to subtract some bytes
         if (use_fixed_size_chunks_of_code==false)
         {
         	//42 will be replaced by the correct value later
-        	list_of_lines.add("movb $42,num_of_useful_bytes_to_mac_in_code(%rip)"); 
+        	list_of_lines.add("movb $42,num_of_useful_bytes_to_mac_in_code(%rip)"); //the variable size in that global
         }
+        list_of_lines.add("pushq %rbp"); //align stack to 16 bytes for call, as System V ABI dictates
+        list_of_lines.add("movq %rsp,%rbp");
+        list_of_lines.add("and $0xfffffffffffffff0,%rsp");
+        
         list_of_lines.add("call do_some_stuff");
+        
+        list_of_lines.add("movq %rbp, %rsp"); //restore stack to the number it was
+        list_of_lines.add("popq %rbp");
+        
         list_of_lines.add("popq %rax");
         list_of_lines.add("popfq");
       /*
