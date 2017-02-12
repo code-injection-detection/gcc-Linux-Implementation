@@ -187,15 +187,22 @@ public class Secure_Assembly {
 					i = 0;
 					label_counter++;
 					
-					//if next line starts with "." (is a label) or is empty
+					//if line starts with "." (is a label) or is empty
 					int got_inside_while=0;
-					while (/*empty*/ sc.hasNext(Pattern.compile("^[ \t\n]*$")) || /*starts with spaces and then label*/ sc.hasNext(Pattern.compile("^[ \t]*\\..*$")) ||  /*label*/ sc.hasNext(Pattern.compile("^\\..*$")))
+					while (  /*empty*/Pattern.compile("^[ \t\n]*$").matcher(line).matches() || /*starts with spaces and then label*/ Pattern.compile("^[ \t]*\\..*$").matcher(line).matches() ||  /*label*/ Pattern.compile("^\\..*$").matcher(line).matches() )
 					{
-						line = sc.next();
-						line_index++;
-						line = removeNewlines(line);
 						list_of_lines.add(line);
 						got_inside_while=1;
+						if (sc.hasNext(Pattern.compile("^[ \t\n]*$")) ||  sc.hasNext(Pattern.compile("^[ \t]*\\..*$")) ||   sc.hasNext(Pattern.compile("^\\..*$")) )
+						{
+							line = sc.next();
+							line_index++;
+							line = removeNewlines(line);
+						}
+						else
+						{
+							line="Line_that_exits_the_loop";
+						}
 					}
 					
 					if (check_code_verification_on_the_fly)
