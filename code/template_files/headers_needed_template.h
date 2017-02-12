@@ -25,6 +25,8 @@
 #include <openssl/bn.h>
 #include <openssl/cmac.h>
 #include <xmmintrin.h>
+#include <setjmp.h>
+#include <ucontext.h>
 
 #define mac_algorithm 3  //0->sha256,   //PROBLEM WITH code on-the-fly verification
 						 //1-> AES_ECB with MAC=x*A+B, 

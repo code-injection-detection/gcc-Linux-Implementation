@@ -339,7 +339,12 @@ void verify_mac_onthefly(unsigned char * input, int total_mac_bytes, int useful_
 long num_of_useful_bytes_to_mac_in_code;
 long code_where_to_start_macing;
 unsigned char mac_for_code_verification[number_of_mac_bytes];
-#define size_of_commands_before_getting_addr (9) //the size in bytes of the assembly commands before fetching the current address( to reach the start of the mac-ed block)
+#if use_fixed_size_chunks_of_code==1
+	#define size_of_commands_before_getting_addr (6) //the size in bytes of the assembly commands before fetching the current address( to reach the start of the mac-ed block)
+#endif
+#if use_fixed_size_chunks_of_code==0
+	#define size_of_commands_before_getting_addr (13) //the size in bytes of the assembly commands before fetching the current address( to reach the start of the mac-ed block)
+#endif
 void verify_code_on_the_fly()
 {
 	if (number_of_mac_bytes>0)
@@ -460,6 +465,12 @@ __m128 xmm15_var;
 
 void do_some_stuff()
 {
+	//get return adress from stack, to see where to mac
+	__asm__(
+			  "pushq %rax;"
+			  "movq 0x10(%rsp),%rax;" //return address (rsp+16) in %rax (well, do_some_stuff subtracts 8 from %rsp...)
+			  "movq %rax,code_where_to_start_macing(%rip);" //the verifier knows that it should subtract an amount of bytes
+			);
 	//save state
 	__asm__ ( //"pushfq;"  //saved before call
 			  //"pushq %rax;" //saved before call
@@ -572,4 +583,7 @@ void do_some_stuff()
 			  //"popq %rax;" //saved before call
 			  //"popfq;" //saved before call
              ); 
+             
+    __asm__( "popq %rax;" //the register in which we stored the return address
+			);
 }
