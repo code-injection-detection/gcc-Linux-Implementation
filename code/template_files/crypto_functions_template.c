@@ -337,7 +337,7 @@ void verify_mac_onthefly(unsigned char * input, int total_mac_bytes, int useful_
 long num_of_useful_bytes_to_mac_in_code;
 long code_where_to_start_macing;
 unsigned char mac_for_code_verification[number_of_mac_bytes];
-#define size_of_commands_before_getting_addr (9)
+#define size_of_commands_before_getting_addr (9) //the size in bytes of the assembly commands before fetching the current address( to reach the start of the mac-ed block)
 void verify_code_on_the_fly()
 {
 	if (number_of_mac_bytes>0)
@@ -513,7 +513,14 @@ void do_some_stuff()
 				printf("haha!\n");
 			*/
 			//test_find_primes_up_to_a_number(100);
-		num_of_useful_bytes_to_mac_in_code=num_of_bytes_in_code_chunk+number_of_canaries+1;
+		if (use_fixed_size_chunks_of_code)
+		{
+			num_of_useful_bytes_to_mac_in_code=num_of_bytes_in_code_chunk+number_of_canaries+1;
+		}
+		else
+		{
+			; //it's going to be filled by the assembly code and java on the fly
+		}
 		verify_code_on_the_fly();
              
              

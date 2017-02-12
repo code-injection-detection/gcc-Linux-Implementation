@@ -168,6 +168,20 @@ public class Secure_Machine_Code {
 						else if (num_of_mac_bytes>0)	
 							arr[i+2+j+number_of_canaries] = (byte)cnt_for_instr_bytes;
 					}
+					if (use_fixed_size_chunks_of_code==false)
+					{
+						//set the correct value in "movq $42,num_of_useful_bytes_to_mac_in_code(%rip)"
+						int num_of_useful_butes_to_mac_in_code=cnt_for_instr_bytes+number_of_canaries+1;
+						if (arr[i-(cnt_for_instr_bytes-2)+22]!=(byte)42) //22 bytes is the length of the instructions up to 42
+						{
+							System.out.println("Could not find 42 in movb $42,num_of_useful_bytes_to_mac_in_code(%rip)!");
+							System.exit(-1);
+						}
+						else
+						{
+							arr[i-(cnt_for_instr_bytes-2)+22]=(byte)num_of_useful_butes_to_mac_in_code;
+						}
+					}
 				}
 
     			

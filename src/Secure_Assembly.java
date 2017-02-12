@@ -120,7 +120,7 @@ public class Secure_Assembly {
 					
 					if (check_code_verification_on_the_fly)
 					{
-						add_code_verification_lines(list_of_lines);
+						add_code_verification_lines(list_of_lines,use_fixed_size_chunks_of_code);
 					}
 					break;
 				}			
@@ -175,7 +175,6 @@ public class Secure_Assembly {
 					continue;
 				}
 				*/
-									
 								
 				//if we have exhausted the group of commands, we need to add a jump and nops, and a label after them
 				if (i == num_of_grouped_orig_instr)
@@ -190,7 +189,7 @@ public class Secure_Assembly {
 					
 					//if next line starts with "." (is a label) or is empty
 					int got_inside_while=0;
-					while (sc.hasNext(Pattern.compile("^[ \t\n]*$")) || sc.hasNext(Pattern.compile("^[ \t]*\\..*")) )
+					while (/*empty*/ sc.hasNext(Pattern.compile("^[ \t\n]*$")) || /*starts with spaces and then label*/ sc.hasNext(Pattern.compile("^[ \t]*\\..*$")) ||  /*label*/ sc.hasNext(Pattern.compile("^\\..*$")))
 					{
 						line = sc.next();
 						line_index++;
@@ -201,7 +200,7 @@ public class Secure_Assembly {
 					
 					if (check_code_verification_on_the_fly)
 					{
-						add_code_verification_lines(list_of_lines);
+						add_code_verification_lines(list_of_lines,use_fixed_size_chunks_of_code);
 					}
 					
 					if (got_inside_while==1)
@@ -304,12 +303,18 @@ public class Secure_Assembly {
 		return line;
 	}
 	
-	static void add_code_verification_lines(ArrayList<String> list_of_lines)
+	static void add_code_verification_lines(ArrayList<String> list_of_lines, boolean use_fixed_size_chunks_of_code)
 	{
+		//23 bytes overhead with fixed chunks, 30 with variable chunks
 		list_of_lines.add("pushfq"); //do_some_stuff() subtracts from rsp -.-
 		list_of_lines.add("pushq %rax");
 		list_of_lines.add("lea  (%rip),%rax");
         list_of_lines.add("movq %rax,code_where_to_start_macing(%rip)");
+        if (use_fixed_size_chunks_of_code==false)
+        {
+        	//42 will be replaced by the correct value later
+        	list_of_lines.add("movb $42,num_of_useful_bytes_to_mac_in_code(%rip)"); 
+        }
         list_of_lines.add("call do_some_stuff");
         list_of_lines.add("popq %rax");
         list_of_lines.add("popfq");
@@ -321,7 +326,7 @@ public class Secure_Assembly {
         list_of_lines.add("pushq %rdi");  //added later
         list_of_lines.add("pushq %rsi");  //added later
         
-        list_of_lines.add("movq $42,num_of_useful_bytes_to_mac_in_code(%rip)");
+        list_of_lines.add("movb $42,num_of_useful_bytes_to_mac_in_code(%rip)");
         list_of_lines.add("call verify_code_on_the_fly");
         list_of_lines.add("popq %rsi");
         list_of_lines.add("popq %rdi");
