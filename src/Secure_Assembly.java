@@ -321,7 +321,7 @@ public class Secure_Assembly {
         	list_of_lines.add("movb $42,num_of_useful_bytes_to_mac_in_code(%rip)"); //the variable size in that global
         }
         
-        list_of_lines.add("call do_some_stuff");
+        list_of_lines.add("call do_verify_code_on_the_fly");
 
         list_of_lines.add("popfq");
         

@@ -463,12 +463,12 @@ __m128 xmm13_var;
 __m128 xmm14_var;
 __m128 xmm15_var;
 
-void do_some_stuff()
+void do_verify_code_on_the_fly()
 {
 	//get return adress from stack, to see where to mac
 	__asm__(
 			  "pushq %rax;"
-			  "movq 0x10(%rsp),%rax;" //return address (rsp+16) in %rax (well, do_some_stuff subtracts 8 from %rsp...)
+			  "movq 0x10(%rsp),%rax;" //return address (rsp+X) in %rax (well, do_some_stuff subtracts 8 from %rsp, and perhaps we have some pushes too...)
 			  "movq %rax,code_where_to_start_macing(%rip);" //the verifier knows that it should subtract an amount of bytes
 			);
 	//save state

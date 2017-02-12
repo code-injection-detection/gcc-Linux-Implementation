@@ -179,6 +179,15 @@ echo "Compiling hash and encryption calculators, as well as the crypto initializ
 	 gcc -O3 -c sha256.c #-mno-red-zone;
 	 rm -f sha256.c sha256.h  #removing the sha stuff that we don't need.
 	 gcc -O3 -c crypto_functions.c -lcrypto #-mno-red-zone
+	 #find the number of subtractions we have to do to fetch the return address in the verifier
+	 LINE_OF_VERIFIER=$(objdump -d crypto_functions.o | grep -n "<do_verify_code_on_the_fly>:" | grep -Eo '^[0123456789]+')
+	 LINE_OF_MOV=$(objdump -d crypto_functions.o | grep -C 10 -n "<do_verify_code_on_the_fly>:" | grep "mov    0x10(%rsp),%rax" | grep -Eo '^[0123456789]+')
+	 NUM_OF_8_BYTE_PUSHES=$(( $LINE_OF_MOV-$LINE_OF_VERIFIER -1 ))
+	 BYTE_DIFFERENCE=$(( NUM_OF_8_BYTE_PUSHES*8 ))
+	 #replace and put the proper offset
+	 sed -i 's/movq 0x10(%rsp),%rax;/movq 16(%rsp),%rax;/g' crypto_functions.c
+	 #and compile again
+	 gcc -O3 -c crypto_functions.c -lcrypto #-mno-red-zone
 	 gcc -O3 -c calc_mac_for_external_programs.c -lcrypto #-mno-red-zone
 	 gcc -O3 calc_mac_for_external_programs.o ./sha256.o ./crypto_functions.o -o calc_mac_for_external_programs -lcrypto #-mno-red-zone
 	 gcc -O3 initializer.c -c -mno-red-zone
