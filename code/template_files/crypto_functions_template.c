@@ -4,6 +4,8 @@
 #define len_2power128 17 //2^128-1 is 16 bytes.
 #define block_length 16
 
+extern void calc_and_set_mac_of_data_sha256(char * input, long length, char * output);
+
 EVP_CIPHER_CTX aes_ctx;
 unsigned char aes_key[] = {42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57};
 unsigned char initialization_vector[]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
@@ -459,22 +461,22 @@ __m128 xmm15_var;
 void do_some_stuff()
 {
 	//save state
-	__asm__ ( "pushfq;"
-			  "pushq %rax;"
-              "pushq %rbx;"
+	__asm__ ( //"pushfq;"  //saved before call
+			  //"pushq %rax;" //saved before call
+              //"pushq %rbx;" //saved by the calling convention
               "pushq %rcx;"
               "pushq %rdx;"
-              "pushq %rbp;"
+              //"pushq %rbp;" //saved by the calling convention
               "pushq %rdi;"
               "pushq %rsi;"
               "pushq %r8;"
               "pushq %r9;"
               "pushq %r10;"
               "pushq %r11;"
-              "pushq %r12;"
-              "pushq %r13;"
-              "pushq %r14;"
-              "pushq %r15;"
+              //"pushq %r12;" //saved by the calling convention
+              //"pushq %r13;" //saved by the calling convention
+              //"pushq %r14;" //saved by the calling convention
+              //"pushq %r15;" //saved by the calling convention
 			);
 
 	__asm__(    "movdqu %xmm0,xmm0_var(%rip);"
@@ -546,21 +548,21 @@ void do_some_stuff()
              
     //restore state         
     __asm__ (
-			  "popq %r15;"
-		      "popq %r14;"
-			  "popq %r13;"
-			  "popq %r12;"
+			  //"popq %r15;" //saved by the calling convention
+		      //"popq %r14;" //saved by the calling convention
+			  //"popq %r13;" //saved by the calling convention
+			  //"popq %r12;" //saved by the calling convention
 			  "popq %r11;"
 			  "popq %r10;"
 			  "popq %r9;"
 			  "popq %r8;"
 			  "popq %rsi;"
 			  "popq %rdi;"
-			  "popq %rbp;"
+			  //"popq %rbp;" //saved by the calling convention
 			  "popq %rdx;"
 			  "popq %rcx;"
-			  "popq %rbx;"
-			  "popq %rax;"
-			  "popfq;"
+			  //"popq %rbx;"  //saved by the calling convention
+			  //"popq %rax;" //saved before call
+			  //"popfq;" //saved before call
              ); 
 }
