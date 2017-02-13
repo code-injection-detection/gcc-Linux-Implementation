@@ -228,6 +228,12 @@ echo "Compiled."
 
 echo "Inserting NOPs into assembly..."
 java -cp ../bin Secure_Assembly $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_INSTRUCTIONS $NUM_OF_CANARIES $NUM_OF_MAC_BYTES $ADD_CODE_ON_THE_FLY_VERIFICATION $USE_FIXED_SIZE_CHUNKS_OF_CODE $NUM_OF_BYTES_IN_CODE_CHUNK
+if [ $? -eq 0 ]; then
+		: #all ok
+	else
+		echo "Error. Could not insert NOPs prperly."
+		exit
+	fi
 echo "NOPs inserted."
 
 if [ "$#" -eq 10 ]; then

@@ -188,6 +188,13 @@ public class Secure_Assembly {
 					int bytes_to_subtract=2; /*jmp*/
 					if (check_code_verification_on_the_fly)
 						bytes_to_subtract+=7; /*size of verifier for fixed size blocks*/
+					//if the size of the current command is bigger than we can accommodate
+					if (size_of_current_cmd> num_of_bytes_in_code_chunk-bytes_to_subtract)
+					{
+						int bytes_to_increase=size_of_current_cmd-(num_of_bytes_in_code_chunk-bytes_to_subtract);
+						System.out.println("The size of the code block is not big enough. Increase it by at least "+ bytes_to_increase+".");
+						System.exit(-2);
+					}
 					if (num_of_bytes_in_current_block+size_of_current_cmd>num_of_bytes_in_code_chunk-bytes_to_subtract)
 					{
 						force_end_of_block=true;
