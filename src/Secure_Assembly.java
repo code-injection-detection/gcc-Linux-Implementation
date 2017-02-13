@@ -101,6 +101,7 @@ public class Secure_Assembly {
 		}
 		
 		line_index=-1;
+		boolean force_end_of_block=false;
 		for (String fun:function_names)
 		{	
 			while (sc.hasNext())
@@ -167,8 +168,9 @@ public class Secure_Assembly {
 				
 								
 				//if we have exhausted the group of commands, we need to add a jump and nops, and a label after them
-				if (i == num_of_grouped_orig_instr || (check_code_verification_on_the_fly && /*label with .L<numbers> */Pattern.compile("^[ \t]*\\.L[0123456789]+:$").matcher(line).matches() ))
+				if (force_end_of_block || i == num_of_grouped_orig_instr || (check_code_verification_on_the_fly && /*label with .L<numbers> */Pattern.compile("^[ \t]*\\.L[0123456789]+:$").matcher(line).matches() ))
 				{
+					force_end_of_block=false;
 					list_of_lines.add(" jmp " + "." + ulabel + label_counter);
 					for (int j = 0; j < num_of_interleaved_keys+number_of_canaries+num_of_mac_bytes+bytes_for_instr_len; j++)
 						list_of_lines.add("NOP"); 
@@ -212,6 +214,15 @@ public class Secure_Assembly {
 					list_of_lines.add(line);
 					continue;
 				}
+				
+				if (check_code_verification_on_the_fly && line.trim().startsWith("call")) //call should mark the end of a block
+				{
+					list_of_lines.add(line);
+					i++;
+					force_end_of_block=true;
+					continue;
+				}
+				
 				
 				//the default behavior is the program to add the next command
 				//except if we need to change a jump
