@@ -41,6 +41,8 @@ public class Secure_Assembly {
 		boolean use_fixed_size_chunks_of_code=false;
 		int num_of_bytes_in_code_chunk=20;
 		int line_index=0;
+		int size_of_current_cmd=0;
+		int num_of_bytes_in_current_block=0;
 		
 
 		if (args.length==7)
@@ -128,7 +130,7 @@ public class Secure_Assembly {
 				
 			}
 			
-			
+			num_of_bytes_in_current_block=0;
 			// This inserts the jumps and NOPs in the code.
 			// It breaks at the end of the code ("end")
 			while(sc.hasNext())
@@ -162,8 +164,34 @@ public class Secure_Assembly {
 					//System.out.println(line);
 					i = 0;
 					label_counter++;
+					num_of_bytes_in_current_block=0;
 
 					break;
+				}
+				
+				//find size of cmd, if it is a cmd
+				if (use_fixed_size_chunks_of_code && (removeSpaces(line).startsWith(".")==false) /*make sure it's a command*/)
+				{
+					String line_to_check_size=line;
+					if( line.trim().startsWith("j")) //pad .d32 to jmps
+					{
+						String[] parts=line.trim().split("\t");
+						String cmd=parts[0];
+						String operands="";
+						if (parts.length>1)
+							operands=parts[1];
+						line_to_check_size=cmd+".d32\t"+operands;
+					}
+					//find size of command
+					size_of_current_cmd=get_size_of_assembly_command(line_to_check_size);
+					//see if we should add it (only if it does not exceed the size of the fixed chunk)
+					int bytes_to_subtract=2; /*jmp*/
+					if (check_code_verification_on_the_fly)
+						bytes_to_subtract+=7; /*size of verifier for fixed size blocks*/
+					if (num_of_bytes_in_current_block+size_of_current_cmd>num_of_bytes_in_code_chunk-bytes_to_subtract)
+					{
+						force_end_of_block=true;
+					}
 				}
 				
 								
@@ -171,6 +199,7 @@ public class Secure_Assembly {
 				if (force_end_of_block || i == num_of_grouped_orig_instr || (check_code_verification_on_the_fly && /*label with .L<numbers> */Pattern.compile("^[ \t]*\\.L[0123456789]+:$").matcher(line).matches() ))
 				{
 					force_end_of_block=false;
+					num_of_bytes_in_current_block=0;
 					list_of_lines.add(" jmp " + "." + ulabel + label_counter);
 					for (int j = 0; j < num_of_interleaved_keys+number_of_canaries+num_of_mac_bytes+bytes_for_instr_len; j++)
 						list_of_lines.add("NOP"); 
@@ -220,6 +249,10 @@ public class Secure_Assembly {
 					list_of_lines.add(line);
 					i++;
 					force_end_of_block=true;
+					if (use_fixed_size_chunks_of_code)
+					{
+						num_of_bytes_in_current_block+=size_of_current_cmd;
+					}
 					continue;
 				}
 				
@@ -234,10 +267,15 @@ public class Secure_Assembly {
 					if (parts.length>1)
 						operands=parts[1];
 					list_of_lines.add(cmd+".d32\t"+operands+"\n");
+					num_of_bytes_in_current_block+=size_of_current_cmd;
 				}
 				else
 				{
 					list_of_lines.add(line);  //the default behavior is the program to add the next command
+					if (use_fixed_size_chunks_of_code)
+					{
+						num_of_bytes_in_current_block+=size_of_current_cmd;
+					}
 				}
 				i++;
 				
