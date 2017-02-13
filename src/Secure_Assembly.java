@@ -177,7 +177,7 @@ public class Secure_Assembly {
 				*/
 								
 				//if we have exhausted the group of commands, we need to add a jump and nops, and a label after them
-				if (i == num_of_grouped_orig_instr)
+				if (i == num_of_grouped_orig_instr || (check_code_verification_on_the_fly && /*label with .L<numbers> */Pattern.compile("^[ \t]*\\.L[0123456789]+:$").matcher(line).matches() ))
 				{
 					list_of_lines.add(" jmp " + "." + ulabel + label_counter);
 					for (int j = 0; j < num_of_interleaved_keys+number_of_canaries+num_of_mac_bytes+bytes_for_instr_len; j++)
