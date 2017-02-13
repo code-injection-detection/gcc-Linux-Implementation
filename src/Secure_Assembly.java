@@ -165,16 +165,6 @@ public class Secure_Assembly {
 					break;
 				}
 				
-				
-				/*
-				//is this really necessary?
-				//put "ret" and "movq	%rsp, %rbp" into the former block
-				if (check_code_verification_on_the_fly && ( line.trim().equals("ret") || line.trim().equals("movq	%rsp, %rbp")))
-				{
-					list_of_lines.add(line);
-					continue;
-				}
-				*/
 								
 				//if we have exhausted the group of commands, we need to add a jump and nops, and a label after them
 				if (i == num_of_grouped_orig_instr || (check_code_verification_on_the_fly && /*label with .L<numbers> */Pattern.compile("^[ \t]*\\.L[0123456789]+:$").matcher(line).matches() ))
@@ -308,6 +298,41 @@ public class Secure_Assembly {
 				line += s.charAt(i);
 		}
 		return line;
+	}
+	
+	static int get_size_of_assembly_command(String cmd) throws IOException, InterruptedException
+	{
+		String line=cmd.trim().replace("\t", " ");
+		int size=0;
+		char[] size_as_chars=new char[4096];
+		int cnt=0;
+		String size_calculator_filename=new File("../code/one_assembly_cmd_size_finder.py").getAbsolutePath();
+		String assembly_commands_filename=new File("../code/assembly_commands_for_parsing.txt").getAbsolutePath();
+		String exec_str2=size_calculator_filename;
+		String size_as_str;
+		String[] exec_str1 = {
+				"/bin/sh",
+				"-c",
+				"echo '"+line+"' | as && objdump -d | "+size_calculator_filename
+				};
+
+		//find the size
+		Runtime runtime1 = Runtime.getRuntime();
+		Process process1 = runtime1.exec(exec_str1);
+		BufferedInputStream sizeinputstream= new BufferedInputStream(process1.getInputStream());
+		process1.waitFor();
+				
+		while(sizeinputstream.available()>0)
+        {
+            // read the byte and convert the integer to character
+            char c = (char)sizeinputstream.read();
+            size_as_chars[cnt]=c;
+            cnt++;
+		}
+		size_as_str=new String(size_as_chars).replace("\n", "").trim();
+		size=Integer.parseInt(size_as_str);	
+		
+		return size;
 	}
 	
 	static void add_code_verification_lines(ArrayList<String> list_of_lines, boolean use_fixed_size_chunks_of_code)
