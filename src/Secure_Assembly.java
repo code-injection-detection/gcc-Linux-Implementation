@@ -263,7 +263,7 @@ public class Secure_Assembly {
 					continue;
 				}
 				
-				if (check_code_verification_on_the_fly && line.trim().startsWith("call")) //call should mark the end of a block
+				if (check_code_verification_on_the_fly && line.trim().startsWith("call") && function_is_one_of_the_hardware_ones(line.trim().split("\t")[1].trim())==false) //call should mark the end of a block, except if it is a secure getter/setter
 				{
 					list_of_lines.add(line);
 					i++;
@@ -298,7 +298,6 @@ public class Secure_Assembly {
 				}
 				i++;
 				
-				//System.out.println(line);
 			  }
 			
 		}
@@ -316,11 +315,12 @@ public class Secure_Assembly {
 			list_of_lines.add(line); 
 		}
 		
-		
+		/*
 		for (String s: list_of_lines)
 		{
-			//System.out.println(s);
+			System.out.println(s);
 		}
+		*/
 		
 		// This write the modified lines into a new ASM
 		// You can use TASM to compile this ASM into machine code
@@ -417,128 +417,98 @@ public class Secure_Assembly {
         list_of_lines.add("call do_verify_code_on_the_fly");
 
         list_of_lines.add("popfq");
-        
-        
-       /*Get current address with lea*/
-        /*		
-        //list_of_lines.add("pushq %rax");
-		//list_of_lines.add("lea  (%rip),%rax"); //get current address in code
-        //list_of_lines.add("movq %rax,code_where_to_start_macing(%rip)"); //and set the global variable.
-        																//the mac verifier knows to subtract some bytes
-        
-        and
-        //list_of_lines.add("popq %rax");
-         */
-        
-       /*IF we use stack alignment here:
-        list_of_lines.add("pushq %rbp"); //align stack to 16 bytes for call, as System V ABI dictates
-        list_of_lines.add("movq %rsp,%rbp");
-        list_of_lines.add("and $0xfffffffffffffff0,%rsp");
-        
-        list_of_lines.add("call do_some_stuff");
-        
-        list_of_lines.add("movq %rbp, %rsp"); //restore stack to the number it was
-        list_of_lines.add("popq %rbp");
-        */
-        
-        
-      /*
-          //caller saved registers
-        list_of_lines.add("pushq %rbx");  //added later
-        list_of_lines.add("pushq %rcx");
-        list_of_lines.add("pushq %rdx");
-        list_of_lines.add("pushq %rdi");  //added later
-        list_of_lines.add("pushq %rsi");  //added later
-        
-        list_of_lines.add("movb $42,num_of_useful_bytes_to_mac_in_code(%rip)");
-        list_of_lines.add("call verify_code_on_the_fly");
-        list_of_lines.add("popq %rsi");
-        list_of_lines.add("popq %rdi");
-        list_of_lines.add("popq %rdx");
-        list_of_lines.add("popq %rcx");
-        list_of_lines.add("popq %rbx");
-        list_of_lines.add("popq %rax");
-        list_of_lines.add("popf");*/
 	}
-	//as code
-	/*
-		pushf
-		pushq %rax  
-		pushq %rbx
-		pushq %rcx
-		pushq %rdx
-		pushq %rdi
-		pushq %rsi
-		lea  (%rip),%rax
-		movq %rax,code_where_to_start_macing(%rip)
-		movq $42,num_of_useful_bytes_to_mac_in_code(%rip)
-		call verify_code_on_the_fly
-		popq %rsi
-		popq %rdi
-		popq %rdx
-		popq %rcx
-		popq %rbx
-		popq %rax
-		popf
-	*/
 	
-	/*Something that works*/
-	/*
-		list_of_lines.add("movq %rax,global_variable_for_rax(%rip)");
-    	list_of_lines.add("lahf");
-        list_of_lines.add("seto %al");
-        list_of_lines.add("subq $0x500, %rsp");
-        list_of_lines.add("pushq %rax"); //push the proper flags
-        list_of_lines.add("call do_some_stuff");
-        list_of_lines.add("popq %rax"); //pop the proper flags
-        list_of_lines.add("addq $0x500, %rsp");
-        list_of_lines.add("add $0x7f, %al");
-        list_of_lines.add("sahf");
-        list_of_lines.add("movq global_variable_for_rax(%rip),%rax");
-	/*Other thing that works*/
-	/*
-	 list_of_lines.add("movq %rax,global_variable_for_rax(%rip)");
-    	list_of_lines.add("lahf");
-        list_of_lines.add("seto %al");
-        list_of_lines.add("movq %rax,global_variable_for_flags(%rip)");
-        list_of_lines.add("popq %rax");
-        list_of_lines.add("movq %rax,global_variable_for_what_is_under_rsp(%rip)");
-        list_of_lines.add("call do_nothing");
-        list_of_lines.add("movq global_variable_for_what_is_under_rsp(%rip),%rax");
-        list_of_lines.add("pushq %rax");
-        list_of_lines.add("movq global_variable_for_flags(%rip),%rax");
-        list_of_lines.add("add $0x7f, %al");
-        list_of_lines.add("sahf");
-        list_of_lines.add("movq global_variable_for_rax(%rip),%rax");
-	 */
-	
-	/*another even better thing*/
-	/*
-	   list_of_lines.add("lea -0x400(%rsp), %rsp");
-       list_of_lines.add("call do_some_stuff");
-       list_of_lines.add("lea  0x400(%rsp),%rsp");
-	 */
-	
-	/*or use:
-	 * -mno-red-zone
-		Do not use a so called red zone for x86-64 code. 
-		The red zone is mandated by the x86-64 ABI, 
-		it is a 128-byte area beyond the location of the stack pointer 
-		that will not be modified by signal or interrupt handlers and therefore 
-		can be used for temporary data without adjusting the stack pointer. 
-		The flag -mno-red-zone disables this red zone. 
-	 */
-	
-	/*
-	 verification code that works:
-	 	list_of_lines.add("pushfq");
-		list_of_lines.add("pushq %rax");
-		list_of_lines.add("lea  (%rip),%rax");
-        list_of_lines.add("movq %rax,code_where_to_start_macing(%rip)");
-        list_of_lines.add("call do_some_stuff");
-        list_of_lines.add("popq %rax");
-        list_of_lines.add("popfq");
-	 */
+	//checks if the function encountered in the assembly code is one of the secure getters/setters, so is invocation will not result in a new block
+	static boolean function_is_one_of_the_hardware_ones(String fun_name)
+	{
+		boolean is_one=false;
+		
+		String[] safe_functions={"update_mac_when_setting_data",
+								 "check_mac_for_error",
+								 "do_verify_code_on_the_fly",
+								 "insert_keys_into_mem",
+								 "insert_data_into_mem",
+								 "get_secure_data",
+								 "set_secure_data",
+								 "get_char",
+								 "get_int",
+								 "get_long_int",
+								 "get_float",
+								 "get_double",
+								 "get_pointer",
+								 "get_array_element",
+								 "get_char_array_element",
+								 "get_int_array_element",
+								 "get_long_int_array_element",
+								 "get_pointer_array_element",
+								 "get_float_array_element",
+								 "get_double_array_element",
+								 "get_arbitrary_block_in_heap",
+								 "get_arbitrary_block_in_heap_with_offset",
+								 "set_char",
+								 "set_int",
+								 "set_long_int",
+								 "set_float",
+								 "set_double",
+								 "set_pointer",
+								 "set_array_element",
+								 "set_char_array_element",
+								 "set_int_array_element",
+								 "set_long_int_array_element",
+								 "set_pointer_array_element",
+								 "set_float_array_element",
+								 "set_double_array_element",
+								 "set_arbitrary_block_in_heap",
+								 "set_arbitrary_block_in_heap_with_offset",
+								 "insert_keys_into_stack_mem",
+								 "insert_data_into_stack_mem",
+								 "get_secure_stack_data",
+								 "set_secure_stack_data",
+								 "get_stack_char",
+								 "get_stack_int",
+								 "get_stack_long_int",
+								 "get_stack_float",
+								 "get_stack_double",
+								 "get_stack_pointer",
+								 "get_stack_array_element",
+								 "get_stack_char_array_element",
+								 "get_stack_int_array_element",
+								 "get_stack_long_int_array_element",
+								 "get_stack_pointer_array_element",
+								 "get_stack_float_array_element",
+								 "get_stack_double_array_element",
+								 "get_arbitrary_block_in_stack",
+								 "get_arbitrary_block_in_stack_with_offset",
+								 "set_stack_char",
+								 "set_stack_int",
+								 "set_stack_long_int",
+								 "set_stack_float",
+								 "set_stack_double",
+								 "set_stack_pointer",
+								 "set_stack_array_element",
+								 "set_stack_char_array_element",
+								 "set_stack_int_array_element",
+								 "set_stack_long_int_array_element",
+								 "set_stack_pointer_array_element",
+								 "set_stack_float_array_element",
+								 "set_stack_double_array_element",
+								 "set_arbitrary_block_in_stack",
+								 "set_arbitrary_block_in_stack_with_offset",
+								 "get_global_char",
+								 "get_global_int",
+								 "get_global_long_int",
+								 "get_global_float",
+								 "get_global_double",
+								 "get_global_ptr"
+								};
+		
+		if (Arrays.asList(safe_functions).contains(fun_name.trim()))
+		{
+			is_one=true;
+		}
+		return is_one;
+	}
 	
 	
 }

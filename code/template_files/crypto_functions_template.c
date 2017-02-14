@@ -508,23 +508,6 @@ void do_verify_code_on_the_fly()
 				"movdqu %xmm15,xmm15_var(%rip);"
 				);
 		
-		
-		
-		/*__asm__ ( "mov $120,%rdi;"
-				  "call putchar;"
-				 );
-		*/
-		
-	// __asm__ ( "call do_nothing" );
-	//__asm__ ( "call verify_code_on_the_fly;" );
-		
-			
-            //printf("bom bom bom\n");
-            /* if (rand()%3)
-				printf("%d\n",rand());
-			 else
-				printf("haha!\n");
-			*/
 			//test_find_primes_up_to_a_number(100);
 		if (use_fixed_size_chunks_of_code)
 		{
