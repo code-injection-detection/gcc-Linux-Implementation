@@ -3,8 +3,9 @@
 SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS=1
 DECLARE_GLOBAL_KEYS_AS_AN_ARRAY=0
 INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS=1
-ADD_CODE_ON_THE_FLY_VERIFICATION=0
+ADD_CODE_ON_THE_FLY_VERIFICATION=1
 USE_FIXED_SIZE_CHUNKS_OF_CODE=0
+FORCE_NUM_OF_INSTRUCTIONS_OVER_NUM_OF_BYTES=1
 
 if [[ ( "$#" -ne 9 ) && ( "$#" -ne 10) ]]; then
     echo "Please execute as following:"
@@ -15,7 +16,7 @@ if [[ ( "$#" -ne 9 ) && ( "$#" -ne 10) ]]; then
     echo "f=number of grouped useful bytes in stack memory, g=total bytes to (try to) pre-allocate in stack memory"
     echo "h=number of grouped useful bytes between keyshares in global variables"
     echo "i=number of bytes for MACs"
-	echo "j=size in bytes of a fixed chunk in code (optional, if given then b is the maximum number of grouped instructions in code)."
+	echo "j=size in bytes of a fixed chunk in code (optional, and if b's bytes are more that j an error will be raised, unless the corresponding flag in automate.sh script is changed)."
 	echo "if j is given, b is ignored"
     echo "Example: $0 32 1 3 4 25000 4 20000 8 16"
 	echo "OR:"
@@ -227,11 +228,11 @@ make
 echo "Compiled."
 
 echo "Inserting NOPs into assembly..."
-java -cp ../bin Secure_Assembly $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_INSTRUCTIONS $NUM_OF_CANARIES $NUM_OF_MAC_BYTES $ADD_CODE_ON_THE_FLY_VERIFICATION $USE_FIXED_SIZE_CHUNKS_OF_CODE $NUM_OF_BYTES_IN_CODE_CHUNK
+java -cp ../bin Secure_Assembly $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_INSTRUCTIONS $NUM_OF_CANARIES $NUM_OF_MAC_BYTES $ADD_CODE_ON_THE_FLY_VERIFICATION $USE_FIXED_SIZE_CHUNKS_OF_CODE $NUM_OF_BYTES_IN_CODE_CHUNK $FORCE_NUM_OF_INSTRUCTIONS_OVER_NUM_OF_BYTES
 if [ $? -eq 0 ]; then
 		: #all ok
 	else
-		echo "Error. Could not insert NOPs prperly."
+		echo "Error. Could not insert NOPs properly."
 		exit
 	fi
 echo "NOPs inserted."
@@ -252,7 +253,7 @@ if [ "$#" -eq 10 ]; then
 	#do the same thing with the new main_program_sec.s
 	cat main_program_sec.s | as && objdump -d > assembly_commands_for_parsing.txt
 	./assembly_parser_and_size_finder.py $NUM_OF_NOPS > assembly_sizes.txt
-	./assembly_fixed_size_verifier.py $NUM_OF_NOPS $NUM_OF_BYTES_IN_CODE_CHUNK $ADD_CODE_ON_THE_FLY_VERIFICATION
+	./assembly_fixed_size_verifier.py $NUM_OF_NOPS $NUM_OF_BYTES_IN_CODE_CHUNK $ADD_CODE_ON_THE_FLY_VERIFICATION $NUM_OF_CANARIES $NUM_OF_INTERLEAVED_KEYS $NUM_OF_MAC_BYTES
 	if [ $? -eq 0 ]; then
 		: #all ok
 	else

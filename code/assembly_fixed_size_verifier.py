@@ -18,6 +18,9 @@ assembly_sizes_filename="assembly_sizes.txt"
 number_of_nops_in_code=int(sys.argv[1])
 num_of_bytes_in_code_chunk=int(sys.argv[2])
 add_code_on_the_fly_verification=int(sys.argv[3])
+num_of_canaries=int(sys.argv[4]) #this is not needed though
+num_of_key_bytes=int(sys.argv[5]) #this is not needed though
+num_of_mac_bytes=int(sys.argv[6]) #this is not needed though
 lines_sizes=[]
 
 #read lines
@@ -61,6 +64,11 @@ while j<len(lines_sizes):
 	all_nops_for_this_block=int(lines_sizes[j].strip().split(" ")[1])
 	if (nops_to_pad+number_of_nops_in_code!=all_nops_for_this_block):
 		sys.stderr.write("Error in nop count. The number of the total nops is not correct. Line: "+str(j)+"\n")
+		sys.exit(-1)
+		
+	if (all_nops_for_this_block>127):
+		sys.stderr.write("Error in number of NOPs: They are more than 127. Line: "+str(j)+"\n")
+		sys.exit(-1)
 	
 	j=j+1
 

@@ -347,9 +347,12 @@ public class Secure_Machine_Code {
 	    /*Giving execute permissions*/
 	    Process p = r.exec("chmod +x " + newfilename );
 	    p.waitFor();
-	    /*byte t = (byte)0xeb;
-		System.out.println(randomByte() + " "+(t == 107 )+" "+t);*/
 		System.out.println("Number of nop groups replaced: "+number_of_nop_groups_replaced);
+		if (number_of_nop_groups_replaced<=20)
+		{
+			System.out.println("ALERT: The number of nop groups replaced is too low!. THATS MOST LIKELY AN ERROR. Most likely the jmp was more than 127 bytes!");
+			System.out.println("!!!!!!!!!!");
+		}
 	}
 	
 	static byte xor(ArrayList<Byte> list)

@@ -43,9 +43,10 @@ public class Secure_Assembly {
 		int line_index=0;
 		int size_of_current_cmd=0;
 		int num_of_bytes_in_current_block=0;
+		boolean force_num_of_instructions_over_bytes=true;
 		
 
-		if (args.length==7)
+		if (args.length==8)
 		{
 			num_of_interleaved_keys=Integer.parseInt(args[0]);
 			num_of_grouped_orig_instr=Integer.parseInt(args[1]);
@@ -62,6 +63,11 @@ public class Secure_Assembly {
 				use_fixed_size_chunks_of_code=true;
 			
 			num_of_bytes_in_code_chunk=Integer.parseInt(args[6]);
+			
+			if (Integer.parseInt(args[7])==0)
+				force_num_of_instructions_over_bytes=false;
+			else
+				force_num_of_instructions_over_bytes=true;
 			
 		}
 		else
@@ -197,6 +203,12 @@ public class Secure_Assembly {
 					}
 					if (num_of_bytes_in_current_block+size_of_current_cmd>num_of_bytes_in_code_chunk-bytes_to_subtract)
 					{
+						if (force_num_of_instructions_over_bytes && i<num_of_grouped_orig_instr)
+						{
+							int bytes_to_increase=num_of_bytes_in_current_block+size_of_current_cmd-(num_of_bytes_in_code_chunk-bytes_to_subtract);
+							System.out.println("The size of the code block is not big enough and we only managed to fit "+i+" instructions. Increase it by at least "+ bytes_to_increase+".");
+							System.exit(-3);
+						}
 						force_end_of_block=true;
 					}
 				}
