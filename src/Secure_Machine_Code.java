@@ -53,6 +53,7 @@ public class Secure_Machine_Code {
 		int num_of_bytes_in_code_chunk=20;
 		int number_of_padded_nops=0;
 		int cnt_for_useful_bytes=0;
+		boolean do_not_mac_what_we_add_in_code=true;
 		
 		MessageDigest md = MessageDigest.getInstance("SHA-256");
 		FileInputStream fr = new FileInputStream(new File(filename));
@@ -66,7 +67,7 @@ public class Secure_Machine_Code {
 		byte [] global_keys = Files.readAllBytes(path);
 		byte[] stuff_in_code_to_be_MACed=new byte[2048];
 		
-		if (args.length==10)
+		if (args.length==11)
 		{
 			number_of_interleaved_keys=Integer.parseInt(args[0]);
 			num_of_keys_in_heap=number_of_interleaved_keys;
@@ -87,6 +88,11 @@ public class Secure_Machine_Code {
 			else
 				use_fixed_size_chunks_of_code=true;
 			num_of_bytes_in_code_chunk=Integer.parseInt(args[9]);
+			
+			if (Integer.parseInt(args[10])==0)
+				do_not_mac_what_we_add_in_code=false;
+			else
+				do_not_mac_what_we_add_in_code=true;
 		}
 		else
 		{
@@ -149,6 +155,11 @@ public class Secure_Machine_Code {
 				{
 					cnt_for_useful_bytes+=2;
 					number_of_padded_nops=num_of_bytes_in_code_chunk-cnt_for_useful_bytes;
+					if (cnt_for_useful_bytes>255)
+					{
+						System.out.println("Error. Too many assembly commands (255 bytes in size) in one chunk of useful bytes. Count: "+cnt_for_useful_bytes+" at position: "+i);
+						System.exit(-3);
+					}
 				}
     			//System.out.println("i,number_of_padded_nops,cnt_for_instr_bytes "+i+" "+number_of_padded_nops+" "+cnt_for_instr_bytes);
 				//System.out.flush();
@@ -162,6 +173,7 @@ public class Secure_Machine_Code {
 				if (num_of_mac_bytes>0 && cnt_for_instr_bytes>0 && (cnt_for_instr_bytes/255.0>bytes_for_instr_len || bytes_for_instr_len>1 ))
 				{
 					System.out.println("Error. Too many assembly commands (255 bytes in size) in one chunk of useful bytes. Count: "+cnt_for_instr_bytes+" at position: "+i);
+					System.exit(-3);
 				}
 				else
 				{
@@ -212,7 +224,16 @@ public class Secure_Machine_Code {
 	    		}
 	    		
 				i+=(number_of_interleaved_keys+number_of_canaries+bytes_for_instr_len+number_of_padded_nops+2); //jump above them and reach the mac bytes
-	    		
+				//write the number of the actual commands in the last padded nop byte, or after the canaries if there are no padded nops
+				if (use_fixed_size_chunks_of_code==false && num_of_mac_bytes==0)
+					arr[i-number_of_interleaved_keys-1]=(byte)0;
+				else if (use_fixed_size_chunks_of_code)
+					arr[i-number_of_interleaved_keys-1] = (byte)cnt_for_useful_bytes;
+				else if (num_of_mac_bytes>0)	
+					arr[i-number_of_interleaved_keys-1] = (byte)cnt_for_instr_bytes;
+				
+				
+				
 				if (num_of_mac_bytes>0)
 				{
 					//time to set the proper MACs
@@ -221,8 +242,62 @@ public class Secure_Machine_Code {
 						//copy bytes
 						stuff_in_code_to_be_MACed[j]=arr[i-(cnt_for_instr_bytes+number_of_interleaved_keys+number_of_canaries+bytes_for_instr_len+number_of_padded_nops)+j];
 					}
-					//give them to the mac handler and calculate the mac
-					byte[] digest=calculate_mac(cnt_for_instr_bytes+number_of_canaries+bytes_for_instr_len+number_of_interleaved_keys+number_of_padded_nops,cnt_for_instr_bytes+number_of_canaries+bytes_for_instr_len+number_of_padded_nops,stuff_in_code_to_be_MACed,num_of_mac_bytes);
+					
+					byte[] digest;
+					if (do_not_mac_what_we_add_in_code)
+					{
+						int length_of_verifier_in_fixed_chunks=7;
+						int length_of_verifier_in_variable_chunks=14;
+						int nops_padded=0;
+						int length_of_verifier=length_of_verifier_in_variable_chunks;
+						if (use_fixed_size_chunks_of_code)
+						{
+							length_of_verifier=length_of_verifier_in_fixed_chunks;
+							nops_padded=number_of_padded_nops;
+						}
+						byte[] new_stuff_in_code_to_be_MACed=new byte[2048];
+						//throw away what we've put in the code (verifier,jmp etc)
+						int cnt_in_new_mac=0;
+						int all_bytes_length=cnt_for_instr_bytes+number_of_canaries+bytes_for_instr_len+number_of_interleaved_keys+number_of_padded_nops;
+						int start_of_jmps_and_other=cnt_for_instr_bytes-2;
+						int end_of_jmps_and_other=cnt_for_instr_bytes+number_of_canaries+bytes_for_instr_len;
+						int start_of_nops=cnt_for_instr_bytes+number_of_canaries+bytes_for_instr_len;
+						int end_of_nops=cnt_for_instr_bytes+number_of_canaries+bytes_for_instr_len;
+						if (use_fixed_size_chunks_of_code)
+						{
+							end_of_nops+=nops_padded;
+						}
+						for (int cnt_in_old_mac=0;cnt_in_old_mac<all_bytes_length;cnt_in_old_mac++)
+						{
+							if (check_code_verification_on_the_fly && cnt_in_old_mac<length_of_verifier)
+							{
+								; //do nothing
+							}
+							else if (cnt_in_old_mac<end_of_jmps_and_other && cnt_in_old_mac>=start_of_jmps_and_other)
+							{
+								; //do nothing
+							}
+							else if (use_fixed_size_chunks_of_code && cnt_in_old_mac<end_of_nops && cnt_in_old_mac>=start_of_nops)
+							{
+								; //do nothing
+							}
+							else
+							{
+								//copy bytes
+								new_stuff_in_code_to_be_MACed[cnt_in_new_mac]=stuff_in_code_to_be_MACed[cnt_in_old_mac];
+								cnt_in_new_mac++;
+							}
+						}
+						
+						//give them to the mac handler and calculate the mac
+						digest=calculate_mac(cnt_in_new_mac,cnt_in_new_mac-number_of_interleaved_keys,new_stuff_in_code_to_be_MACed,num_of_mac_bytes);
+					}
+					else
+					{
+						//give them to the mac handler and calculate the mac
+						digest=calculate_mac(cnt_for_instr_bytes+number_of_canaries+bytes_for_instr_len+number_of_interleaved_keys+number_of_padded_nops,cnt_for_instr_bytes+number_of_canaries+bytes_for_instr_len+number_of_padded_nops,stuff_in_code_to_be_MACed,num_of_mac_bytes);
+					}
+
 					
 					//and write the mac bytes
 					for (int j=0;j<num_of_mac_bytes;j++)
@@ -244,7 +319,7 @@ public class Secure_Machine_Code {
 				if (use_fixed_size_chunks_of_code)
 				{
 					cnt_for_useful_bytes=0;
-					number_of_padded_nops=num_of_bytes_in_code_chunk-cnt_for_useful_bytes;
+					number_of_padded_nops=num_of_bytes_in_code_chunk-cnt_for_useful_bytes; //reset it
 				}
 	    	}
 	    	else

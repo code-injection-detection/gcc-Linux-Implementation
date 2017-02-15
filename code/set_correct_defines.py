@@ -39,7 +39,11 @@ for line in src_lines:
 	if '#define use_fixed_size_chunks_of_code' in line:
 		newline='#define use_fixed_size_chunks_of_code '+sys.argv[10]+'\n'	
 	if '#define num_of_bytes_in_code_chunk' in line:
-		newline='#define num_of_bytes_in_code_chunk '+sys.argv[11]+'\n'				
+		newline='#define num_of_bytes_in_code_chunk '+sys.argv[11]+'\n'
+	if '#define do_not_mac_what_we_add_in_code' in line:
+		newline='#define do_not_mac_what_we_add_in_code '+sys.argv[12]+'\n'	
+	if '#define check_code_verification_on_the_fly' in line:
+		newline='#define check_code_verification_on_the_fly '+sys.argv[13]+'\n'			
 		
 	headers_dst.write(newline)
 

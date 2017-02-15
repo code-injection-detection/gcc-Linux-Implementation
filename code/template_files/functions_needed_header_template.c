@@ -63,18 +63,6 @@ void verify_all_keyshares_from_file(unsigned char * keys_array)
 	
 }
 
-int get_number_of_padded_nops(unsigned char *p)
-{
-	if (use_fixed_size_chunks_of_code==0)
-	{
-		return 0;
-	}
-	else
-	{
-		return (num_of_bytes_in_code_chunk - *(p+2+number_of_canaries));
-	}
-}
-
 
 
 clock_t _simplestart;

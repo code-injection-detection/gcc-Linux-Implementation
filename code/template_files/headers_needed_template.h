@@ -27,6 +27,7 @@
 #include <xmmintrin.h>
 #include <setjmp.h>
 #include <ucontext.h>
+#include <sys/mman.h>
 
 #define mac_algorithm 3  //0->sha256,   //PROBLEM WITH code on-the-fly verification
 						 //1-> AES_ECB with MAC=x*A+B, 
@@ -97,6 +98,15 @@
 #ifndef num_of_bytes_in_code_chunk
 #define num_of_bytes_in_code_chunk 20
 #endif				//This is the number of bytes that each code chunk will be, should the <use_fixed_size_chunks_of_code> is 1
+
+
+#ifndef do_not_mac_what_we_add_in_code
+#define do_not_mac_what_we_add_in_code 1
+#endif				//This is a boolean variable that denotes if we should mac the extra stuff (verifier,jmps,canaries) that we have put in the code
+
+#ifndef check_code_verification_on_the_fly
+#define check_code_verification_on_the_fly 1
+#endif				
 
 
 

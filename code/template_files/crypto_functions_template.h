@@ -9,6 +9,7 @@ void clear_crypto_structures();
 void encrypt_aes_ecb(unsigned char *buf_to_be_encrypted,int len_of_buf);
 void calc_and_set_mac_of_data_aes_ecb(char * input, int length_of_all,int length_of_useful, char * output);
 int check_mac_for_error(unsigned char * input, int total_mac_bytes, int useful_mac_bytes);
+int check_code_mac_for_error(unsigned char * input, int total_mac_bytes, int useful_mac_bytes);
 void set_mac_aes_cmac(unsigned char * output);
 void calc_mac_aes_cmac(char * input, int length_of_all);
 void calc_and_set_mac_of_data_aes_cmac(char * input, int length_of_all, char * output);
@@ -22,5 +23,10 @@ void verify_mac_onthefly(unsigned char * input, int total_mac_bytes, int useful_
 #define verify_mac_on_the_fly(input,total_mac_bytes,useful_mac_bytes) verify_mac_onthefly((unsigned char*)(input),(total_mac_bytes),(useful_mac_bytes),__func__,__LINE__);
 
 void update_mac_when_setting_data(unsigned char * input, int total_mac_bytes, int useful_mac_bytes, unsigned char* output);
+
+void do_nothing_function();
+void do_verify_code_on_the_fly();
+int get_number_of_padded_nops(unsigned char *p);
+
 
 #endif

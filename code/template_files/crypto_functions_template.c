@@ -320,6 +320,81 @@ int check_mac_for_error(unsigned char * input, int total_mac_bytes, int useful_m
 	return error;
 }
 
+int get_number_of_padded_nops(unsigned char *p)
+{
+	if (use_fixed_size_chunks_of_code==0)
+	{
+		return 0;
+	}
+	else
+	{
+		return (num_of_bytes_in_code_chunk - *(p+2+number_of_canaries));
+	}
+}
+
+unsigned char new_stuff_in_code_to_be_MACed[1024];
+#if use_fixed_size_chunks_of_code==1
+	#define size_of_commands_before_getting_addr (6) //the size in bytes of the assembly commands before fetching the current address( to reach the start of the mac-ed block)
+#endif
+#if use_fixed_size_chunks_of_code==0
+	#define size_of_commands_before_getting_addr (13) //the size in bytes of the assembly commands before fetching the current address( to reach the start of the mac-ed block)
+#endif
+int check_code_mac_for_error(unsigned char * input, int total_mac_bytes, int useful_mac_bytes)
+{
+	int error=0;
+	unsigned char * true_input;
+	int true_total_mac_bytes;
+	int true_useful_mac_bytes;
+	if (number_of_mac_bytes>0)
+	{
+		
+#if do_not_mac_what_we_add_in_code==1 //using defined if's , for speed
+		{
+			int length_of_verifier=size_of_commands_before_getting_addr+1; //the final pop command
+			int code_length=input[useful_mac_bytes-1]; //input[useful_mac_bytes-1] holds the bytes for the code <verifier+proper code+jmp>
+			//throw away what we've put in the code (verifier,jmp etc)
+			int cnt_in_new_mac=0;
+			//copy proper code
+			memcpy(new_stuff_in_code_to_be_MACed,input+length_of_verifier,code_length-length_of_verifier-2);
+			cnt_in_new_mac+=code_length-length_of_verifier-2;
+			//copy keys
+			memcpy(new_stuff_in_code_to_be_MACed+cnt_in_new_mac,input+useful_mac_bytes,number_of_interleaved_keys);
+			cnt_in_new_mac+=number_of_interleaved_keys;
+			
+			true_input=new_stuff_in_code_to_be_MACed;
+			true_total_mac_bytes=cnt_in_new_mac;
+			true_useful_mac_bytes=cnt_in_new_mac-number_of_interleaved_keys;
+		}
+#endif
+#if do_not_mac_what_we_add_in_code==0
+		{
+			true_input=input;
+			true_total_mac_bytes=total_mac_bytes;
+			true_useful_mac_bytes=useful_mac_bytes;
+		}
+#endif
+		calc_and_set_mac_of_data(true_input,true_total_mac_bytes,true_useful_mac_bytes,mac_to_be_verified);
+		if (0!=memcmp(input+total_mac_bytes,mac_to_be_verified,number_of_mac_bytes))
+		{	
+			error=1;
+		}
+	}
+	return error;
+}
+
+//checks the next <number_of_canaries> to see if they hold the canary value
+int check_next_canaries_for_crypto(void* p)
+{
+	int i;
+	for (i=0;i<number_of_canaries;i++)
+	{
+		if ( *((unsigned char*)p+i)!=(unsigned char)(canary_value))
+			return 0;
+	}
+	return 1;
+}
+
+
 unsigned char mac_for_verification[number_of_mac_bytes];
 void verify_mac_onthefly(unsigned char * input, int total_mac_bytes, int useful_mac_bytes,const char * fun_name,int line)
 {
@@ -339,18 +414,15 @@ void verify_mac_onthefly(unsigned char * input, int total_mac_bytes, int useful_
 long num_of_useful_bytes_to_mac_in_code;
 long code_where_to_start_macing;
 unsigned char mac_for_code_verification[number_of_mac_bytes];
-#if use_fixed_size_chunks_of_code==1
-	#define size_of_commands_before_getting_addr (6) //the size in bytes of the assembly commands before fetching the current address( to reach the start of the mac-ed block)
-#endif
-#if use_fixed_size_chunks_of_code==0
-	#define size_of_commands_before_getting_addr (13) //the size in bytes of the assembly commands before fetching the current address( to reach the start of the mac-ed block)
-#endif
 void verify_code_on_the_fly()
 {
 	if (number_of_mac_bytes>0)
 	{
-		calc_and_set_mac_of_data((unsigned char*)code_where_to_start_macing-size_of_commands_before_getting_addr,num_of_useful_bytes_to_mac_in_code+bytes_used_for_keyshares,num_of_useful_bytes_to_mac_in_code,mac_for_code_verification);
-		if (0!=memcmp((unsigned char*)code_where_to_start_macing-size_of_commands_before_getting_addr+num_of_useful_bytes_to_mac_in_code+bytes_used_for_keyshares,mac_for_code_verification,number_of_mac_bytes)) //CRYPTO_memcmp?
+		//old version
+		//calc_and_set_mac_of_data((unsigned char*)code_where_to_start_macing-size_of_commands_before_getting_addr,num_of_useful_bytes_to_mac_in_code+bytes_used_for_keyshares,num_of_useful_bytes_to_mac_in_code,mac_for_code_verification);
+		//if (0!=memcmp((unsigned char*)code_where_to_start_macing-size_of_commands_before_getting_addr+num_of_useful_bytes_to_mac_in_code+bytes_used_for_keyshares,mac_for_code_verification,number_of_mac_bytes)) //CRYPTO_memcmp?
+
+		if (check_code_mac_for_error((unsigned char*)code_where_to_start_macing-size_of_commands_before_getting_addr,num_of_useful_bytes_to_mac_in_code+bytes_used_for_keyshares,num_of_useful_bytes_to_mac_in_code))
 		{	
 			fprintf(stderr,"ERROR in on the fly code mac verification!. Address:%ld, total mac bytes:%ld, useful mac bytes:%ld\n",
 					(long)((unsigned char*)code_where_to_start_macing-size_of_commands_before_getting_addr) ,num_of_useful_bytes_to_mac_in_code+bytes_used_for_keyshares,num_of_useful_bytes_to_mac_in_code

@@ -107,6 +107,10 @@ int main_program_function()
 	//*(entire_memory_chunk+bytes_for_useful_data)=1;
 	//break macs!
 	//*(entire_memory_chunk+bytes_for_useful_data+bytes_used_for_keyshares)=1;
+	//break code?
+	//the following produces a segfault. do not try, unless you give write permission to text segment.
+	//*((unsigned char*)&__executable_start+2000)=1;
+	
 	
 	/*
 	int times=10000000;

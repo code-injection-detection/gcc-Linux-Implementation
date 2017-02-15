@@ -89,7 +89,7 @@ void check_code_macs()
 		{ 
 			mac_cnt++;
 			length_of_useful_data=*(p+2+number_of_canaries);
-			if (check_mac_for_error(p-(length_of_useful_data-2),length_of_useful_data+number_of_interleaved_keys+number_of_canaries+bytes_for_instr_len+get_number_of_padded_nops(p),length_of_useful_data+number_of_canaries+bytes_for_instr_len+get_number_of_padded_nops(p)))
+			if (check_code_mac_for_error(p-(length_of_useful_data-2),length_of_useful_data+number_of_interleaved_keys+number_of_canaries+bytes_for_instr_len+get_number_of_padded_nops(p),length_of_useful_data+number_of_canaries+bytes_for_instr_len+get_number_of_padded_nops(p)))
 			{	
 				printf("Error in code macs, p=%ld, start of code=%ld\n",(long) p,(long)start_of_text);
 				error=1;
