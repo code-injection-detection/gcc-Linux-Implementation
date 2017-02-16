@@ -191,7 +191,7 @@ public class Secure_Machine_Code {
 						//set the correct value in "movq $42,num_of_useful_bytes_to_mac_in_code(%rip)"
 						int num_of_useful_butes_to_mac_in_code=cnt_for_instr_bytes+number_of_canaries+1;
 						int length_of_instructions_up_to_byte_42=7;//22;
-						if (arr[i-(cnt_for_instr_bytes-2)+length_of_instructions_up_to_byte_42]!=(byte)42) //22 bytes is the length of the instructions up to 42
+						if (arr[i-(cnt_for_instr_bytes-2)+length_of_instructions_up_to_byte_42]!=(byte)42) //7 bytes is the length of the instructions up to 42
 						{
 							System.out.println("Could not find 42 in movb $42,num_of_useful_bytes_to_mac_in_code(%rip)!");
 							System.exit(-1);
@@ -266,6 +266,12 @@ public class Secure_Machine_Code {
 						if (use_fixed_size_chunks_of_code)
 						{
 							end_of_nops+=nops_padded;
+						}
+						if (use_fixed_size_chunks_of_code==false)
+						{
+							//first byte is the size of the proper code, when using variable chunks
+							new_stuff_in_code_to_be_MACed[cnt_in_new_mac]=(byte)(cnt_for_instr_bytes-length_of_verifier_in_variable_chunks-2);
+							cnt_in_new_mac++;
 						}
 						for (int cnt_in_old_mac=0;cnt_in_old_mac<all_bytes_length;cnt_in_old_mac++)
 						{

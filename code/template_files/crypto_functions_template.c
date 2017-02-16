@@ -354,8 +354,14 @@ int check_code_mac_for_error(unsigned char * input, int total_mac_bytes, int use
 			int code_length=input[useful_mac_bytes-1]; //input[useful_mac_bytes-1] holds the bytes for the code <verifier+proper code+jmp>
 			//throw away what we've put in the code (verifier,jmp etc)
 			int cnt_in_new_mac=0;
+			//copy size of proper commands into first place for variable chunks
+			if (!use_fixed_size_chunks_of_code)
+			{
+				new_stuff_in_code_to_be_MACed[0]=(unsigned char)(code_length-length_of_verifier-2);
+				cnt_in_new_mac++;
+			}
 			//copy proper code
-			memcpy(new_stuff_in_code_to_be_MACed,input+length_of_verifier,code_length-length_of_verifier-2);
+			memcpy(new_stuff_in_code_to_be_MACed+cnt_in_new_mac,input+length_of_verifier,code_length-length_of_verifier-2);
 			cnt_in_new_mac+=code_length-length_of_verifier-2;
 			//copy keys
 			memcpy(new_stuff_in_code_to_be_MACed+cnt_in_new_mac,input+useful_mac_bytes,number_of_interleaved_keys);
