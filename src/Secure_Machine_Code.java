@@ -269,6 +269,9 @@ public class Secure_Machine_Code {
 						}
 						if (use_fixed_size_chunks_of_code==false)
 						{
+							//When macing only necessary bytes and using variable code block sizes, 
+							//the cpu has to know the size of the code to fetch it atomically. 
+							//So adding one extra byte to the mac
 							//first byte is the size of the proper code, when using variable chunks
 							new_stuff_in_code_to_be_MACed[cnt_in_new_mac]=(byte)(cnt_for_instr_bytes-length_of_verifier_in_variable_chunks-2);
 							cnt_in_new_mac++;

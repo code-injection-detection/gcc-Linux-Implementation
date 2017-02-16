@@ -357,6 +357,9 @@ int check_code_mac_for_error(unsigned char * input, int total_mac_bytes, int use
 			//copy size of proper commands into first place for variable chunks
 			if (!use_fixed_size_chunks_of_code)
 			{
+				//When macing only necessary bytes and using variable code block sizes, 
+				//the cpu has to know the size of the code to fetch it atomically. 
+				//So adding one extra byte to the mac
 				new_stuff_in_code_to_be_MACed[0]=(unsigned char)(code_length-length_of_verifier-2);
 				cnt_in_new_mac++;
 			}
