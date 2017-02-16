@@ -78,7 +78,7 @@ int main_program_function()
 	*/
 	
 	/*
-	int hanoi_up_to=25;
+	int hanoi_up_to=26;
 	//towerOfHanoi_secure_using_template(hanoi_up_to,'A','C','B');
 	//towerOfHanoi_secure(hanoi_up_to,'A','C','B');
 	//towerOfHanoi_secure_using_changed_accesses(hanoi_up_to,'A','C','B'); //don't do this

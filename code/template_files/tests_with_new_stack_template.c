@@ -85,11 +85,11 @@ void great_function_that_wraps_the_tests()
 	
 		if (GET_STACK_INT(N)==1)
 		{
-			printf("Move disk 1 from rod %c to rod %c\n", GET_STACK_CHAR(A),GET_STACK_CHAR(B));
+			//printf("Move disk 1 from rod %c to rod %c\n", GET_STACK_CHAR(A),GET_STACK_CHAR(B));
 			RETURN_POINT_OF_FUNCTION: towers_of_hanoi_sec
 		}
 		//HEY PYTHON CALLING FUNCTION : towers_of_hanoi_sec |PARAMETERS TO CALL WITH: GET_STACK_CHAR(A),GET_STACK_CHAR(C),GET_STACK_CHAR(B),GET_STACK_INT(N)-1
-		printf("Move disk %d from rod %c to rod %c\n", GET_STACK_INT(N),GET_STACK_CHAR(A),GET_STACK_CHAR(B));
+		//printf("Move disk %d from rod %c to rod %c\n", GET_STACK_INT(N),GET_STACK_CHAR(A),GET_STACK_CHAR(B));
 		//HEY PYTHON CALLING FUNCTION : towers_of_hanoi_sec| PARAMETERS TO CALL WITH: GET_STACK_CHAR(C),GET_STACK_CHAR(B),GET_STACK_CHAR(A),GET_STACK_INT(N)-1
 		RETURN_POINT_OF_FUNCTION: towers_of_hanoi_sec
 		

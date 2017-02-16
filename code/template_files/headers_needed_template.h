@@ -108,6 +108,9 @@
 #define check_code_verification_on_the_fly 1
 #endif				
 
+#ifndef use_inline_assembly_with_pushes
+#define use_inline_assembly_with_pushes 1
+#endif				//This is a boolean variable that determines if, for delay purposes, we should use pushes and pops for function parameters in normal functions
 
 
 #include "crypto_functions.h"

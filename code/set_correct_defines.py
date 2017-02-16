@@ -43,7 +43,9 @@ for line in src_lines:
 	if '#define do_not_mac_what_we_add_in_code' in line:
 		newline='#define do_not_mac_what_we_add_in_code '+sys.argv[12]+'\n'	
 	if '#define check_code_verification_on_the_fly' in line:
-		newline='#define check_code_verification_on_the_fly '+sys.argv[13]+'\n'			
+		newline='#define check_code_verification_on_the_fly '+sys.argv[13]+'\n'
+	if '#define use_inline_assembly_with_pushes' in line:
+		newline='#define use_inline_assembly_with_pushes '+sys.argv[14]+'\n'	
 		
 	headers_dst.write(newline)
 

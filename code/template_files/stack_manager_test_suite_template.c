@@ -88,9 +88,33 @@ void towerOfHanoi(int n, char fromrod, char torod, char auxrod)
         //printf("\n Move disk 1 from rod %c to rod %c", fromrod, torod);
         return;
     }
+#if use_inline_assembly_with_pushes==1
+    //for delay, emulating the pushing of parameters into the stack
+    __asm__ ( "pushq %rax;\n" //4 parameters
+			  "pushq %rax;\n"
+			  "pushq %rax;\n"
+			  "pushq %rax;\n" 
+			);
+#endif
     towerOfHanoi(n-1, fromrod, auxrod, torod);
+#if use_inline_assembly_with_pushes==1
+	__asm__ ( "add $32,%rsp;\n"
+			);
+#endif
     //printf("\n Move disk %d from rod %c to rod %c", n, fromrod, torod);
+    
+#if use_inline_assembly_with_pushes==1
+	__asm__ ( "pushq %rax;\n" //4 parameters
+			  "pushq %rax;\n"
+			  "pushq %rax;\n"
+			  "pushq %rax;\n" 
+			);
+#endif
     towerOfHanoi(n-1, auxrod, torod, fromrod);
+#if use_inline_assembly_with_pushes==1
+    __asm__ ( "add $32,%rsp;\n"
+			);
+#endif
 }
 
 //generic way to secure a function
