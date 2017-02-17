@@ -193,7 +193,7 @@ public class Secure_Machine_Code {
 						int length_of_instructions_up_to_byte_42=7;//22;
 						if (arr[i-(cnt_for_instr_bytes-2)+length_of_instructions_up_to_byte_42]!=(byte)42) //7 bytes is the length of the instructions up to 42
 						{
-							System.out.println("Could not find 42 in movb $42,num_of_useful_bytes_to_mac_in_code(%rip)!");
+							System.out.println("Could not find 42 in movb $42,num_of_useful_bytes_to_mac_in_code(%rip)!. Exiting.");
 							System.exit(-1);
 						}
 						else

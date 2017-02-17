@@ -6,7 +6,8 @@ INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS=1
 ADD_CODE_ON_THE_FLY_VERIFICATION=1
 FORCE_NUM_OF_INSTRUCTIONS_OVER_NUM_OF_BYTES=0
 DO_NOT_MAC_WHAT_WHE_ADD_IN_CODE=1
-USE_INLINE_ASSEMBLY_WITH_PUSHES=0 #make it 1 when tou want to benchmark normal times
+USE_INLINE_ASSEMBLY_WITH_PUSHES=0 #make it 1 when tou want to benchmark normal times. The script will not terminate properly, but you will have an executable that can give you normal run times
+
 
 if [[ ( "$#" -ne 9 ) && ( "$#" -ne 10) ]]; then
     echo "Please execute as following:"
@@ -19,9 +20,9 @@ if [[ ( "$#" -ne 9 ) && ( "$#" -ne 10) ]]; then
     echo "i=number of bytes for MACs"
 	echo "j=size in bytes of a fixed chunk in code (optional, and if b's bytes are more that j an error will be raised, unless the corresponding flag in automate.sh script is changed)."
 	echo "if j is given, b is ignored"
-    echo "Example: $0 32 1 3 4 25000 4 20000 8 16"
+    echo "Example: $0 32 1 3 8 25000 8 20000 8 16"
 	echo "OR:"
-	echo "Example: $0 32 1 3 4 25000 4 20000 8 16 16"
+	echo "Example: $0 32 1 3 8 25000 8 20000 8 16 16"
     exit
 fi
 
@@ -107,6 +108,11 @@ fi
 
 if [ "$NUM_OF_INTERLEAVED_KEYS" -ne "32" ]; then
 	echo "Keys should be 32 bytes long (16 bytes [=128 bits] for each key). Other sizes currently not supported."
+	exit
+fi
+
+if [[ ( "$NUM_OF_MAC_BYTES" -eq 0 ) && ( "$ADD_CODE_ON_THE_FLY_VERIFICATION" -eq 1 ) ]]; then
+	echo "Can't have 0 mac bytes and code on the fly verification."
 	exit
 fi
 
