@@ -28,5 +28,8 @@ void do_nothing_function();
 void do_verify_code_on_the_fly();
 int get_number_of_padded_nops(unsigned char *p);
 
+void init_code_cache();
+int continue_macing_current_addr();
+
 
 #endif

@@ -27,6 +27,8 @@ unsigned char intermediate_buf_for_macing[safe_length_for_buffer_storage];
 int length_of_encrypted_data;
 size_t length_of_maced_data;
 int tmplen;
+long code_cache[num_of_cached_blocks_of_code]; //in here, the addresses of the blocks of code that are cached are stored.
+int code_cache_latest_index;
 
 
 void init_crypto_stuctures(int print)
@@ -61,7 +63,11 @@ void init_crypto_stuctures(int print)
 	if (number_of_mac_bytes>0)
 	{
 		memset(mac_to_be_verified,99,number_of_mac_bytes); //a value (99) that will result in error
-	}	
+		if (num_of_cached_blocks_of_code>0)
+		{
+			init_code_cache();
+		}
+	}
 	if (print)
 		printf("Crypto structures initialized.\n");
 }
@@ -440,7 +446,6 @@ void verify_code_on_the_fly()
 		}
 	}
 }
-#undef size_of_commands_before_getting_addr
 
 void update_mac_when_setting_data(unsigned char * input, int total_mac_bytes, int useful_mac_bytes, unsigned char* output)
 {
@@ -603,7 +608,10 @@ void do_verify_code_on_the_fly()
 				"and $0xfffffffffffffff0,%rsp;"
 				);
 				
-		verify_code_on_the_fly();
+		if (continue_macing_current_addr()) //if using cache for code
+		{		
+			verify_code_on_the_fly();
+		}
              
         __asm__("movq %r15, %rsp;" //restore stack to the number it was
 				);     
@@ -650,4 +658,78 @@ void do_verify_code_on_the_fly()
              
     __asm__( "popq %rax;" //the register in which we stored the return address
 			);
+}
+
+
+
+/*********************Code Cache Functions *********************/
+void init_code_cache()
+{
+	if (num_of_cached_blocks_of_code>0)
+	{
+		memset(code_cache,0,num_of_cached_blocks_of_code);
+		code_cache_latest_index=0;
+	}
+}
+
+int inc_code_cache_index()
+{
+#if num_of_cached_blocks_of_code>0
+		code_cache_latest_index=(code_cache_latest_index+1)%num_of_cached_blocks_of_code;
+#endif
+
+	return code_cache_latest_index;
+}
+
+int search_code_address_in_cache(unsigned char * addr)
+{
+	int i;
+	//check if addr is in cache. For optimization purposes, check for the most recent blocks first
+	if (code_cache_latest_index==0)
+	{
+		for(i=num_of_cached_blocks_of_code-1;i>=0;i--)
+		{
+			if (code_cache[i]==(long) addr)
+			return i;
+		}
+	}
+	else
+	{
+		for (i=code_cache_latest_index-1;i>=0;i--) 
+		{
+			if (code_cache[i]==(long) addr)
+				return i;
+		}
+		for(i=num_of_cached_blocks_of_code-1;i>=code_cache_latest_index;i--)
+		{
+			if (code_cache[i]==(long) addr)
+			return i;
+		}
+	}
+	return -1;
+}
+
+void add_addr_to_code_cache(unsigned char * addr)
+{
+	code_cache[code_cache_latest_index]=(long)addr;
+	inc_code_cache_index();
+}
+
+int continue_macing_current_addr()
+{
+	unsigned char * addr;
+	if (num_of_cached_blocks_of_code>0)
+	{
+		addr=(unsigned char*)(code_where_to_start_macing) - size_of_commands_before_getting_addr;
+		if (search_code_address_in_cache(addr)!=-1)
+		{
+			return 0;
+		}
+		else
+		{
+			add_addr_to_code_cache(addr);
+		}
+	}
+	return 1;
+	
 }

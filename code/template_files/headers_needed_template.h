@@ -112,6 +112,15 @@
 #define use_inline_assembly_with_pushes 1
 #endif				//This is a boolean variable that determines if, for delay purposes, we should use pushes and pops for function parameters in normal functions
 
+#ifndef use_inline_assembly_with_pushes
+#define use_inline_assembly_with_pushes 1
+#endif				//This is a boolean variable that determines if, for delay purposes, we should use pushes and pops for function parameters in normal functions
+
+
+#ifndef num_of_cached_blocks_of_code
+#define num_of_cached_blocks_of_code 0
+#endif				//If a code block is in the cache, it is not verified before execution. If the cache size is 0, then there is no cache!
+
 
 #include "crypto_functions.h"
 #include "secure_getters_setters.h"
