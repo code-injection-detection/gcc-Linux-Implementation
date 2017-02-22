@@ -4,7 +4,7 @@ FLAGS_to_assembly= -O0
 FLAGS_to_object= -O0
 FLAGS_to_secure_object = -O0
 FLAGS_in_the_end= -lm -pthread -lcrypto -mno-red-zone
-OBJECT_FILES_TO_BE_LINKED= ./sha256.o ./secure_getters_setters.o ./crypto_functions.o ./initializer.o
+OBJECT_FILES_TO_BE_LINKED= ./sha256.o ./secure_getters_setters.o ./crypto_functions.o ./initializer.o ./secure_stack_manipulation_functions.o
 
 ifeq ($(filter-out secure,$(MAKECMDGOALS)),static)
  FLAGS_to_assembly+=  -static
@@ -42,4 +42,4 @@ main_program_sec: main_program_sec.s
 clean:
 	rm -f main_program.s main_program main_program_sec.s main_program_sec main_program_ksec *.o *.NASM* *.YASM* *.run 
 	rm -f sha256.c sha256.h *_keyshares headers_needed.h verification_procedure.c stack_manager.c memory_manager.c general_tests.c functions_needed_header.c functions_needed_footer.c  main_program.c memory_manager_test_suite.c stack_manager_test_suite.c mac_handling_functions.c all_keyshares_for_verification
-	rm -f initializer.c assembly_with_padded_nops.s assembly_sizes.txt a.out assembly_commands_for_parsing.txt secure_getters_setters.c secure_getters_setters.h crypto_functions.c crypto_functions.h calc_mac_for_external_programs tests_with_new_stack.c
+	rm -f initializer.c assembly_with_padded_nops.s assembly_sizes.txt a.out assembly_commands_for_parsing.txt secure_getters_setters.c secure_getters_setters.h crypto_functions.c crypto_functions.h calc_mac_for_external_programs tests_with_new_stack.c secure_stack_manipulation_functions.c

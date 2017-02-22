@@ -424,7 +424,14 @@ public class Secure_Assembly {
 	{
 		boolean is_one=false;
 		
-		String[] safe_functions={"update_mac_when_setting_data",
+		String[] safe_functions={"free_chunks_from_secure_stack",
+			 					 "free_mem_from_secure_stack",
+								 "free_mem_from_secure_stack_in_chunks",
+								 "allocate_mem_into_secure_stack_in_chunks",
+								 "allocate_mem_into_secure_stack",
+								 "find_number_of_useful_stack_chunks",
+								 "get_ptr_size",
+								 "update_mac_when_setting_data",
 								 "check_mac_for_error",
 								 "do_verify_code_on_the_fly",
 								 "insert_keys_into_mem",

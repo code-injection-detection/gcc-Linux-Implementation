@@ -179,6 +179,7 @@ echo "Copying header files, secure getters/setters, crypto functions and initial
 	cp ./template_files/secure_getters_setters_template.c secure_getters_setters.c
 	cp ./template_files/crypto_functions_template.c crypto_functions.c
 	cp ./template_files/initializer_template.c initializer.c
+	cp ./template_files/secure_stack_manipulation_functions_template.c secure_stack_manipulation_functions.c
 echo "Copied these files."
 
 echo "Compiling hash and encryption calculators, as well as the crypto initializer..."
@@ -201,6 +202,7 @@ echo "Compiling hash and encryption calculators, as well as the crypto initializ
 		 #and compile again
 		 gcc -O3 -c crypto_functions.c -lcrypto #-mno-red-zone
 	 fi
+	 gcc -O3 -c secure_stack_manipulation_functions.c -lcrypto #-mno-red-zone
 	 gcc -O3 -c calc_mac_for_external_programs.c -lcrypto #-mno-red-zone
 	 gcc -O3 calc_mac_for_external_programs.o ./sha256.o ./crypto_functions.o -o calc_mac_for_external_programs -lcrypto #-mno-red-zone
 	 gcc -O3 initializer.c -c -mno-red-zone

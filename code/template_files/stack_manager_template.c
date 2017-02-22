@@ -16,78 +16,14 @@ unsigned char * temp_base_pointer=0;
 unsigned char * returned_addr_after_allocating;
 FILE *stack_keyshare_input_file;
 
-
-
-/*This is the way that the function parameters will be passed, and declared inside a function*/
-typedef struct function_element_parameters{
-	
-	long num_of_char_params;
-	char * char_params;
-	long num_of_int_params;
-	int * int_params;
-	long num_of_long_int_params;
-	long int * long_int_params;
-	long num_of_float_params;
-	float * float_params;
-	long num_of_double_params;
-	double * double_params;
-	
-	long num_of_pointer_params;
-	long * pointer_params_sizes; //how big is each element that pointer points to?
-	void ** pointer_params; //array of void * 's (pointers)
-	
-	//and any other arbitraty structure which must be inserted in the stack
-	//perhaps it would be better if we put it outside of the fun_elem_params?
-	
-	/*the difference between the pointers and the arbitrary pointers is that the pointer values are 
-	*inserted in the stack(the pointers themselves)
-	*whereas the elements to which the arbitrary pointers point are inserted into the stack*/
-	long num_of_arb_pointer_params;
-	long * arb_pointer_params_sizes; //how big is each element that pointer points to?
-	void ** arb_pointer_params; //array of void * 's (pointers)
-	
-	
-} fun_elem_params;
-
-
-
-
-
-typedef struct function_parameters{
-	
-	long total_size_of_all_params;
-	long total_amount_of_chunks_needed_in_secure_stack; //when this one is -1 means that the parametee struct does not point to the stack
-	fun_elem_params * elem_params;
-	//pass weird stuff as parameters: just use void*'s in arb_pointer_params?	
-} fun_params;
-
-
-//used as return value for allocate_mem_into_secure_stack
-typedef struct chunks_and_old_memory{
-	long chunks_allocated;
-	void * old_mem;
-} chunks_and_old_mem;
-
-
-/*Returns the number of the useful chunks in stack memory*/
-/*This number (let it be "n") satisfies the equation <useful_bytes_chunk_length>*(n) + <keyshare_bytes_chunk_length>*(n)= total_allocated_bytes */
-long find_number_of_useful_stack_chunks(long allocated_bytes) //most often allocated bytes == total_bytes_allocated
-{
-  long a=allocated_bytes;
-  long b=stack_bytes_used_for_keyshares;
-  long c=stack_bytes_for_useful_data;
-  long d=number_of_mac_bytes;
-
-  return ((a)/(b+c+d));
-}
-
-
-/*checks whether the size of a pointer is 32 or 64 bits (typically distinguishes between 32 bit and 64 bit systems)*/
-int get_ptr_size()
-{
-	return sizeof(void*);
-}
-
+//functions included in secure_stack_manipulation_functions_template.c
+extern long find_number_of_useful_stack_chunks(long allocated_bytes);
+extern int get_ptr_size();
+extern chunks_and_old_mem allocate_mem_into_secure_stack(long stack_bytes_to_allocate);
+extern unsigned char * allocate_mem_into_secure_stack_in_chunks(long chunks_to_allocate);
+extern void free_mem_from_secure_stack_in_chunks(long chunks_to_free);
+extern void free_mem_from_secure_stack(long stack_bytes_to_free);
+extern void free_chunks_from_secure_stack(long chunks_to_free);
 
 /*magically gets/produces the next stack keyshare*/
 unsigned char get_next_stack_keyshare()
@@ -113,6 +49,8 @@ unsigned char get_next_stack_keyshare()
 /************************************************************************************************/
 /**************************STACK MANIPULATION FUNCTIONS START************************************/
 /************************************************************************************************/
+
+/**There are other functions as well, in secure_stack_manipulation_functions_template.c **/
 
 
 /*Allocates the entire chunck of stack memory.*/
@@ -192,142 +130,7 @@ void print_fun_params(fun_params * params);
 void print_fun_params_that_point_in_stack(fun_params * params);
 
 
-
-/*Allocates <bytes_to_allocate> bytes into the secure stack. Practically just moves the stack pointer.
- * Returns the address of the stack pointer, before it was moved.
- * Allocates whole number of chunks!
-*/
-chunks_and_old_mem allocate_mem_into_secure_stack(long stack_bytes_to_allocate)
-{
-	
-	long a=stack_bytes_to_allocate;
-	long b=stack_bytes_used_for_keyshares;
-	long c=stack_bytes_for_useful_data;
-	long d=number_of_mac_bytes;
-	long chunks_needed_to_allocate;
-	chunks_and_old_mem ret;
-	ret.old_mem=last_unused_stack_memory;
-	
-	if (stack_bytes_to_allocate==0)
-	{
-		ret.chunks_allocated=0;
-		ret.old_mem=NULL;
-		return ret;
-	}
-	
-	chunks_needed_to_allocate=stack_bytes_to_allocate/c;
-	
-	if (chunks_needed_to_allocate*c<stack_bytes_to_allocate)
-		chunks_needed_to_allocate++;
-	
-	ret.chunks_allocated=chunks_needed_to_allocate;
-	
-	//perform the allocation
-	last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) + (chunks_needed_to_allocate*c+ chunks_needed_to_allocate*b+chunks_needed_to_allocate*d);
-	
-	//stack overflow check
-	//this way, allocating the last chunk results in the last_unused_stack_memory to reach out of the stack.
-	if ((unsigned char*)last_unused_stack_memory > ((unsigned char*)entire_stack_memory_chunk) + total_stack_bytes_allocated)
-	{
-		//cancel last increase
-		last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_needed_to_allocate*c+ chunks_needed_to_allocate*b+chunks_needed_to_allocate*d);
-		//return NULL
-		ret.chunks_allocated=0;
-		ret.old_mem=NULL;
-		fprintf(stderr,"Error:Attempted to allocate more memory than the secure stack size.\n");
-		return ret;
-	}
-	
-	return ret;
-}
-
-/*Allocates <chunks_to_allocate> chunks into the secure stack. Practically just moves the stack pointer.
- * Returns the address of the stack pointer, before it was moved.
- * Allocates whole number of chunks!
-*/
-unsigned char * allocate_mem_into_secure_stack_in_chunks(long chunks_to_allocate)
-{
-	long b=stack_bytes_used_for_keyshares;
-	long c=stack_bytes_for_useful_data;
-	long d=number_of_mac_bytes;
-	unsigned char * old_mem=last_unused_stack_memory;
-	
-	if (chunks_to_allocate==0)
-	{
-		old_mem=NULL;
-		return old_mem;
-	}
-	
-	//perform the allocation
-	last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) + (chunks_to_allocate)*(b+c+d);
-	
-	//stack overflow check
-	//this way, allocating the last chunk results in the last_unused_stack_memory to reach out of the stack.
-	if ((unsigned char*)last_unused_stack_memory > ((unsigned char*)entire_stack_memory_chunk) + total_stack_bytes_allocated)
-	{
-		//cancel last increase
-		last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_to_allocate)*(b+c+d);
-		//return NULL
-		old_mem=NULL;
-		fprintf(stderr,"Error:Attempted to allocate more memory than the secure stack size.\n");
-		return old_mem;
-	}
-	
-	return old_mem;
-	
-	
-}
-
-/*Frees <chunks_to_free> chunks from the secure stack. Practically just moves the stack pointer.
- * Frees whole number of chunks!
-*/
-void free_mem_from_secure_stack_in_chunks(long chunks_to_free)
-{
-	long b=stack_bytes_used_for_keyshares;
-	long c=stack_bytes_for_useful_data;
-	long d=number_of_mac_bytes;
-	
-	//perform the deallocation
-	last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_to_free)*(b+c+d);
-}
-
-
-/*Frees <stack_bytes_to_free> bytes from the secure stack. Practically just moves the stack pointer.
- * Frees whole number of chunks!
-*/
-void free_mem_from_secure_stack(long stack_bytes_to_free)
-{
-	long a=stack_bytes_to_free;
-	long b=stack_bytes_used_for_keyshares;
-	long c=stack_bytes_for_useful_data;
-	long d=number_of_mac_bytes;
-	long chunks_needed_to_free;
-	
-	chunks_needed_to_free=stack_bytes_to_free/c;
-	
-	if (chunks_needed_to_free*c<stack_bytes_to_free)
-		chunks_needed_to_free++;
-	
-	//perform the deallocation
-	last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_needed_to_free*c + chunks_needed_to_free*b+chunks_needed_to_free*d);
-	
-}
-
-
-/*Frees <chunks_to_free> chunks from the secure stack. Practically just moves the stack pointer.
-*/
-void free_chunks_from_secure_stack(long chunks_to_free)
-{
-	long b=stack_bytes_used_for_keyshares;
-	long c=stack_bytes_for_useful_data;
-	long d=number_of_mac_bytes;
-	long chunks_needed_to_free=chunks_to_free;
-	
-	//perform the deallocation
-	last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_needed_to_free*c + chunks_needed_to_free*b+chunks_needed_to_free*d);
-}
-
-
+/**There are other functions as well, in secure_stack_manipulation_functions_template.c **/
 
 /************************************************************************************************/
 /**************************STACK MANIPULATION FUNCTIONS END**************************************/

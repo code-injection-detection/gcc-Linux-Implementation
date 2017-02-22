@@ -143,4 +143,59 @@
 #define calc_and_set_mac_of_data(input,length_all,length_useful,output) calc_and_set_mac_of_data_aes_cbc((input),(length_all),(output))
 #endif
 
+
+/**************************  SOME TYPEDEFS START *********************************/
+//OLD SECURE STACK IMPEMENTATION
+/*This is the way that the function parameters will be passed, and declared inside a function*/
+typedef struct function_element_parameters{
+	
+	long num_of_char_params;
+	char * char_params;
+	long num_of_int_params;
+	int * int_params;
+	long num_of_long_int_params;
+	long int * long_int_params;
+	long num_of_float_params;
+	float * float_params;
+	long num_of_double_params;
+	double * double_params;
+	
+	long num_of_pointer_params;
+	long * pointer_params_sizes; //how big is each element that pointer points to?
+	void ** pointer_params; //array of void * 's (pointers)
+	
+	//and any other arbitraty structure which must be inserted in the stack
+	//perhaps it would be better if we put it outside of the fun_elem_params?
+	
+	/*the difference between the pointers and the arbitrary pointers is that the pointer values are 
+	*inserted in the stack(the pointers themselves)
+	*whereas the elements to which the arbitrary pointers point are inserted into the stack*/
+	long num_of_arb_pointer_params;
+	long * arb_pointer_params_sizes; //how big is each element that pointer points to?
+	void ** arb_pointer_params; //array of void * 's (pointers)
+	
+	
+} fun_elem_params;
+
+
+
+
+
+typedef struct function_parameters{
+	
+	long total_size_of_all_params;
+	long total_amount_of_chunks_needed_in_secure_stack; //when this one is -1 means that the parametee struct does not point to the stack
+	fun_elem_params * elem_params;
+	//pass weird stuff as parameters: just use void*'s in arb_pointer_params?	
+} fun_params;
+
+
+//used as return value for allocate_mem_into_secure_stack
+typedef struct chunks_and_old_memory{
+	long chunks_allocated;
+	void * old_mem;
+} chunks_and_old_mem;
+
+/**************************  SOME TYPEDEFS END *********************************/
+
 #endif

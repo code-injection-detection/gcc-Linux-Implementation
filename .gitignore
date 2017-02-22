@@ -30,5 +30,6 @@ crypto_functions.c
 crypto_functions.h
 calc_mac_for_external_programs
 tests_with_new_stack.c
+secure_stack_manipulation_functions.c
 #.classpath
 #.project
