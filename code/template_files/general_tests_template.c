@@ -631,8 +631,11 @@ void secure_global_sum_calculator(int times,int maxval)
 	for (k=0;k<times;k++)
 	{
 		UPDATE_GLOBAL_VAR(globals.secured_sum,0);
+		//int i;
+		//for (i=0;i<maxval;i++)
 		for (UPDATE_GLOBAL_VAR_FOR_LOOPS(globals.secured_i,0);GET_GLOBAL_INT(globals.secured_i)<maxval;UPDATE_GLOBAL_VAR_FOR_LOOPS(globals.secured_i,GET_GLOBAL_INT(globals.secured_i)+1))
 		{
+			//UPDATE_GLOBAL_VAR(globals.secured_sum,GET_GLOBAL_LONG(globals.secured_sum)+i);
 			UPDATE_GLOBAL_VAR(globals.secured_sum,GET_GLOBAL_LONG(globals.secured_sum)+GET_GLOBAL_INT(globals.secured_i));
 		}
 	}

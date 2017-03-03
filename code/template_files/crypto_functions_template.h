@@ -29,7 +29,8 @@ void do_verify_code_on_the_fly();
 int get_number_of_padded_nops(unsigned char *p);
 
 void init_code_cache();
-int continue_macing_current_addr();
+void add_addr_to_code_cache(unsigned char * addr);
+int continue_macing_current_addr(unsigned char * addr);
 
 
 #endif

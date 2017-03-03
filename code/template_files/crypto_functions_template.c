@@ -608,9 +608,10 @@ void do_verify_code_on_the_fly()
 				"and $0xfffffffffffffff0,%rsp;"
 				);
 				
-		if (continue_macing_current_addr()) //if using cache for code
+		if (continue_macing_current_addr((unsigned char*)(code_where_to_start_macing) - size_of_commands_before_getting_addr)) //if using cache for code
 		{		
 			verify_code_on_the_fly();
+			add_addr_to_code_cache((unsigned char*)(code_where_to_start_macing) - size_of_commands_before_getting_addr); //addr
 		}
              
         __asm__("movq %r15, %rsp;" //restore stack to the number it was
@@ -672,6 +673,9 @@ void init_code_cache()
 	}
 }
 
+
+/*Fully assosiative cache*/
+
 int inc_code_cache_index()
 {
 #if num_of_cached_blocks_of_code>0
@@ -711,23 +715,48 @@ int search_code_address_in_cache(unsigned char * addr)
 
 void add_addr_to_code_cache(unsigned char * addr)
 {
-	code_cache[code_cache_latest_index]=(long)addr;
-	inc_code_cache_index();
-}
-
-int continue_macing_current_addr()
-{
-	unsigned char * addr;
 	if (num_of_cached_blocks_of_code>0)
 	{
-		addr=(unsigned char*)(code_where_to_start_macing) - size_of_commands_before_getting_addr;
+		code_cache[code_cache_latest_index]=(long)addr;
+		inc_code_cache_index();
+	}
+}
+
+
+/*For direct mapped cache*/
+/*
+#if use_fixed_size_chunks_of_code==1
+	#define size_of_full_block_of_code (number_of_mac_bytes+number_of_interleaved_keys+num_of_bytes_in_code_chunk+number_of_canaries+1)  //that is make sure adjacent blocks will not hit the same place in the cache
+#endif
+#if use_fixed_size_chunks_of_code==0
+	#define size_of_full_block_of_code (1)
+#endif
+
+int search_code_address_in_cache(unsigned char * addr)
+{
+	int i;
+	//check if addr is in cache. For optimization purposes, check for the most recent blocks first
+	if (code_cache[((long)addr/size_of_full_block_of_code)%num_of_cached_blocks_of_code]==(long)addr)
+		return (((long)addr/size_of_full_block_of_code)%num_of_cached_blocks_of_code);
+	return -1;
+}
+
+void add_addr_to_code_cache(unsigned char * addr)
+{
+	if (num_of_cached_blocks_of_code>0)
+	{
+		code_cache[((long)addr/size_of_full_block_of_code)%num_of_cached_blocks_of_code]=(long)addr;
+	}
+}
+*/
+
+int continue_macing_current_addr(unsigned char *addr)
+{
+	if (num_of_cached_blocks_of_code>0)
+	{
 		if (search_code_address_in_cache(addr)!=-1)
 		{
 			return 0;
-		}
-		else
-		{
-			add_addr_to_code_cache(addr);
 		}
 	}
 	return 1;
