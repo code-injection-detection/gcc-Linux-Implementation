@@ -35,10 +35,10 @@
 						 //3->AES_CBC with length prepending, 
 						 //4->AES_CBC with length prepending and padding after length to reach full block
 
-#define code_cache_type 1 //0 -> fully assosiative
+#define code_cache_type 0 //0 -> fully assosiative
 						  //1 -> direct mapped
 
-#define data_cache_type 1 //0 -> fully assosiative
+#define data_cache_type 0 //0 -> fully assosiative
 						  //1 -> direct mapped
 
 

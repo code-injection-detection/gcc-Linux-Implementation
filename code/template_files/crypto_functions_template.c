@@ -31,6 +31,7 @@ long code_cache[num_of_cached_blocks_of_code]; //in here, the addresses of the b
 int code_cache_latest_index;
 long data_cache[num_of_cached_blocks_of_data]; //in here, the addresses of the blocks of code that are cached are stored.
 unsigned char macs_in_data_cache[num_of_cached_blocks_of_data*number_of_mac_bytes]; //holds the mac bytes of the data cache, for them to be written back without recalculating
+unsigned char data_cache_dirty_bits[num_of_cached_blocks_of_data];
 int data_cache_latest_index;
 
 
@@ -467,7 +468,8 @@ void update_mac_when_setting_data(unsigned char * input, int total_mac_bytes, in
 		{
 			//get_mac_of_data_cache_with_index(input,index); //update the mac in the cache 
 			
-			//do nothing
+			//make it dirty
+			data_cache_dirty_bits[index]=1;
 		}
 		else
 		{
@@ -796,6 +798,7 @@ void init_data_cache()
 	{
 		memset(data_cache,0,num_of_cached_blocks_of_data*sizeof(long));
 		memset(macs_in_data_cache,0,num_of_cached_blocks_of_data*number_of_mac_bytes);
+		memset(data_cache_dirty_bits,0,num_of_cached_blocks_of_data);
 		data_cache_latest_index=0;
 	}
 }
@@ -854,7 +857,7 @@ void add_addr_to_data_cache(unsigned char * addr)
 {
 	if (num_of_cached_blocks_of_data>0)
 	{
-		if (data_cache[data_cache_latest_index]!=(long)0) //there is already an address there
+		if (data_cache[data_cache_latest_index]!=(long)0 && data_cache_dirty_bits[data_cache_latest_index]==1) //there is already an address there and it is dirty
 		{
 			//calculate the proper mac inthe cache
 			calc_and_set_mac_of_data((unsigned char*)data_cache[data_cache_latest_index],bytes_for_useful_data+number_of_interleaved_keys,bytes_for_useful_data,&(macs_in_data_cache[data_cache_latest_index*number_of_mac_bytes])); 
@@ -863,6 +866,7 @@ void add_addr_to_data_cache(unsigned char * addr)
 		}
 		data_cache[data_cache_latest_index]=(long)addr;
 		get_mac_of_data_cache(addr);
+		data_cache_dirty_bits[data_cache_latest_index]=0;
 		inc_data_cache_index();
 	}
 }
@@ -872,7 +876,7 @@ void flush_data_cache_into_mem()
 	int i;
 	for (i=0;i<num_of_cached_blocks_of_data;i++)
 	{
-		if (data_cache[i]!=(long)0) //there is already an address there
+		if (data_cache[i]!=(long)0 && data_cache_dirty_bits[i]==1) //there is already an address there and its dirty
 		{
 			//calculate the proper mac inthe cache
 			calc_and_set_mac_of_data((unsigned char*)data_cache[i],bytes_for_useful_data+number_of_interleaved_keys,bytes_for_useful_data,&(macs_in_data_cache[i*number_of_mac_bytes])); 
@@ -886,6 +890,7 @@ void flush_data_cache_into_mem()
 #if data_cache_type==1
 /*For direct mapped cache*/
 
+#define  use_fixed_size_chunks_of_data 1 //yep that's for sure, for data
 #if use_fixed_size_chunks_of_data==1
 	#define size_of_full_block_of_data (number_of_mac_bytes+number_of_interleaved_keys+bytes_for_useful_data)  //that is make sure adjacent blocks will not hit the same place in the cache
 #endif
@@ -916,7 +921,7 @@ void add_addr_to_data_cache(unsigned char * addr)
 {
 	if (num_of_cached_blocks_of_data>0)
 	{
-		if (data_cache[((long)addr/size_of_full_block_of_data)%num_of_cached_blocks_of_data]!=0) //there is already an address there
+		if (data_cache[((long)addr/size_of_full_block_of_data)%num_of_cached_blocks_of_data]!=0 && data_cache_dirty_bits[((long)addr/size_of_full_block_of_data)%num_of_cached_blocks_of_data]==1) //there is already an address there and its dirty
 		{
 			//calculate the proper mac in the cache
 			calc_and_set_mac_of_data((unsigned char*)data_cache[((long)addr/size_of_full_block_of_data)%num_of_cached_blocks_of_data],bytes_for_useful_data+number_of_interleaved_keys,bytes_for_useful_data,&(macs_in_data_cache[(((long)addr/size_of_full_block_of_data)%num_of_cached_blocks_of_data)*number_of_mac_bytes])); 
@@ -925,6 +930,7 @@ void add_addr_to_data_cache(unsigned char * addr)
 		}
 		data_cache[((long)addr/size_of_full_block_of_data)%num_of_cached_blocks_of_data]=(long)addr;
 		get_mac_of_data_cache(addr);
+		data_cache_dirty_bits[((long)addr/size_of_full_block_of_data)%num_of_cached_blocks_of_data]=1;
 	}
 }
 
@@ -933,7 +939,7 @@ void flush_data_cache_into_mem()
 	int i;
 	for (i=0;i<num_of_cached_blocks_of_data;i++)
 	{
-		if (data_cache[i]!=0) //there is already an address there
+		if (data_cache[i]!=0 && data_cache_dirty_bits[i]==1) //there is already an address there and it's dirty
 		{
 			//calculate the proper mac in the cache
 			calc_and_set_mac_of_data((unsigned char*)data_cache[i],bytes_for_useful_data+number_of_interleaved_keys,bytes_for_useful_data,&(macs_in_data_cache[i*number_of_mac_bytes])); 
