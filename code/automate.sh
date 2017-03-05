@@ -205,7 +205,7 @@ echo "Compiling hash and encryption calculators, as well as the crypto initializ
 	 cd .. ; 
 	 gcc -O3 -c sha256.c #-mno-red-zone;
 	 rm -f sha256.c sha256.h  #removing the sha stuff that we don't need.
-	 gcc -O3 -c crypto_functions.c -lcrypto -Wnodiv-by-zero #-mno-red-zone
+	 gcc -O3 -c crypto_functions.c -lcrypto -Wno-div-by-zero #-mno-red-zone
 	 if [ "$ADD_CODE_ON_THE_FLY_VERIFICATION" -eq "1" ]; then
 		#find the number of subtractions we have to do to fetch the return address in the verifier
 		 LINE_OF_VERIFIER=$(objdump -d crypto_functions.o | grep -n "<do_verify_code_on_the_fly>:" | grep -Eo '^[0123456789]+')
@@ -216,7 +216,7 @@ echo "Compiling hash and encryption calculators, as well as the crypto initializ
 		 #replace and put the proper offset
 		 sed -i "$STR_FOR_SED" crypto_functions.c
 		 #and compile again
-		 gcc -O3 -c crypto_functions.c -lcrypto -Wnodiv-by-zero #-mno-red-zone
+		 gcc -O3 -c crypto_functions.c -lcrypto -Wno-div-by-zero #-mno-red-zone
 	 fi
 	 gcc -O3 -c secure_stack_manipulation_functions.c -lcrypto #-mno-red-zone
 	 gcc -O3 -c calc_mac_for_external_programs.c -lcrypto #-mno-red-zone
