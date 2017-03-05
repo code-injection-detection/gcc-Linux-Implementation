@@ -859,13 +859,10 @@ void add_addr_to_data_cache(unsigned char * addr)
 	{
 		if (data_cache[data_cache_latest_index]!=(long)0 && data_cache_dirty_bits[data_cache_latest_index]==1) //there is already an address there and it is dirty
 		{
-			//calculate the proper mac inthe cache
-			calc_and_set_mac_of_data((unsigned char*)data_cache[data_cache_latest_index],bytes_for_useful_data+number_of_interleaved_keys,bytes_for_useful_data,&(macs_in_data_cache[data_cache_latest_index*number_of_mac_bytes])); 
-			//copy the mac to the main memory
-			memcpy((unsigned char*)data_cache[data_cache_latest_index]+bytes_for_useful_data+number_of_interleaved_keys,&(macs_in_data_cache[data_cache_latest_index*number_of_mac_bytes]),number_of_mac_bytes);
+			//calculate the proper mac and set it
+			calc_and_set_mac_of_data((unsigned char*)data_cache[data_cache_latest_index],bytes_for_useful_data+number_of_interleaved_keys,bytes_for_useful_data,(unsigned char*)data_cache[data_cache_latest_index]+bytes_for_useful_data+number_of_interleaved_keys); 
 		}
 		data_cache[data_cache_latest_index]=(long)addr;
-		get_mac_of_data_cache(addr);
 		data_cache_dirty_bits[data_cache_latest_index]=0;
 		inc_data_cache_index();
 	}
@@ -878,10 +875,8 @@ void flush_data_cache_into_mem()
 	{
 		if (data_cache[i]!=(long)0 && data_cache_dirty_bits[i]==1) //there is already an address there and its dirty
 		{
-			//calculate the proper mac inthe cache
-			calc_and_set_mac_of_data((unsigned char*)data_cache[i],bytes_for_useful_data+number_of_interleaved_keys,bytes_for_useful_data,&(macs_in_data_cache[i*number_of_mac_bytes])); 
-			//copy the mac to the main memory
-			memcpy((unsigned char*)data_cache[i]+bytes_for_useful_data+number_of_interleaved_keys,&(macs_in_data_cache[i*number_of_mac_bytes]),number_of_mac_bytes);
+			//calculate the proper mac and set it
+			calc_and_set_mac_of_data((unsigned char*)data_cache[i],bytes_for_useful_data+number_of_interleaved_keys,bytes_for_useful_data,(unsigned char*)data_cache[i]+bytes_for_useful_data+number_of_interleaved_keys); 
 		}
 	}
 }
@@ -898,12 +893,14 @@ void flush_data_cache_into_mem()
 	#define size_of_full_block_of_data (1)
 #endif
 
+#define direct_mapped_index_in_cache (((long)addr/size_of_full_block_of_data)%num_of_cached_blocks_of_data)
+
 int search_data_address_in_cache(unsigned char * addr)
 {
 	int i;
 	//check if addr is in cache. For optimization purposes, check for the most recent blocks first
-	if (data_cache[((long)addr/size_of_full_block_of_data)%num_of_cached_blocks_of_data]==(long)addr)
-		return (((long)addr/size_of_full_block_of_data)%num_of_cached_blocks_of_data);
+	if (data_cache[direct_mapped_index_in_cache]==(long)addr)
+		return direct_mapped_index_in_cache;
 	return -1;
 }
 
@@ -912,7 +909,7 @@ void get_mac_of_data_cache(unsigned char *addr)
 	if (num_of_cached_blocks_of_data>0)
 	{
 		//store the mac in the cache
-		memcpy(&(macs_in_data_cache[(((long)addr/size_of_full_block_of_data)%num_of_cached_blocks_of_data)*number_of_mac_bytes]),(unsigned char*)addr+bytes_for_useful_data+number_of_interleaved_keys,number_of_mac_bytes);
+		memcpy(&(macs_in_data_cache[direct_mapped_index_in_cache*number_of_mac_bytes]),(unsigned char*)addr+bytes_for_useful_data+number_of_interleaved_keys,number_of_mac_bytes);
 	}
 }
 
@@ -921,16 +918,13 @@ void add_addr_to_data_cache(unsigned char * addr)
 {
 	if (num_of_cached_blocks_of_data>0)
 	{
-		if (data_cache[((long)addr/size_of_full_block_of_data)%num_of_cached_blocks_of_data]!=0 && data_cache_dirty_bits[((long)addr/size_of_full_block_of_data)%num_of_cached_blocks_of_data]==1) //there is already an address there and its dirty
+		if (data_cache[direct_mapped_index_in_cache]!=0 && data_cache_dirty_bits[direct_mapped_index_in_cache]==1) //there is already an address there and its dirty
 		{
-			//calculate the proper mac in the cache
-			calc_and_set_mac_of_data((unsigned char*)data_cache[((long)addr/size_of_full_block_of_data)%num_of_cached_blocks_of_data],bytes_for_useful_data+number_of_interleaved_keys,bytes_for_useful_data,&(macs_in_data_cache[(((long)addr/size_of_full_block_of_data)%num_of_cached_blocks_of_data)*number_of_mac_bytes])); 
-			//copy the mac to the main memory
-			memcpy((unsigned char*)data_cache[((long)addr/size_of_full_block_of_data)%num_of_cached_blocks_of_data]+bytes_for_useful_data+number_of_interleaved_keys,&(macs_in_data_cache[(((long)addr/size_of_full_block_of_data)%num_of_cached_blocks_of_data)*number_of_mac_bytes]),number_of_mac_bytes);
+			//calculate the proper mac and set it
+			calc_and_set_mac_of_data((unsigned char*)data_cache[direct_mapped_index_in_cache],bytes_for_useful_data+number_of_interleaved_keys,bytes_for_useful_data,(unsigned char*)data_cache[direct_mapped_index_in_cache]+bytes_for_useful_data+number_of_interleaved_keys); 
 		}
-		data_cache[((long)addr/size_of_full_block_of_data)%num_of_cached_blocks_of_data]=(long)addr;
-		get_mac_of_data_cache(addr);
-		data_cache_dirty_bits[((long)addr/size_of_full_block_of_data)%num_of_cached_blocks_of_data]=1;
+		data_cache[direct_mapped_index_in_cache]=(long)addr;
+		data_cache_dirty_bits[direct_mapped_index_in_cache]=0;
 	}
 }
 
@@ -941,10 +935,8 @@ void flush_data_cache_into_mem()
 	{
 		if (data_cache[i]!=0 && data_cache_dirty_bits[i]==1) //there is already an address there and it's dirty
 		{
-			//calculate the proper mac in the cache
-			calc_and_set_mac_of_data((unsigned char*)data_cache[i],bytes_for_useful_data+number_of_interleaved_keys,bytes_for_useful_data,&(macs_in_data_cache[i*number_of_mac_bytes])); 
-			//copy the mac to the main memory
-			memcpy((unsigned char*)data_cache[i]+bytes_for_useful_data+number_of_interleaved_keys,&(macs_in_data_cache[i*number_of_mac_bytes]),number_of_mac_bytes);
+			//calculate the proper mac and set it
+			calc_and_set_mac_of_data((unsigned char*)data_cache[i],bytes_for_useful_data+number_of_interleaved_keys,bytes_for_useful_data,(unsigned char*)data_cache[i]+bytes_for_useful_data+number_of_interleaved_keys); 
 		}
 	}
 }
