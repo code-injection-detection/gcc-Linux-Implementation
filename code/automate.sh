@@ -255,13 +255,17 @@ make
 echo "Compiled."
 
 echo "Inserting NOPs into assembly..."
-java -cp ../bin Secure_Assembly $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_INSTRUCTIONS $NUM_OF_CANARIES $NUM_OF_MAC_BYTES $ADD_CODE_ON_THE_FLY_VERIFICATION $USE_FIXED_SIZE_CHUNKS_OF_CODE $NUM_OF_BYTES_IN_CODE_CHUNK $FORCE_NUM_OF_INSTRUCTIONS_OVER_NUM_OF_BYTES
+mkdir -p /run/shm/
+ramtmp="$(mktemp -p /run/shm/)"
+java -cp ../bin Secure_Assembly $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_INSTRUCTIONS $NUM_OF_CANARIES $NUM_OF_MAC_BYTES $ADD_CODE_ON_THE_FLY_VERIFICATION $USE_FIXED_SIZE_CHUNKS_OF_CODE $NUM_OF_BYTES_IN_CODE_CHUNK $FORCE_NUM_OF_INSTRUCTIONS_OVER_NUM_OF_BYTES $ramtmp
 if [ $? -eq 0 ]; then
 		: #all ok
 	else
 		echo "Error. Could not insert NOPs properly."
+		rm -f $ramtmp
 		exit
 	fi
+rm -f $ramtmp
 echo "NOPs inserted."
 
 if [ "$#" -eq 10 ]; then

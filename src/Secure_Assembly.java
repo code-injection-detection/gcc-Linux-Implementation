@@ -44,9 +44,10 @@ public class Secure_Assembly {
 		int size_of_current_cmd=0;
 		int num_of_bytes_in_current_block=0;
 		boolean force_num_of_instructions_over_bytes=true;
+		String ramtmp_file="";
 		
 
-		if (args.length==8)
+		if (args.length==9)
 		{
 			num_of_interleaved_keys=Integer.parseInt(args[0]);
 			num_of_grouped_orig_instr=Integer.parseInt(args[1]);
@@ -68,6 +69,8 @@ public class Secure_Assembly {
 				force_num_of_instructions_over_bytes=false;
 			else
 				force_num_of_instructions_over_bytes=true;
+			
+			ramtmp_file=args[8];
 			
 		}
 		else
@@ -189,7 +192,7 @@ public class Secure_Assembly {
 						line_to_check_size=cmd+".d32\t"+operands;
 					}
 					//find size of command
-					size_of_current_cmd=get_size_of_assembly_command(line_to_check_size);
+					size_of_current_cmd=get_size_of_assembly_command(line_to_check_size,ramtmp_file);
 					//see if we should add it (only if it does not exceed the size of the fixed chunk)
 					int bytes_to_subtract=2; /*jmp*/
 					if (check_code_verification_on_the_fly)
@@ -368,7 +371,7 @@ public class Secure_Assembly {
 		return line;
 	}
 	
-	static int get_size_of_assembly_command(String cmd) throws IOException, InterruptedException
+	static int get_size_of_assembly_command(String cmd,String ramtmp_file) throws IOException, InterruptedException
 	{
 		String line=cmd.trim().replace("\t", " ");
 		int size=0;
@@ -381,7 +384,7 @@ public class Secure_Assembly {
 		String[] exec_str1 = {
 				"/bin/sh",
 				"-c",
-				"echo '"+line+"' | as && objdump -d | "+size_calculator_filename
+				"echo '"+line+"' | as -o "+ramtmp_file+" && objdump -d "+ramtmp_file+" | "+size_calculator_filename
 				};
 
 		//find the size
