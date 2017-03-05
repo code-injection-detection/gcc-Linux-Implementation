@@ -29,6 +29,9 @@ size_t length_of_maced_data;
 int tmplen;
 long code_cache[num_of_cached_blocks_of_code]; //in here, the addresses of the blocks of code that are cached are stored.
 int code_cache_latest_index;
+long data_cache[num_of_cached_blocks_of_data]; //in here, the addresses of the blocks of code that are cached are stored.
+unsigned char macs_in_data_cache[num_of_cached_blocks_of_data*number_of_mac_bytes]; //holds the mac bytes of the data cache, for them to be written back without recalculating
+int data_cache_latest_index;
 
 
 void init_crypto_stuctures(int print)
@@ -66,6 +69,10 @@ void init_crypto_stuctures(int print)
 		if (num_of_cached_blocks_of_code>0)
 		{
 			init_code_cache();
+		}
+		if (num_of_cached_blocks_of_data>0)
+		{
+			init_data_cache();
 		}
 	}
 	if (print)
@@ -415,13 +422,17 @@ void verify_mac_onthefly(unsigned char * input, int total_mac_bytes, int useful_
 {
 	if (number_of_mac_bytes>0)
 	{
-		calc_and_set_mac_of_data(input,total_mac_bytes,useful_mac_bytes,mac_for_verification);
-		if (0!=memcmp(input+total_mac_bytes,mac_for_verification,number_of_mac_bytes)) //CRYPTO_memcmp?
-		{	
-			fprintf(stderr,"ERROR in on the fly mac verification!. Address:%ld, total mac bytes:%d, useful mac bytes:%d, function:%s, line:%d\n",
-					(long)input,total_mac_bytes,useful_mac_bytes,fun_name,line
-					);
-			exit(17);
+		if (continue_getting_data_addr(input)==-1)
+		{
+			calc_and_set_mac_of_data(input,total_mac_bytes,useful_mac_bytes,mac_for_verification);
+			if (0!=memcmp(input+total_mac_bytes,mac_for_verification,number_of_mac_bytes)) //CRYPTO_memcmp?
+			{	
+				fprintf(stderr,"ERROR in on the fly mac verification!. Address:%ld, total mac bytes:%d, useful mac bytes:%d, function:%s, line:%d\n",
+						(long)input,total_mac_bytes,useful_mac_bytes,fun_name,line
+						);
+				exit(17);
+			}
+			add_addr_to_data_cache(input);
 		}
 	}
 }
@@ -450,8 +461,19 @@ void verify_code_on_the_fly()
 void update_mac_when_setting_data(unsigned char * input, int total_mac_bytes, int useful_mac_bytes, unsigned char* output)
 {
 	if (number_of_mac_bytes>0)
-	{
-		calc_and_set_mac_of_data(input,total_mac_bytes,useful_mac_bytes,output);
+	{		
+		int index=is_addr_to_be_set_in_data_cache(input);
+		if (index!=-1) //if it is in the cache
+		{
+			//get_mac_of_data_cache_with_index(input,index); //update the mac in the cache 
+			
+			//do nothing
+		}
+		else
+		{
+			calc_and_set_mac_of_data(input,total_mac_bytes,useful_mac_bytes,output); //update the mac in main memory
+			add_addr_to_data_cache(input); //and bring it in the cache
+		}
 	}
 }
 
@@ -608,7 +630,7 @@ void do_verify_code_on_the_fly()
 				"and $0xfffffffffffffff0,%rsp;"
 				);
 				
-		if (continue_macing_current_addr((unsigned char*)(code_where_to_start_macing) - size_of_commands_before_getting_addr)) //if using cache for code
+		if (-1==continue_macing_current_code_addr((unsigned char*)(code_where_to_start_macing) - size_of_commands_before_getting_addr)) //if using cache for code
 		{		
 			verify_code_on_the_fly();
 			add_addr_to_code_cache((unsigned char*)(code_where_to_start_macing) - size_of_commands_before_getting_addr); //addr
@@ -668,12 +690,12 @@ void init_code_cache()
 {
 	if (num_of_cached_blocks_of_code>0)
 	{
-		memset(code_cache,0,num_of_cached_blocks_of_code);
+		memset(code_cache,0,num_of_cached_blocks_of_code*sizeof(long));
 		code_cache_latest_index=0;
 	}
 }
 
-
+#if code_cache_type==0
 /*Fully assosiative cache*/
 
 int inc_code_cache_index()
@@ -722,9 +744,11 @@ void add_addr_to_code_cache(unsigned char * addr)
 	}
 }
 
+#endif  //fully assosiative end
 
+#if code_cache_type==1
 /*For direct mapped cache*/
-/*
+
 #if use_fixed_size_chunks_of_code==1
 	#define size_of_full_block_of_code (number_of_mac_bytes+number_of_interleaved_keys+num_of_bytes_in_code_chunk+number_of_canaries+1)  //that is make sure adjacent blocks will not hit the same place in the cache
 #endif
@@ -748,17 +772,216 @@ void add_addr_to_code_cache(unsigned char * addr)
 		code_cache[((long)addr/size_of_full_block_of_code)%num_of_cached_blocks_of_code]=(long)addr;
 	}
 }
-*/
+#endif //direct mapped end
 
-int continue_macing_current_addr(unsigned char *addr)
+int continue_macing_current_code_addr(unsigned char *addr)
 {
+	int ind;
 	if (num_of_cached_blocks_of_code>0)
 	{
-		if (search_code_address_in_cache(addr)!=-1)
+		if (ind=search_code_address_in_cache(addr)!=-1)
 		{
-			return 0;
+			return ind;
 		}
 	}
-	return 1;
+	return -1;  //-1 means continue
 	
 }
+
+
+/************  Data Cache Functions **************/
+void init_data_cache()
+{
+	if (num_of_cached_blocks_of_data>0)
+	{
+		memset(data_cache,0,num_of_cached_blocks_of_data*sizeof(long));
+		memset(macs_in_data_cache,0,num_of_cached_blocks_of_data*number_of_mac_bytes);
+		data_cache_latest_index=0;
+	}
+}
+
+#if data_cache_type==0
+/*Fully assosiative cache*/
+
+int inc_data_cache_index()
+{
+	if (num_of_cached_blocks_of_data>0)
+	{
+		data_cache_latest_index=(data_cache_latest_index+1)%num_of_cached_blocks_of_data;
+	}
+
+	return data_cache_latest_index;
+}
+
+int search_data_address_in_cache(unsigned char * addr)
+{
+	int i;
+	//check if addr is in cache. For optimization purposes, check for the most recent blocks first
+	if (data_cache_latest_index==0)
+	{
+		for(i=num_of_cached_blocks_of_data-1;i>=0;i--)
+		{
+			if (data_cache[i]==(long) addr)
+			return i;
+		}
+	}
+	else
+	{
+		for (i=data_cache_latest_index-1;i>=0;i--) 
+		{
+			if (data_cache[i]==(long) addr)
+				return i;
+		}
+		for(i=num_of_cached_blocks_of_data-1;i>=data_cache_latest_index;i--)
+		{
+			if (data_cache[i]==(long) addr)
+			return i;
+		}
+	}
+	return -1;
+}
+
+void get_mac_of_data_cache(unsigned char *addr)
+{
+	if (num_of_cached_blocks_of_data>0)
+	{
+		//store the mac in the cache
+		memcpy(&(macs_in_data_cache[data_cache_latest_index*number_of_mac_bytes]),(unsigned char*)addr+bytes_for_useful_data+number_of_interleaved_keys,number_of_mac_bytes);
+	}
+}
+
+void add_addr_to_data_cache(unsigned char * addr)
+{
+	if (num_of_cached_blocks_of_data>0)
+	{
+		if (data_cache[data_cache_latest_index]!=(long)0) //there is already an address there
+		{
+			//calculate the proper mac inthe cache
+			calc_and_set_mac_of_data((unsigned char*)data_cache[data_cache_latest_index],bytes_for_useful_data+number_of_interleaved_keys,bytes_for_useful_data,&(macs_in_data_cache[data_cache_latest_index*number_of_mac_bytes])); 
+			//copy the mac to the main memory
+			memcpy((unsigned char*)data_cache[data_cache_latest_index]+bytes_for_useful_data+number_of_interleaved_keys,&(macs_in_data_cache[data_cache_latest_index*number_of_mac_bytes]),number_of_mac_bytes);
+		}
+		data_cache[data_cache_latest_index]=(long)addr;
+		get_mac_of_data_cache(addr);
+		inc_data_cache_index();
+	}
+}
+
+void flush_data_cache_into_mem()
+{
+	int i;
+	for (i=0;i<num_of_cached_blocks_of_data;i++)
+	{
+		if (data_cache[i]!=(long)0) //there is already an address there
+		{
+			//calculate the proper mac inthe cache
+			calc_and_set_mac_of_data((unsigned char*)data_cache[i],bytes_for_useful_data+number_of_interleaved_keys,bytes_for_useful_data,&(macs_in_data_cache[i*number_of_mac_bytes])); 
+			//copy the mac to the main memory
+			memcpy((unsigned char*)data_cache[i]+bytes_for_useful_data+number_of_interleaved_keys,&(macs_in_data_cache[i*number_of_mac_bytes]),number_of_mac_bytes);
+		}
+	}
+}
+#endif  //fully assosiative end
+
+#if data_cache_type==1
+/*For direct mapped cache*/
+
+#if use_fixed_size_chunks_of_data==1
+	#define size_of_full_block_of_data (number_of_mac_bytes+number_of_interleaved_keys+bytes_for_useful_data)  //that is make sure adjacent blocks will not hit the same place in the cache
+#endif
+#if use_fixed_size_chunks_of_data==0
+	#define size_of_full_block_of_data (1)
+#endif
+
+int search_data_address_in_cache(unsigned char * addr)
+{
+	int i;
+	//check if addr is in cache. For optimization purposes, check for the most recent blocks first
+	if (data_cache[((long)addr/size_of_full_block_of_data)%num_of_cached_blocks_of_data]==(long)addr)
+		return (((long)addr/size_of_full_block_of_data)%num_of_cached_blocks_of_data);
+	return -1;
+}
+
+void get_mac_of_data_cache(unsigned char *addr)
+{
+	if (num_of_cached_blocks_of_data>0)
+	{
+		//store the mac in the cache
+		memcpy(&(macs_in_data_cache[(((long)addr/size_of_full_block_of_data)%num_of_cached_blocks_of_data)*number_of_mac_bytes]),(unsigned char*)addr+bytes_for_useful_data+number_of_interleaved_keys,number_of_mac_bytes);
+	}
+}
+
+
+void add_addr_to_data_cache(unsigned char * addr)
+{
+	if (num_of_cached_blocks_of_data>0)
+	{
+		if (data_cache[((long)addr/size_of_full_block_of_data)%num_of_cached_blocks_of_data]!=0) //there is already an address there
+		{
+			//calculate the proper mac in the cache
+			calc_and_set_mac_of_data((unsigned char*)data_cache[((long)addr/size_of_full_block_of_data)%num_of_cached_blocks_of_data],bytes_for_useful_data+number_of_interleaved_keys,bytes_for_useful_data,&(macs_in_data_cache[(((long)addr/size_of_full_block_of_data)%num_of_cached_blocks_of_data)*number_of_mac_bytes])); 
+			//copy the mac to the main memory
+			memcpy((unsigned char*)data_cache[((long)addr/size_of_full_block_of_data)%num_of_cached_blocks_of_data]+bytes_for_useful_data+number_of_interleaved_keys,&(macs_in_data_cache[(((long)addr/size_of_full_block_of_data)%num_of_cached_blocks_of_data)*number_of_mac_bytes]),number_of_mac_bytes);
+		}
+		data_cache[((long)addr/size_of_full_block_of_data)%num_of_cached_blocks_of_data]=(long)addr;
+		get_mac_of_data_cache(addr);
+	}
+}
+
+void flush_data_cache_into_mem()
+{
+	int i;
+	for (i=0;i<num_of_cached_blocks_of_data;i++)
+	{
+		if (data_cache[i]!=0) //there is already an address there
+		{
+			//calculate the proper mac in the cache
+			calc_and_set_mac_of_data((unsigned char*)data_cache[i],bytes_for_useful_data+number_of_interleaved_keys,bytes_for_useful_data,&(macs_in_data_cache[i*number_of_mac_bytes])); 
+			//copy the mac to the main memory
+			memcpy((unsigned char*)data_cache[i]+bytes_for_useful_data+number_of_interleaved_keys,&(macs_in_data_cache[i*number_of_mac_bytes]),number_of_mac_bytes);
+		}
+	}
+}
+
+#endif //direct mapped end
+
+
+int is_addr_to_be_set_in_data_cache(unsigned char *addr)
+{
+	int ind;
+	if (num_of_cached_blocks_of_data>0)
+	{
+		ind=search_data_address_in_cache(addr);
+		if (ind!=-1)
+		{
+			return ind;
+		}
+	}
+	return -1; //-1 means it is not in cache
+	
+}
+
+void get_mac_of_data_cache_with_index(unsigned char *addr, int index_in_cache)
+{
+	if (num_of_cached_blocks_of_data>0)
+	{
+		memcpy(&(macs_in_data_cache[index_in_cache*number_of_mac_bytes]),(unsigned char*)addr+bytes_for_useful_data+number_of_interleaved_keys,number_of_mac_bytes);
+	}
+}
+
+int continue_getting_data_addr(unsigned char *addr)
+{
+	int ind;
+	if (num_of_cached_blocks_of_data>0)
+	{
+		ind=search_data_address_in_cache(addr);
+		if (ind!=-1)
+		{
+			return ind;
+		}
+	}
+	return -1; //-1 means continue
+	
+}
+
+

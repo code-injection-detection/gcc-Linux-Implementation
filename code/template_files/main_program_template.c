@@ -139,6 +139,7 @@ int main_program_function()
 	printf("Going to find keyshares.\n");
 	find_keyshares(-1);
 	
+	flush_data_cache_into_mem();
 	check_heap_macs();
 	check_stack_macs();
 	check_global_macs();

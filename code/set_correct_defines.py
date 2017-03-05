@@ -48,6 +48,8 @@ for line in src_lines:
 		newline='#define use_inline_assembly_with_pushes '+sys.argv[14]+'\n'	
 	if '#define num_of_cached_blocks_of_code' in line:
 		newline='#define num_of_cached_blocks_of_code '+sys.argv[15]+'\n'	
+	if '#define num_of_cached_blocks_of_data' in line:
+		newline='#define num_of_cached_blocks_of_data '+sys.argv[16]+'\n'
 		
 	headers_dst.write(newline)
 

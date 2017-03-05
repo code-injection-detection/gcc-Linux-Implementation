@@ -35,6 +35,12 @@
 						 //3->AES_CBC with length prepending, 
 						 //4->AES_CBC with length prepending and padding after length to reach full block
 
+#define code_cache_type 1 //0 -> fully assosiative
+						  //1 -> direct mapped
+
+#define data_cache_type 1 //0 -> fully assosiative
+						  //1 -> direct mapped
+
 
 #ifndef number_of_interleaved_keys 
 #define number_of_interleaved_keys (5)
@@ -120,6 +126,10 @@
 #ifndef num_of_cached_blocks_of_code
 #define num_of_cached_blocks_of_code 0
 #endif				//If a code block is in the cache, it is not verified before execution. If the cache size is 0, then there is no cache!
+
+#ifndef num_of_cached_blocks_of_data
+#define num_of_cached_blocks_of_data 0
+#endif				//If a data block is in the cache, it is not verified before execution. If the cache size is 0, then there is no cache!
 
 
 #include "crypto_functions.h"

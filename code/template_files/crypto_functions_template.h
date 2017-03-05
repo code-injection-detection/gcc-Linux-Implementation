@@ -29,8 +29,15 @@ void do_verify_code_on_the_fly();
 int get_number_of_padded_nops(unsigned char *p);
 
 void init_code_cache();
+void init_data_cache();
 void add_addr_to_code_cache(unsigned char * addr);
-int continue_macing_current_addr(unsigned char * addr);
+void add_addr_to_data_cache(unsigned char * addr);
+void get_mac_of_data_cache(unsigned char *addr);
+void get_mac_of_data_cache_with_index(unsigned char *addr, int index_in_cache);
+int continue_macing_current_code_addr(unsigned char * addr);
+int is_addr_to_be_set_in_data_cache(unsigned char *addr);
+int continue_getting_data_addr(unsigned char *addr);
+void flush_data_cache_into_mem();
 
 
 #endif

@@ -8,6 +8,7 @@ FORCE_NUM_OF_INSTRUCTIONS_OVER_NUM_OF_BYTES=0
 DO_NOT_MAC_WHAT_WHE_ADD_IN_CODE=1
 USE_INLINE_ASSEMBLY_WITH_PUSHES=0 #make it 1 when tou want to benchmark normal times. The script will not terminate properly, but you will have an executable that can give you normal run times
 NUM_OF_CACHED_BLOCKS_OF_CODE=0 #if a code block is in the cache, it does not have to be verified. If it is 0, we have no cache
+NUM_OF_CACHED_BLOCKS_OF_DATA=0 #if a data block is in the cache, it does not have to be verified. If it is 0, we have no cache
 
 
 if [[ ( "$#" -ne 9 ) && ( "$#" -ne 10) ]]; then
@@ -117,6 +118,21 @@ if [[ ( "$NUM_OF_MAC_BYTES" -eq 0 ) && ( "$ADD_CODE_ON_THE_FLY_VERIFICATION" -eq
 	exit
 fi
 
+if [[ ( "$NUM_OF_CACHED_BLOCKS_OF_DATA" -ne 0 ) && ( "$NUM_OF_GROUPED_USEFUL_BYTES" -ne "$NUM_OF_GROUPED_USEFUL_STACK_BYTES" ) ]]; then
+	echo "Can't have data cache and the useful bytes in the heap be different in number than those in the stack."
+	exit
+fi
+
+if [[ ( "$NUM_OF_CACHED_BLOCKS_OF_DATA" -ne 0 ) && ( "$NUM_OF_GROUPED_USEFUL_BYTES" -ne "$NUM_OF_GLOBAL_USEFUL_BYTES" ) ]]; then
+	echo "Can't have data cache and the useful bytes in the heap be different in number than those in the globals."
+	exit
+fi
+
+if [[ ( "$NUM_OF_CACHED_BLOCKS_OF_DATA" -ne 0 ) && ( "$NUM_OF_GROUPED_USEFUL_STACK_BYTES" -ne "$NUM_OF_GLOBAL_USEFUL_BYTES" ) ]]; then
+	echo "Can't have data cache and the useful bytes in the stack be different in number than those in the globals."
+	exit
+fi
+
 #Checking if the .class files are present
 if [ ! -d "../bin" ]; then  #if directory does not exist
 	echo "The 'bin' directory with the class files is not present!" 
@@ -164,7 +180,7 @@ fi
 
 
 echo "Changing defines according to input..."
-python3 set_correct_defines.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_TOTAL_STACK_BYTES_ALLOC $NUM_OF_GLOBAL_USEFUL_BYTES $NUM_OF_MAC_BYTES $INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS $USE_FIXED_SIZE_CHUNKS_OF_CODE $NUM_OF_BYTES_IN_CODE_CHUNK $DO_NOT_MAC_WHAT_WHE_ADD_IN_CODE $ADD_CODE_ON_THE_FLY_VERIFICATION $USE_INLINE_ASSEMBLY_WITH_PUSHES $NUM_OF_CACHED_BLOCKS_OF_CODE
+python3 set_correct_defines.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_TOTAL_STACK_BYTES_ALLOC $NUM_OF_GLOBAL_USEFUL_BYTES $NUM_OF_MAC_BYTES $INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS $USE_FIXED_SIZE_CHUNKS_OF_CODE $NUM_OF_BYTES_IN_CODE_CHUNK $DO_NOT_MAC_WHAT_WHE_ADD_IN_CODE $ADD_CODE_ON_THE_FLY_VERIFICATION $USE_INLINE_ASSEMBLY_WITH_PUSHES $NUM_OF_CACHED_BLOCKS_OF_CODE $NUM_OF_CACHED_BLOCKS_OF_DATA
 if [ "$INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS" == "0" ]; then
 	python3 insert_new_stack_commands.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_MAC_BYTES
 fi
@@ -189,7 +205,7 @@ echo "Compiling hash and encryption calculators, as well as the crypto initializ
 	 cd .. ; 
 	 gcc -O3 -c sha256.c #-mno-red-zone;
 	 rm -f sha256.c sha256.h  #removing the sha stuff that we don't need.
-	 gcc -O3 -c crypto_functions.c -lcrypto #-mno-red-zone
+	 gcc -O3 -c crypto_functions.c -lcrypto -Wnodiv-by-zero #-mno-red-zone
 	 if [ "$ADD_CODE_ON_THE_FLY_VERIFICATION" -eq "1" ]; then
 		#find the number of subtractions we have to do to fetch the return address in the verifier
 		 LINE_OF_VERIFIER=$(objdump -d crypto_functions.o | grep -n "<do_verify_code_on_the_fly>:" | grep -Eo '^[0123456789]+')
@@ -200,7 +216,7 @@ echo "Compiling hash and encryption calculators, as well as the crypto initializ
 		 #replace and put the proper offset
 		 sed -i "$STR_FOR_SED" crypto_functions.c
 		 #and compile again
-		 gcc -O3 -c crypto_functions.c -lcrypto #-mno-red-zone
+		 gcc -O3 -c crypto_functions.c -lcrypto -Wnodiv-by-zero #-mno-red-zone
 	 fi
 	 gcc -O3 -c secure_stack_manipulation_functions.c -lcrypto #-mno-red-zone
 	 gcc -O3 -c calc_mac_for_external_programs.c -lcrypto #-mno-red-zone
