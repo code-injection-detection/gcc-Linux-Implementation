@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-
+//GLOBAL DECLARATION
 typedef struct
 {
 //ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:double
@@ -50,7 +50,7 @@ int main_program_function()
 
 	
 	//initialise the verification procedure thread that will wait to be called
-	//DANGER: Problems may occur with on-the-fly code verification!
+	//DANGER: Problems may occur with on-the-fly code verification! //DON'T DO IT AT THE MOMENT
 	//init_verification_procedure_thread();
 	
 	

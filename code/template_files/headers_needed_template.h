@@ -52,11 +52,11 @@
 
 #ifndef bytes_to_allocate_on_start
 #define bytes_to_allocate_on_start (1024)
-#endif
+#endif				//The secure heap bytes (some bytes more may be needed, to complete full blocks)		
 
 #ifndef bytes_for_useful_data
 #define bytes_for_useful_data (4)
-#endif				//The "useful" bytes. Important: It is not (currently) possible to split this bytegroup into multiple parts.
+#endif				//The heap "useful" bytes. Important: It is not (currently) possible to split this bytegroup into multiple parts.
 				    //which means that should someone allocate x bytegroups but does not need the last one as a whole, we cannot give the rest of it to someone else
 
 #ifndef number_of_canaries
