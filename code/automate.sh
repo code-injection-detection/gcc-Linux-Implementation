@@ -247,7 +247,7 @@ fi
 
 
 echo "Compiling secure getters and setters..."
-	gcc -O3 -c secure_getters_setters.c
+	gcc -O3 -c secure_getters_setters.c -lcrypto #-mno-red-zone
 echo "Compiled secure getters and setters."
 
 echo "Compiling...."
