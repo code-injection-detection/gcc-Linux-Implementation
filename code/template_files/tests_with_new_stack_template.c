@@ -191,6 +191,112 @@ void great_function_that_wraps_the_tests()
 	
 	
 	
+	/**************************find_primes_up_to_a_number_sec****************************************/
+	//PLEASE PYTHON INIT A FUNCTION HERE
+	NAME_OF_FUNCTION: find_primes_up_to_a_number_sec
+	RETURN_VALUE_SIZE: none
+	//^FOR THE ABOVE: none/int/char etc
+	NUM_OF_PARAMETERS: 1
+		chars: 0 
+		ints: 1 | names: NUM
+		longs: 0
+		floats: 0
+		doubles: 0
+		pointers: 0
+		arb_pointers: 0
+	END_OF_PARAMETERS
+	NUM_OF_LOCAL_VARIABLES: 5
+		chars: 1 | names: BOOL
+		ints: 3 | names: I,J,NUM_OF_PRIMES_FOUND
+		longs: 0
+		floats: 0
+		doubles: 0
+		pointers: 1 | names: PRIMES_FOUND_SO_FAR | size_of_pointed_elements: 4  //sizeof(int)
+		arb_pointers: 0
+	END_OF_LOCAL_VARIABLES
+	RETURN_EXPRESSION: NULL
+	START_OF_FUNCTION : find_primes_up_to_a_number_sec
+	
+		//allocate space
+		SET_STACK_PTR(PRIMES_FOUND_SO_FAR, error_checking_managed_secure_malloc(
+																		 sizeof(int)*GET_STACK_INT(NUM)
+																		 ,__func__,__LINE__));
+		printf("Allocated space\n");
+		
+		
+		//num_of_primes=1; //2 is a prime
+		SET_STACK_INT(NUM_OF_PRIMES_FOUND,1);
+		//primes_found_so_far[num_of_primes-1]=2;
+		set_int_array_element(GET_STACK_PTR(PRIMES_FOUND_SO_FAR),
+							  GET_STACK_INT(NUM_OF_PRIMES_FOUND)-1,
+							  2);
+		printf("Set 2 as first prime\n");
+		
+		
+		//for (i=3;i<=num;i+=2)
+		for (SET_STACK_INT(I,3);
+			 GET_STACK_INT(I)<= GET_STACK_INT(NUM);
+			 SET_STACK_INT(I,GET_STACK_INT(I)+2))
+			 {
+				 //bool=0;
+				 SET_STACK_CHAR(BOOL,0);
+				 
+				 //for (j=2;j<=i/2+1;j++) //not using sqrt here
+				 for (SET_STACK_INT(J,2);
+					  GET_STACK_INT(J)<= GET_STACK_INT(I)/2+1;
+					  SET_STACK_INT(J,GET_STACK_INT(J)+1))
+				 {
+					//if (i%j==0)
+					if (GET_STACK_INT(I)%GET_STACK_INT(J) ==0 )
+						{
+							//bool=1;
+							SET_STACK_CHAR(BOOL,1);
+							break;
+						}			 
+				 }
+
+				//if (bool==0)
+				if (GET_STACK_CHAR(BOOL)==0)
+				{
+					//num_of_primes++;
+					SET_STACK_INT(NUM_OF_PRIMES_FOUND,GET_STACK_INT(NUM_OF_PRIMES_FOUND)+1);
+					
+					//primes_found_so_far[num_of_primes-1]=i;
+					set_int_array_element(GET_STACK_PTR(PRIMES_FOUND_SO_FAR),
+							  GET_STACK_INT(NUM_OF_PRIMES_FOUND)-1,
+							   GET_STACK_INT(I));
+				}
+				
+			 }
+		
+		
+		printf("\nPrimes:\n");
+		//print all primes found
+		//for (i=0;i<num_of_primes;i++)
+		for (SET_STACK_INT(I,0);
+			 GET_STACK_INT(I)< GET_STACK_INT(NUM_OF_PRIMES_FOUND);
+			 SET_STACK_INT(I,GET_STACK_INT(I)+1))
+		{
+			//printf("%d ",primes_found_so_far[i]);
+			printf("%d ",
+				   get_int_array_element(GET_STACK_PTR(PRIMES_FOUND_SO_FAR),
+										 GET_STACK_INT(I))
+				   );
+		}
+		printf("\n\n");
+		printf("Total number of primes:%d\n",GET_STACK_INT(NUM_OF_PRIMES_FOUND));
+		
+		
+		//free(primes_found_so_far);
+		managed_secure_free(GET_STACK_PTR(PRIMES_FOUND_SO_FAR));
+		
+		
+		
+			
+	END_OF_FUNCTION: find_primes_up_to_a_number_sec
+	
+	
+	
 	
 	/**********************************************************************************/
 	/***********************END OF FUNCTIONS DECLARATION*******************************/
@@ -222,13 +328,21 @@ void great_function_that_wraps_the_tests()
 	
 	/*
 	_securestart=clock(); 
-	//HEY PYTHON CALLING FUNCTION : sieve_of_Eratosthenes_sec | PARAMETERS TO CALL WITH: 200
+	//HEY PYTHON CALLING FUNCTION : sieve_of_Eratosthenes_sec | PARAMETERS TO CALL WITH: 20000000
 	_secureend=clock(); 
 	_securetime=((double) (_secureend - _securestart)) / CLOCKS_PER_SEC; 
 	printf("\n"); 
 	printf("New Secure Sieve of Eratosthenes time:%lg cpu seconds\n",_securetime); 
 	*/
 	
+	/*
+	_securestart=clock(); 
+	//HEY PYTHON CALLING FUNCTION : find_primes_up_to_a_number_sec | PARAMETERS TO CALL WITH: 70000
+	_secureend=clock(); 
+	_securetime=((double) (_secureend - _securestart)) / CLOCKS_PER_SEC; 
+	printf("\n"); 
+	printf("New Secure find_primes_up_to_a_number time:%lg cpu seconds\n",_securetime);
+	*/
 	
 	printf("base_pointer:%ld, entire_stack:%ld, last_unused_stack_memory=%ld\n",(long)base_pointer_for_stack,(long)entire_stack_memory_chunk,(long)last_unused_stack_memory);
 
