@@ -35,11 +35,18 @@
 						 //3->AES_CBC with length prepending, 
 						 //4->AES_CBC with length prepending and padding after length to reach full block
 
-#define code_cache_type 0 //0 -> fully assosiative
+#define code_cache_type 1 //0 -> fully assosiative
 						  //1 -> direct mapped
+						  //2 -> set assosiative
 
-#define data_cache_type 0 //0 -> fully assosiative
+#define code_cache_set_assosiative_size 2 //the size of the set in the cache
+
+#define data_cache_type 1 //0 -> fully assosiative
 						  //1 -> direct mapped
+						  //2 -> set assosiative
+						  
+#define data_cache_set_assosiative_size 2 //the size of the set in the cache
+
 
 
 #ifndef number_of_interleaved_keys 

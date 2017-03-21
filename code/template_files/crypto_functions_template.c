@@ -29,9 +29,11 @@ size_t length_of_maced_data;
 int tmplen;
 long code_cache[num_of_cached_blocks_of_code]; //in here, the addresses of the blocks of code that are cached are stored.
 int code_cache_latest_index;
+int code_cache_slot_indexes_for_set_assosiative[(num_of_cached_blocks_of_code/code_cache_set_assosiative_size)];
 long data_cache[num_of_cached_blocks_of_data]; //in here, the addresses of the blocks of code that are cached are stored.
 unsigned char macs_in_data_cache[num_of_cached_blocks_of_data*number_of_mac_bytes]; //holds the mac bytes of the data cache, for them to be written back without recalculating
 unsigned char data_cache_dirty_bits[num_of_cached_blocks_of_data];
+int data_cache_slot_indexes_for_set_assosiative[(num_of_cached_blocks_of_data/data_cache_set_assosiative_size)];
 int data_cache_latest_index;
 
 
@@ -692,8 +694,13 @@ void init_code_cache()
 {
 	if (num_of_cached_blocks_of_code>0)
 	{
+		int i;
 		memset(code_cache,0,num_of_cached_blocks_of_code*sizeof(long));
 		code_cache_latest_index=0;
+		for (i=0;i<(num_of_cached_blocks_of_code/code_cache_set_assosiative_size);i++)
+		{
+			code_cache_slot_indexes_for_set_assosiative[i]=0;
+		}
 	}
 }
 
@@ -761,7 +768,7 @@ void add_addr_to_code_cache(unsigned char * addr)
 int search_code_address_in_cache(unsigned char * addr)
 {
 	int i;
-	//check if addr is in cache. For optimization purposes, check for the most recent blocks first
+	//check if addr is in cache.
 	if (code_cache[((long)addr/size_of_full_block_of_code)%num_of_cached_blocks_of_code]==(long)addr)
 		return (((long)addr/size_of_full_block_of_code)%num_of_cached_blocks_of_code);
 	return -1;
@@ -775,6 +782,45 @@ void add_addr_to_code_cache(unsigned char * addr)
 	}
 }
 #endif //direct mapped end
+
+
+
+#if code_cache_type==2
+/*For set assosiative cache*/
+
+#if use_fixed_size_chunks_of_code==1
+	#define size_of_full_block_of_code (number_of_mac_bytes+number_of_interleaved_keys+num_of_bytes_in_code_chunk+number_of_canaries+1)  //that is make sure adjacent blocks will not hit the same place in the cache
+#endif
+#if use_fixed_size_chunks_of_code==0
+	#define size_of_full_block_of_code (1)
+#endif
+
+#define slots_in_code_cache_being_direct_mapped (num_of_cached_blocks_of_code/code_cache_set_assosiative_size)
+
+int search_code_address_in_cache(unsigned char * addr)
+{
+	int i,slot;
+	//check if addr is in cache. 
+	slot=((long)addr/size_of_full_block_of_code)%slots_in_code_cache_being_direct_mapped; //find the direct mapped slot
+	for (i=0;i<code_cache_set_assosiative_size;i++) //and search in it
+	{
+		if (code_cache[slot+i]==(long)addr)
+			return (slot+i);
+	}
+	return -1;
+}
+
+void add_addr_to_code_cache(unsigned char * addr)
+{
+	if (num_of_cached_blocks_of_code>0)
+	{
+		int i,slot;
+		slot=((long)addr/size_of_full_block_of_code)%slots_in_code_cache_being_direct_mapped; //find the direct mapped slot
+		code_cache[slot+code_cache_slot_indexes_for_set_assosiative[slot]]=(long)addr;
+		code_cache_slot_indexes_for_set_assosiative[slot]=(code_cache_slot_indexes_for_set_assosiative[slot]+1)%code_cache_set_assosiative_size;
+	}
+}
+#endif //set assosiative end
 
 int continue_macing_current_code_addr(unsigned char *addr)
 {
@@ -790,7 +836,6 @@ int continue_macing_current_code_addr(unsigned char *addr)
 	
 }
 
-
 /************  Data Cache Functions **************/
 void init_data_cache()
 {
@@ -800,6 +845,11 @@ void init_data_cache()
 		memset(macs_in_data_cache,0,num_of_cached_blocks_of_data*number_of_mac_bytes);
 		memset(data_cache_dirty_bits,0,num_of_cached_blocks_of_data);
 		data_cache_latest_index=0;
+		int i;
+		for (i=0;i<(num_of_cached_blocks_of_data/data_cache_set_assosiative_size);i++)
+		{
+			data_cache_slot_indexes_for_set_assosiative[i]=0;
+		}
 	}
 }
 
@@ -898,7 +948,7 @@ void flush_data_cache_into_mem()
 int search_data_address_in_cache(unsigned char * addr)
 {
 	int i;
-	//check if addr is in cache. For optimization purposes, check for the most recent blocks first
+	//check if addr is in cache.
 	if (data_cache[direct_mapped_index_in_cache]==(long)addr)
 		return direct_mapped_index_in_cache;
 	return -1;
@@ -942,6 +992,78 @@ void flush_data_cache_into_mem()
 }
 
 #endif //direct mapped end
+
+
+#if data_cache_type==2
+/*For set assosiative cache*/
+
+#define  use_fixed_size_chunks_of_data 1 //yep that's for sure, for data
+#if use_fixed_size_chunks_of_data==1
+	#define size_of_full_block_of_data (number_of_mac_bytes+number_of_interleaved_keys+bytes_for_useful_data)  //that is make sure adjacent blocks will not hit the same place in the cache
+#endif
+#if use_fixed_size_chunks_of_data==0
+	#define size_of_full_block_of_data (1)
+#endif
+
+#define slots_in_data_cache_being_direct_mapped (num_of_cached_blocks_of_data/data_cache_set_assosiative_size)
+
+
+int search_data_address_in_cache(unsigned char * addr)
+{
+	int i,slot;
+	slot=((long)addr/size_of_full_block_of_data)%slots_in_data_cache_being_direct_mapped; //find the direct mapped slot
+	//check if addr is in cache.
+	for (i=0;i<data_cache_set_assosiative_size;i++)
+	{
+		if (data_cache[slot+i]==(long)addr)
+			return (slot+i);
+	}
+	return -1;
+}
+
+void get_mac_of_data_cache(unsigned char *addr)
+{
+	if (num_of_cached_blocks_of_data>0)
+	{
+		int slot;
+		slot=((long)addr/size_of_full_block_of_data)%slots_in_data_cache_being_direct_mapped; //find the direct mapped slot
+		//store the mac in the cache
+		memcpy(&(macs_in_data_cache[(slot+data_cache_slot_indexes_for_set_assosiative[slot])*number_of_mac_bytes]),(unsigned char*)addr+bytes_for_useful_data+number_of_interleaved_keys,number_of_mac_bytes);
+	}
+}
+
+
+void add_addr_to_data_cache(unsigned char * addr)
+{
+	if (num_of_cached_blocks_of_data>0)
+	{
+		int slot;
+		slot=((long)addr/size_of_full_block_of_data)%slots_in_data_cache_being_direct_mapped; //find the direct mapped slot
+		if (data_cache[slot+data_cache_slot_indexes_for_set_assosiative[slot]]!=0 && data_cache_dirty_bits[slot+data_cache_slot_indexes_for_set_assosiative[slot]]==1) //there is already an address there and its dirty
+		{
+			//calculate the proper mac and set it
+			calc_and_set_mac_of_data((unsigned char*)data_cache[slot+data_cache_slot_indexes_for_set_assosiative[slot]],bytes_for_useful_data+number_of_interleaved_keys,bytes_for_useful_data,(unsigned char*)data_cache[slot+data_cache_slot_indexes_for_set_assosiative[slot]]+bytes_for_useful_data+number_of_interleaved_keys); 
+		}
+		data_cache[slot+data_cache_slot_indexes_for_set_assosiative[slot]]=(long)addr;
+		data_cache_dirty_bits[slot+data_cache_slot_indexes_for_set_assosiative[slot]]=0;
+		data_cache_slot_indexes_for_set_assosiative[slot]=(data_cache_slot_indexes_for_set_assosiative[slot]+1)%data_cache_set_assosiative_size;
+	}
+}
+
+void flush_data_cache_into_mem()
+{
+	int i;
+	for (i=0;i<num_of_cached_blocks_of_data;i++)
+	{
+		if (data_cache[i]!=0 && data_cache_dirty_bits[i]==1) //there is already an address there and it's dirty
+		{
+			//calculate the proper mac and set it
+			calc_and_set_mac_of_data((unsigned char*)data_cache[i],bytes_for_useful_data+number_of_interleaved_keys,bytes_for_useful_data,(unsigned char*)data_cache[i]+bytes_for_useful_data+number_of_interleaved_keys); 
+		}
+	}
+}
+
+#endif //set assosiative end
 
 
 int is_addr_to_be_set_in_data_cache(unsigned char *addr)

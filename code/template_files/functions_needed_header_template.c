@@ -81,6 +81,8 @@ double _simpletime;
 					printf("\n"); \
 					printf("Normal " #operation ":%lg cpu seconds\n",_simpletime); \
 					printf("Secure "  #operation ":\n"); \
+					init_code_cache(); \
+					init_data_cache(); \
 					_securestart=clock(); \
 					function_call_secure ;\
 					_secureend=clock(); \
@@ -92,6 +94,10 @@ double _simpletime;
 					printf("Ratio: %lg times slowdown\n",_securetime/_simpletime); \
 				} 
 
+#define CLEAR_CACHES { \
+					init_code_cache(); \
+					init_data_cache(); \
+					}
 
 
 //forward declaration of mac calculation functions
