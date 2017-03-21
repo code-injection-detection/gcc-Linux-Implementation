@@ -64,6 +64,13 @@ void verify_all_keyshares_from_file(unsigned char * keys_array)
 }
 
 
+#define CLEAR_CACHES { \
+					flush_data_cache_into_mem(); \
+					init_code_cache(); \
+					init_data_cache(); \
+					}
+
+
 
 clock_t _simplestart;
 clock_t _simpleend;
@@ -81,8 +88,7 @@ double _simpletime;
 					printf("\n"); \
 					printf("Normal " #operation ":%lg cpu seconds\n",_simpletime); \
 					printf("Secure "  #operation ":\n"); \
-					init_code_cache(); \
-					init_data_cache(); \
+					CLEAR_CACHES; \
 					_securestart=clock(); \
 					function_call_secure ;\
 					_secureend=clock(); \
@@ -94,10 +100,6 @@ double _simpletime;
 					printf("Ratio: %lg times slowdown\n",_securetime/_simpletime); \
 				} 
 
-#define CLEAR_CACHES { \
-					init_code_cache(); \
-					init_data_cache(); \
-					}
 
 
 //forward declaration of mac calculation functions
