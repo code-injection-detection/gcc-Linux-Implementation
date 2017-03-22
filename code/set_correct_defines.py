@@ -50,6 +50,16 @@ for line in src_lines:
 		newline='#define num_of_cached_blocks_of_code '+sys.argv[15]+'\n'	
 	if '#define num_of_cached_blocks_of_data' in line:
 		newline='#define num_of_cached_blocks_of_data '+sys.argv[16]+'\n'
+	if '#define ignore_macs_even_if_there_are_mac_bytes' in line:
+		newline='#define ignore_macs_even_if_there_are_mac_bytes '+sys.argv[17]+'\n'
+	if '#define code_cache_type' in line:
+		newline='#define code_cache_type '+sys.argv[18]+'\n'
+	if '#define data_cache_type' in line:
+		newline='#define data_cache_type '+sys.argv[19]+'\n'
+	if '#define code_cache_set_assosiative_size' in line:
+		newline='#define code_cache_set_assosiative_size '+sys.argv[20]+'\n'
+	if '#define data_cache_set_assosiative_size' in line:
+		newline='#define data_cache_set_assosiative_size '+sys.argv[21]+'\n'
 		
 	headers_dst.write(newline)
 

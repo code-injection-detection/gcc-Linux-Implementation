@@ -35,17 +35,25 @@
 						 //3->AES_CBC with length prepending, 
 						 //4->AES_CBC with length prepending and padding after length to reach full block
 
-#define code_cache_type 1 //0 -> fully assosiative
+#ifndef code_cache_type 
+#define code_cache_type 1 
+#endif 					  //0 -> fully assosiative
 						  //1 -> direct mapped
 						  //2 -> set assosiative
 
-#define code_cache_set_assosiative_size 2 //the size of the set in the cache
+#ifndef code_cache_set_assosiative_size 
+#define code_cache_set_assosiative_size 2
+#endif 					  //the size of the set in the cache
 
-#define data_cache_type 1 //0 -> fully assosiative
+#ifndef data_cache_type
+#define data_cache_type 1 
+#endif					  //0 -> fully assosiative
 						  //1 -> direct mapped
 						  //2 -> set assosiative
-						  
-#define data_cache_set_assosiative_size 2 //the size of the set in the cache
+
+#ifndef data_cache_set_assosiative_size 					  
+#define data_cache_set_assosiative_size 2
+#endif					  //the size of the set in the cache
 
 
 
@@ -137,6 +145,12 @@
 #ifndef num_of_cached_blocks_of_data
 #define num_of_cached_blocks_of_data 0
 #endif				//If a data block is in the cache, it is not verified before execution. If the cache size is 0, then there is no cache!
+
+
+#ifndef ignore_macs_even_if_there_are_mac_bytes
+#define ignore_macs_even_if_there_are_mac_bytes 0
+#endif				//Ignore calculation of macs even if their number is positive.
+
 
 
 #include "crypto_functions.h"
