@@ -45,9 +45,10 @@ public class Secure_Assembly {
 		int num_of_bytes_in_current_block=0;
 		boolean force_num_of_instructions_over_bytes=true;
 		String ramtmp_file="";
+		boolean ignore_macs_even_if_there_are_mac_bytes=false;
 		
 
-		if (args.length==9)
+		if (args.length==10)
 		{
 			num_of_interleaved_keys=Integer.parseInt(args[0]);
 			num_of_grouped_orig_instr=Integer.parseInt(args[1]);
@@ -72,6 +73,10 @@ public class Secure_Assembly {
 			
 			ramtmp_file=args[8];
 			
+			if (Integer.parseInt(args[9])==0)
+				ignore_macs_even_if_there_are_mac_bytes=false;
+			else
+				ignore_macs_even_if_there_are_mac_bytes=true;
 		}
 		else
 		{
@@ -130,7 +135,7 @@ public class Secure_Assembly {
 					//add_label_for_sart_of_function
 					list_of_lines.add(".START_OF_FUNCTION_"+list_of_lines.get(list_of_lines.size()-3));
 					
-					if (check_code_verification_on_the_fly)
+					if (check_code_verification_on_the_fly && !ignore_macs_even_if_there_are_mac_bytes)
 					{
 						add_code_verification_lines(list_of_lines,use_fixed_size_chunks_of_code);
 					}
@@ -182,7 +187,7 @@ public class Secure_Assembly {
 				if (use_fixed_size_chunks_of_code && (removeSpaces(line).startsWith(".")==false) /*make sure it's a command*/)
 				{
 					String line_to_check_size=line;
-					if( line.trim().startsWith("j")) //pad .d32 to jmps
+					if( line.trim().startsWith("j")) //pad .d32 to jmps to  calculate their proper size
 					{
 						String[] parts=line.trim().split("\t");
 						String cmd=parts[0];
@@ -195,7 +200,7 @@ public class Secure_Assembly {
 					size_of_current_cmd=get_size_of_assembly_command(line_to_check_size,ramtmp_file);
 					//see if we should add it (only if it does not exceed the size of the fixed chunk)
 					int bytes_to_subtract=2; /*jmp*/
-					if (check_code_verification_on_the_fly)
+					if (check_code_verification_on_the_fly && !ignore_macs_even_if_there_are_mac_bytes)
 						bytes_to_subtract+=7; /*size of verifier for fixed size blocks*/
 					//if the size of the current command is bigger than we can accommodate
 					if (size_of_current_cmd> num_of_bytes_in_code_chunk-bytes_to_subtract)
@@ -218,7 +223,7 @@ public class Secure_Assembly {
 				
 								
 				//if we have exhausted the group of commands, we need to add a jump and nops, and a label after them
-				if (force_end_of_block || i == num_of_grouped_orig_instr || (check_code_verification_on_the_fly && /*label with .L<numbers> */Pattern.compile("^[ \t]*\\.L[0123456789]+:$").matcher(line).matches() ))
+				if (force_end_of_block || i == num_of_grouped_orig_instr || (!ignore_macs_even_if_there_are_mac_bytes && check_code_verification_on_the_fly && /*label with .L<numbers> */Pattern.compile("^[ \t]*\\.L[0123456789]+:$").matcher(line).matches() ))
 				{
 					force_end_of_block=false;
 					num_of_bytes_in_current_block=0;
@@ -248,7 +253,7 @@ public class Secure_Assembly {
 						}
 					}
 					
-					if (check_code_verification_on_the_fly)
+					if (check_code_verification_on_the_fly && !ignore_macs_even_if_there_are_mac_bytes)
 					{
 						add_code_verification_lines(list_of_lines,use_fixed_size_chunks_of_code);
 					}
@@ -266,7 +271,7 @@ public class Secure_Assembly {
 					continue;
 				}
 				
-				if (check_code_verification_on_the_fly && line.trim().startsWith("call") && function_is_one_of_the_hardware_ones(line.trim().split("\t")[1].trim())==false) //call should mark the end of a block, except if it is a secure getter/setter
+				if (check_code_verification_on_the_fly && !ignore_macs_even_if_there_are_mac_bytes /*we should force end of block even if we ignore mac verification??? */ && line.trim().startsWith("call") && function_is_one_of_the_hardware_ones(line.trim().split("\t")[1].trim())==false) //call should mark the end of a block, except if it is a secure getter/setter
 				{
 					list_of_lines.add(line);
 					i++;

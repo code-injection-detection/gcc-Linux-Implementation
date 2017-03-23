@@ -367,6 +367,8 @@ int check_code_mac_for_error(unsigned char * input, int total_mac_bytes, int use
 #if do_not_mac_what_we_add_in_code==1 //using defined if's , for speed
 		{
 			int length_of_verifier=size_of_commands_before_getting_addr+1; //the final pop command
+			if (ignore_macs_even_if_there_are_mac_bytes)
+				length_of_verifier=0;
 			int code_length=input[useful_mac_bytes-1]; //input[useful_mac_bytes-1] holds the bytes for the code <verifier+proper code+jmp>
 			//throw away what we've put in the code (verifier,jmp etc)
 			int cnt_in_new_mac=0;

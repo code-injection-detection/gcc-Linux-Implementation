@@ -54,6 +54,7 @@ public class Secure_Machine_Code {
 		int number_of_padded_nops=0;
 		int cnt_for_useful_bytes=0;
 		boolean do_not_mac_what_we_add_in_code=true;
+		boolean ignore_macs_even_if_there_are_mac_bytes=false;
 		
 		MessageDigest md = MessageDigest.getInstance("SHA-256");
 		FileInputStream fr = new FileInputStream(new File(filename));
@@ -67,7 +68,7 @@ public class Secure_Machine_Code {
 		byte [] global_keys = Files.readAllBytes(path);
 		byte[] stuff_in_code_to_be_MACed=new byte[2048];
 		
-		if (args.length==11)
+		if (args.length==12)
 		{
 			number_of_interleaved_keys=Integer.parseInt(args[0]);
 			num_of_keys_in_heap=number_of_interleaved_keys;
@@ -93,6 +94,11 @@ public class Secure_Machine_Code {
 				do_not_mac_what_we_add_in_code=false;
 			else
 				do_not_mac_what_we_add_in_code=true;
+				
+			if (Integer.parseInt(args[11])==0)
+				ignore_macs_even_if_there_are_mac_bytes=false;
+			else
+				ignore_macs_even_if_there_are_mac_bytes=true;
 		}
 		else
 		{
@@ -186,7 +192,7 @@ public class Secure_Machine_Code {
 						else if (num_of_mac_bytes>0)	
 							arr[i+2+j+number_of_canaries] = (byte)cnt_for_instr_bytes;
 					}
-					if (use_fixed_size_chunks_of_code==false && check_code_verification_on_the_fly)
+					if (use_fixed_size_chunks_of_code==false && check_code_verification_on_the_fly && !ignore_macs_even_if_there_are_mac_bytes)
 					{
 						//set the correct value in "movq $42,num_of_useful_bytes_to_mac_in_code(%rip)"
 						int num_of_useful_butes_to_mac_in_code=cnt_for_instr_bytes+number_of_canaries+1;
@@ -244,10 +250,14 @@ public class Secure_Machine_Code {
 					}
 					
 					byte[] digest;
-					if (do_not_mac_what_we_add_in_code)
+					if (do_not_mac_what_we_add_in_code) //if we don't mac what we've added to the code (verification code, jmps etc)
 					{
 						int length_of_verifier_in_fixed_chunks=7;
 						int length_of_verifier_in_variable_chunks=14;
+						if (ignore_macs_even_if_there_are_mac_bytes)
+						{
+							length_of_verifier_in_fixed_chunks=length_of_verifier_in_variable_chunks=0;
+						}
 						int nops_padded=0;
 						int length_of_verifier=length_of_verifier_in_variable_chunks;
 						if (use_fixed_size_chunks_of_code)
@@ -278,7 +288,7 @@ public class Secure_Machine_Code {
 						}
 						for (int cnt_in_old_mac=0;cnt_in_old_mac<all_bytes_length;cnt_in_old_mac++)
 						{
-							if (check_code_verification_on_the_fly && cnt_in_old_mac<length_of_verifier)
+							if (check_code_verification_on_the_fly && !ignore_macs_even_if_there_are_mac_bytes && cnt_in_old_mac<length_of_verifier)
 							{
 								; //do nothing
 							}
