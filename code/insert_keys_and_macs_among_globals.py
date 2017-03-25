@@ -244,7 +244,7 @@ def add_mac_verification():
 
 	s='int error=0;\n \n'
 	for i in range(1,maccnt_major+1):
-		s+='if (check_mac_for_error((unsigned char *)&(globals.mac_'+str(i)+'_1)-(number_of_global_useful_bytes+bytes_used_for_keyshares),number_of_global_useful_bytes+bytes_used_for_keyshares,number_of_global_useful_bytes))\n'
+		s+='if (!ignore_macs_even_if_there_are_mac_bytes && check_mac_for_error((unsigned char *)&(globals.mac_'+str(i)+'_1)-(number_of_global_useful_bytes+bytes_used_for_keyshares),number_of_global_useful_bytes+bytes_used_for_keyshares,number_of_global_useful_bytes))\n'
 		s+='{\n'	
 		s+='	printf("Error in global macs, mac no %d\\n",'+str(i)+');\n'
 		s+='	error=1;\n'

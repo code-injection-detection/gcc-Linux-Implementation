@@ -68,10 +68,13 @@ void insert_keys_into_mem(unsigned char * mem)
 		}
 		*/
 		//Insert the truncated mac of the previous bytes
-		update_mac_when_setting_data(&p[i]-bytes_for_useful_data-bytes_used_for_keyshares,
-									 bytes_for_useful_data+bytes_used_for_keyshares,
-									 bytes_for_useful_data,
-									 &p[i]);
+		if (!ignore_macs_even_if_there_are_mac_bytes)
+		{
+			update_mac_when_setting_data(&p[i]-bytes_for_useful_data-bytes_used_for_keyshares,
+										 bytes_for_useful_data+bytes_used_for_keyshares,
+										 bytes_for_useful_data,
+										 &p[i]);
+		}
 		i+=number_of_mac_bytes;
 		type_of_bytes=0;
 	}
@@ -109,20 +112,26 @@ long insert_data_into_mem(long data_size,unsigned char * data, unsigned char * m
 		memcpy(&p[i],&data[total_data_inserted],data_remaining);
 		total_data_inserted=data_size;
 		//update mac
-		update_mac_when_setting_data(&p[i],
-									 bytes_for_useful_data+bytes_used_for_keyshares,
-									 bytes_for_useful_data,
-									 &p[i]+bytes_for_useful_data+bytes_used_for_keyshares);
+		if (!ignore_macs_even_if_there_are_mac_bytes)
+		{
+			update_mac_when_setting_data(&p[i],
+										 bytes_for_useful_data+bytes_used_for_keyshares,
+										 bytes_for_useful_data,
+										 &p[i]+bytes_for_useful_data+bytes_used_for_keyshares);
+		}
 	}
 	else
 	{
 		memcpy(&p[i],&data[total_data_inserted],bytes_for_useful_data);
 		total_data_inserted+=bytes_for_useful_data;
 		//update mac
-		update_mac_when_setting_data(&p[i],
-									 bytes_for_useful_data+bytes_used_for_keyshares,
-									 bytes_for_useful_data,
-									 &p[i]+bytes_for_useful_data+bytes_used_for_keyshares);
+		if (!ignore_macs_even_if_there_are_mac_bytes)
+		{
+			update_mac_when_setting_data(&p[i],
+										 bytes_for_useful_data+bytes_used_for_keyshares,
+										 bytes_for_useful_data,
+										 &p[i]+bytes_for_useful_data+bytes_used_for_keyshares);
+		}
 	}
 	i+=bytes_for_useful_data+bytes_used_for_keyshares+number_of_mac_bytes;
   }
@@ -187,7 +196,10 @@ void get_secure_data(void * res,long data_size, unsigned char * data_start, int 
 			data_remaining_till_end_of_chunk=bytes_for_useful_data-j;
 		}
 		
-		verify_mac_on_the_fly(p,bytes_for_useful_data+bytes_used_for_keyshares,bytes_for_useful_data);
+		if (!ignore_macs_even_if_there_are_mac_bytes)
+		{
+			verify_mac_on_the_fly(p,bytes_for_useful_data+bytes_used_for_keyshares,bytes_for_useful_data);
+		}
 		memcpy(&result[total_data_retrieved],&p[j],data_remaining_till_end_of_chunk);
 
 		total_data_retrieved+=data_remaining_till_end_of_chunk;
@@ -203,13 +215,19 @@ void get_secure_data(void * res,long data_size, unsigned char * data_start, int 
 	data_remaining=data_size-total_data_retrieved;
 	if (data_remaining<=bytes_for_useful_data)
 	{
-		verify_mac_on_the_fly(&(p[i]),bytes_for_useful_data+bytes_used_for_keyshares,bytes_for_useful_data);
+		if (!ignore_macs_even_if_there_are_mac_bytes)
+		{
+			verify_mac_on_the_fly(&(p[i]),bytes_for_useful_data+bytes_used_for_keyshares,bytes_for_useful_data);
+		}
 		memcpy(&result[total_data_retrieved],&p[i],data_remaining);
 		total_data_retrieved=data_size;
 	}
 	else
 	{
-		verify_mac_on_the_fly(&(p[i]),bytes_for_useful_data+bytes_used_for_keyshares,bytes_for_useful_data);
+		if (!ignore_macs_even_if_there_are_mac_bytes)
+		{
+			verify_mac_on_the_fly(&(p[i]),bytes_for_useful_data+bytes_used_for_keyshares,bytes_for_useful_data);
+		}
 		memcpy(&result[total_data_retrieved],&p[i],bytes_for_useful_data);
 		total_data_retrieved+=bytes_for_useful_data;
 	}
@@ -266,10 +284,13 @@ void set_secure_data(void * source,long data_size, unsigned char * data_start, i
 		
 		memcpy(&p[j],&src[total_data_set],data_remaining_till_end_of_chunk);
 		//update macs
-		update_mac_when_setting_data(p,
-									 bytes_for_useful_data+bytes_used_for_keyshares,
-									 bytes_for_useful_data,
-									 p+bytes_for_useful_data+bytes_used_for_keyshares);
+		if (!ignore_macs_even_if_there_are_mac_bytes)
+		{
+			update_mac_when_setting_data(p,
+										 bytes_for_useful_data+bytes_used_for_keyshares,
+										 bytes_for_useful_data,
+										 p+bytes_for_useful_data+bytes_used_for_keyshares);
+		}
 
 		total_data_set+=data_remaining_till_end_of_chunk;
 		p+=bytes_for_useful_data + bytes_used_for_keyshares+number_of_mac_bytes;
@@ -286,20 +307,26 @@ void set_secure_data(void * source,long data_size, unsigned char * data_start, i
 	{
 		memcpy(&p[i],&src[total_data_set],data_remaining);
 		//update macs
-		update_mac_when_setting_data(&p[i],
-									 bytes_for_useful_data+bytes_used_for_keyshares,
-									 bytes_for_useful_data,
-									 &p[i]+bytes_for_useful_data+bytes_used_for_keyshares);
+		if (!ignore_macs_even_if_there_are_mac_bytes)
+		{
+			update_mac_when_setting_data(&p[i],
+										 bytes_for_useful_data+bytes_used_for_keyshares,
+										 bytes_for_useful_data,
+										 &p[i]+bytes_for_useful_data+bytes_used_for_keyshares);
+		}
 		total_data_set=data_size;
 	}
 	else
 	{
 		memcpy(&p[i],&src[total_data_set],bytes_for_useful_data);
 		//update macs
-		update_mac_when_setting_data(&p[i],
-									 bytes_for_useful_data+bytes_used_for_keyshares,
-									 bytes_for_useful_data,
-									 &p[i]+bytes_for_useful_data+bytes_used_for_keyshares);
+		if (!ignore_macs_even_if_there_are_mac_bytes)
+		{
+			update_mac_when_setting_data(&p[i],
+										 bytes_for_useful_data+bytes_used_for_keyshares,
+										 bytes_for_useful_data,
+										 &p[i]+bytes_for_useful_data+bytes_used_for_keyshares);
+		}
 		total_data_set+=bytes_for_useful_data;
 	}
 	i+=bytes_for_useful_data+bytes_used_for_keyshares+number_of_mac_bytes;
@@ -582,10 +609,13 @@ void insert_keys_into_stack_mem(unsigned char * stack_mem)
 			i++;
 		}*/
 		//Insert the truncated mac of the previous bytes
-		update_mac_when_setting_data(&p[i]-stack_bytes_for_useful_data-stack_bytes_used_for_keyshares,
-									 stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,
-									 stack_bytes_for_useful_data,
-									 &p[i]);
+		if (!ignore_macs_even_if_there_are_mac_bytes)
+		{
+			update_mac_when_setting_data(&p[i]-stack_bytes_for_useful_data-stack_bytes_used_for_keyshares,
+										 stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,
+										 stack_bytes_for_useful_data,
+										 &p[i]);
+		}
 		i+=number_of_mac_bytes;
 		type_of_bytes=0;
 	}
@@ -624,20 +654,26 @@ long insert_data_into_stack_mem(long data_size,unsigned char * data, unsigned ch
 		memcpy(&p[i],&data[total_data_inserted],data_remaining);
 		total_data_inserted=data_size;
 		//update mac
-		update_mac_when_setting_data(&p[i],
-									 stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,
-									 stack_bytes_for_useful_data,
-									 &p[i]+stack_bytes_for_useful_data+stack_bytes_used_for_keyshares);
+		if (!ignore_macs_even_if_there_are_mac_bytes)
+		{
+			update_mac_when_setting_data(&p[i],
+										 stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,
+										 stack_bytes_for_useful_data,
+										 &p[i]+stack_bytes_for_useful_data+stack_bytes_used_for_keyshares);
+		}
 	}
 	else
 	{
 		memcpy(&p[i],&data[total_data_inserted],stack_bytes_for_useful_data);
 		total_data_inserted+=stack_bytes_for_useful_data;
 		//update mac
-		update_mac_when_setting_data(&p[i],
-									 stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,
-									 stack_bytes_for_useful_data,
-									 &p[i]+stack_bytes_for_useful_data+stack_bytes_used_for_keyshares);
+		if (!ignore_macs_even_if_there_are_mac_bytes)
+		{
+			update_mac_when_setting_data(&p[i],
+										 stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,
+										 stack_bytes_for_useful_data,
+										 &p[i]+stack_bytes_for_useful_data+stack_bytes_used_for_keyshares);
+		}
 	}
 	i+=stack_bytes_for_useful_data+stack_bytes_used_for_keyshares+number_of_mac_bytes;
 	
@@ -704,7 +740,10 @@ void get_secure_stack_data(void * res,long data_size, unsigned char * data_start
 			data_remaining_till_end_of_chunk=stack_bytes_for_useful_data-j;
 		}
 		
-		verify_mac_on_the_fly(p,stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,stack_bytes_for_useful_data);
+		if (!ignore_macs_even_if_there_are_mac_bytes)
+		{
+			verify_mac_on_the_fly(p,stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,stack_bytes_for_useful_data);
+		}
 		memcpy(&result[total_data_retrieved],&p[j],data_remaining_till_end_of_chunk);
 
 		total_data_retrieved+=data_remaining_till_end_of_chunk;
@@ -720,13 +759,19 @@ void get_secure_stack_data(void * res,long data_size, unsigned char * data_start
 	data_remaining=data_size-total_data_retrieved;
 	if (data_remaining<=stack_bytes_for_useful_data)
 	{
-		verify_mac_on_the_fly(&(p[i]),stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,stack_bytes_for_useful_data);
+		if (!ignore_macs_even_if_there_are_mac_bytes)
+		{
+			verify_mac_on_the_fly(&(p[i]),stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,stack_bytes_for_useful_data);
+		}
 		memcpy(&result[total_data_retrieved],&p[i],data_remaining);
 		total_data_retrieved=data_size;
 	}
 	else
 	{
-		verify_mac_on_the_fly(&(p[i]),stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,stack_bytes_for_useful_data);
+		if (!ignore_macs_even_if_there_are_mac_bytes)
+		{
+			verify_mac_on_the_fly(&(p[i]),stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,stack_bytes_for_useful_data);
+		}
 		memcpy(&result[total_data_retrieved],&p[i],stack_bytes_for_useful_data);
 		total_data_retrieved+=stack_bytes_for_useful_data;
 	}
@@ -784,10 +829,13 @@ void set_secure_stack_data(void * source,long data_size, unsigned char * data_st
 		
 		memcpy(&p[j],&src[total_data_set],data_remaining_till_end_of_chunk);
 		//update macs
-		update_mac_when_setting_data(p,
-									 stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,
-									 stack_bytes_for_useful_data,
-									 p+stack_bytes_for_useful_data+stack_bytes_used_for_keyshares);
+		if (!ignore_macs_even_if_there_are_mac_bytes)
+		{
+			update_mac_when_setting_data(p,
+										 stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,
+										 stack_bytes_for_useful_data,
+										 p+stack_bytes_for_useful_data+stack_bytes_used_for_keyshares);
+		}
 
 		total_data_set+=data_remaining_till_end_of_chunk;
 		p+=stack_bytes_for_useful_data + stack_bytes_used_for_keyshares+number_of_mac_bytes;
@@ -804,20 +852,26 @@ void set_secure_stack_data(void * source,long data_size, unsigned char * data_st
 	{
 		memcpy(&p[i],&src[total_data_set],data_remaining);
 		//update macs
-		update_mac_when_setting_data(&p[i],
-									 stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,
-									 stack_bytes_for_useful_data,
-									 &p[i]+stack_bytes_for_useful_data+stack_bytes_used_for_keyshares);
+		if (!ignore_macs_even_if_there_are_mac_bytes)
+		{
+			update_mac_when_setting_data(&p[i],
+										 stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,
+										 stack_bytes_for_useful_data,
+										 &p[i]+stack_bytes_for_useful_data+stack_bytes_used_for_keyshares);
+		}
 		total_data_set=data_size;
 	}
 	else
 	{
 		memcpy(&p[i],&src[total_data_set],stack_bytes_for_useful_data);
 		//update macs
-		update_mac_when_setting_data(&p[i],
-									 stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,
-									 stack_bytes_for_useful_data,
-									 &p[i]+stack_bytes_for_useful_data+stack_bytes_used_for_keyshares);
+		if (!ignore_macs_even_if_there_are_mac_bytes)
+		{
+			update_mac_when_setting_data(&p[i],
+										 stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,
+										 stack_bytes_for_useful_data,
+										 &p[i]+stack_bytes_for_useful_data+stack_bytes_used_for_keyshares);
+		}
 		total_data_set+=stack_bytes_for_useful_data;
 	}
 	i+=stack_bytes_for_useful_data+stack_bytes_used_for_keyshares+number_of_mac_bytes;
@@ -1068,38 +1122,56 @@ void set_arbitrary_block_in_stack_with_offset(long data_size,void * start,long o
 
 char get_global_char(char *global_var)
 {
-	verify_mac_on_the_fly(global_var,number_of_global_useful_bytes+number_of_interleaved_keys,number_of_global_useful_bytes);
+	if (!ignore_macs_even_if_there_are_mac_bytes)
+	{
+		verify_mac_on_the_fly(global_var,number_of_global_useful_bytes+number_of_interleaved_keys,number_of_global_useful_bytes);
+	}
 	return *global_var;
 }
 
 int get_global_int(int *global_var)
 {
-	verify_mac_on_the_fly(global_var,number_of_global_useful_bytes+number_of_interleaved_keys,number_of_global_useful_bytes);
+	if (!ignore_macs_even_if_there_are_mac_bytes)
+	{
+		verify_mac_on_the_fly(global_var,number_of_global_useful_bytes+number_of_interleaved_keys,number_of_global_useful_bytes);
+	}
 	return *global_var;
 }
 
 long int get_global_long_int(long *global_var)
 {
-	verify_mac_on_the_fly(global_var,number_of_global_useful_bytes+number_of_interleaved_keys,number_of_global_useful_bytes);
+	if (!ignore_macs_even_if_there_are_mac_bytes)
+	{
+		verify_mac_on_the_fly(global_var,number_of_global_useful_bytes+number_of_interleaved_keys,number_of_global_useful_bytes);
+	}
 	return *global_var;
 }
 
 float get_global_float(float *global_var)
 {	
-	verify_mac_on_the_fly(global_var,number_of_global_useful_bytes+number_of_interleaved_keys,number_of_global_useful_bytes);
+	if (!ignore_macs_even_if_there_are_mac_bytes)
+	{
+		verify_mac_on_the_fly(global_var,number_of_global_useful_bytes+number_of_interleaved_keys,number_of_global_useful_bytes);
+	}
 	return *global_var;
 }
 
 
 double get_global_double(double *global_var)
 {
-	verify_mac_on_the_fly(global_var,number_of_global_useful_bytes+number_of_interleaved_keys,number_of_global_useful_bytes);
+	if (!ignore_macs_even_if_there_are_mac_bytes)
+	{
+		verify_mac_on_the_fly(global_var,number_of_global_useful_bytes+number_of_interleaved_keys,number_of_global_useful_bytes);
+	}
 	return *global_var;
 }
 
 void * get_global_ptr(void* *global_var)
 {
-	verify_mac_on_the_fly(global_var,number_of_global_useful_bytes+number_of_interleaved_keys,number_of_global_useful_bytes);
+	if (!ignore_macs_even_if_there_are_mac_bytes)
+	{
+		verify_mac_on_the_fly(global_var,number_of_global_useful_bytes+number_of_interleaved_keys,number_of_global_useful_bytes);
+	}
 	return *global_var;
 }
 

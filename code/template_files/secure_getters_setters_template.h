@@ -175,11 +175,15 @@ void * get_global_ptr(void** global_var);
 
 #define UPDATE_GLOBAL_VAR(global_var,new_value) { \
 							global_var=(new_value); \
+							if (!ignore_macs_even_if_there_are_mac_bytes) \
+							{ \
 							update_mac_when_setting_data((unsigned char *)&(global_var),number_of_global_useful_bytes+bytes_used_for_keyshares,number_of_global_useful_bytes,((unsigned char*) &(global_var))+(number_of_global_useful_bytes+bytes_used_for_keyshares)) ;\
+							} \
 						}
 						
 #define UPDATE_GLOBAL_VAR_FOR_LOOPS(global_var,new_value) global_var=(new_value), \
-							update_mac_when_setting_data((unsigned char *)&(global_var),number_of_global_useful_bytes+bytes_used_for_keyshares,number_of_global_useful_bytes,((unsigned char*) &(global_var))+(number_of_global_useful_bytes+bytes_used_for_keyshares))
+							(!ignore_macs_even_if_there_are_mac_bytes)?\
+							update_mac_when_setting_data((unsigned char *)&(global_var),number_of_global_useful_bytes+bytes_used_for_keyshares,number_of_global_useful_bytes,((unsigned char*) &(global_var))+(number_of_global_useful_bytes+bytes_used_for_keyshares)):1
 
 
 #define GET_GLOBAL_CHAR(global_var) get_global_char(&(global_var))
