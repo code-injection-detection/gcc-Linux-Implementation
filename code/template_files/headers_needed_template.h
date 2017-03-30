@@ -152,6 +152,10 @@
 #endif				//Ignore calculation of macs even if their number is positive.
 
 
+#ifndef ignore_macs_last_moment_even_if_there_are_mac_bytes
+#define ignore_macs_last_moment_even_if_there_are_mac_bytes 0
+#endif				//Ignore calculation of macs even if their number is positive. Only just before mac calculation (verifier code is added for example).
+
 
 #include "crypto_functions.h"
 #include "secure_getters_setters.h"

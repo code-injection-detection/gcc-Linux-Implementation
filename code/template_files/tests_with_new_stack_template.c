@@ -298,6 +298,105 @@ void great_function_that_wraps_the_tests()
 	
 	
 	
+	
+	/**************************matrix_multiplication_sec****************************************/
+	//PLEASE PYTHON INIT A FUNCTION HERE
+	NAME_OF_FUNCTION: matrix_multiplication_sec
+	RETURN_VALUE_SIZE: none
+	//^FOR THE ABOVE: none/int/char etc
+	NUM_OF_PARAMETERS: 2
+		chars: 0 
+		ints: 2 | names: SIZE,MAXNUM
+		longs: 0
+		floats: 0
+		doubles: 0
+		pointers: 0
+		arb_pointers: 0
+	END_OF_PARAMETERS
+	NUM_OF_LOCAL_VARIABLES: 5
+		chars: 0 
+		ints: 5 | names: I,J,K,L,SUM
+		longs: 0
+		floats: 0
+		doubles: 0
+		pointers: 0
+		arb_pointers: 3 | names: TEST_ARRAY,A,B | size_of_objects:16,1000000,1000000  
+		//PYTHON IGNORE: 4*sizeof(int),(sizeof(int)*size*size),(sizeof(int)*size*size) (size=500)
+	END_OF_LOCAL_VARIABLES
+	RETURN_EXPRESSION: NULL
+	START_OF_FUNCTION : matrix_multiplication_sec
+	
+	
+		set_arbitrary_block_in_stack(4*sizeof(int),TEST_ARRAY,test_array);
+		/*
+		printf("Test array:\n");
+		for (SET_STACK_INT(I,0);
+			 GET_STACK_INT(I)<4;
+			 SET_STACK_INT(I,GET_STACK_INT(I)+1)
+			)
+			{
+				printf("%d ",get_stack_int_array_element(TEST_ARRAY,GET_STACK_INT(I)));
+			}
+		printf("\n");
+		*/
+		
+		for (SET_STACK_INT(I,0);
+		 GET_STACK_INT(I)<GET_STACK_INT(SIZE);
+		 SET_STACK_INT(I,GET_STACK_INT(I)+1)
+		)
+		{
+			
+			for (SET_STACK_INT(J,0);
+				 GET_STACK_INT(J)<GET_STACK_INT(SIZE);
+				 SET_STACK_INT(J,GET_STACK_INT(J)+1)
+				)
+				 {
+					//a[i][j]=matrix1[i][j];
+					//b[i][j]=matrix2[i][j];
+						
+					set_stack_int_array_element(A,GET_STACK_INT(I)*GET_STACK_INT(SIZE)+GET_STACK_INT(J),matrix1[GET_STACK_INT(I)][GET_STACK_INT(J)]);
+					set_stack_int_array_element(B,GET_STACK_INT(I)*GET_STACK_INT(SIZE)+GET_STACK_INT(J),matrix2[GET_STACK_INT(I)][GET_STACK_INT(J)]);
+				 }
+		}
+		
+		
+		for (SET_STACK_INT(I,0);
+		 GET_STACK_INT(I)<GET_STACK_INT(SIZE);
+		 SET_STACK_INT(I,GET_STACK_INT(I)+1)
+		)
+		{
+			
+			for (SET_STACK_INT(J,0);
+				 GET_STACK_INT(J)<GET_STACK_INT(SIZE);
+				 SET_STACK_INT(J,GET_STACK_INT(J)+1)
+				)
+				 {
+					 SET_STACK_INT(SUM,0);
+					 for (SET_STACK_INT(K,0);
+						 GET_STACK_INT(K)<GET_STACK_INT(SIZE);
+						 SET_STACK_INT(K,GET_STACK_INT(K)+1)
+						 )
+						 {
+							 SET_STACK_INT(SUM,GET_STACK_INT(SUM)+
+													(get_stack_int_array_element(A,GET_STACK_INT(I)*GET_STACK_INT(SIZE)+GET_STACK_INT(K))*
+													 get_stack_int_array_element(B,GET_STACK_INT(K)*GET_STACK_INT(SIZE)+GET_STACK_INT(J))
+													)
+										  );
+							 
+						 }
+					 matrix_res2[GET_STACK_INT(I)][GET_STACK_INT(J)]=GET_STACK_INT(SUM);
+					 
+				 }
+		
+		}
+		
+		
+			
+	END_OF_FUNCTION: matrix_multiplication_sec
+	
+	
+	
+	
 	/**********************************************************************************/
 	/***********************END OF FUNCTIONS DECLARATION*******************************/
 	/**********************************************************************************/
@@ -342,6 +441,15 @@ void great_function_that_wraps_the_tests()
 	_securetime=((double) (_secureend - _securestart)) / CLOCKS_PER_SEC; 
 	printf("\n"); 
 	printf("New Secure find_primes_up_to_a_number time:%lg cpu seconds\n",_securetime);
+	*/
+	
+	/*
+	 _securestart=clock(); 
+	//HEY PYTHON CALLING FUNCTION : matrix_multiplication_sec | PARAMETERS TO CALL WITH: 300,2000
+	_secureend=clock(); 
+	_securetime=((double) (_secureend - _securestart)) / CLOCKS_PER_SEC; 
+	printf("\n"); 
+	printf("New Secure matrix_multiplication_sec time:%lg cpu seconds\n",_securetime);
 	*/
 	
 	printf("base_pointer:%ld, entire_stack:%ld, last_unused_stack_memory=%ld\n",(long)base_pointer_for_stack,(long)entire_stack_memory_chunk,(long)last_unused_stack_memory);

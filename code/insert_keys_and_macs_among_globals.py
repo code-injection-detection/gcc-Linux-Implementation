@@ -295,6 +295,9 @@ for fileindex,filein in enumerate(inputfiles):
 	#read lines
 	filehandler=open(filein,'r')
 	filelines_in = filehandler.readlines()
+	for i in range(len(filelines_in)):
+		if ("PYTHON INGORE" in filelines_in[i]):
+			del filelines_in[i]
 	filehandler.close()
 	
 	#write lines

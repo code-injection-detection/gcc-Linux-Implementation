@@ -89,7 +89,7 @@ void init_crypto_stuctures(int print)
 
 void calc_mac_aes_ecb(unsigned char *useful_data, int length_in_bytes_useful)
 {
-	if (number_of_mac_bytes>0)
+	if (number_of_mac_bytes>0 && !ignore_macs_last_moment_even_if_there_are_mac_bytes)
 	{
 		BN_bin2bn(encrypted_data,(length_of_encrypted_data/2),&bn_a);
 		BN_bin2bn(((unsigned char*)encrypted_data)+(length_of_encrypted_data/2),(length_of_encrypted_data/2),&bn_b);
@@ -103,7 +103,7 @@ void set_mac_aes_ecb(unsigned char * output)
 {
 	int length_of_mac;
 
-	if (number_of_mac_bytes>0)
+	if (number_of_mac_bytes>0 && !ignore_macs_last_moment_even_if_there_are_mac_bytes)
 	{
 		length_of_mac=BN_num_bytes(&bn_mac);
 		if(length_of_mac<len_2power128-1)
@@ -126,7 +126,7 @@ void set_mac_aes_ecb(unsigned char * output)
 
 void encrypt_aes_ecb(unsigned char *buf_to_be_encrypted,int len_of_buf)
 {
-	if (number_of_mac_bytes>0)
+	if (number_of_mac_bytes>0 && !ignore_macs_last_moment_even_if_there_are_mac_bytes)
 	{
 		//EVP_EncryptInit_ex(&aes_ctx, NULL, NULL, NULL, NULL);
 		if(!EVP_EncryptUpdate(&aes_ctx, encrypted_data, &length_of_encrypted_data,buf_to_be_encrypted, len_of_buf)) 
@@ -150,7 +150,7 @@ void encrypt_aes_ecb(unsigned char *buf_to_be_encrypted,int len_of_buf)
 
 void calc_and_set_mac_of_data_aes_ecb(char * input, int length_of_all,int length_of_useful, char * output)
 {
-	if (number_of_mac_bytes>0)
+	if (number_of_mac_bytes>0 && !ignore_macs_last_moment_even_if_there_are_mac_bytes)
 	{
 		encrypt_aes_ecb((unsigned char*)(input)+length_of_useful,length_of_all-length_of_useful);
 		calc_mac_aes_ecb(input, length_of_useful);
@@ -196,7 +196,7 @@ void calc_mac_aes_cmac(char * input, int length_of_all)
 
 void calc_and_set_mac_of_data_aes_cmac(char * input, int length_of_all, char * output)
 {
-	if (number_of_mac_bytes>0)
+	if (number_of_mac_bytes>0 && !ignore_macs_last_moment_even_if_there_are_mac_bytes)
 	{
 		calc_mac_aes_cmac(input,length_of_all);
 		set_mac_aes_cmac(output);
@@ -212,7 +212,7 @@ void calc_and_set_mac_of_data_aes_cmac(char * input, int length_of_all, char * o
 void encrypt_aes_cbc(unsigned char *buf_to_be_encrypted,int len_of_buf)
 {
 	int i;
-	if (number_of_mac_bytes>0)
+	if (number_of_mac_bytes>0 && !ignore_macs_last_moment_even_if_there_are_mac_bytes)
 	{
 		EVP_EncryptInit_ex(&aes_ctx, NULL, NULL, NULL, NULL);
 		EVP_EncryptUpdate(&aes_ctx, encrypted_data, &length_of_encrypted_data,buf_to_be_encrypted, len_of_buf);
@@ -291,7 +291,7 @@ int prepend_length_aes_cbc(char * input,int length)
 void calc_and_set_mac_of_data_aes_cbc(char * input, int length_of_all, char * output)
 {
 	int len_padded;
-	if (number_of_mac_bytes>0)
+	if (number_of_mac_bytes>0 && !ignore_macs_last_moment_even_if_there_are_mac_bytes)
 	{
 		len_padded=prepend_length_aes_cbc(input,length_of_all);
 		encrypt_aes_cbc(intermediate_buf_for_macing,length_of_all+len_padded);
@@ -325,7 +325,7 @@ void clear_crypto_structures()
 int check_mac_for_error(unsigned char * input, int total_mac_bytes, int useful_mac_bytes)
 {
 	int error=0;
-	if (number_of_mac_bytes>0)
+	if (number_of_mac_bytes>0 && !ignore_macs_last_moment_even_if_there_are_mac_bytes)
 	{
 		calc_and_set_mac_of_data(input,total_mac_bytes,useful_mac_bytes,mac_to_be_verified);
 		if (0!=memcmp(input+total_mac_bytes,mac_to_be_verified,number_of_mac_bytes))
@@ -361,7 +361,7 @@ int check_code_mac_for_error(unsigned char * input, int total_mac_bytes, int use
 	unsigned char * true_input;
 	int true_total_mac_bytes;
 	int true_useful_mac_bytes;
-	if (number_of_mac_bytes>0)
+	if (number_of_mac_bytes>0 && !ignore_macs_last_moment_even_if_there_are_mac_bytes)
 	{
 		
 #if do_not_mac_what_we_add_in_code==1 //using defined if's , for speed
@@ -425,7 +425,7 @@ int check_next_canaries_for_crypto(void* p)
 unsigned char mac_for_verification[number_of_mac_bytes];
 void verify_mac_onthefly(unsigned char * input, int total_mac_bytes, int useful_mac_bytes,const char * fun_name,int line)
 {
-	if (number_of_mac_bytes>0)
+	if (number_of_mac_bytes>0 && !ignore_macs_last_moment_even_if_there_are_mac_bytes)
 	{
 		if (continue_getting_data_addr(input)==-1)
 		{
@@ -447,7 +447,7 @@ long code_where_to_start_macing;
 unsigned char mac_for_code_verification[number_of_mac_bytes];
 void verify_code_on_the_fly()
 {
-	if (number_of_mac_bytes>0)
+	if (number_of_mac_bytes>0 && !ignore_macs_last_moment_even_if_there_are_mac_bytes)
 	{
 		//old version
 		//calc_and_set_mac_of_data((unsigned char*)code_where_to_start_macing-size_of_commands_before_getting_addr,num_of_useful_bytes_to_mac_in_code+bytes_used_for_keyshares,num_of_useful_bytes_to_mac_in_code,mac_for_code_verification);
@@ -465,7 +465,7 @@ void verify_code_on_the_fly()
 
 void update_mac_when_setting_data(unsigned char * input, int total_mac_bytes, int useful_mac_bytes, unsigned char* output)
 {
-	if (number_of_mac_bytes>0)
+	if (number_of_mac_bytes>0 && !ignore_macs_last_moment_even_if_there_are_mac_bytes)
 	{		
 		int index=is_addr_to_be_set_in_data_cache(input);
 		if (index!=-1) //if it is in the cache

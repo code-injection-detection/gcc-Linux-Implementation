@@ -11,6 +11,9 @@ headers_dst=open('headers_needed.h','w')
 
 
 src_lines= headers_src.readlines()
+for i in range(len(src_lines)):
+	if ("PYTHON INGORE" in src_lines[i]):
+		del src_lines[i]
 
 for line in src_lines:
 	newline=line
@@ -60,6 +63,9 @@ for line in src_lines:
 		newline='#define code_cache_set_assosiative_size '+sys.argv[20]+'\n'
 	if '#define data_cache_set_assosiative_size' in line:
 		newline='#define data_cache_set_assosiative_size '+sys.argv[21]+'\n'
+	if '#define ignore_macs_last_moment_even_if_there_are_mac_bytes' in line:
+		newline='#define ignore_macs_last_moment_even_if_there_are_mac_bytes '+sys.argv[22]+'\n'
+		
 		
 	headers_dst.write(newline)
 
