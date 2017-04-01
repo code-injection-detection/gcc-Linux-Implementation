@@ -191,12 +191,12 @@ void find_keyshares(int choice)
 	if (choice ==-1)
 	{
 		/*Output to the screen*/
-		fprintf(stderr,"\n");
+		printf("\n");
 		for (keycnt=0;keycnt<number_of_interleaved_keys;keycnt++)
 		{
-		   fprintf(stderr,"key no%d=0x%02x\n",keycnt,keys[keycnt]);
+		   printf("key no%d=0x%02x\n",keycnt,keys[keycnt]);
 		}
-		fprintf(stderr,"\n");
+		printf("\n");
 		verify_all_keyshares_from_file(keys);
 	}
 	else

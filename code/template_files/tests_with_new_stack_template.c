@@ -436,7 +436,7 @@ void great_function_that_wraps_the_tests()
 	
 	/*
 	_securestart=clock(); 
-	//HEY PYTHON CALLING FUNCTION : find_primes_up_to_a_number_sec | PARAMETERS TO CALL WITH: 70000
+	//HEY PYTHON CALLING FUNCTION : find_primes_up_to_a_number_sec | PARAMETERS TO CALL WITH: 100
 	_secureend=clock(); 
 	_securetime=((double) (_secureend - _securestart)) / CLOCKS_PER_SEC; 
 	printf("\n"); 

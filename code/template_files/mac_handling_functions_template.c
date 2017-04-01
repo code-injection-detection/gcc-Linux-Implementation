@@ -12,7 +12,7 @@ void check_heap_macs()
 	{
 		if(!ignore_macs_even_if_there_are_mac_bytes && check_mac_for_error(p,bytes_for_useful_data+bytes_used_for_keyshares,bytes_for_useful_data))
 		{	
-			printf("Error in heap macs, p=%ld, start of secure heap=%ld\n",(long) p,(long)entire_memory_chunk);
+			fprintf(stderr,"Error in heap macs, p=%ld, start of secure heap=%ld\n",(long) p,(long)entire_memory_chunk);
 			error=1;
 		}
 		p+=bytes_for_useful_data+bytes_used_for_keyshares+number_of_mac_bytes;
@@ -22,14 +22,14 @@ void check_heap_macs()
 		if (error==0)
 		{
 			if (total_bytes_allocated>0)
-				printf("All heap macs ok!\n");
+				fprintf(stderr,"All heap macs ok!\n");
 			else
-				printf("No heap detected to check macs!\n");
+				fprintf(stderr,"No heap detected to check macs!\n");
 		}
 	}
 	else
 	{
-		printf("No heap macs to check!\n");
+		fprintf(stderr,"No heap macs to check!\n");
 	}
 	
 }
@@ -45,7 +45,7 @@ void check_stack_macs()
 	{
 		if (!ignore_macs_even_if_there_are_mac_bytes && check_mac_for_error(p,stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,stack_bytes_for_useful_data))
 		{	
-			printf("Error in stack macs, p=%ld, start of secure stack=%ld\n",(long) p,(long)entire_stack_memory_chunk);
+			fprintf(stderr,"Error in stack macs, p=%ld, start of secure stack=%ld\n",(long) p,(long)entire_stack_memory_chunk);
 			error=1;
 		}
 		p+=stack_bytes_for_useful_data+stack_bytes_used_for_keyshares+number_of_mac_bytes;
@@ -55,14 +55,14 @@ void check_stack_macs()
 		if (error==0)
 		{
 			if (total_stack_bytes_allocated>0)
-				printf("All stack macs ok!\n");
+				fprintf(stderr,"All stack macs ok!\n");
 			else
-				printf("No stack detected to check macs!\n");
+				fprintf(stderr,"No stack detected to check macs!\n");
 		}
 	}
 	else
 	{
-		printf("No stack macs to check!\n");
+		fprintf(stderr,"No stack macs to check!\n");
 	}
 	
 }
@@ -91,7 +91,7 @@ void check_code_macs()
 			length_of_useful_data=*(p+2+number_of_canaries);
 			if (!ignore_macs_even_if_there_are_mac_bytes && check_code_mac_for_error(p-(length_of_useful_data-2),length_of_useful_data+number_of_interleaved_keys+number_of_canaries+bytes_for_instr_len+get_number_of_padded_nops(p),length_of_useful_data+number_of_canaries+bytes_for_instr_len+get_number_of_padded_nops(p)))
 			{	
-				printf("Error in code macs, p=%ld, start of code=%ld\n",(long) p,(long)start_of_text);
+				fprintf(stderr,"Error in code macs, p=%ld, start of code=%ld\n",(long) p,(long)start_of_text);
 				error=1;
 			}
 			p+=(number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len+get_number_of_padded_nops(p))+2; //jump over all the canaries,keys,macs
@@ -104,9 +104,9 @@ void check_code_macs()
 	if (error==0)
 	{
 		if (mac_cnt>0 && number_of_mac_bytes>0)
-			printf("All code macs ok! Number of macs:%ld\n",mac_cnt);
+			fprintf(stderr,"All code macs ok! Number of macs:%ld\n",mac_cnt);
 		else
-			printf("No mac groups to check in code!\n");
+			fprintf(stderr,"No mac groups to check in code!\n");
 	}
 	
 }

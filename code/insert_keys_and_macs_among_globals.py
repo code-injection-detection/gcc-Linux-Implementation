@@ -246,17 +246,17 @@ def add_mac_verification():
 	for i in range(1,maccnt_major+1):
 		s+='if (!ignore_macs_even_if_there_are_mac_bytes && check_mac_for_error((unsigned char *)&(globals.mac_'+str(i)+'_1)-(number_of_global_useful_bytes+bytes_used_for_keyshares),number_of_global_useful_bytes+bytes_used_for_keyshares,number_of_global_useful_bytes))\n'
 		s+='{\n'	
-		s+='	printf("Error in global macs, mac no %d\\n",'+str(i)+');\n'
+		s+='	fprintf(stderr,"Error in global macs, mac no %d\\n",'+str(i)+');\n'
 		s+='	error=1;\n'
 		s+='}\n'
 		
 	if (maccnt_major>0):
 		s+='if (error==0)\n'
 		s+='{\n'
-		s+='	printf("All global macs ok!\\n");\n'
+		s+='	fprintf(stderr,"All global macs ok!\\n");\n'
 		s+='}\n'
 	else:
-		s+='printf("No macs to check in globals!\\n");\n'
+		s+='fprintf(stderr,"No macs to check in globals!\\n");\n'
 	filelines_out.append(s)
 
 def add_mac_verification_one_line():
@@ -268,17 +268,17 @@ def add_mac_verification_one_line():
 	for i in range(1,maccnt_major+1):
 		s+='if(check_mac_for_error((unsigned char *)&(globals.mac_'+str(i)+')-(number_of_global_useful_bytes+bytes_used_for_keyshares),number_of_global_useful_bytes+bytes_used_for_keyshares,number_of_global_useful_bytes))\n'
 		s+='{\n'	
-		s+='	printf("Error in global macs, mac no %d\\n",'+str(i)+');\n'
+		s+='	fprintf(stderr,"Error in global macs, mac no %d\\n",'+str(i)+');\n'
 		s+='	error=1;\n'
 		s+='}\n'
 		
 	if (maccnt_major>0):
 		s+='if (error==0)\n'
 		s+='{\n'
-		s+='	printf("All global macs ok!\\n");\n'
+		s+='	fprintf(stderr,"All global macs ok!\\n");\n'
 		s+='}\n'
 	else:
-		s+='printf("No macs to check in globals!\\n");\n'
+		s+='fprintf(stderr,"No macs to check in globals!\\n");\n'
 	filelines_out.append(s)
 
 

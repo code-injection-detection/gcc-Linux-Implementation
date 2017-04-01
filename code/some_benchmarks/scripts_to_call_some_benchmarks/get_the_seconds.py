@@ -1,0 +1,12 @@
+#!/usr/bin/env python3
+
+import sys
+
+result_file=open(sys.argv[1],'r')
+res_lines=result_file.readlines()
+
+line=res_lines[0]
+
+number=line.split(":")[1].split(" ")[0].strip()
+
+print(': ',number,'sec')
