@@ -78,7 +78,7 @@ int main_program_function()
 	*/
 	
 	/*
-	int hanoi_up_to=26;
+	int hanoi_up_to=28;
 	//towerOfHanoi_secure_using_template(hanoi_up_to,'A','C','B');
 	//towerOfHanoi_secure(hanoi_up_to,'A','C','B');
 	//towerOfHanoi_secure_using_changed_accesses(hanoi_up_to,'A','C','B'); //don't do this
@@ -86,11 +86,11 @@ int main_program_function()
 								towerOfHanoi_secure_using_template(hanoi_up_to,'A','C','B');)
 	*/
 	
-	
+	/*
 	int primes_up_to=100;
 	TEST_NORMAL_AND_SECURE_TIME(primes not very fast version,find_primes_up_to_a_number(primes_up_to);,
 								secure_find_primes_up_to_a_number(primes_up_to);)
-	
+	*/
 	
 	CLEAR_CACHES;
 	great_function_that_wraps_the_tests();
@@ -128,7 +128,7 @@ int main_program_function()
 
 
 	/*
-	int matrix_size=500;
+	int matrix_size=800;
 	fill_matrices_for_multiplication(matrix_size,2000);
 	TEST_NORMAL_AND_SECURE_TIME(matrix multiplication,matrix_multiplication(matrix_size,2000),
 								user_friendly_secure_matrix_multiplication(matrix_size,2000))

@@ -320,8 +320,8 @@ void great_function_that_wraps_the_tests()
 		floats: 0
 		doubles: 0
 		pointers: 0
-		arb_pointers: 3 | names: TEST_ARRAY,A,B | size_of_objects:16,1000000,1000000  
-		//PYTHON IGNORE: 4*sizeof(int),(sizeof(int)*size*size),(sizeof(int)*size*size) (size=500)
+		arb_pointers: 3 | names: TEST_ARRAY,A,B | size_of_objects:16,2560000,2560000  
+		//PYTHON IGNORE: 4*sizeof(int),(sizeof(int)*size*size),(sizeof(int)*size*size) (size=800)
 	END_OF_LOCAL_VARIABLES
 	RETURN_EXPRESSION: NULL
 	START_OF_FUNCTION : matrix_multiplication_sec
@@ -418,12 +418,14 @@ void great_function_that_wraps_the_tests()
 	//HEY PYTHON CALLING FUNCTION : test_custom_function_sum | WRITE RESULT TO: x |PARAMETERS TO CALL WITH: 5,6,NULL,stuff,stuff2
 	printf("x=%d\n",x);
 	
+	/*
 	_securestart=clock(); 
-	//HEY PYTHON CALLING FUNCTION : towers_of_hanoi_sec |PARAMETERS TO CALL WITH: 'a','c','b',3
+	//HEY PYTHON CALLING FUNCTION : towers_of_hanoi_sec |PARAMETERS TO CALL WITH: 'a','c','b',28
 	_secureend=clock(); 
 	_securetime=((double) (_secureend - _securestart)) / CLOCKS_PER_SEC; 
 	printf("\n"); 
-	printf("New Secure hanoi time:%lg cpu seconds\n",_securetime); 
+	printf("New Secure towers_of_hanoi time:%lg cpu seconds\n",_securetime); 
+	*/
 	
 	/*
 	_securestart=clock(); 
@@ -436,7 +438,7 @@ void great_function_that_wraps_the_tests()
 	
 	/*
 	_securestart=clock(); 
-	//HEY PYTHON CALLING FUNCTION : find_primes_up_to_a_number_sec | PARAMETERS TO CALL WITH: 100
+	//HEY PYTHON CALLING FUNCTION : find_primes_up_to_a_number_sec | PARAMETERS TO CALL WITH: 150000
 	_secureend=clock(); 
 	_securetime=((double) (_secureend - _securestart)) / CLOCKS_PER_SEC; 
 	printf("\n"); 
@@ -445,7 +447,7 @@ void great_function_that_wraps_the_tests()
 	
 	/*
 	 _securestart=clock(); 
-	//HEY PYTHON CALLING FUNCTION : matrix_multiplication_sec | PARAMETERS TO CALL WITH: 300,2000
+	//HEY PYTHON CALLING FUNCTION : matrix_multiplication_sec | PARAMETERS TO CALL WITH: 800,2000
 	_secureend=clock(); 
 	_securetime=((double) (_secureend - _securestart)) / CLOCKS_PER_SEC; 
 	printf("\n"); 

@@ -4,8 +4,8 @@
 #put this script somewhere outside of the repo directory
 PATH_TO_AUTOMATE_SH=/home/menoobs/virus_detection/gcc-Linux-Implementation/code/
 ORIGINAL_DIR=`pwd`
-NAME_OF_SECURE_FUNCTION=find_primes_up_to_a_number
-BENCHMARK_NAME=100k_primes
+NAME_OF_SECURE_FUNCTION=matrix_multiplication_sec
+BENCHMARK_NAME=mm_800_2000_max_cmds_35
 
 CODE_CACHE_TYPE=2  #0 -> fully assosiative
 				   #1 -> direct mapped
@@ -15,9 +15,9 @@ DATA_CACHE_TYPE=2  #0 -> fully assosiative
 				   #2 -> set assosiative
 CODE_CACHE_ASSOC=2
 DATA_CACHE_ASSOC=2
-SECURE_HEAP_SIZE=10000000
-SECURE_STACK_SIZE=20000
-MAX_NUM_OF_CMDS_IN_FIXED=20
+SECURE_HEAP_SIZE=40000
+SECURE_STACK_SIZE=40000000
+MAX_NUM_OF_CMDS_IN_FIXED=35
 
 
 
@@ -31,7 +31,7 @@ cp ${PATH_TO_AUTOMATE_SH}/automate.sh ${ORIGINAL_DIR}/automate_template.sh
 
 VARIABLE_CODE_SIZE_NUMBERS="39 7 1"
 FIXED_CODE_SIZE_NUMBERS="20 55 71 75"
-CACHE_SIZES="40 100"
+CACHE_SIZES="20 40 60 100 150 200"
 
 
 #do the variable code size

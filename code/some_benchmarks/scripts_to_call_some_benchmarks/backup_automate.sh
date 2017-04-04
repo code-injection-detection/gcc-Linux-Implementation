@@ -106,11 +106,12 @@ fi
 
 echo ""
 
-if [ "$NUM_OF_GROUPED_INSTRUCTIONS" -gt "20" ]; then
-	echo "Caution! The length of the grouped instructions should not be >253 bytes under no circumstances!"
-	echo "Your value of grouped instructions is big enough to cause concerns. Exiting for safety."
-	echo "If you REALLY want such a value (it is big however), change the automate.sh script." ; exit
-fi
+
+#if [ "$NUM_OF_GROUPED_INSTRUCTIONS" -gt "20" ]; then
+#	echo "Caution! The length of the grouped instructions should not be >253 bytes under no circumstances!"
+#	echo "Your value of grouped instructions is big enough to cause concerns. Exiting for safety."
+#	echo "If you REALLY want such a value (it is big however), change the automate.sh script." ; exit
+#fi
 
 if [ "$NUM_OF_BYTES_IN_CODE_CHUNK" -lt "12" ]; then
 	echo "Caution! The length of the code chunk should be bigger or equal than 12"
