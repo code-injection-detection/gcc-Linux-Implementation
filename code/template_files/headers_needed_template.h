@@ -157,6 +157,11 @@
 #endif				//Ignore calculation of macs even if their number is positive. Only just before mac calculation (verifier code is added for example).
 
 
+#ifndef treat_loop_counters_as_unsecured_variables
+#define treat_loop_counters_as_unsecured_variables 0
+#endif				//Treat the loop counters in the secure programs as registers, which means that they do not have to be secured
+
+
 #include "crypto_functions.h"
 #include "secure_getters_setters.h"
 

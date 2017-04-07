@@ -232,23 +232,39 @@ void great_function_that_wraps_the_tests()
 							  2);
 		printf("Set 2 as first prime\n");
 		
-		
+#if treat_loop_counters_as_unsecured_variables==1
+		int primes_num=GET_STACK_INT(NUM);
+		for (int i=3;i<=primes_num;i+=2)
+		{
+#else
 		//for (i=3;i<=num;i+=2)
 		for (SET_STACK_INT(I,3);
 			 GET_STACK_INT(I)<= GET_STACK_INT(NUM);
 			 SET_STACK_INT(I,GET_STACK_INT(I)+2))
 			 {
+#endif
 				 //bool=0;
 				 SET_STACK_CHAR(BOOL,0);
 				 
+#if treat_loop_counters_as_unsecured_variables==1
+				for (int j=2;j<=i/2+1;j++)
+				{
+#else
 				 //for (j=2;j<=i/2+1;j++) //not using sqrt here
 				 for (SET_STACK_INT(J,2);
 					  GET_STACK_INT(J)<= GET_STACK_INT(I)/2+1;
 					  SET_STACK_INT(J,GET_STACK_INT(J)+1))
 				 {
+#endif
+
+#if treat_loop_counters_as_unsecured_variables==1
+					if (i%j==0)
+					{
+#else
 					//if (i%j==0)
 					if (GET_STACK_INT(I)%GET_STACK_INT(J) ==0 )
 						{
+#endif
 							//bool=1;
 							SET_STACK_CHAR(BOOL,1);
 							break;
@@ -264,7 +280,11 @@ void great_function_that_wraps_the_tests()
 					//primes_found_so_far[num_of_primes-1]=i;
 					set_int_array_element(GET_STACK_PTR(PRIMES_FOUND_SO_FAR),
 							  GET_STACK_INT(NUM_OF_PRIMES_FOUND)-1,
+#if treat_loop_counters_as_unsecured_variables==1
+							   i);
+#else
 							   GET_STACK_INT(I));
+#endif
 				}
 				
 			 }
@@ -320,8 +340,8 @@ void great_function_that_wraps_the_tests()
 		floats: 0
 		doubles: 0
 		pointers: 0
-		arb_pointers: 3 | names: TEST_ARRAY,A,B | size_of_objects:16,2560000,2560000  
-		//PYTHON IGNORE: 4*sizeof(int),(sizeof(int)*size*size),(sizeof(int)*size*size) (size=800)
+		arb_pointers: 4 | names: TEST_ARRAY,A,B,MATRIX_RES2 | size_of_objects:16,2560000,2560000,2560000 
+		//PYTHON IGNORE: 4*sizeof(int),(sizeof(int)*size*size),(sizeof(int)*size*size),(sizeof(int)*size*size) (size=800)
 	END_OF_LOCAL_VARIABLES
 	RETURN_EXPRESSION: NULL
 	START_OF_FUNCTION : matrix_multiplication_sec
@@ -340,6 +360,13 @@ void great_function_that_wraps_the_tests()
 		printf("\n");
 		*/
 		
+#if treat_loop_counters_as_unsecured_variables==1
+		int mm_size=GET_STACK_INT(SIZE);
+		for (int i=0;i<mm_size;i++)
+		{
+			for(int j=0;j<mm_size;j++)
+			{
+#else
 		for (SET_STACK_INT(I,0);
 		 GET_STACK_INT(I)<GET_STACK_INT(SIZE);
 		 SET_STACK_INT(I,GET_STACK_INT(I)+1)
@@ -351,15 +378,30 @@ void great_function_that_wraps_the_tests()
 				 SET_STACK_INT(J,GET_STACK_INT(J)+1)
 				)
 				 {
+#endif
 					//a[i][j]=matrix1[i][j];
 					//b[i][j]=matrix2[i][j];
-						
+#if treat_loop_counters_as_unsecured_variables==1
+					set_stack_int_array_element(A,i*mm_size+j,matrix1[i][j]);
+					set_stack_int_array_element(B,i*mm_size+j,matrix2[i][j]);
+#else
 					set_stack_int_array_element(A,GET_STACK_INT(I)*GET_STACK_INT(SIZE)+GET_STACK_INT(J),matrix1[GET_STACK_INT(I)][GET_STACK_INT(J)]);
 					set_stack_int_array_element(B,GET_STACK_INT(I)*GET_STACK_INT(SIZE)+GET_STACK_INT(J),matrix2[GET_STACK_INT(I)][GET_STACK_INT(J)]);
+#endif
 				 }
 		}
 		
 		
+
+#if treat_loop_counters_as_unsecured_variables==1
+		for (int i=0;i<mm_size;i++)
+		{
+			for(int j=0;j<mm_size;j++)
+			{
+				int mm_sum=0;
+				for (int k=0;k<mm_size;k++)
+				{
+#else		
 		for (SET_STACK_INT(I,0);
 		 GET_STACK_INT(I)<GET_STACK_INT(SIZE);
 		 SET_STACK_INT(I,GET_STACK_INT(I)+1)
@@ -377,15 +419,23 @@ void great_function_that_wraps_the_tests()
 						 SET_STACK_INT(K,GET_STACK_INT(K)+1)
 						 )
 						 {
+#endif
+							 
+#if treat_loop_counters_as_unsecured_variables==1
+							mm_sum=mm_sum+get_stack_int_array_element(A,i*mm_size+k)*
+													 get_stack_int_array_element(B,k*mm_size+j);
+						 }
+					 set_stack_int_array_element(MATRIX_RES2,i*mm_size+j,mm_sum);
+#else
 							 SET_STACK_INT(SUM,GET_STACK_INT(SUM)+
 													(get_stack_int_array_element(A,GET_STACK_INT(I)*GET_STACK_INT(SIZE)+GET_STACK_INT(K))*
 													 get_stack_int_array_element(B,GET_STACK_INT(K)*GET_STACK_INT(SIZE)+GET_STACK_INT(J))
 													)
-										  );
-							 
+										  );							 
 						 }
-					 matrix_res2[GET_STACK_INT(I)][GET_STACK_INT(J)]=GET_STACK_INT(SUM);
-					 
+					 set_stack_int_array_element(MATRIX_RES2,GET_STACK_INT(I)*GET_STACK_INT(SIZE)+GET_STACK_INT(J),GET_STACK_INT(SUM));
+#endif					 
+
 				 }
 		
 		}

@@ -65,6 +65,8 @@ for line in src_lines:
 		newline='#define data_cache_set_assosiative_size '+sys.argv[21]+'\n'
 	if '#define ignore_macs_last_moment_even_if_there_are_mac_bytes' in line:
 		newline='#define ignore_macs_last_moment_even_if_there_are_mac_bytes '+sys.argv[22]+'\n'
+	if '#define treat_loop_counters_as_unsecured_variables' in line:
+		newline='#define treat_loop_counters_as_unsecured_variables '+sys.argv[23]+'\n'
 		
 		
 	headers_dst.write(newline)

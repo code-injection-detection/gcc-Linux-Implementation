@@ -806,8 +806,8 @@ int search_code_address_in_cache(unsigned char * addr)
 	slot=((long)addr/size_of_full_block_of_code)%slots_in_code_cache_being_direct_mapped; //find the direct mapped slot
 	for (i=0;i<code_cache_set_assosiative_size;i++) //and search in it
 	{
-		if (code_cache[slot+i]==(long)addr)
-			return (slot+i);
+		if (code_cache[slot*code_cache_set_assosiative_size+i]==(long)addr)
+			return (slot*code_cache_set_assosiative_size+i);
 	}
 	return -1;
 }
@@ -818,7 +818,7 @@ void add_addr_to_code_cache(unsigned char * addr)
 	{
 		int i,slot;
 		slot=((long)addr/size_of_full_block_of_code)%slots_in_code_cache_being_direct_mapped; //find the direct mapped slot
-		code_cache[slot+code_cache_slot_indexes_for_set_assosiative[slot]]=(long)addr;
+		code_cache[slot*code_cache_set_assosiative_size+code_cache_slot_indexes_for_set_assosiative[slot]]=(long)addr;
 		code_cache_slot_indexes_for_set_assosiative[slot]=(code_cache_slot_indexes_for_set_assosiative[slot]+1)%code_cache_set_assosiative_size;
 	}
 }
@@ -1017,8 +1017,8 @@ int search_data_address_in_cache(unsigned char * addr)
 	//check if addr is in cache.
 	for (i=0;i<data_cache_set_assosiative_size;i++)
 	{
-		if (data_cache[slot+i]==(long)addr)
-			return (slot+i);
+		if (data_cache[slot*data_cache_set_assosiative_size+i]==(long)addr)
+			return (slot*data_cache_set_assosiative_size+i);
 	}
 	return -1;
 }
@@ -1030,7 +1030,7 @@ void get_mac_of_data_cache(unsigned char *addr)
 		int slot;
 		slot=((long)addr/size_of_full_block_of_data)%slots_in_data_cache_being_direct_mapped; //find the direct mapped slot
 		//store the mac in the cache
-		memcpy(&(macs_in_data_cache[(slot+data_cache_slot_indexes_for_set_assosiative[slot])*number_of_mac_bytes]),(unsigned char*)addr+bytes_for_useful_data+number_of_interleaved_keys,number_of_mac_bytes);
+		memcpy(&(macs_in_data_cache[(slot*data_cache_set_assosiative_size+data_cache_slot_indexes_for_set_assosiative[slot])*number_of_mac_bytes]),(unsigned char*)addr+bytes_for_useful_data+number_of_interleaved_keys,number_of_mac_bytes);
 	}
 }
 
@@ -1041,13 +1041,13 @@ void add_addr_to_data_cache(unsigned char * addr)
 	{
 		int slot;
 		slot=((long)addr/size_of_full_block_of_data)%slots_in_data_cache_being_direct_mapped; //find the direct mapped slot
-		if (data_cache[slot+data_cache_slot_indexes_for_set_assosiative[slot]]!=0 && data_cache_dirty_bits[slot+data_cache_slot_indexes_for_set_assosiative[slot]]==1) //there is already an address there and its dirty
+		if (data_cache[slot*data_cache_set_assosiative_size+data_cache_slot_indexes_for_set_assosiative[slot]]!=0 && data_cache_dirty_bits[slot*data_cache_set_assosiative_size+data_cache_slot_indexes_for_set_assosiative[slot]]==1) //there is already an address there and its dirty
 		{
 			//calculate the proper mac and set it
-			calc_and_set_mac_of_data((unsigned char*)data_cache[slot+data_cache_slot_indexes_for_set_assosiative[slot]],bytes_for_useful_data+number_of_interleaved_keys,bytes_for_useful_data,(unsigned char*)data_cache[slot+data_cache_slot_indexes_for_set_assosiative[slot]]+bytes_for_useful_data+number_of_interleaved_keys); 
+			calc_and_set_mac_of_data((unsigned char*)data_cache[slot*data_cache_set_assosiative_size+data_cache_slot_indexes_for_set_assosiative[slot]],bytes_for_useful_data+number_of_interleaved_keys,bytes_for_useful_data,(unsigned char*)data_cache[slot*data_cache_set_assosiative_size+data_cache_slot_indexes_for_set_assosiative[slot]]+bytes_for_useful_data+number_of_interleaved_keys); 
 		}
-		data_cache[slot+data_cache_slot_indexes_for_set_assosiative[slot]]=(long)addr;
-		data_cache_dirty_bits[slot+data_cache_slot_indexes_for_set_assosiative[slot]]=0;
+		data_cache[slot*data_cache_set_assosiative_size+data_cache_slot_indexes_for_set_assosiative[slot]]=(long)addr;
+		data_cache_dirty_bits[slot*data_cache_set_assosiative_size+data_cache_slot_indexes_for_set_assosiative[slot]]=0;
 		data_cache_slot_indexes_for_set_assosiative[slot]=(data_cache_slot_indexes_for_set_assosiative[slot]+1)%data_cache_set_assosiative_size;
 	}
 }

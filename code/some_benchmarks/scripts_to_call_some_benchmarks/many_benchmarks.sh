@@ -4,8 +4,8 @@
 #put this script somewhere outside of the repo directory
 PATH_TO_AUTOMATE_SH=/home/menoobs/virus_detection/gcc-Linux-Implementation/code/
 ORIGINAL_DIR=`pwd`
-NAME_OF_SECURE_FUNCTION=matrix_multiplication_sec
-BENCHMARK_NAME=mm_800_2000_max_cmds_35
+NAME_OF_SECURE_FUNCTION=towers_of_hanoi
+BENCHMARK_NAME=hanoi_28
 
 CODE_CACHE_TYPE=2  #0 -> fully assosiative
 				   #1 -> direct mapped
@@ -16,10 +16,19 @@ DATA_CACHE_TYPE=2  #0 -> fully assosiative
 CODE_CACHE_ASSOC=2
 DATA_CACHE_ASSOC=2
 SECURE_HEAP_SIZE=40000
-SECURE_STACK_SIZE=40000000
+SECURE_STACK_SIZE=80000
 MAX_NUM_OF_CMDS_IN_FIXED=35
+TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES=0
 
 
+if [[ ( "$TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES" -eq 1 ) ]]; then
+	sed -i 's/TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES=0/TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES=1/' ${ORIGINAL_DIR}/backup_automate.sh
+fi
+
+
+if [[ ( "$TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES" -eq 0 ) ]]; then
+	sed -i 's/TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES=1/TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES=0/' ${ORIGINAL_DIR}/backup_automate.sh
+fi
 
 #create benchmakrs dir
 mkdir -p ${ORIGINAL_DIR}/${NAME_OF_SECURE_FUNCTION}_${BENCHMARK_NAME}
@@ -29,9 +38,12 @@ cp ${ORIGINAL_DIR}/backup_automate.sh ${PATH_TO_AUTOMATE_SH}/automate.sh
 cp ${PATH_TO_AUTOMATE_SH}/automate.sh ${ORIGINAL_DIR}/automate_template.sh
 
 
-VARIABLE_CODE_SIZE_NUMBERS="39 7 1"
+#VARIABLE_CODE_SIZE_NUMBERS="39 7 1"
+#FIXED_CODE_SIZE_NUMBERS="20 55 71 75"
 FIXED_CODE_SIZE_NUMBERS="20 55 71 75"
-CACHE_SIZES="20 40 60 100 150 200"
+VARIABLE_CODE_SIZE_NUMBERS="39 7 1"
+CACHE_SIZES="20 40 60 80 100 150 200"
+CODE_AND_DATA_CACHE_ASSOCS="2 4 8"
 
 
 #do the variable code size
@@ -83,23 +95,27 @@ for var_size in ${VARIABLE_CODE_SIZE_NUMBERS}; do
 
 	#using cache
 	for cache_size in ${CACHE_SIZES}; do
-		DATA_CACHE_SIZE=$cache_size
-		CODE_CACHE_SIZE=$cache_size
-		NAME_OF_BENCHMARK="USING_CACHE_CODE_CACHE=${CODE_CACHE_SIZE}_DATA_CACHE=${DATA_CACHE_SIZE}_VAR_SIZE_${var_size}"
-		echo ${NAME_OF_BENCHMARK}
-		NAME_OF_FILE=${BENCH_RESULTS_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}.txt
-		cd ${PATH_TO_AUTOMATE_SH}
-		cp ${ORIGINAL_DIR}/automate_template.sh ${PATH_TO_AUTOMATE_SH}/automate.sh
-		sed -i "s/CODE_CACHE_TYPE=2/CODE_CACHE_TYPE=${CODE_CACHE_TYPE}/" automate.sh
-		sed -i "s/DATA_CACHE_TYPE=2/DATA_CACHE_TYPE=${DATA_CACHE_TYPE}/" automate.sh
-		sed -i "s/NUM_OF_CACHED_BLOCKS_OF_CODE=0/NUM_OF_CACHED_BLOCKS_OF_CODE=${CODE_CACHE_SIZE}/" automate.sh
-		sed -i "s/NUM_OF_CACHED_BLOCKS_OF_DATA=0/NUM_OF_CACHED_BLOCKS_OF_DATA=${DATA_CACHE_SIZE}/" automate.sh
-		sed -i "s/CODE_CACHE_SET_ASSOSIATIVE_SIZE=0/CODE_CACHE_SET_ASSOSIATIVE_SIZE=${CODE_CACHE_ASSOC}/" automate.sh
-		sed -i "s/DATA_CACHE_SET_ASSOSIATIVE_SIZE=0/DATA_CACHE_SET_ASSOSIATIVE_SIZE=${DATA_CACHE_ASSOC}/" automate.sh
-		./automate.sh 32 ${var_size} 3 8 ${SECURE_HEAP_SIZE} 8 ${SECURE_STACK_SIZE} 8 16 >/dev/null
-		time ./main_program_ksec | grep "New Secure ${NAME_OF_SECURE_FUNCTION} time:" >  ${NAME_OF_FILE}
-		echo -n ${NAME_OF_BENCHMARK} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
-		${ORIGINAL_DIR}/get_the_seconds.py ${NAME_OF_FILE} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
+		for cache_assoc in ${CODE_AND_DATA_CACHE_ASSOCS}; do
+			DATA_CACHE_SIZE=$cache_size
+			DATA_CACHE_ASSOC=$cache_assoc
+			CODE_CACHE_SIZE=$cache_size
+			CODE_CACHE_ASSOC=$cache_assoc
+			NAME_OF_BENCHMARK="USING_CACHE_CODE_CACHE=${CODE_CACHE_SIZE}_DATA_CACHE=${DATA_CACHE_SIZE}_ASSOC_${CODE_CACHE_ASSOC}_VAR_SIZE_${var_size}"
+			echo ${NAME_OF_BENCHMARK}
+			NAME_OF_FILE=${BENCH_RESULTS_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}.txt
+			cd ${PATH_TO_AUTOMATE_SH}
+			cp ${ORIGINAL_DIR}/automate_template.sh ${PATH_TO_AUTOMATE_SH}/automate.sh
+			sed -i "s/CODE_CACHE_TYPE=2/CODE_CACHE_TYPE=${CODE_CACHE_TYPE}/" automate.sh
+			sed -i "s/DATA_CACHE_TYPE=2/DATA_CACHE_TYPE=${DATA_CACHE_TYPE}/" automate.sh
+			sed -i "s/NUM_OF_CACHED_BLOCKS_OF_CODE=0/NUM_OF_CACHED_BLOCKS_OF_CODE=${CODE_CACHE_SIZE}/" automate.sh
+			sed -i "s/NUM_OF_CACHED_BLOCKS_OF_DATA=0/NUM_OF_CACHED_BLOCKS_OF_DATA=${DATA_CACHE_SIZE}/" automate.sh
+			sed -i "s/CODE_CACHE_SET_ASSOSIATIVE_SIZE=0/CODE_CACHE_SET_ASSOSIATIVE_SIZE=${CODE_CACHE_ASSOC}/" automate.sh
+			sed -i "s/DATA_CACHE_SET_ASSOSIATIVE_SIZE=0/DATA_CACHE_SET_ASSOSIATIVE_SIZE=${DATA_CACHE_ASSOC}/" automate.sh
+			./automate.sh 32 ${var_size} 3 8 ${SECURE_HEAP_SIZE} 8 ${SECURE_STACK_SIZE} 8 16 >/dev/null
+			time ./main_program_ksec | grep "New Secure ${NAME_OF_SECURE_FUNCTION} time:" >  ${NAME_OF_FILE}
+			echo -n ${NAME_OF_BENCHMARK} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
+			${ORIGINAL_DIR}/get_the_seconds.py ${NAME_OF_FILE} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
+		done
 	done
 
 	#doing_everything
@@ -168,23 +184,27 @@ for FIXED_SIZE in ${FIXED_CODE_SIZE_NUMBERS}; do
 
 	#using cache
 	for cache_size in ${CACHE_SIZES}; do
-		DATA_CACHE_SIZE=$cache_size
-		CODE_CACHE_SIZE=$cache_size
-		NAME_OF_BENCHMARK="USING_CACHE_CODE_CACHE=${CODE_CACHE_SIZE}_DATA_CACHE=${DATA_CACHE_SIZE}_FIXED_SIZE_${FIXED_SIZE}"
-		echo ${NAME_OF_BENCHMARK}
-		NAME_OF_FILE=${BENCH_RESULTS_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}.txt
-		cd ${PATH_TO_AUTOMATE_SH}
-		cp ${ORIGINAL_DIR}/automate_template.sh ${PATH_TO_AUTOMATE_SH}/automate.sh
-		sed -i "s/CODE_CACHE_TYPE=2/CODE_CACHE_TYPE=${CODE_CACHE_TYPE}/" automate.sh
-		sed -i "s/DATA_CACHE_TYPE=2/DATA_CACHE_TYPE=${DATA_CACHE_TYPE}/" automate.sh
-		sed -i "s/NUM_OF_CACHED_BLOCKS_OF_CODE=0/NUM_OF_CACHED_BLOCKS_OF_CODE=${CODE_CACHE_SIZE}/" automate.sh
-		sed -i "s/NUM_OF_CACHED_BLOCKS_OF_DATA=0/NUM_OF_CACHED_BLOCKS_OF_DATA=${DATA_CACHE_SIZE}/" automate.sh
-		sed -i "s/CODE_CACHE_SET_ASSOSIATIVE_SIZE=0/CODE_CACHE_SET_ASSOSIATIVE_SIZE=${CODE_CACHE_ASSOC}/" automate.sh
-		sed -i "s/DATA_CACHE_SET_ASSOSIATIVE_SIZE=0/DATA_CACHE_SET_ASSOSIATIVE_SIZE=${DATA_CACHE_ASSOC}/" automate.sh
-		./automate.sh 32 ${MAX_NUM_OF_CMDS_IN_FIXED} 3 8 ${SECURE_HEAP_SIZE} 8 ${SECURE_STACK_SIZE} 8 16 ${FIXED_SIZE} >/dev/null
-		time ./main_program_ksec | grep "New Secure ${NAME_OF_SECURE_FUNCTION} time:" >  ${NAME_OF_FILE}
-		echo -n ${NAME_OF_BENCHMARK} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
-		${ORIGINAL_DIR}/get_the_seconds.py ${NAME_OF_FILE} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
+		for cache_assoc in ${CODE_AND_DATA_CACHE_ASSOCS}; do
+			DATA_CACHE_SIZE=$cache_size
+			DATA_CACHE_ASSOC=$cache_assoc
+			CODE_CACHE_SIZE=$cache_size
+			CODE_CACHE_ASSOC=$cache_assoc
+			NAME_OF_BENCHMARK="USING_CACHE_CODE_CACHE=${CODE_CACHE_SIZE}_DATA_CACHE=${DATA_CACHE_SIZE}_ASSOC_${CODE_CACHE_ASSOC}_FIXED_SIZE_${FIXED_SIZE}"
+			echo ${NAME_OF_BENCHMARK}
+			NAME_OF_FILE=${BENCH_RESULTS_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}.txt
+			cd ${PATH_TO_AUTOMATE_SH}
+			cp ${ORIGINAL_DIR}/automate_template.sh ${PATH_TO_AUTOMATE_SH}/automate.sh
+			sed -i "s/CODE_CACHE_TYPE=2/CODE_CACHE_TYPE=${CODE_CACHE_TYPE}/" automate.sh
+			sed -i "s/DATA_CACHE_TYPE=2/DATA_CACHE_TYPE=${DATA_CACHE_TYPE}/" automate.sh
+			sed -i "s/NUM_OF_CACHED_BLOCKS_OF_CODE=0/NUM_OF_CACHED_BLOCKS_OF_CODE=${CODE_CACHE_SIZE}/" automate.sh
+			sed -i "s/NUM_OF_CACHED_BLOCKS_OF_DATA=0/NUM_OF_CACHED_BLOCKS_OF_DATA=${DATA_CACHE_SIZE}/" automate.sh
+			sed -i "s/CODE_CACHE_SET_ASSOSIATIVE_SIZE=0/CODE_CACHE_SET_ASSOSIATIVE_SIZE=${CODE_CACHE_ASSOC}/" automate.sh
+			sed -i "s/DATA_CACHE_SET_ASSOSIATIVE_SIZE=0/DATA_CACHE_SET_ASSOSIATIVE_SIZE=${DATA_CACHE_ASSOC}/" automate.sh
+			./automate.sh 32 ${MAX_NUM_OF_CMDS_IN_FIXED} 3 8 ${SECURE_HEAP_SIZE} 8 ${SECURE_STACK_SIZE} 8 16 ${FIXED_SIZE} >/dev/null
+			time ./main_program_ksec | grep "New Secure ${NAME_OF_SECURE_FUNCTION} time:" >  ${NAME_OF_FILE}
+			echo -n ${NAME_OF_BENCHMARK} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
+			${ORIGINAL_DIR}/get_the_seconds.py ${NAME_OF_FILE} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
+		done
 	done
 
 	#doing_everything
