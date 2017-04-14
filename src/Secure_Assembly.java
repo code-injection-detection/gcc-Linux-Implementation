@@ -77,6 +77,7 @@ public class Secure_Assembly {
 				ignore_macs_even_if_there_are_mac_bytes=false;
 			else
 				ignore_macs_even_if_there_are_mac_bytes=true;
+
 		}
 		else
 		{

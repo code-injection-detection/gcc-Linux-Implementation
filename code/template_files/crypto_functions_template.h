@@ -3,6 +3,7 @@
 
 
 void init_crypto_stuctures();
+void squeeze_bytes_in_place(unsigned char * arr,int length_of_array);
 void calc_mac_aes_ecb(unsigned char *useful_data, int length_in_bytes);
 void set_mac_aes_ecb(unsigned char * output);
 void clear_crypto_structures();

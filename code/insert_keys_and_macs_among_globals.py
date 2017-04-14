@@ -55,8 +55,9 @@ hash_handler=hashlib.sha256()
 bytes_to_be_maced=[]
 value_of_useless_bytes=1
 global_variable_values=[]
+squeeze_keys_when_macing=0
 
-if (len(sys.argv)!=5):
+if (len(sys.argv)!=6):
 	print("insert_keys_among_globals:Wrong number of arguments.")
 	print("Usage:"+str(sys.argv[0])+ "<a> <b> <c> <d>")
 	print("Where a=number of interleaved keys")
@@ -69,6 +70,8 @@ else:
 	insert_keys_and_macs_in_one_line=int(sys.argv[2])
 	useful_bytes_size=int(sys.argv[3])
 	num_of_mac_bytes=int(sys.argv[4])
+	squeeze_keys_when_macing=int(sys.argv[5])
+	
 	
 #functionality for some var types. For example const. Use with caution, not guaranteed to work.
 def process_var_type(var_type):
@@ -295,9 +298,7 @@ for fileindex,filein in enumerate(inputfiles):
 	#read lines
 	filehandler=open(filein,'r')
 	filelines_in = filehandler.readlines()
-	for i in range(len(filelines_in)):
-		if ("PYTHON INGORE" in filelines_in[i]):
-			del filelines_in[i]
+	filelines_in = [x for x in filelines_in if not "PYTHON IGNORE" in x]
 	filehandler.close()
 	
 	#write lines

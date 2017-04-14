@@ -11,9 +11,8 @@ headers_dst=open('headers_needed.h','w')
 
 
 src_lines= headers_src.readlines()
-for i in range(len(src_lines)):
-	if ("PYTHON INGORE" in src_lines[i]):
-		del src_lines[i]
+src_lines = [x for x in src_lines if not "PYTHON IGNORE" in x]
+
 
 for line in src_lines:
 	newline=line
@@ -67,6 +66,8 @@ for line in src_lines:
 		newline='#define ignore_macs_last_moment_even_if_there_are_mac_bytes '+sys.argv[22]+'\n'
 	if '#define treat_loop_counters_as_unsecured_variables' in line:
 		newline='#define treat_loop_counters_as_unsecured_variables '+sys.argv[23]+'\n'
+	if '#define sqeeze_keys_when_macing' in line:
+		newline='#define sqeeze_keys_when_macing '+sys.argv[24]+'\n'
 		
 		
 	headers_dst.write(newline)

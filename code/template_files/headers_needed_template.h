@@ -161,26 +161,65 @@
 #define treat_loop_counters_as_unsecured_variables 0
 #endif				//Treat the loop counters in the secure programs as registers, which means that they do not have to be secured
 
+#ifndef sqeeze_keys_when_macing
+#define sqeeze_keys_when_macing 0
+#endif				//reduces the size of the keys from 32 bytes to 16 when calculating mac
+
 
 #include "crypto_functions.h"
 #include "secure_getters_setters.h"
 
 
-
+extern unsigned char keys_temp_space[1024];
 #if mac_algorithm==0
-#define calc_and_set_mac_of_data(input,length_all,length_useful,output) calc_and_set_mac_of_data_sha256((input),(length_all),(output))
+#define calc_and_set_mac_of_data(input,length_all,length_useful,output) {\
+																		if (sqeeze_keys_when_macing) {\
+																		memcpy(keys_temp_space,(unsigned char*)(input)+(int)((length_all)-number_of_interleaved_keys),number_of_interleaved_keys);\
+																		squeeze_bytes_in_place((unsigned char*)(input)+(int)((length_all)-number_of_interleaved_keys),number_of_interleaved_keys);\
+																		calc_and_set_mac_of_data_sha256((input),(length_all)-number_of_interleaved_keys/2,(output));\
+																		memcpy((unsigned char*)(input)+(int)((length_all)-number_of_interleaved_keys),keys_temp_space,number_of_interleaved_keys);} else{\
+																		calc_and_set_mac_of_data_sha256((input),(length_all),(output));}\
+																		}
 #endif
 #if mac_algorithm==1
-#define calc_and_set_mac_of_data(input,length_all,length_useful,output) calc_and_set_mac_of_data_aes_ecb((input),(length_all),(length_useful),(output))
+#define calc_and_set_mac_of_data(input,length_all,length_useful,output) {\
+																		if (sqeeze_keys_when_macing) {\
+																		memcpy(keys_temp_space,(unsigned char*)(input)+(int)((length_all)-number_of_interleaved_keys),number_of_interleaved_keys);\
+																		squeeze_bytes_in_place((unsigned char*)(input)+(int)((length_all)-number_of_interleaved_keys),number_of_interleaved_keys);\
+																		calc_and_set_mac_of_data_aes_ecb((input),(length_all)-number_of_interleaved_keys/2,(length_useful),(output));\
+																		memcpy((unsigned char*)(input)+(int)((length_all)-number_of_interleaved_keys),keys_temp_space,number_of_interleaved_keys);} else{\
+																		calc_and_set_mac_of_data_aes_ecb((input),(length_all),(length_useful),(output));}\
+																		}
 #endif
 #if mac_algorithm==2
-#define calc_and_set_mac_of_data(input,length_all,length_useful,output) calc_and_set_mac_of_data_aes_cmac((input),(length_all),(output))
+#define calc_and_set_mac_of_data(input,length_all,length_useful,output) {\
+																		if (sqeeze_keys_when_macing) {\
+																		memcpy(keys_temp_space,(unsigned char*)(input)+(int)((length_all)-number_of_interleaved_keys),number_of_interleaved_keys);\
+																		squeeze_bytes_in_place((unsigned char*)(input)+(int)((length_all)-number_of_interleaved_keys),number_of_interleaved_keys);\
+																		calc_and_set_mac_of_data_aes_cmac((input),(length_all)-number_of_interleaved_keys/2,(output));\
+																		memcpy((unsigned char*)(input)+(int)((length_all)-number_of_interleaved_keys),keys_temp_space,number_of_interleaved_keys);} else{\
+																		calc_and_set_mac_of_data_aes_cmac((input),(length_all),(output));}\
+																		}
 #endif
 #if mac_algorithm==3
-#define calc_and_set_mac_of_data(input,length_all,length_useful,output) calc_and_set_mac_of_data_aes_cbc((input),(length_all),(output))
+#define calc_and_set_mac_of_data(input,length_all,length_useful,output) {\
+																		if (sqeeze_keys_when_macing) {\
+																		memcpy(keys_temp_space,(unsigned char*)(input)+(int)((length_all)-number_of_interleaved_keys),number_of_interleaved_keys);\
+																		squeeze_bytes_in_place((unsigned char*)(input)+(int)((length_all)-number_of_interleaved_keys),number_of_interleaved_keys);\
+																		calc_and_set_mac_of_data_aes_cbc((input),(length_all)-number_of_interleaved_keys/2,(output));\
+																		memcpy((unsigned char*)(input)+(int)((length_all)-number_of_interleaved_keys),keys_temp_space,number_of_interleaved_keys);} else{\
+																		calc_and_set_mac_of_data_aes_cbc((input),(length_all),(output));}\
+																		}
 #endif
 #if mac_algorithm==4
-#define calc_and_set_mac_of_data(input,length_all,length_useful,output) calc_and_set_mac_of_data_aes_cbc((input),(length_all),(output))
+#define calc_and_set_mac_of_data(input,length_all,length_useful,output) {\
+																		if (sqeeze_keys_when_macing) {\
+																		memcpy(keys_temp_space,(unsigned char*)(input)+(int)((length_all)-number_of_interleaved_keys),number_of_interleaved_keys);\
+																		squeeze_bytes_in_place((unsigned char*)(input)+(int)((length_all)-number_of_interleaved_keys),number_of_interleaved_keys);\
+																		calc_and_set_mac_of_data_aes_cbc((input),(length_all)-number_of_interleaved_keys/2,(output));\
+																		memcpy((unsigned char*)(input)+(int)((length_all)-number_of_interleaved_keys),keys_temp_space,number_of_interleaved_keys);} else{\
+																		calc_and_set_mac_of_data_aes_cbc((input),(length_all),(output));}\
+																		}
 #endif
 
 

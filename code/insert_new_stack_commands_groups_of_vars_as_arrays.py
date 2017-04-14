@@ -12,9 +12,7 @@ tests_src=open('./template_files/tests_with_new_stack_template.c','r')
 tests_dst=open('tests_with_new_stack.c','w')
 
 src_lines= tests_src.readlines()
-for i in range(len(src_lines)):
-	if ("PYTHON INGORE" in src_lines[i]):
-		del src_lines[i]
+src_lines = [x for x in src_lines if not "PYTHON IGNORE" in x]
 dst_lines=[]
 
 number_of_stack_key_bytes=int(sys.argv[1])

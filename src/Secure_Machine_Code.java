@@ -67,8 +67,9 @@ public class Secure_Machine_Code {
 		Path path = FileSystems.getDefault().getPath(global_keys_filename);
 		byte [] global_keys = Files.readAllBytes(path);
 		byte[] stuff_in_code_to_be_MACed=new byte[2048];
+		boolean squeeze_keys_when_macing=false;
 		
-		if (args.length==12)
+		if (args.length==13)
 		{
 			number_of_interleaved_keys=Integer.parseInt(args[0]);
 			num_of_keys_in_heap=number_of_interleaved_keys;
@@ -99,6 +100,11 @@ public class Secure_Machine_Code {
 				ignore_macs_even_if_there_are_mac_bytes=false;
 			else
 				ignore_macs_even_if_there_are_mac_bytes=true;
+			
+			if (Integer.parseInt(args[12])==0)
+				squeeze_keys_when_macing=false;
+			else
+				squeeze_keys_when_macing=true;
 		}
 		else
 		{

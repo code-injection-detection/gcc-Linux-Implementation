@@ -35,6 +35,7 @@ unsigned char macs_in_data_cache[num_of_cached_blocks_of_data*number_of_mac_byte
 unsigned char data_cache_dirty_bits[num_of_cached_blocks_of_data];
 int data_cache_slot_indexes_for_set_assosiative[(num_of_cached_blocks_of_data/data_cache_set_assosiative_size)];
 int data_cache_latest_index;
+unsigned char keys_temp_space[1024];
 
 
 void init_crypto_stuctures(int print)
@@ -81,6 +82,21 @@ void init_crypto_stuctures(int print)
 	if (print)
 		printf("Crypto structures initialized.\n");
 }
+
+//half the array size by xor-ing
+void squeeze_bytes_in_place(unsigned char * arr,int length_of_array)
+{
+	int i;
+	for (i=0;i<length_of_array;i+=2)
+	{
+		arr[i]=arr[i]^arr[i+1];
+	}
+	for (i=0;i<length_of_array/2;i++)
+	{
+		arr[i]=arr[2*i];
+	}
+}
+
 
 /*********************************************************************************/
 /****************************** AES ECB ******************************************/
