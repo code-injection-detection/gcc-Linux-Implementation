@@ -40,5 +40,6 @@ int is_addr_to_be_set_in_data_cache(unsigned char *addr);
 int continue_getting_data_addr(unsigned char *addr);
 void flush_data_cache_into_mem();
 
+extern char count_mac_invocations_in_this_code_part;
 
 #endif

@@ -68,7 +68,8 @@ for line in src_lines:
 		newline='#define treat_loop_counters_as_unsecured_variables '+sys.argv[23]+'\n'
 	if '#define sqeeze_keys_when_macing' in line:
 		newline='#define sqeeze_keys_when_macing '+sys.argv[24]+'\n'
-		
+	if '#define count_mac_invocations' in line:
+		newline='#define count_mac_invocations '+sys.argv[25]+'\n'
 		
 	headers_dst.write(newline)
 

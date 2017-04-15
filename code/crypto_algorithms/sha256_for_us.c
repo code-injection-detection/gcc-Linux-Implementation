@@ -221,8 +221,12 @@ void calc_and_set_mac_of_data_sha256(char * input, long length, char * output)
 	
 	if (number_of_mac_bytes>0)
 	{
+#if count_mac_invocations==1
+		memset(output,0,number_of_mac_bytes); //ignore proper mac calculation, just make them 0
+#else
 		calculate_sha256_sum(input,length,shasum);
 		truncate_sha256sum(shasum,output);
+#endif
 	}
 }
 

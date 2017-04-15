@@ -470,7 +470,9 @@ void great_function_that_wraps_the_tests()
 	
 	/*
 	_securestart=clock(); 
+	count_mac_invocations_in_this_code_part=1;
 	//HEY PYTHON CALLING FUNCTION : towers_of_hanoi_sec |PARAMETERS TO CALL WITH: 'a','c','b',28
+	count_mac_invocations_in_this_code_part=0;
 	_secureend=clock(); 
 	_securetime=((double) (_secureend - _securestart)) / CLOCKS_PER_SEC; 
 	printf("\n"); 
@@ -478,8 +480,10 @@ void great_function_that_wraps_the_tests()
 	*/
 	
 	/*
-	_securestart=clock(); 
+	_securestart=clock();
+	count_mac_invocations_in_this_code_part=1;
 	//HEY PYTHON CALLING FUNCTION : sieve_of_Eratosthenes_sec | PARAMETERS TO CALL WITH: 20000000
+	count_mac_invocations_in_this_code_part=0;
 	_secureend=clock(); 
 	_securetime=((double) (_secureend - _securestart)) / CLOCKS_PER_SEC; 
 	printf("\n"); 
@@ -487,8 +491,10 @@ void great_function_that_wraps_the_tests()
 	*/
 	
 	/*
-	_securestart=clock(); 
+	_securestart=clock();
+	count_mac_invocations_in_this_code_part=1;
 	//HEY PYTHON CALLING FUNCTION : find_primes_up_to_a_number_sec | PARAMETERS TO CALL WITH: 150000
+	count_mac_invocations_in_this_code_part=0;
 	_secureend=clock(); 
 	_securetime=((double) (_secureend - _securestart)) / CLOCKS_PER_SEC; 
 	printf("\n"); 
@@ -496,8 +502,10 @@ void great_function_that_wraps_the_tests()
 	*/
 	
 	/*
-	 _securestart=clock(); 
+	 _securestart=clock();
+	 count_mac_invocations_in_this_code_part=1;
 	//HEY PYTHON CALLING FUNCTION : matrix_multiplication_sec | PARAMETERS TO CALL WITH: 800,2000
+	count_mac_invocations_in_this_code_part=0;
 	_secureend=clock(); 
 	_securetime=((double) (_secureend - _securestart)) / CLOCKS_PER_SEC; 
 	printf("\n"); 

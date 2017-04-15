@@ -31,5 +31,8 @@ crypto_functions.h
 calc_mac_for_external_programs
 tests_with_new_stack.c
 secure_stack_manipulation_functions.c
+secure_program_mac_invocations.txt
+mac_invocation_times.txt
+mac_time_calculator
 #.classpath
 #.project

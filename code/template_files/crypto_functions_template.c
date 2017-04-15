@@ -36,6 +36,8 @@ unsigned char data_cache_dirty_bits[num_of_cached_blocks_of_data];
 int data_cache_slot_indexes_for_set_assosiative[(num_of_cached_blocks_of_data/data_cache_set_assosiative_size)];
 int data_cache_latest_index;
 unsigned char keys_temp_space[1024];
+char count_mac_invocations_in_this_code_part=0;
+long long mac_size_invocation_counters[1024];
 
 
 void init_crypto_stuctures(int print)
@@ -79,6 +81,12 @@ void init_crypto_stuctures(int print)
 			init_data_cache();
 		}
 	}
+	#if count_mac_invocations==1
+		int i;
+		for (i=0;i<1024;i++)
+			mac_size_invocation_counters[i]=0;
+		count_mac_invocations_in_this_code_part=0;
+	#endif
 	if (print)
 		printf("Crypto structures initialized.\n");
 }
@@ -97,6 +105,60 @@ void squeeze_bytes_in_place(unsigned char * arr,int length_of_array)
 	}
 }
 
+void calc_and_set_mac_of_data(unsigned char *input,int length_all,int length_useful,unsigned char *output)
+{
+#if squeeze_keys_when_macing==1
+#if count_mac_invocations==1
+	if (count_mac_invocations_in_this_code_part)
+	{
+		//fprintf(stdout,"\nMac Invocation: length_all=%d\n",length_all-number_of_interleaved_keys/2); 
+		mac_size_invocation_counters[length_all-number_of_interleaved_keys/2]+=1;
+	}
+#endif
+	memcpy(keys_temp_space,(unsigned char*)(input)+(int)((length_all)-number_of_interleaved_keys),number_of_interleaved_keys);
+	squeeze_bytes_in_place((unsigned char*)(input)+(int)((length_all)-number_of_interleaved_keys),number_of_interleaved_keys);
+#if mac_algorithm==0
+	calc_and_set_mac_of_data_sha256((input),(length_all)-number_of_interleaved_keys/2,(output));
+#endif
+#if mac_algorithm==1
+	calc_and_set_mac_of_data_aes_ecb((input),(length_all)-number_of_interleaved_keys/2,(length_useful),(output));
+#endif
+#if mac_algorithm==2
+	calc_and_set_mac_of_data_aes_cmac((input),(length_all)-number_of_interleaved_keys/2,(output));
+#endif
+#if mac_algorithm==3
+	calc_and_set_mac_of_data_aes_cbc((input),(length_all)-number_of_interleaved_keys/2,(output));
+#endif
+#if mac_algorithm==4
+	calc_and_set_mac_of_data_aes_cbc((input),(length_all)-number_of_interleaved_keys/2,(output));
+#endif
+	memcpy((unsigned char*)(input)+(int)((length_all)-number_of_interleaved_keys),keys_temp_space,number_of_interleaved_keys);
+#else
+#if count_mac_invocations==1
+	if (count_mac_invocations_in_this_code_part)
+	{
+		//fprintf(stdout,"\nMac Invocation: length_all=%d\n",length_all);
+		mac_size_invocation_counters[length_all]+=1;
+	}
+#endif
+#if mac_algorithm==0
+	calc_and_set_mac_of_data_sha256((input),(length_all),(output));
+#endif
+#if mac_algorithm==1
+	calc_and_set_mac_of_data_aes_ecb((input),(length_all),(length_useful),(output));
+#endif
+#if mac_algorithm==2
+	calc_and_set_mac_of_data_aes_cmac((input),(length_all),(output));
+#endif
+#if mac_algorithm==3
+	calc_and_set_mac_of_data_aes_cbc((input),(length_all),(output));
+#endif
+#if mac_algorithm==4
+	calc_and_set_mac_of_data_aes_cbc((input),(length_all),(output));
+#endif
+
+#endif
+}
 
 /*********************************************************************************/
 /****************************** AES ECB ******************************************/
@@ -168,9 +230,13 @@ void calc_and_set_mac_of_data_aes_ecb(char * input, int length_of_all,int length
 {
 	if (number_of_mac_bytes>0 && !ignore_macs_last_moment_even_if_there_are_mac_bytes)
 	{
+#if count_mac_invocations==1
+		memset(output,0,number_of_mac_bytes); //ignore proper mac calculation, just make them 0
+#else
 		encrypt_aes_ecb((unsigned char*)(input)+length_of_useful,length_of_all-length_of_useful);
 		calc_mac_aes_ecb(input, length_of_useful);
 		set_mac_aes_ecb(output);
+#endif
 	}
 }
 
@@ -214,8 +280,12 @@ void calc_and_set_mac_of_data_aes_cmac(char * input, int length_of_all, char * o
 {
 	if (number_of_mac_bytes>0 && !ignore_macs_last_moment_even_if_there_are_mac_bytes)
 	{
+#if count_mac_invocations==1
+		memset(output,0,number_of_mac_bytes); //ignore proper mac calculation, just make them 0
+#else
 		calc_mac_aes_cmac(input,length_of_all);
 		set_mac_aes_cmac(output);
+#endif
 	}
 }
 
@@ -309,9 +379,13 @@ void calc_and_set_mac_of_data_aes_cbc(char * input, int length_of_all, char * ou
 	int len_padded;
 	if (number_of_mac_bytes>0 && !ignore_macs_last_moment_even_if_there_are_mac_bytes)
 	{
+#if count_mac_invocations==1
+		memset(output,0,number_of_mac_bytes); //ignore proper mac calculation, just make them 0
+#else
 		len_padded=prepend_length_aes_cbc(input,length_of_all);
 		encrypt_aes_cbc(intermediate_buf_for_macing,length_of_all+len_padded);
 		set_mac_aes_cbc(output);
+#endif
 	}
 }
 
@@ -335,6 +409,14 @@ void clear_crypto_structures()
 	#endif
 	#if mac_algorithm==2
 		CMAC_CTX_free(cmac_ctx);
+	#endif
+	#if count_mac_invocations==1
+	int i;
+	for (i=0;i<1024;i++)
+	{
+		if (mac_size_invocation_counters[i]>0)
+			fprintf(stdout,"\nMac invocation, length:%d, number:%Ld\n",i,mac_size_invocation_counters[i]);
+	}
 	#endif
 }
 

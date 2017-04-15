@@ -90,7 +90,9 @@ double _simpletime;
 					printf("Secure "  #operation ":\n"); \
 					CLEAR_CACHES; \
 					_securestart=clock(); \
+					count_mac_invocations_in_this_code_part=1;\
 					function_call_secure ;\
+					count_mac_invocations_in_this_code_part=0;\
 					_secureend=clock(); \
 					_securetime=((double) (_secureend - _securestart)) / CLOCKS_PER_SEC; \
 					printf("\n"); \
