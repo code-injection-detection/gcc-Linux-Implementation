@@ -7,6 +7,9 @@ res_lines=result_file.readlines()
 
 line=res_lines[0]
 
-number=line.split(":")[1].split(" ")[0].strip()
+if "Secure" in line:
+	number=line.split(":")[1].split(" ")[0].strip()
+else:
+	number=line.split(":")[1].strip()
 
 print(': ',number,'sec')

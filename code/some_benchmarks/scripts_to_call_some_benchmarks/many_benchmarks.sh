@@ -2,10 +2,10 @@
 
 
 #put this script somewhere outside of the repo directory
-PATH_TO_AUTOMATE_SH=/home/menoobs/virus_detection/gcc-Linux-Implementation/code/
+PATH_TO_AUTOMATE_SH=/home/menoobs//workspace/virus_detection/gcc-Linux-Implementation/code/
 ORIGINAL_DIR=`pwd`
-NAME_OF_SECURE_FUNCTION=towers_of_hanoi
-BENCHMARK_NAME=hanoi_28
+NAME_OF_SECURE_FUNCTION=find_primes_up_to_a_number
+BENCHMARK_NAME=primes_70k
 
 CODE_CACHE_TYPE=2  #0 -> fully assosiative
 				   #1 -> direct mapped
@@ -15,10 +15,11 @@ DATA_CACHE_TYPE=2  #0 -> fully assosiative
 				   #2 -> set assosiative
 CODE_CACHE_ASSOC=2
 DATA_CACHE_ASSOC=2
-SECURE_HEAP_SIZE=40000
+SECURE_HEAP_SIZE=7000000
 SECURE_STACK_SIZE=80000
 MAX_NUM_OF_CMDS_IN_FIXED=35
 TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES=0
+CALC_TIME_WITH_SEPARATE_MAC_ADDITION=1
 
 
 if [[ ( "$TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES" -eq 1 ) ]]; then
@@ -29,6 +30,21 @@ fi
 if [[ ( "$TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES" -eq 0 ) ]]; then
 	sed -i 's/TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES=1/TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES=0/' ${ORIGINAL_DIR}/backup_automate.sh
 fi
+
+
+if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 0 ) ]]; then #the "1" part is inside the loops
+	sed -i 's/COUNT_MAC_INVOCATIONS=1/COUNT_MAC_INVOCATIONS=0/' ${ORIGINAL_DIR}/backup_automate.sh
+fi
+
+if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 1) ]]; then #calculate proper mac times
+	cd ${PATH_TO_AUTOMATE_SH}
+	sed -i 's/COUNT_MAC_INVOCATIONS=1/COUNT_MAC_INVOCATIONS=0/' ./automate.sh
+	echo "Calculating proper mac times..."
+	./automate.sh 32 1 3 8 70000 8 20000 8 16 >/dev/null
+	time ./mac_time_calculator > mac_invocation_times.txt
+	cd ${ORIGINAL_DIR}
+fi
+
 
 #create benchmakrs dir
 mkdir -p ${ORIGINAL_DIR}/${NAME_OF_SECURE_FUNCTION}_${BENCHMARK_NAME}
@@ -105,6 +121,9 @@ for var_size in ${VARIABLE_CODE_SIZE_NUMBERS}; do
 			NAME_OF_FILE=${BENCH_RESULTS_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}.txt
 			cd ${PATH_TO_AUTOMATE_SH}
 			cp ${ORIGINAL_DIR}/automate_template.sh ${PATH_TO_AUTOMATE_SH}/automate.sh
+			if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 1 ) ]]; then
+				sed -i 's/COUNT_MAC_INVOCATIONS=0/COUNT_MAC_INVOCATIONS=1/' automate.sh
+			fi
 			sed -i "s/CODE_CACHE_TYPE=2/CODE_CACHE_TYPE=${CODE_CACHE_TYPE}/" automate.sh
 			sed -i "s/DATA_CACHE_TYPE=2/DATA_CACHE_TYPE=${DATA_CACHE_TYPE}/" automate.sh
 			sed -i "s/NUM_OF_CACHED_BLOCKS_OF_CODE=0/NUM_OF_CACHED_BLOCKS_OF_CODE=${CODE_CACHE_SIZE}/" automate.sh
@@ -112,7 +131,12 @@ for var_size in ${VARIABLE_CODE_SIZE_NUMBERS}; do
 			sed -i "s/CODE_CACHE_SET_ASSOSIATIVE_SIZE=0/CODE_CACHE_SET_ASSOSIATIVE_SIZE=${CODE_CACHE_ASSOC}/" automate.sh
 			sed -i "s/DATA_CACHE_SET_ASSOSIATIVE_SIZE=0/DATA_CACHE_SET_ASSOSIATIVE_SIZE=${DATA_CACHE_ASSOC}/" automate.sh
 			./automate.sh 32 ${var_size} 3 8 ${SECURE_HEAP_SIZE} 8 ${SECURE_STACK_SIZE} 8 16 >/dev/null
-			time ./main_program_ksec | grep "New Secure ${NAME_OF_SECURE_FUNCTION} time:" >  ${NAME_OF_FILE}
+			if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 0 ) ]]; then
+				time ./main_program_ksec | grep "New Secure ${NAME_OF_SECURE_FUNCTION} time:" >  ${NAME_OF_FILE}
+			fi
+			if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 1 ) ]]; then
+				./calc_extra_total_mac_time.sh | grep "Total extra time for macs" > ${NAME_OF_FILE}
+			fi
 			echo -n ${NAME_OF_BENCHMARK} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
 			${ORIGINAL_DIR}/get_the_seconds.py ${NAME_OF_FILE} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
 		done
@@ -124,8 +148,16 @@ for var_size in ${VARIABLE_CODE_SIZE_NUMBERS}; do
 	NAME_OF_FILE=${BENCH_RESULTS_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}.txt
 	cd ${PATH_TO_AUTOMATE_SH}
 	cp ${ORIGINAL_DIR}/automate_template.sh ${PATH_TO_AUTOMATE_SH}/automate.sh
+	if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 1 ) ]]; then
+		sed -i 's/COUNT_MAC_INVOCATIONS=0/COUNT_MAC_INVOCATIONS=1/' automate.sh
+	fi
 	./automate.sh 32 ${var_size} 3 8 ${SECURE_HEAP_SIZE} 8 ${SECURE_STACK_SIZE} 8 16 >/dev/null
-	time ./main_program_ksec | grep "New Secure ${NAME_OF_SECURE_FUNCTION} time:" >  ${NAME_OF_FILE}
+	if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 0 ) ]]; then
+		time ./main_program_ksec | grep "New Secure ${NAME_OF_SECURE_FUNCTION} time:" >  ${NAME_OF_FILE}
+	fi
+	if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 1 ) ]]; then
+		./calc_extra_total_mac_time.sh | grep "Total extra time for macs" > ${NAME_OF_FILE}
+	fi
 	echo -n ${NAME_OF_BENCHMARK} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
 	${ORIGINAL_DIR}/get_the_seconds.py ${NAME_OF_FILE} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
 	
@@ -194,6 +226,9 @@ for FIXED_SIZE in ${FIXED_CODE_SIZE_NUMBERS}; do
 			NAME_OF_FILE=${BENCH_RESULTS_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}.txt
 			cd ${PATH_TO_AUTOMATE_SH}
 			cp ${ORIGINAL_DIR}/automate_template.sh ${PATH_TO_AUTOMATE_SH}/automate.sh
+			if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 1 ) ]]; then
+				sed -i 's/COUNT_MAC_INVOCATIONS=0/COUNT_MAC_INVOCATIONS=1/' automate.sh
+			fi
 			sed -i "s/CODE_CACHE_TYPE=2/CODE_CACHE_TYPE=${CODE_CACHE_TYPE}/" automate.sh
 			sed -i "s/DATA_CACHE_TYPE=2/DATA_CACHE_TYPE=${DATA_CACHE_TYPE}/" automate.sh
 			sed -i "s/NUM_OF_CACHED_BLOCKS_OF_CODE=0/NUM_OF_CACHED_BLOCKS_OF_CODE=${CODE_CACHE_SIZE}/" automate.sh
@@ -201,7 +236,12 @@ for FIXED_SIZE in ${FIXED_CODE_SIZE_NUMBERS}; do
 			sed -i "s/CODE_CACHE_SET_ASSOSIATIVE_SIZE=0/CODE_CACHE_SET_ASSOSIATIVE_SIZE=${CODE_CACHE_ASSOC}/" automate.sh
 			sed -i "s/DATA_CACHE_SET_ASSOSIATIVE_SIZE=0/DATA_CACHE_SET_ASSOSIATIVE_SIZE=${DATA_CACHE_ASSOC}/" automate.sh
 			./automate.sh 32 ${MAX_NUM_OF_CMDS_IN_FIXED} 3 8 ${SECURE_HEAP_SIZE} 8 ${SECURE_STACK_SIZE} 8 16 ${FIXED_SIZE} >/dev/null
-			time ./main_program_ksec | grep "New Secure ${NAME_OF_SECURE_FUNCTION} time:" >  ${NAME_OF_FILE}
+			if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 0 ) ]]; then
+				time ./main_program_ksec | grep "New Secure ${NAME_OF_SECURE_FUNCTION} time:" >  ${NAME_OF_FILE}
+			fi
+			if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 1 ) ]]; then
+				./calc_extra_total_mac_time.sh | grep "Total extra time for macs" > ${NAME_OF_FILE}
+			fi
 			echo -n ${NAME_OF_BENCHMARK} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
 			${ORIGINAL_DIR}/get_the_seconds.py ${NAME_OF_FILE} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
 		done
@@ -213,8 +253,16 @@ for FIXED_SIZE in ${FIXED_CODE_SIZE_NUMBERS}; do
 	NAME_OF_FILE=${BENCH_RESULTS_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}.txt
 	cd ${PATH_TO_AUTOMATE_SH}
 	cp ${ORIGINAL_DIR}/automate_template.sh ${PATH_TO_AUTOMATE_SH}/automate.sh
+	if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 1 ) ]]; then
+		sed -i 's/COUNT_MAC_INVOCATIONS=0/COUNT_MAC_INVOCATIONS=1/' automate.sh
+	fi
 	./automate.sh 32 ${MAX_NUM_OF_CMDS_IN_FIXED} 3 8 ${SECURE_HEAP_SIZE} 8 ${SECURE_STACK_SIZE} 8 16 ${FIXED_SIZE}>/dev/null
-	time ./main_program_ksec | grep "New Secure ${NAME_OF_SECURE_FUNCTION} time:" >  ${NAME_OF_FILE}
+	if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 0 ) ]]; then
+		time ./main_program_ksec | grep "New Secure ${NAME_OF_SECURE_FUNCTION} time:" >  ${NAME_OF_FILE}
+	fi
+	if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 1 ) ]]; then
+		./calc_extra_total_mac_time.sh | grep "Total extra time for macs" > ${NAME_OF_FILE}
+	fi
 	echo -n ${NAME_OF_BENCHMARK} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
 	${ORIGINAL_DIR}/get_the_seconds.py ${NAME_OF_FILE} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
 	

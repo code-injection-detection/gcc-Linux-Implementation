@@ -30,5 +30,5 @@ for line in invok_lines:
 	#print(sz,times)
 	total_time_for_macs=total_time_for_macs+(times/10000)*mac_times_dict[sz]
 
-print("Total extra time for macs:",total_time_for_macs)
+print("Total extra time for macs:",int(total_time_for_macs*1000)/1000)
 mac_invocations.close()
