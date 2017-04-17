@@ -5,6 +5,7 @@
 
 int counter_for_array_fun_parameters;
 long size_of_array_for_array_fun_parameters;
+extern unsigned char* last_unused_stack_memory;
 
 void great_function_that_wraps_the_tests()
 {
@@ -446,6 +447,99 @@ void great_function_that_wraps_the_tests()
 	
 	
 	
+	/**************************calc_determinant_sec****************************************/
+	//PLEASE PYTHON INIT A FUNCTION HERE
+	NAME_OF_FUNCTION: calc_determinant_sec
+	RETURN_VALUE_SIZE: long
+	//^FOR THE ABOVE: none/int/char etc
+	NUM_OF_PARAMETERS: 2
+		chars: 0 
+		ints: 1 | names: DIM
+		longs: 0
+		floats: 0
+		doubles: 0
+		pointers: 1 | names: MATRIX | size_of_pointed_elements: 2500
+		arb_pointers: 0
+	END_OF_PARAMETERS
+	NUM_OF_LOCAL_VARIABLES: 11
+		chars: 0 
+		ints: 7 | names: ISMINUS,J,P,Q,T,R,S
+		longs: 2 | names: D,DET_RESULT
+		floats: 0
+		doubles: 0
+		pointers: 0
+		arb_pointers: 2 | names: SUBMATRIX,SUBDETS | size_of_objects:2500,200
+		//PYTHON IGNORE: 2500= sizeof(int)*25*25, where 25 is the maximum possible size, and 200=sizeof(long)*25
+	END_OF_LOCAL_VARIABLES
+	RETURN_EXPRESSION: GET_STACK_LONG(D)
+	START_OF_FUNCTION : calc_determinant_sec
+	
+	
+	if (GET_STACK_INT(DIM)==2)
+	{
+		//using get_stack_int_array_element() but if dim==2 at first it needs get_int_array_element(). The functionality is the same though.
+		SET_STACK_LONG(D,get_stack_int_array_element(GET_STACK_PTR(MATRIX),0*25+0)*
+						 get_stack_int_array_element(GET_STACK_PTR(MATRIX),1*25+1) -
+						 get_stack_int_array_element(GET_STACK_PTR(MATRIX),0*25+1)*
+						 get_stack_int_array_element(GET_STACK_PTR(MATRIX),1*25+0));
+		RETURN_POINT_OF_FUNCTION: calc_determinant_sec
+	}
+	else
+	{
+		
+		for (SET_STACK_INT(J,0);
+			 GET_STACK_INT(J)<GET_STACK_INT(DIM);
+			 SET_STACK_INT(J,GET_STACK_INT(J)+1))
+		{
+			SET_STACK_INT(R,0);
+			SET_STACK_INT(S,0);
+			for (SET_STACK_INT(P,0);
+				 GET_STACK_INT(P)<GET_STACK_INT(DIM);
+				 SET_STACK_INT(P,GET_STACK_INT(P)+1))
+			{
+				for (SET_STACK_INT(Q,0);
+				  GET_STACK_INT(Q)<GET_STACK_INT(DIM);
+				  SET_STACK_INT(Q,GET_STACK_INT(Q)+1))
+				{
+					if (GET_STACK_INT(P)!=0 && GET_STACK_INT(Q)!=GET_STACK_INT(J))
+					{
+						set_stack_int_array_element(SUBMATRIX,GET_STACK_INT(R)*25+GET_STACK_INT(S),
+													get_stack_int_array_element(GET_STACK_PTR(MATRIX),GET_STACK_INT(P)*25+GET_STACK_INT(Q))
+													);
+						SET_STACK_INT(S,(GET_STACK_INT(S)+1)%(GET_STACK_INT(DIM)-1));
+						if (GET_STACK_INT(S)==0)
+							SET_STACK_INT(R,GET_STACK_INT(R)+1);
+						
+					}
+				}
+			}
+			SET_STACK_INT(ISMINUS,1);
+			for (SET_STACK_INT(T,0);
+				 GET_STACK_INT(T)<GET_STACK_INT(J);
+				 SET_STACK_INT(T,GET_STACK_INT(T)+1))
+			{
+				 SET_STACK_INT(ISMINUS,(-1)*GET_STACK_INT(ISMINUS)); 
+			}
+			 long determinant_result;
+			 //HEY PYTHON CALLING FUNCTION : calc_determinant_sec | WRITE RESULT TO: determinant_result |PARAMETERS TO CALL WITH: GET_STACK_INT(DIM)-1,SUBMATRIX
+			 SET_STACK_LONG(DET_RESULT,determinant_result);
+			 set_stack_long_int_array_element(SUBDETS,GET_STACK_INT(J),GET_STACK_INT(ISMINUS)*GET_STACK_LONG(DET_RESULT));
+		}
+		SET_STACK_LONG(D,0);
+		for (SET_STACK_INT(J,0);
+			 GET_STACK_INT(J)<GET_STACK_INT(DIM);
+			 SET_STACK_INT(J,GET_STACK_INT(J)+1))
+		{
+			SET_STACK_LONG(D,GET_STACK_LONG(D)+(get_stack_int_array_element(GET_STACK_PTR(MATRIX),0*25+GET_STACK_INT(J))*get_stack_long_int_array_element(SUBDETS,GET_STACK_INT(J))));
+		}
+		RETURN_POINT_OF_FUNCTION: calc_determinant_sec
+	}
+			
+	END_OF_FUNCTION: calc_determinant_sec
+	
+	
+	
+	
 	
 	/**********************************************************************************/
 	/***********************END OF FUNCTIONS DECLARATION*******************************/
@@ -510,6 +604,30 @@ void great_function_that_wraps_the_tests()
 	_securetime=((double) (_secureend - _securestart)) / CLOCKS_PER_SEC; 
 	printf("\n"); 
 	printf("New Secure matrix_multiplication_sec time:%lg cpu seconds\n",_securetime);
+	*/
+	
+	
+	
+	/*
+	int size_of_matrix_for_det=11;
+	int *matrix_for_det=init_matrix_for_determinant_calc(size_of_matrix_for_det);
+	int *matrix_for_det_secure;
+	long determinant_end_result;
+	int index_foo;
+	matrix_for_det_secure=error_checking_managed_secure_malloc(25*25*sizeof(int),__func__,__LINE__);
+	for (index_foo=0;index_foo<25*25;index_foo++)
+	{
+		set_int_array_element(matrix_for_det_secure,index_foo,matrix_for_det[index_foo]);
+	}
+	_securestart=clock(); 
+	count_mac_invocations_in_this_code_part=1;
+	//HEY PYTHON CALLING FUNCTION : calc_determinant_sec | WRITE RESULT TO: determinant_end_result | PARAMETERS TO CALL WITH: size_of_matrix_for_det,matrix_for_det_secure
+	count_mac_invocations_in_this_code_part=0;
+	_secureend=clock(); 
+	_securetime=((double) (_secureend - _securestart)) / CLOCKS_PER_SEC; 
+	printf("Determinant=%ld\n",determinant_end_result);
+	printf("\n"); 
+	printf("New Secure calc_determinant_sec time:%lg cpu seconds\n",_securetime); 
 	*/
 	
 	printf("base_pointer:%ld, entire_stack:%ld, last_unused_stack_memory=%ld\n",(long)base_pointer_for_stack,(long)entire_stack_memory_chunk,(long)last_unused_stack_memory);

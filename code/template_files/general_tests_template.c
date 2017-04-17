@@ -641,3 +641,112 @@ void secure_global_sum_calculator(int times,int maxval)
 	}
 	printf("secured sum:%ld\n",GET_GLOBAL_LONG(globals.secured_sum));
 }
+
+
+
+
+
+long calc_determinant(int *matrix,int dim)
+{
+	int isminus,j,p,q,t,r,s;
+	int submatrix[625];
+	long subdets[25];
+	long d;
+	if (dim==2)
+	{	
+		d=((*(matrix+0*25+0)) * (*(matrix+1*25+1)) ) - ( (*(matrix+0*25+1)) * (*(matrix+1*25+0)) );
+		return(d);
+	}
+	else
+	{
+		for(j=0;j<dim;j++)
+		{       
+			r=s=0;
+			for(p=0;p<dim;p++)
+			{
+				for(q=0;q<dim;q++)
+				{
+					if(p!=0 && q!=j)
+					{
+						*(submatrix+r*(25)+s)=*(matrix+p*25+q);
+						s=(s+1)%(dim-1);
+						if (s==0)
+							r++;
+					}
+				}
+			}
+			for(t=0,isminus=1;t<j;t++)
+			{
+				 isminus=(-1)*isminus;
+			}
+#if use_inline_assembly_with_pushes==1
+		//for delay, emulating the pushing of parameters into the stack
+		__asm__ ( "pushq %rax;\n" //2 parameters
+				  "pushq %rax;\n"
+				);
+#endif
+			subdets[j]=isminus*calc_determinant(submatrix,dim-1);
+#if use_inline_assembly_with_pushes==1 //pop the stack
+	__asm__ ( "add $32,%rsp;\n"
+			);
+#endif
+		}
+		for(j=0,d=0;j<dim;j++)
+		{
+			d=d+(*(matrix+0*25+j)*subdets[j]);
+		}
+		return(d);
+	}
+}
+
+
+void call_and_calc_unsecured_determinant(int sz)
+{
+	int * matrix;
+	int i,j;
+	long det;
+	
+	matrix=error_checking_malloc(25*25*sizeof(int),__func__,__LINE__);
+	srand(4242);
+	printf("Here's the matrix for determinant calculation:\n");
+	for (i=0;i<sz;i++)
+	{
+		for(j=0;j<sz;j++)
+		{
+			*(matrix+i*25+j)=rand()%20;
+			printf("%d ",*(matrix+i*25+j));
+		}
+		printf("\n");	
+	}
+	_simplestart=clock(); 
+	det=calc_determinant(matrix,sz);
+	_simpleend=clock(); 
+	_simpletime=((double) (_simpleend - _simplestart)) / CLOCKS_PER_SEC;
+	printf("determinant=%ld\n",det);
+	printf("\n"); 
+	printf("Normal determinant calculation time:%lg cpu seconds\n",_simpletime); 
+	free(matrix);
+	
+}
+
+int * init_matrix_for_determinant_calc(int sz)
+{
+	int * matrix;
+	int i,j;
+	long det;
+	
+	matrix=error_checking_malloc(25*25*sizeof(int),__func__,__LINE__);
+	srand(4242);
+	printf("Here's the matrix for determinant calculation:\n");
+	for (i=0;i<sz;i++)
+	{
+		for(j=0;j<sz;j++)
+		{
+			*(matrix+i*25+j)=rand()%20;
+			printf("%d ",*(matrix+i*25+j));
+		}
+		printf("\n");	
+	}
+	return (matrix);
+	
+}

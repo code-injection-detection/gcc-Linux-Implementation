@@ -46,7 +46,6 @@ void set_arbitrary_block_in_heap_with_offset(long data_size,void * start,long of
 
 /*FOR THE STACK*/
 
-
 void insert_keys_into_stack_mem(unsigned char * stack_mem);
 long insert_data_into_stack_mem(long data_size,unsigned char * data, unsigned char * stack_mem_where_to_insert);
 void get_secure_stack_data(void * res,long data_size, unsigned char * data_start, int isarray, long arrayindex);

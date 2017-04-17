@@ -232,7 +232,8 @@ def add_code_for_function_calling(fun_name,write_to,params):
 	#write result to
 	if (fun_dict['return_value_type']!='' and fun_dict['return_value_type'].lower()!='none' and fun_dict['return_value_type'].lower!='null'):
 		name_of_getter=find_name_of_getter(fun_dict['return_value_type'])
-		lines_to_append.append(write_to+'='+name_of_getter+'(returned_addr_after_allocating+('+chunks_for_params+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
+		#now using last_unused_stack_memory (the stack pointer), and not returned_addr_after_allocating, since it might have changed after the call
+		lines_to_append.append(write_to+'='+name_of_getter+'(last_unused_stack_memory+('+chunks_for_params+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
 	for line in lines_to_append:
 		dst_lines.append(line)
 	
