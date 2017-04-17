@@ -66,8 +66,8 @@ for line in src_lines:
 		newline='#define ignore_macs_last_moment_even_if_there_are_mac_bytes '+sys.argv[22]+'\n'
 	if '#define treat_loop_counters_as_unsecured_variables' in line:
 		newline='#define treat_loop_counters_as_unsecured_variables '+sys.argv[23]+'\n'
-	if '#define sqeeze_keys_when_macing' in line:
-		newline='#define sqeeze_keys_when_macing '+sys.argv[24]+'\n'
+	if '#define squeeze_keys_when_macing' in line:
+		newline='#define squeeze_keys_when_macing '+sys.argv[24]+'\n'
 	if '#define count_mac_invocations' in line:
 		newline='#define count_mac_invocations '+sys.argv[25]+'\n'
 		

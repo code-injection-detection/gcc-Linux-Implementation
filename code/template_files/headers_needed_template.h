@@ -161,8 +161,8 @@
 #define treat_loop_counters_as_unsecured_variables 0
 #endif				//Treat the loop counters in the secure programs as registers, which means that they do not have to be secured
 
-#ifndef sqeeze_keys_when_macing
-#define sqeeze_keys_when_macing 0
+#ifndef squeeze_keys_when_macing
+#define squeeze_keys_when_macing 0
 #endif				//reduces the size of the keys from 32 bytes to 16 when calculating mac
 
 #ifndef count_mac_invocations
