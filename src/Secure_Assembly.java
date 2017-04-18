@@ -46,6 +46,7 @@ public class Secure_Assembly {
 		boolean force_num_of_instructions_over_bytes=true;
 		String ramtmp_file="";
 		boolean ignore_macs_even_if_there_are_mac_bytes=false;
+		ArrayList<String> list_of_assembly_sizes = new ArrayList<String>();
 		
 
 		if (args.length==10)
@@ -104,6 +105,24 @@ public class Secure_Assembly {
 			}
 		}
 		sc.close();
+		
+		//If we used fixed size chunks of code, then we need to know the size of each command.
+		//test if the table with the sizes is present, and if yes load it into memory.
+		if (use_fixed_size_chunks_of_code)
+		{
+			String assembly_sizes_table_path=new File("../code/table_with_assembly_command_sizes.txt").getAbsolutePath();
+			File assembly_sizes_table = new File("../code/table_with_assembly_command_sizes.txt");
+			if(assembly_sizes_table.exists() && !assembly_sizes_table.isDirectory()) 
+			{ 
+				Scanner s = new Scanner(new File(assembly_sizes_table_path));
+				ArrayList<String> list = new ArrayList<String>();
+				while (s.hasNextLine()){
+				    list_of_assembly_sizes.add(s.nextLine());
+				}
+				s.close();
+			}
+		}
+		
 		
 		// This puts the file into the ArrayList and looks for the start of the code
 		// which is ".cfi_startproc". This, for every function.
@@ -198,7 +217,7 @@ public class Secure_Assembly {
 						line_to_check_size=cmd+".d32\t"+operands;
 					}
 					//find size of command
-					size_of_current_cmd=get_size_of_assembly_command(line_to_check_size,ramtmp_file);
+					size_of_current_cmd=get_size_of_assembly_command(line_to_check_size,ramtmp_file,list_of_assembly_sizes);
 					//see if we should add it (only if it does not exceed the size of the fixed chunk)
 					int bytes_to_subtract=2; /*jmp*/
 					if (check_code_verification_on_the_fly && !ignore_macs_even_if_there_are_mac_bytes)
@@ -345,6 +364,20 @@ public class Secure_Assembly {
 		
 		bw.write(finalfile);
 		bw.flush();
+		
+		//write the new table with the new sizes
+		if (use_fixed_size_chunks_of_code)
+		{
+			String assembly_sizes_table_path=new File("../code/table_with_assembly_command_sizes.txt").getAbsolutePath();
+			BufferedWriter sizes_new = new BufferedWriter(new FileWriter(assembly_sizes_table_path));
+			for (String line: list_of_assembly_sizes)
+			{
+				sizes_new.write(line);
+				sizes_new.newLine();
+			}
+			
+			sizes_new.flush();
+		}
 
 		
 	}
@@ -377,7 +410,25 @@ public class Secure_Assembly {
 		return line;
 	}
 	
-	static int get_size_of_assembly_command(String cmd,String ramtmp_file) throws IOException, InterruptedException
+	//-1=not found
+	//else returns the place of the cmd
+	static int find_cmd_size_in_known_sizes(String cmd, ArrayList<String> list_of_assembly_sizes)
+	{
+		int i;
+		for (i=0;i<list_of_assembly_sizes.size();i++)
+		{
+			//find the actual command
+			String[] parts = list_of_assembly_sizes.get(i).split("-->");
+			String command=parts[0];
+			String sz=parts[1];
+			if (command.trim().equals(cmd.trim()))
+				return Integer.parseInt(sz.trim());
+		}
+		return -1;
+	}
+	
+	
+	static int get_size_of_assembly_command(String cmd,String ramtmp_file,ArrayList<String> list_of_assembly_sizes) throws IOException, InterruptedException
 	{
 		String line=cmd.trim().replace("\t", " ");
 		int size=0;
@@ -393,12 +444,17 @@ public class Secure_Assembly {
 				"echo '"+line+"' | as -o "+ramtmp_file+" && objdump -d "+ramtmp_file+" | "+size_calculator_filename
 				};
 
+		int is_size_found=find_cmd_size_in_known_sizes(cmd,list_of_assembly_sizes);
+		if (is_size_found>-1)
+			return (is_size_found);
+		
+		
 		//find the size
 		Runtime runtime1 = Runtime.getRuntime();
 		Process process1 = runtime1.exec(exec_str1);
 		BufferedInputStream sizeinputstream= new BufferedInputStream(process1.getInputStream());
 		process1.waitFor();
-				
+		
 		while(sizeinputstream.available()>0)
         {
             // read the byte and convert the integer to character
@@ -409,6 +465,7 @@ public class Secure_Assembly {
 		size_as_str=new String(size_as_chars).replace("\n", "").trim();
 		size=Integer.parseInt(size_as_str);	
 		
+		list_of_assembly_sizes.add(cmd+" --> "+size_as_str);
 		return size;
 	}
 	
