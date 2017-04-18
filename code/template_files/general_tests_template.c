@@ -687,7 +687,7 @@ long calc_determinant(int *matrix,int dim)
 #endif
 			subdets[j]=isminus*calc_determinant(submatrix,dim-1);
 #if use_inline_assembly_with_pushes==1 //pop the stack
-	__asm__ ( "add $32,%rsp;\n"
+	__asm__ ( "add $16,%rsp;\n"
 			);
 #endif
 		}
