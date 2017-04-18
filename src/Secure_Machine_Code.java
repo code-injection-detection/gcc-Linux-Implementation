@@ -68,8 +68,9 @@ public class Secure_Machine_Code {
 		byte [] global_keys = Files.readAllBytes(path);
 		byte[] stuff_in_code_to_be_MACed=new byte[2048];
 		boolean squeeze_keys_when_macing=false;
+		boolean add_the_padded_nops_in_the_mac_in_fixed_size=false;
 		
-		if (args.length==13)
+		if (args.length==14)
 		{
 			number_of_interleaved_keys=Integer.parseInt(args[0]);
 			num_of_keys_in_heap=number_of_interleaved_keys;
@@ -105,6 +106,11 @@ public class Secure_Machine_Code {
 				squeeze_keys_when_macing=false;
 			else
 				squeeze_keys_when_macing=true;
+			
+			if (Integer.parseInt(args[13])==0)
+				add_the_padded_nops_in_the_mac_in_fixed_size=false;
+			else
+				add_the_padded_nops_in_the_mac_in_fixed_size=true;
 		}
 		else
 		{
@@ -302,7 +308,7 @@ public class Secure_Machine_Code {
 							{
 								; //do nothing
 							}
-							else if (use_fixed_size_chunks_of_code && cnt_in_old_mac<end_of_nops && cnt_in_old_mac>=start_of_nops)
+							else if (use_fixed_size_chunks_of_code && cnt_in_old_mac<end_of_nops && cnt_in_old_mac>=start_of_nops && add_the_padded_nops_in_the_mac_in_fixed_size==false)
 							{
 								; //do nothing
 							}

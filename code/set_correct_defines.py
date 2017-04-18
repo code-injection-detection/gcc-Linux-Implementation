@@ -70,6 +70,8 @@ for line in src_lines:
 		newline='#define squeeze_keys_when_macing '+sys.argv[24]+'\n'
 	if '#define count_mac_invocations' in line:
 		newline='#define count_mac_invocations '+sys.argv[25]+'\n'
+	if '#define add_the_padded_nops_in_the_mac_in_fixed_size' in line:
+		newline='#define add_the_padded_nops_in_the_mac_in_fixed_size '+sys.argv[26]+'\n'		
 		
 	headers_dst.write(newline)
 

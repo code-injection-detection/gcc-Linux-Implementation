@@ -169,6 +169,11 @@
 #define count_mac_invocations 0
 #endif				//counts the mac invokations in order to calculate delay due to macs
 
+#ifndef add_the_padded_nops_in_the_mac_in_fixed_size
+#define add_the_padded_nops_in_the_mac_in_fixed_size 1
+#endif				//counts the mac invokations in order to calculate delay due to macs
+
+
 
 #include "crypto_functions.h"
 #include "secure_getters_setters.h"

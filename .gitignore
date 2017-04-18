@@ -34,5 +34,6 @@ secure_stack_manipulation_functions.c
 secure_program_mac_invocations.txt
 mac_invocation_times.txt
 mac_time_calculator
+table_with_assembly_command_sizes.txt
 #.classpath
 #.project

@@ -28,6 +28,8 @@ for line in invok_lines:
 	sz=int(line.split(",")[1].split(":")[1].strip())
 	times=int(line.split(",")[2].split(":")[1].strip())
 	#print(sz,times)
+	if sz not in mac_times_dict:
+		print("ERROR! ERROR!!!!!!!!!!!!!!!!! mac length ",str(sz)," not in mac_times_dict!")
 	total_time_for_macs=total_time_for_macs+(times/10000)*mac_times_dict[sz]
 
 print("Total extra time for macs:",int(total_time_for_macs*1000)/1000)

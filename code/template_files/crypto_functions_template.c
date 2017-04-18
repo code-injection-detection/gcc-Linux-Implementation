@@ -482,6 +482,12 @@ int check_code_mac_for_error(unsigned char * input, int total_mac_bytes, int use
 			//copy proper code
 			memcpy(new_stuff_in_code_to_be_MACed+cnt_in_new_mac,input+length_of_verifier,code_length-length_of_verifier-2);
 			cnt_in_new_mac+=code_length-length_of_verifier-2;
+			//copy nops
+			if (use_fixed_size_chunks_of_code && add_the_padded_nops_in_the_mac_in_fixed_size)
+			{
+				memcpy(new_stuff_in_code_to_be_MACed+cnt_in_new_mac,input+code_length+number_of_canaries+1,total_mac_bytes-(number_of_interleaved_keys+code_length+number_of_canaries+1));
+				cnt_in_new_mac+=total_mac_bytes-(number_of_interleaved_keys+code_length+number_of_canaries+1);
+			}
 			//copy keys
 			memcpy(new_stuff_in_code_to_be_MACed+cnt_in_new_mac,input+useful_mac_bytes,number_of_interleaved_keys);
 			cnt_in_new_mac+=number_of_interleaved_keys;
