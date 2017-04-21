@@ -8,6 +8,7 @@ extern void calc_and_set_mac_of_data_sha256(char * input, long length, char * ou
 
 EVP_CIPHER_CTX aes_ctx;
 unsigned char aes_key[] = {42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57};
+AES_KEY aes_enc_key;
 unsigned char initialization_vector[]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
 CMAC_CTX *cmac_ctx;
@@ -56,6 +57,7 @@ void init_crypto_stuctures(int print)
 		BN_dec2bn(&bn_2power128,str_2power128);	
 		bn_ctx=BN_CTX_new();
 	#endif
+	AES_set_encrypt_key(aes_key, 128, &aes_enc_key);
 	#if mac_algorithm==2
 		cmac_ctx = CMAC_CTX_new();
 		CMAC_Init(cmac_ctx, aes_key, 16, EVP_aes_128_cbc(), NULL);
@@ -300,11 +302,20 @@ void encrypt_aes_cbc(unsigned char *buf_to_be_encrypted,int len_of_buf)
 	int i;
 	if (number_of_mac_bytes>0 && !ignore_macs_last_moment_even_if_there_are_mac_bytes)
 	{
+		
 		EVP_EncryptInit_ex(&aes_ctx, NULL, NULL, NULL, NULL);
 		EVP_EncryptUpdate(&aes_ctx, encrypted_data, &length_of_encrypted_data,buf_to_be_encrypted, len_of_buf);
 		EVP_EncryptFinal_ex(&aes_ctx, encrypted_data + length_of_encrypted_data, &tmplen);
 		length_of_encrypted_data+=tmplen;
-		//printf("length_of_encrypted_data:%d\n",length_of_encrypted_data);
+		//fprintf(stderr,"length_of_encrypted_data:%d\n",length_of_encrypted_data);
+		
+		/*
+		AES_cbc_encrypt(buf_to_be_encrypted, encrypted_data, len_of_buf, &aes_enc_key,initialization_vector, AES_ENCRYPT);
+		if (len_of_buf%16==0)
+			length_of_encrypted_data=len_of_buf+16; //length is wrong
+		else
+			length_of_encrypted_data=(len_of_buf/16)*16 + 16;
+		*/
 	}	
 }
 
