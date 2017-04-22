@@ -8,7 +8,7 @@ if [ ! -f ./mac_invocation_times.txt ]; then
 fi
 
 echo "Executing secure program..."
-time ./main_program_ksec | grep "Mac invocation" > secure_program_mac_invocations.txt
+time ./main_program_ksec | tee $1 | grep "Mac invocation" > secure_program_mac_invocations.txt
 echo "Executed secure program."
 
 echo "Calculating total time..."

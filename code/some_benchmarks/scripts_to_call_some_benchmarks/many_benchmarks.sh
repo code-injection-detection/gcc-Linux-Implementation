@@ -7,10 +7,10 @@ ORIGINAL_DIR=`pwd`
 NAME_OF_SECURE_FUNCTION=matrix_multiplication_sec
 BENCHMARK_NAME=mm_800_2000_squeezed_keys_with_padded_nops_maced
 
-CODE_CACHE_TYPE=2  #0 -> fully assosiative
+CODE_CACHE_TYPE=1  #0 -> fully assosiative
 				   #1 -> direct mapped
 				   #2 -> set assosiative
-DATA_CACHE_TYPE=2  #0 -> fully assosiative
+DATA_CACHE_TYPE=1  #0 -> fully assosiative
 				   #1 -> direct mapped
 				   #2 -> set assosiative
 CODE_CACHE_ASSOC=2
@@ -58,9 +58,10 @@ cp ${PATH_TO_AUTOMATE_SH}/automate.sh ${ORIGINAL_DIR}/automate_template.sh
 #FIXED_CODE_SIZE_NUMBERS="20 55 71 75"
 FIXED_CODE_SIZE_NUMBERS="20 55 71 75"
 VARIABLE_CODE_SIZE_NUMBERS="39 30 20 10 7 1"
-CACHE_SIZES="20 40 60 80 100 150 200"
-#CACHE_SIZES="1 2 4 6 8 10"
-CODE_AND_DATA_CACHE_ASSOCS="2 4 8"
+#CACHE_SIZES="20 40 60 80 100 150 200"
+CACHE_SIZES="1 2 4 6 8 10"
+CODE_AND_DATA_CACHE_ASSOCS="DIRECT_MAPPED"
+#CODE_AND_DATA_CACHE_ASSOCS="2 4 8"
 
 
 #do the variable code size
@@ -136,7 +137,7 @@ for var_size in ${VARIABLE_CODE_SIZE_NUMBERS}; do
 				time ./main_program_ksec | tee ${NAME_OF_FILE}_whole_output.txt | grep "New Secure ${NAME_OF_SECURE_FUNCTION} time:" >  ${NAME_OF_FILE}
 			fi
 			if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 1 ) ]]; then
-				./calc_extra_total_mac_time.sh | tee ${NAME_OF_FILE}_whole_output.txt | grep "Total extra time for macs" > ${NAME_OF_FILE}
+				./calc_extra_total_mac_time.sh ${NAME_OF_FILE}_whole_output.txt | grep "Total extra time for macs" > ${NAME_OF_FILE}
 			fi
 			echo -n ${NAME_OF_BENCHMARK} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
 			${ORIGINAL_DIR}/get_the_seconds.py ${NAME_OF_FILE} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
@@ -157,7 +158,7 @@ for var_size in ${VARIABLE_CODE_SIZE_NUMBERS}; do
 		time ./main_program_ksec | tee ${NAME_OF_FILE}_whole_output.txt | grep "New Secure ${NAME_OF_SECURE_FUNCTION} time:" >  ${NAME_OF_FILE}
 	fi
 	if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 1 ) ]]; then
-		./calc_extra_total_mac_time.sh | tee ${NAME_OF_FILE}_whole_output.txt | grep "Total extra time for macs" > ${NAME_OF_FILE}
+		./calc_extra_total_mac_time.sh  ${NAME_OF_FILE}_whole_output.txt | grep "Total extra time for macs" > ${NAME_OF_FILE}
 	fi
 	echo -n ${NAME_OF_BENCHMARK} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
 	${ORIGINAL_DIR}/get_the_seconds.py ${NAME_OF_FILE} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
@@ -241,7 +242,7 @@ for FIXED_SIZE in ${FIXED_CODE_SIZE_NUMBERS}; do
 				time ./main_program_ksec | tee ${NAME_OF_FILE}_whole_output.txt | grep "New Secure ${NAME_OF_SECURE_FUNCTION} time:" >  ${NAME_OF_FILE}
 			fi
 			if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 1 ) ]]; then
-				./calc_extra_total_mac_time.sh | tee ${NAME_OF_FILE}_whole_output.txt | grep "Total extra time for macs" > ${NAME_OF_FILE}
+				./calc_extra_total_mac_time.sh  ${NAME_OF_FILE}_whole_output.txt | grep "Total extra time for macs" > ${NAME_OF_FILE}
 			fi
 			echo -n ${NAME_OF_BENCHMARK} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
 			${ORIGINAL_DIR}/get_the_seconds.py ${NAME_OF_FILE} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
@@ -262,7 +263,7 @@ for FIXED_SIZE in ${FIXED_CODE_SIZE_NUMBERS}; do
 		time ./main_program_ksec | tee ${NAME_OF_FILE}_whole_output.txt | grep "New Secure ${NAME_OF_SECURE_FUNCTION} time:" >  ${NAME_OF_FILE}
 	fi
 	if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 1 ) ]]; then
-		./calc_extra_total_mac_time.sh | tee ${NAME_OF_FILE}_whole_output.txt | grep "Total extra time for macs" > ${NAME_OF_FILE}
+		./calc_extra_total_mac_time.sh  ${NAME_OF_FILE}_whole_output.txt | grep "Total extra time for macs" > ${NAME_OF_FILE}
 	fi
 	echo -n ${NAME_OF_BENCHMARK} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
 	${ORIGINAL_DIR}/get_the_seconds.py ${NAME_OF_FILE} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
