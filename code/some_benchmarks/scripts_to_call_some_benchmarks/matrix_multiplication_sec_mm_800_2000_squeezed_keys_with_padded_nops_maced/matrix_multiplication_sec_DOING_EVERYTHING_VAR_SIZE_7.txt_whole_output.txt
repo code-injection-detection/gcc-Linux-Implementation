@@ -1,0 +1,99 @@
+Initializing crypto structures.
+Crypto structures initialized.
+Initializing heap memory
+bytes_to_allocate_on_start:100000
+Init_mem, alloc+key insertion
+Whoops. We need to allocate a bit more space.
+If successful, total bytes allocated:100016
+Initializing stack memory
+Stack bytes_to_allocate_on_start:55000000
+Init_stack_mem, alloc+key insertion
+Stack: Whoops. We need to allocate a bit more space.
+If successful, total bytes allocated:55000008
+My pid=5793
+a b c d e 
+x=3
+a b c n e 
+x=11
+
+New Secure matrix_multiplication_sec time:424.623 cpu seconds
+base_pointer:0, entire_stack:140589353611280, last_unused_stack_memory=140589353611280
+
+Going to find keyshares.
+Total key groups found in code:2312
+
+key no0=0x40
+key no1=0xaa
+key no2=0x7e
+key no3=0x3c
+key no4=0x15
+key no5=0xa6
+key no6=0xa6
+key no7=0xee
+key no8=0x8c
+key no9=0xa0
+key no10=0x50
+key no11=0xf2
+key no12=0xdf
+key no13=0x6c
+key no14=0xf9
+key no15=0x7d
+key no16=0xd6
+key no17=0x52
+key no18=0xdf
+key no19=0x0f
+key no20=0xfe
+key no21=0x6a
+key no22=0x07
+key no23=0x3a
+key no24=0xd9
+key no25=0xb4
+key no26=0xa0
+key no27=0x36
+key no28=0xb7
+key no29=0x85
+key no30=0xde
+key no31=0xd1
+
+
+Mac invocation, length:17, number:1
+
+Mac invocation, length:19, number:1
+
+Mac invocation, length:24, number:7186571213
+
+Mac invocation, length:25, number:640000
+
+Mac invocation, length:29, number:2
+
+Mac invocation, length:30, number:512001600
+
+Mac invocation, length:41, number:1
+
+Mac invocation, length:43, number:1
+
+Mac invocation, length:44, number:1280002
+
+Mac invocation, length:45, number:640000
+
+Mac invocation, length:46, number:1026560000
+
+Mac invocation, length:47, number:1025280000
+
+Mac invocation, length:48, number:1538561600
+
+Mac invocation, length:49, number:1027203202
+
+Mac invocation, length:50, number:514563202
+
+Mac invocation, length:51, number:513921600
+
+Mac invocation, length:52, number:512640000
+
+Mac invocation, length:53, number:640002
+
+Mac invocation, length:55, number:1
+
+Mac invocation, length:56, number:1
+
+Mac invocation, length:59, number:1

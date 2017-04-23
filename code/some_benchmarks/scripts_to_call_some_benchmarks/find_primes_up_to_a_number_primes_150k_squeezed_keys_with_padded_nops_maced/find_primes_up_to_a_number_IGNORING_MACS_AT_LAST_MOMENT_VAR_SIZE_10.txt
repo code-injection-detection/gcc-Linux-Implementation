@@ -1,1 +1,1 @@
-New Secure find_primes_up_to_a_number time:79.0991 cpu seconds
+New Secure find_primes_up_to_a_number time:78.8217 cpu seconds
