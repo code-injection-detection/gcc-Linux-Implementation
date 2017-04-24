@@ -643,7 +643,10 @@ void secure_global_sum_calculator(int times,int maxval)
 }
 
 
-
+int array_for_calc_det_delay_ints[1];
+int * array_for_calc_det_delay_ptr[1];
+int size_for_calc_det_delay;
+long det_result_for_delay;
 
 
 long calc_determinant(int *matrix,int dim)
@@ -679,16 +682,27 @@ long calc_determinant(int *matrix,int dim)
 			{
 				 isminus=(-1)*isminus;
 			}
-#if use_inline_assembly_with_pushes==1
+#if use_inline_code_for_delays==1
 		//for delay, emulating the pushing of parameters into the stack
+		//wrong most likely
+		/*
 		__asm__ ( "pushq %rax;\n" //2 parameters
 				  "pushq %rax;\n"
 				);
+		*/
+		size_for_calc_det_delay=4;
+		array_for_calc_det_delay_ints[0]=dim-1;
+		size_for_calc_det_delay=8;
+		array_for_calc_det_delay_ptr[0]=matrix;
 #endif
 			subdets[j]=isminus*calc_determinant(submatrix,dim-1);
-#if use_inline_assembly_with_pushes==1 //pop the stack
+#if use_inline_code_for_delays==1 
+	//pop the stack
+	/*
 	__asm__ ( "add $16,%rsp;\n"
 			);
+	*/
+	det_result_for_delay=array_for_calc_det_delay_ints[0]; //just access memory
 #endif
 		}
 		for(j=0,d=0;j<dim;j++)

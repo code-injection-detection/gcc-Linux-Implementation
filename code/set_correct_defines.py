@@ -46,8 +46,8 @@ for line in src_lines:
 		newline='#define do_not_mac_what_we_add_in_code '+sys.argv[12]+'\n'	
 	if '#define check_code_verification_on_the_fly' in line:
 		newline='#define check_code_verification_on_the_fly '+sys.argv[13]+'\n'
-	if '#define use_inline_assembly_with_pushes' in line:
-		newline='#define use_inline_assembly_with_pushes '+sys.argv[14]+'\n'	
+	if '#define use_inline_code_for_delays' in line:
+		newline='#define use_inline_code_for_delays '+sys.argv[14]+'\n'	
 	if '#define num_of_cached_blocks_of_code' in line:
 		newline='#define num_of_cached_blocks_of_code '+sys.argv[15]+'\n'	
 	if '#define num_of_cached_blocks_of_data' in line:

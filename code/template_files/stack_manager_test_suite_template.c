@@ -80,6 +80,9 @@ void stack_fun_params_test()
 	
 }
 
+int array_for_hanoi_delay_ints[1];
+char array_for_hanoi_delay_chars[3];
+int size_for_hanoi_delay;
 
 void towerOfHanoi(int n, char fromrod, char torod, char auxrod)
 {
@@ -88,32 +91,55 @@ void towerOfHanoi(int n, char fromrod, char torod, char auxrod)
         //printf("\n Move disk 1 from rod %c to rod %c", fromrod, torod);
         return;
     }
-#if use_inline_assembly_with_pushes==1
+#if use_inline_code_for_delays==1
     //for delay, emulating the pushing of parameters into the stack
+    //most likely wrong
+    /*
     __asm__ ( "pushq %rax;\n" //4 parameters
 			  "pushq %rax;\n"
 			  "pushq %rax;\n"
 			  "pushq %rax;\n" 
 			);
+	*/
+	//for delay, emulating the preliminary work done by our stack implementation
+	size_for_hanoi_delay=4;
+	array_for_hanoi_delay_ints[0]=n-1;
+	size_for_hanoi_delay=3;
+	array_for_hanoi_delay_chars[0]=fromrod;
+	array_for_hanoi_delay_chars[1]=auxrod;
+	array_for_hanoi_delay_chars[2]=torod;
 #endif
     towerOfHanoi(n-1, fromrod, auxrod, torod);
-#if use_inline_assembly_with_pushes==1
+#if use_inline_code_for_delays==1
+	/*
 	__asm__ ( "add $32,%rsp;\n"
 			);
+	*/
+	//nothing
 #endif
     //printf("\n Move disk %d from rod %c to rod %c", n, fromrod, torod);
     
-#if use_inline_assembly_with_pushes==1
+#if use_inline_code_for_delays==1
+	/*
 	__asm__ ( "pushq %rax;\n" //4 parameters
 			  "pushq %rax;\n"
 			  "pushq %rax;\n"
 			  "pushq %rax;\n" 
 			);
+	*/
+	size_for_hanoi_delay=4;
+	array_for_hanoi_delay_ints[0]=n-1;
+	size_for_hanoi_delay=3;
+	array_for_hanoi_delay_chars[0]=auxrod;
+	array_for_hanoi_delay_chars[1]=torod;
+	array_for_hanoi_delay_chars[2]=fromrod;
 #endif
     towerOfHanoi(n-1, auxrod, torod, fromrod);
-#if use_inline_assembly_with_pushes==1
+#if use_inline_code_for_delays==1
+	/*
     __asm__ ( "add $32,%rsp;\n"
 			);
+	*/
 #endif
 }
 
