@@ -6,11 +6,11 @@ Init_mem, alloc+key insertion
 Whoops. We need to allocate a bit more space.
 If successful, total bytes allocated:50008
 Initializing stack memory
-Stack bytes_to_allocate_on_start:300000
+Stack bytes_to_allocate_on_start:400000
 Init_stack_mem, alloc+key insertion
 Stack: Whoops. We need to allocate a bit more space.
-If successful, total bytes allocated:300048
-My pid=19630
+If successful, total bytes allocated:400008
+My pid=6199
 a b c d e 
 x=3
 a b c n e 
@@ -29,42 +29,42 @@ Here's the matrix for determinant calculation:
 6 9 19 2 1 4 6 10 0 19 16 
 Determinant=-4802940486084
 
-New Secure calc_determinant_sec time:465.906 cpu seconds
-base_pointer:0, entire_stack:140518857035792, last_unused_stack_memory=140518857035792
+New Secure calc_determinant_sec time:462.732 cpu seconds
+base_pointer:0, entire_stack:139981290967056, last_unused_stack_memory=139981290967056
 
 Going to find keyshares.
 Total key groups found in code:6007
 
-key no0=0x6f
-key no1=0x91
-key no2=0x1f
-key no3=0x77
-key no4=0x65
-key no5=0x09
-key no6=0x41
-key no7=0x2a
-key no8=0xc8
-key no9=0x06
-key no10=0x99
-key no11=0x05
-key no12=0x2e
-key no13=0xa1
-key no14=0x0f
-key no15=0xb3
-key no16=0x24
-key no17=0x53
-key no18=0x87
-key no19=0x79
-key no20=0xf2
-key no21=0x1d
-key no22=0x09
-key no23=0xe3
-key no24=0xaa
-key no25=0x3b
-key no26=0xb5
-key no27=0x30
-key no28=0x1f
-key no29=0xdd
-key no30=0x27
-key no31=0xf2
+key no0=0x69
+key no1=0x98
+key no2=0x79
+key no3=0x80
+key no4=0xbc
+key no5=0x4e
+key no6=0xc5
+key no7=0x39
+key no8=0x08
+key no9=0x5b
+key no10=0xd2
+key no11=0xf9
+key no12=0x42
+key no13=0xca
+key no14=0x19
+key no15=0x2c
+key no16=0x62
+key no17=0xab
+key no18=0x4d
+key no19=0x16
+key no20=0xd3
+key no21=0x97
+key no22=0x38
+key no23=0xf6
+key no24=0x3c
+key no25=0xa9
+key no26=0xd9
+key no27=0x1e
+key no28=0x29
+key no29=0x0f
+key no30=0xe5
+key no31=0x84
 
