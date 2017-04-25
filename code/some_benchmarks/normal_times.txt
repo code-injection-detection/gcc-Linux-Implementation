@@ -1,4 +1,4 @@
-primes 150k:
-hanoi 28:
-matrix multiplication 800,2000:
-determinant calculation 11:
+primes 150k: 1,385
+hanoi 28:1,175
+matrix multiplication 800,2000: 1,605
+determinant calculation 11: 2,11
