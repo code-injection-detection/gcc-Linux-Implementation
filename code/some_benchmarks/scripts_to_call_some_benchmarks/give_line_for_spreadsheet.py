@@ -3,7 +3,7 @@
 #gives a line in commas
 import sys
 
-name_of_file="./towers_of_hanoi_hanoi_28_squeezed_keys_with_padded_nops_maced/aggregated_results.txt"
+name_of_file="./calc_determinant_sec_calc_det_11_squeezed_keys_with_padded_nops_maced/aggregated_results.txt"
 
 file_src=open(name_of_file,'r')
 src_lines= file_src.readlines()
