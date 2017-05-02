@@ -4,22 +4,22 @@
 #put this script somewhere outside of the repo directory
 PATH_TO_AUTOMATE_SH=/home/menoobs/virus_detection/gcc-Linux-Implementation/code/
 ORIGINAL_DIR=`pwd`
-NAME_OF_SECURE_FUNCTION=calc_determinant_sec
-BENCHMARK_NAME=calc_det_11_squeezed_keys_with_padded_nops_maced
+NAME_OF_SECURE_FUNCTION=matrix_multiplication_sec
+BENCHMARK_NAME=mm_800_2000_squeezed_keys_with_padded_nops_maced_no_external_mac_calc
 
-CODE_CACHE_TYPE=1  #0 -> fully assosiative
+CODE_CACHE_TYPE=2  #0 -> fully assosiative
 				   #1 -> direct mapped
 				   #2 -> set assosiative
-DATA_CACHE_TYPE=1  #0 -> fully assosiative
+DATA_CACHE_TYPE=2  #0 -> fully assosiative
 				   #1 -> direct mapped
 				   #2 -> set assosiative
 CODE_CACHE_ASSOC=2
 DATA_CACHE_ASSOC=2
 SECURE_HEAP_SIZE=50000
-SECURE_STACK_SIZE=400000
+SECURE_STACK_SIZE=55000000
 MAX_NUM_OF_CMDS_IN_FIXED=35
 TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES=0
-CALC_TIME_WITH_SEPARATE_MAC_ADDITION=1
+CALC_TIME_WITH_SEPARATE_MAC_ADDITION=0
 USE_CACHE_FOR_CODE_WHEN_CACHE_ENABLED=1
 USE_CACHE_FOR_DATA_WHEN_CACHE_ENABLED=1
 
@@ -59,10 +59,10 @@ cp ${PATH_TO_AUTOMATE_SH}/automate.sh ${ORIGINAL_DIR}/automate_template.sh
 #FIXED_CODE_SIZE_NUMBERS="20 55 71 75"
 FIXED_CODE_SIZE_NUMBERS="20 55 71 75"
 VARIABLE_CODE_SIZE_NUMBERS="39 30 20 10 7 1"
-#CACHE_SIZES="20 40 60 80 100 150 200"
-CACHE_SIZES="1 2 4 6 8 10"
-CODE_AND_DATA_CACHE_ASSOCS="DIRECT_MAPPED"
-#CODE_AND_DATA_CACHE_ASSOCS="2 4 8"
+CACHE_SIZES="20 40 60 80 100 150 200"
+#CACHE_SIZES="1 2 4 6 8 10"
+#CODE_AND_DATA_CACHE_ASSOCS="DIRECT_MAPPED"
+CODE_AND_DATA_CACHE_ASSOCS="2 4"
 
 
 #do the variable code size
