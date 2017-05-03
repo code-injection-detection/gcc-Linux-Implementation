@@ -174,6 +174,10 @@
 #define add_the_padded_nops_in_the_mac_in_fixed_size 1
 #endif				//counts the mac invokations in order to calculate delay due to macs
 
+#ifndef force_code_block_split_on_labels_and_calls
+#define force_code_block_split_on_labels_and_calls 0
+#endif				//does everything properly (+ splits the blocks), but does not add verification code
+
 
 
 #include "crypto_functions.h"

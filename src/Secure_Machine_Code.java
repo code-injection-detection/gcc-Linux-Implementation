@@ -55,6 +55,7 @@ public class Secure_Machine_Code {
 		int cnt_for_useful_bytes=0;
 		boolean do_not_mac_what_we_add_in_code=true;
 		boolean ignore_macs_even_if_there_are_mac_bytes=false;
+		boolean force_code_block_split_on_labels_and_calls=false;
 		
 		MessageDigest md = MessageDigest.getInstance("SHA-256");
 		FileInputStream fr = new FileInputStream(new File(filename));
@@ -70,7 +71,7 @@ public class Secure_Machine_Code {
 		boolean squeeze_keys_when_macing=false;
 		boolean add_the_padded_nops_in_the_mac_in_fixed_size=false;
 		
-		if (args.length==14)
+		if (args.length==15)
 		{
 			number_of_interleaved_keys=Integer.parseInt(args[0]);
 			num_of_keys_in_heap=number_of_interleaved_keys;
@@ -111,6 +112,11 @@ public class Secure_Machine_Code {
 				add_the_padded_nops_in_the_mac_in_fixed_size=false;
 			else
 				add_the_padded_nops_in_the_mac_in_fixed_size=true;
+			
+			if (Integer.parseInt(args[14])==0)
+				force_code_block_split_on_labels_and_calls=false;
+			else
+				force_code_block_split_on_labels_and_calls=true;
 		}
 		else
 		{
@@ -300,7 +306,7 @@ public class Secure_Machine_Code {
 						}
 						for (int cnt_in_old_mac=0;cnt_in_old_mac<all_bytes_length;cnt_in_old_mac++)
 						{
-							if (check_code_verification_on_the_fly && !ignore_macs_even_if_there_are_mac_bytes && cnt_in_old_mac<length_of_verifier)
+							if (check_code_verification_on_the_fly && !ignore_macs_even_if_there_are_mac_bytes && !force_code_block_split_on_labels_and_calls && cnt_in_old_mac<length_of_verifier)
 							{
 								; //do nothing
 							}

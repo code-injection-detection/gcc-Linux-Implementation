@@ -71,8 +71,10 @@ for line in src_lines:
 	if '#define count_mac_invocations' in line:
 		newline='#define count_mac_invocations '+sys.argv[25]+'\n'
 	if '#define add_the_padded_nops_in_the_mac_in_fixed_size' in line:
-		newline='#define add_the_padded_nops_in_the_mac_in_fixed_size '+sys.argv[26]+'\n'		
-		
+		newline='#define add_the_padded_nops_in_the_mac_in_fixed_size '+sys.argv[26]+'\n'
+	if '#define force_code_block_split_on_labels_and_calls' in line:
+		newline='#define force_code_block_split_on_labels_and_calls '+sys.argv[27]+'\n'		
+					
 	headers_dst.write(newline)
 
 
