@@ -13,6 +13,8 @@ import java.io.*;
  */
 public class Secure_Assembly {
 	
+	private static ArrayList<String> hashmap_of_assemby_sizes;
+
 	public static void main(String[] args) throws Exception
 	{
 		//use this if executing manually
@@ -47,6 +49,7 @@ public class Secure_Assembly {
 		String ramtmp_file="";
 		boolean ignore_macs_even_if_there_are_mac_bytes=false;
 		ArrayList<String> list_of_assembly_sizes = new ArrayList<String>();
+		HashMap<String,Integer> hashmap_of_assembly_sizes =  new HashMap<String, Integer>();
 		boolean force_code_block_split_on_labels_and_calls=false;
 		
 
@@ -126,6 +129,7 @@ public class Secure_Assembly {
 				    list_of_assembly_sizes.add(s.nextLine());
 				}
 				s.close();
+				add_the_assembly_sizes_to_the_hashmap(list_of_assembly_sizes,hashmap_of_assembly_sizes);
 			}
 		}
 		
@@ -223,7 +227,7 @@ public class Secure_Assembly {
 						line_to_check_size=cmd+".d32\t"+operands;
 					}
 					//find size of command
-					size_of_current_cmd=get_size_of_assembly_command(line_to_check_size,ramtmp_file,list_of_assembly_sizes);
+					size_of_current_cmd=get_size_of_assembly_command(line_to_check_size,ramtmp_file,list_of_assembly_sizes,hashmap_of_assembly_sizes);
 					//see if we should add it (only if it does not exceed the size of the fixed chunk)
 					int bytes_to_subtract=2; /*jmp*/
 					if ((check_code_verification_on_the_fly && !ignore_macs_even_if_there_are_mac_bytes) || (force_code_block_split_on_labels_and_calls)) //think that there is a verifier if we force block split
@@ -416,11 +420,24 @@ public class Secure_Assembly {
 		return line;
 	}
 	
+	static void add_the_assembly_sizes_to_the_hashmap(ArrayList<String> list_of_assembly_sizes, HashMap<String,Integer> hashmap_of_assembly_sizes)
+	{
+		for (int i=0;i<list_of_assembly_sizes.size();i++)
+		{
+			String[] parts = list_of_assembly_sizes.get(i).split("-->");
+			String command=parts[0];
+			String sz=parts[1];
+			hashmap_of_assembly_sizes.put(command.trim(), Integer.parseInt(sz.trim()));
+		}
+	}
+	
 	//-1=not found
 	//else returns the place of the cmd
-	static int find_cmd_size_in_known_sizes(String cmd, ArrayList<String> list_of_assembly_sizes)
+	static int find_cmd_size_in_known_sizes(String cmd, ArrayList<String> list_of_assembly_sizes,HashMap<String,Integer> hashmap_of_assembly_sizes)
 	{
 		int i;
+		/*
+		//using the list of the strings
 		for (i=0;i<list_of_assembly_sizes.size();i++)
 		{
 			//find the actual command
@@ -428,13 +445,22 @@ public class Secure_Assembly {
 			String command=parts[0];
 			String sz=parts[1];
 			if (command.trim().equals(cmd.trim()))
+			{
+				Collections.swap(list_of_assembly_sizes,i,(int )(Math.random() * 100 + 1)); //set it near the top
 				return Integer.parseInt(sz.trim());
+			}
 		}
-		return -1;
+		*/
+		//using the hashmap
+		Integer sz=hashmap_of_assembly_sizes.get(cmd.trim());
+		if (sz==null)	
+			return -1;
+		else
+			return sz;
 	}
 	
 	
-	static int get_size_of_assembly_command(String cmd,String ramtmp_file,ArrayList<String> list_of_assembly_sizes) throws IOException, InterruptedException
+	static int get_size_of_assembly_command(String cmd,String ramtmp_file,ArrayList<String> list_of_assembly_sizes,HashMap<String,Integer> hashmap_of_assembly_sizes) throws IOException, InterruptedException
 	{
 		String line=cmd.trim().replace("\t", " ");
 		int size=0;
@@ -450,7 +476,7 @@ public class Secure_Assembly {
 				"echo '"+line+"' | as -o "+ramtmp_file+" && objdump -d "+ramtmp_file+" | "+size_calculator_filename
 				};
 
-		int is_size_found=find_cmd_size_in_known_sizes(cmd,list_of_assembly_sizes);
+		int is_size_found=find_cmd_size_in_known_sizes(cmd,list_of_assembly_sizes,hashmap_of_assembly_sizes);
 		if (is_size_found>-1)
 			return (is_size_found);
 		
@@ -472,6 +498,7 @@ public class Secure_Assembly {
 		size=Integer.parseInt(size_as_str);	
 		
 		list_of_assembly_sizes.add(cmd+" --> "+size_as_str);
+		hashmap_of_assembly_sizes.put(cmd.trim(), size);
 		return size;
 	}
 	
