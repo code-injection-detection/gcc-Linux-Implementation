@@ -1,0 +1,57 @@
+Initializing crypto structures.
+Crypto structures initialized.
+Initializing heap memory
+bytes_to_allocate_on_start:50000
+Init_mem, alloc+key insertion
+Whoops. We need to allocate a bit more space.
+If successful, total bytes allocated:50008
+Initializing stack memory
+Stack bytes_to_allocate_on_start:55000000
+Init_stack_mem, alloc+key insertion
+Stack: Whoops. We need to allocate a bit more space.
+If successful, total bytes allocated:55000008
+My pid=31263
+a b c d e 
+x=3
+a b c n e 
+x=11
+
+New Secure matrix_multiplication_sec time:4952.34 cpu seconds
+base_pointer:0, entire_stack:140554882523152, last_unused_stack_memory=140554882523152
+
+Going to find keyshares.
+Total key groups found in code:11438
+
+key no0=0x5c
+key no1=0xc8
+key no2=0xcf
+key no3=0x95
+key no4=0xae
+key no5=0xa3
+key no6=0x93
+key no7=0x07
+key no8=0x01
+key no9=0x28
+key no10=0x81
+key no11=0x95
+key no12=0x69
+key no13=0x5e
+key no14=0x3f
+key no15=0x79
+key no16=0x99
+key no17=0x21
+key no18=0x5e
+key no19=0xc6
+key no20=0x03
+key no21=0x27
+key no22=0x61
+key no23=0x62
+key no24=0x5f
+key no25=0x93
+key no26=0xd9
+key no27=0x3d
+key no28=0xcf
+key no29=0x96
+key no30=0x4e
+key no31=0xff
+
