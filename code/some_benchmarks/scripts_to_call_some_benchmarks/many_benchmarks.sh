@@ -136,6 +136,37 @@ for var_size in ${VARIABLE_CODE_SIZE_NUMBERS}; do
 		echo -n ${NAME_OF_BENCHMARK} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
 		${ORIGINAL_DIR}/get_the_seconds.py ${NAME_OF_FILE} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
 	fi
+	
+	#ignoring macs but we force block split
+	NAME_OF_BENCHMARK="MACS_IGNORED_BUT_WE_FORCE_CODE_BLOCK_SPLIT_VAR_SIZE_${var_size}"
+	echo ${NAME_OF_BENCHMARK}
+	NAME_OF_FILE=${BENCH_RESULTS_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}.txt
+	NAME_OF_EXEC=${SECURE_EXEC_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}_ksec
+	NAME_OF_ALL_KEYSHARES_FOR_VERIF=${SECURE_EXEC_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}_all_keyshares
+	NAME_OF_HEAP_KEYSHARES=${SECURE_EXEC_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}_heap_keyshares
+	NAME_OF_STACK_KEYSHARES=${SECURE_EXEC_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}_stack_keyshares
+	cd ${PATH_TO_AUTOMATE_SH}
+	cp ${ORIGINAL_DIR}/automate_template.sh ${PATH_TO_AUTOMATE_SH}/automate.sh
+	sed -i 's/IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES=0/IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES=1/' automate.sh
+	sed -i 's/ADD_CODE_ON_THE_FLY_VERIFICATION=1/ADD_CODE_ON_THE_FLY_VERIFICATION=0/' automate.sh
+	sed -i 's/FORCE_CODE_BLOCK_SPLIT_ON_LABELS_AND_CALLS=0/FORCE_CODE_BLOCK_SPLIT_ON_LABELS_AND_CALLS=1/' automate.sh
+	if [[ ( "$PRODUCE_SECURE_EXEC" -eq 1 ) ]]; then
+		./automate.sh 32 ${var_size} 3 8 ${SECURE_HEAP_SIZE} 8 ${SECURE_STACK_SIZE} 8 16 >/dev/null
+		cp ./main_program_ksec ${NAME_OF_EXEC}
+		cp heap_keyshares ${NAME_OF_HEAP_KEYSHARES}
+		cp stack_keyshares ${NAME_OF_STACK_KEYSHARES}
+		cp all_keyshares_for_verification ${NAME_OF_ALL_KEYSHARES_FOR_VERIF}
+	else
+		cp ${NAME_OF_EXEC} ./main_program_ksec
+		cp ${NAME_OF_HEAP_KEYSHARES} heap_keyshares
+		cp ${NAME_OF_STACK_KEYSHARES} stack_keyshares
+		cp ${NAME_OF_ALL_KEYSHARES_FOR_VERIF} all_keyshares_for_verification
+	fi
+	if [[ ( "$RUN_SECURE_EXEC" -eq 1 ) ]]; then
+		time ./main_program_ksec | tee ${NAME_OF_FILE}_whole_output.txt | grep "New Secure ${NAME_OF_SECURE_FUNCTION} time:" >  ${NAME_OF_FILE}
+		echo -n ${NAME_OF_BENCHMARK} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
+		${ORIGINAL_DIR}/get_the_seconds.py ${NAME_OF_FILE} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
+	fi
 
 	#ignoring macs at the last moment
 	NAME_OF_BENCHMARK="IGNORING_MACS_AT_LAST_MOMENT_VAR_SIZE_${var_size}"
@@ -329,6 +360,37 @@ for FIXED_SIZE in ${FIXED_CODE_SIZE_NUMBERS}; do
 		${ORIGINAL_DIR}/get_the_seconds.py ${NAME_OF_FILE} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
 	fi
 
+	
+	#ignoring macs but we force code block split
+	NAME_OF_BENCHMARK="MACS_IGNORED_BUT_WE_FORCE_CODE_BLOCK_SPLIT_FIXED_SIZE_${FIXED_SIZE}"
+	echo ${NAME_OF_BENCHMARK}
+	NAME_OF_FILE=${BENCH_RESULTS_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}.txt
+	NAME_OF_EXEC=${SECURE_EXEC_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}_ksec
+	NAME_OF_ALL_KEYSHARES_FOR_VERIF=${SECURE_EXEC_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}_all_keyshares
+	NAME_OF_HEAP_KEYSHARES=${SECURE_EXEC_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}_heap_keyshares
+	NAME_OF_STACK_KEYSHARES=${SECURE_EXEC_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}_stack_keyshares
+	cd ${PATH_TO_AUTOMATE_SH}
+	cp ${ORIGINAL_DIR}/automate_template.sh ${PATH_TO_AUTOMATE_SH}/automate.sh
+	sed -i 's/IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES=0/IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES=1/' automate.sh
+	sed -i 's/ADD_CODE_ON_THE_FLY_VERIFICATION=1/ADD_CODE_ON_THE_FLY_VERIFICATION=0/' automate.sh
+	sed -i 's/FORCE_CODE_BLOCK_SPLIT_ON_LABELS_AND_CALLS=0/FORCE_CODE_BLOCK_SPLIT_ON_LABELS_AND_CALLS=1/' automate.sh
+	if [[ ( "$PRODUCE_SECURE_EXEC" -eq 1 ) ]]; then
+		./automate.sh 32 ${MAX_NUM_OF_CMDS_IN_FIXED} 3 8 ${SECURE_HEAP_SIZE} 8 ${SECURE_STACK_SIZE} 8 16 ${FIXED_SIZE} >/dev/null
+		cp ./main_program_ksec ${NAME_OF_EXEC}
+		cp heap_keyshares ${NAME_OF_HEAP_KEYSHARES}
+		cp stack_keyshares ${NAME_OF_STACK_KEYSHARES}
+		cp all_keyshares_for_verification ${NAME_OF_ALL_KEYSHARES_FOR_VERIF}
+	else
+		cp ${NAME_OF_EXEC} ./main_program_ksec
+		cp ${NAME_OF_HEAP_KEYSHARES} heap_keyshares
+		cp ${NAME_OF_STACK_KEYSHARES} stack_keyshares
+		cp ${NAME_OF_ALL_KEYSHARES_FOR_VERIF} all_keyshares_for_verification
+	fi
+	if [[ ( "$RUN_SECURE_EXEC" -eq 1 ) ]]; then
+		time ./main_program_ksec | tee ${NAME_OF_FILE}_whole_output.txt | grep "New Secure ${NAME_OF_SECURE_FUNCTION} time:" >  ${NAME_OF_FILE}
+		echo -n ${NAME_OF_BENCHMARK} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
+		${ORIGINAL_DIR}/get_the_seconds.py ${NAME_OF_FILE} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
+	fi
 
 	#ignoring macs at the last moment
 	NAME_OF_BENCHMARK="IGNORING_MACS_AT_LAST_MOMENT_FIXED_SIZE_${FIXED_SIZE}"

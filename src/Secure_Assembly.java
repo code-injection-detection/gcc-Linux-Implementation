@@ -226,7 +226,7 @@ public class Secure_Assembly {
 					size_of_current_cmd=get_size_of_assembly_command(line_to_check_size,ramtmp_file,list_of_assembly_sizes);
 					//see if we should add it (only if it does not exceed the size of the fixed chunk)
 					int bytes_to_subtract=2; /*jmp*/
-					if (check_code_verification_on_the_fly && (!ignore_macs_even_if_there_are_mac_bytes || (force_code_block_split_on_labels_and_calls && ignore_macs_even_if_there_are_mac_bytes))) //think that there is a verifier if we force block split
+					if ((check_code_verification_on_the_fly && !ignore_macs_even_if_there_are_mac_bytes) || (force_code_block_split_on_labels_and_calls)) //think that there is a verifier if we force block split
 						bytes_to_subtract+=7; /*size of verifier for fixed size blocks*/
 					//if the size of the current command is bigger than we can accommodate
 					if (size_of_current_cmd> num_of_bytes_in_code_chunk-bytes_to_subtract)
@@ -249,7 +249,7 @@ public class Secure_Assembly {
 				
 								
 				//if we have exhausted the group of commands, we need to add a jump and nops, and a label after them
-				if (force_end_of_block || i == num_of_grouped_orig_instr || ((!ignore_macs_even_if_there_are_mac_bytes || (force_code_block_split_on_labels_and_calls && ignore_macs_even_if_there_are_mac_bytes)) && check_code_verification_on_the_fly && /*label with .L<numbers> */Pattern.compile("^[ \t]*\\.L[0123456789]+:$").matcher(line).matches() ))
+				if (force_end_of_block || i == num_of_grouped_orig_instr || (((!ignore_macs_even_if_there_are_mac_bytes  && check_code_verification_on_the_fly) || force_code_block_split_on_labels_and_calls)  && /*label with .L<numbers> */Pattern.compile("^[ \t]*\\.L[0123456789]+:$").matcher(line).matches() ))
 				{
 					force_end_of_block=false;
 					num_of_bytes_in_current_block=0;
@@ -297,7 +297,7 @@ public class Secure_Assembly {
 					continue;
 				}
 				
-				if (check_code_verification_on_the_fly && (!ignore_macs_even_if_there_are_mac_bytes || (force_code_block_split_on_labels_and_calls && ignore_macs_even_if_there_are_mac_bytes))/*we should force end of block even if we ignore mac verification??? */ && line.trim().startsWith("call") && function_is_one_of_the_hardware_ones(line.trim().split("\t")[1].trim())==false) //call should mark the end of a block, except if it is a secure getter/setter
+				if (((check_code_verification_on_the_fly && !ignore_macs_even_if_there_are_mac_bytes) || force_code_block_split_on_labels_and_calls)/*we should force end of block even if we ignore mac verification??? */ && line.trim().startsWith("call") && function_is_one_of_the_hardware_ones(line.trim().split("\t")[1].trim())==false) //call should mark the end of a block, except if it is a secure getter/setter
 				{
 					list_of_lines.add(line);
 					i++;
