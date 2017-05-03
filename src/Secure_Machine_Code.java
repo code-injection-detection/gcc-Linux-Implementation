@@ -377,6 +377,8 @@ public class Secure_Machine_Code {
 	    				num_of_keys_in_heap,
 						num_of_mac_bytes);
 	    //Now we don't care about the useful chunks, but the keys ( whose groups are the same as the number of chunks)
+    	//important: the next array can be up to 2gb of size, write the bytes one by one if you need more size
+	    byte[] heap_keys_to_be_written=new byte[(int)useful_chunks_in_heap*(int)number_of_interleaved_keys];
 	    for (int i=0;i<useful_chunks_in_heap;i++)
 	    {
 		    //insert into heap_keyshares file
@@ -386,9 +388,11 @@ public class Secure_Machine_Code {
 		    	byte[] temparray=new byte[1];
 		    	temparray[0]=temp;
 		    	keys[j].add(temp);
-		    	heap_keyshares_file.write(temparray);
+		    	heap_keys_to_be_written[i*number_of_interleaved_keys+j]=temp;
+		    	//heap_keyshares_file.write(temparray); //write bytes one my one if heap > 2gb
 			}
 	    }
+	    heap_keyshares_file.write(heap_keys_to_be_written);
 	    
 	    //inserting keyshares into stack keyshare file
 	    useful_chunks_in_stack=find_useful_chunks_needed_to_allocate_in_mem(
@@ -397,6 +401,8 @@ public class Secure_Machine_Code {
 	    				num_of_keys_in_stack,
 						num_of_mac_bytes);
 	    //Now we don't care about the useful chunks, but the keys
+	    //max size of next array: 2gb!
+	    byte[] stack_keys_to_be_written=new byte[(int)useful_chunks_in_stack*(int)number_of_interleaved_keys];
 	    for (int i=0;i<useful_chunks_in_stack;i++)
 	    {
 		    //insert into stack_keyshares file
@@ -406,9 +412,11 @@ public class Secure_Machine_Code {
 		    	byte[] temparray=new byte[1];
 		    	temparray[0]=temp;
 		    	keys[j].add(temp);
-		    	stack_keyshares_file.write(temparray);
+		    	stack_keys_to_be_written[i*number_of_interleaved_keys+j]=temp;
+		    	//stack_keyshares_file.write(temparray);
 			}
 	    }
+	    stack_keyshares_file.write(stack_keys_to_be_written);
 	    
 	    
 	    //taking into account the global keyshares as well
