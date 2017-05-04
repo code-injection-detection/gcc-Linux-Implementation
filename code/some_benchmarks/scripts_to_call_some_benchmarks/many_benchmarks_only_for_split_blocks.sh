@@ -4,8 +4,8 @@
 #put this script somewhere outside of the repo directory
 PATH_TO_AUTOMATE_SH=/home/menoobs/virus_detection/gcc-Linux-Implementation/code/
 ORIGINAL_DIR=`pwd`
-NAME_OF_SECURE_FUNCTION=find_primes_up_to_a_number
-BENCHMARK_NAME=primes_150k_test_squeezed_keys_with_padded_nops_maced
+NAME_OF_SECURE_FUNCTION=calc_determinant_sec
+BENCHMARK_NAME=calc_det_11_squeezed_keys_with_padded_nops_maced
 
 CODE_CACHE_TYPE=2  #0 -> fully assosiative
 				   #1 -> direct mapped
@@ -15,8 +15,8 @@ DATA_CACHE_TYPE=2  #0 -> fully assosiative
 				   #2 -> set assosiative
 CODE_CACHE_ASSOC=2
 DATA_CACHE_ASSOC=2
-SECURE_HEAP_SIZE=7000000
-SECURE_STACK_SIZE=50000
+SECURE_HEAP_SIZE=200000
+SECURE_STACK_SIZE=2000000
 MAX_NUM_OF_CMDS_IN_FIXED=35
 TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES=0
 CALC_TIME_WITH_SEPARATE_MAC_ADDITION=1
@@ -39,6 +39,7 @@ if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 0 ) ]]; then #the "1" part i
 	sed -i 's/COUNT_MAC_INVOCATIONS=1/COUNT_MAC_INVOCATIONS=0/' ${ORIGINAL_DIR}/backup_automate.sh
 fi
 
+<<COMMENT
 if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 1) && ( "$RUN_SECURE_EXEC" -eq 1 ) ]]; then #calculate proper mac times
 	cd ${PATH_TO_AUTOMATE_SH}
 	sed -i 's/COUNT_MAC_INVOCATIONS=1/COUNT_MAC_INVOCATIONS=0/' ./automate.sh
@@ -47,7 +48,7 @@ if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 1) && ( "$RUN_SECURE_EXEC" -
 	time ./mac_time_calculator > mac_invocation_times.txt
 	cd ${ORIGINAL_DIR}
 fi
-
+COMMENT
 
 #create benchmakrs dir
 mkdir -p ${ORIGINAL_DIR}/${NAME_OF_SECURE_FUNCTION}_${BENCHMARK_NAME}
