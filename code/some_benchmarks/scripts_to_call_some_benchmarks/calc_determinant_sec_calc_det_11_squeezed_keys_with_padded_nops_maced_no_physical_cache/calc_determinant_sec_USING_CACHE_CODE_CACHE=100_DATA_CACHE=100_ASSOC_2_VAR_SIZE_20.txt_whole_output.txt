@@ -1,0 +1,128 @@
+Initializing crypto structures.
+Crypto structures initialized.
+Initializing heap memory
+bytes_to_allocate_on_start:100000
+Init_mem, alloc+key insertion
+Whoops. We need to allocate a bit more space.
+If successful, total bytes allocated:100016
+Initializing stack memory
+Stack bytes_to_allocate_on_start:2000000
+Init_stack_mem, alloc+key insertion
+Stack: Whoops. We need to allocate a bit more space.
+If successful, total bytes allocated:2000040
+My pid=4234
+a b c d e 
+x=3
+a b c n e 
+x=11
+Here's the matrix for determinant calculation:
+5 3 3 11 4 10 6 9 7 17 17 
+16 13 3 16 13 2 14 4 6 1 10 
+8 8 14 6 9 4 5 2 4 2 5 
+19 13 9 9 11 10 9 1 7 17 6 
+2 13 0 17 7 4 3 8 6 12 16 
+13 18 17 9 15 11 5 17 16 16 2 
+17 18 5 7 7 18 6 4 5 1 9 
+17 18 16 13 1 16 12 5 4 17 15 
+1 6 2 4 12 11 12 0 5 9 18 
+11 8 5 1 6 1 6 7 10 15 5 
+6 9 19 2 1 4 6 10 0 19 16 
+Determinant=-4802940486084
+
+New Secure calc_determinant_sec time:154.244 cpu seconds
+base_pointer:0, entire_stack:140059158036496, last_unused_stack_memory=140059158036496
+
+Going to find keyshares.
+Total key groups found in code:1473
+
+key no0=0xcf
+key no1=0xe1
+key no2=0xd9
+key no3=0x49
+key no4=0x6d
+key no5=0x0c
+key no6=0xc3
+key no7=0x08
+key no8=0x6a
+key no9=0x6d
+key no10=0x53
+key no11=0x0b
+key no12=0xdd
+key no13=0x0c
+key no14=0x87
+key no15=0x7d
+key no16=0xc2
+key no17=0x71
+key no18=0x28
+key no19=0x12
+key no20=0xdf
+key no21=0xb2
+key no22=0x69
+key no23=0x16
+key no24=0x0f
+key no25=0x9b
+key no26=0x30
+key no27=0x13
+key no28=0xfc
+key no29=0x51
+key no30=0xe9
+key no31=0x22
+
+
+Mac invocation, length:17, number:1
+
+Mac invocation, length:19, number:1
+
+Mac invocation, length:24, number:319983112
+
+Mac invocation, length:30, number:1
+
+Mac invocation, length:34, number:6652800
+
+Mac invocation, length:44, number:2
+
+Mac invocation, length:49, number:1
+
+Mac invocation, length:51, number:2
+
+Mac invocation, length:55, number:1
+
+Mac invocation, length:57, number:6652800
+
+Mac invocation, length:61, number:1
+
+Mac invocation, length:68, number:1
+
+Mac invocation, length:89, number:1
+
+Mac invocation, length:98, number:2
+
+Mac invocation, length:100, number:1
+
+Mac invocation, length:102, number:13305600
+
+Mac invocation, length:105, number:1
+
+Mac invocation, length:107, number:4
+
+Mac invocation, length:109, number:1
+
+Mac invocation, length:110, number:6652800
+
+Mac invocation, length:111, number:6652801
+
+Mac invocation, length:112, number:6652800
+
+Mac invocation, length:113, number:3
+
+Mac invocation, length:114, number:1
+
+Mac invocation, length:115, number:1
+
+Mac invocation, length:120, number:1
+
+Mac invocation, length:124, number:1
+
+Mac invocation, length:126, number:1
+
+Mac invocation, length:132, number:1
