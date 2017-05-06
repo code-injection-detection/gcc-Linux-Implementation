@@ -1,1 +1,1 @@
-New Secure calc_determinant_sec time:26.4086 cpu seconds
+New Secure calc_determinant_sec time:26.4677 cpu seconds

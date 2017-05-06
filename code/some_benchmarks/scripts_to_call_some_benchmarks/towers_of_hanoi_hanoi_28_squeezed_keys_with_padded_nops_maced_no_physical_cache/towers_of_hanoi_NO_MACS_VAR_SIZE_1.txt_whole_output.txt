@@ -1,0 +1,57 @@
+Initializing crypto structures.
+Crypto structures initialized.
+Initializing heap memory
+bytes_to_allocate_on_start:100000
+Init_mem, alloc+key insertion
+Great!. No need to allocate more than the defined amount.
+If successful, total bytes allocated:100000
+Initializing stack memory
+Stack bytes_to_allocate_on_start:400000
+Init_stack_mem, alloc+key insertion
+Stack: Great!. No need to allocate more than the defined amount.
+If successful, total bytes allocated:400000
+My pid=25339
+a b c d e 
+x=3
+a b c n e 
+x=11
+
+New Secure towers_of_hanoi time:22.1041 cpu seconds
+base_pointer:0, entire_stack:139857751519248, last_unused_stack_memory=139857751519248
+
+Going to find keyshares.
+Total key groups found in code:10902
+
+key no0=0x91
+key no1=0x29
+key no2=0x62
+key no3=0x2f
+key no4=0x4a
+key no5=0x21
+key no6=0x76
+key no7=0x69
+key no8=0xc7
+key no9=0x68
+key no10=0x38
+key no11=0x1f
+key no12=0x09
+key no13=0x7c
+key no14=0x58
+key no15=0xec
+key no16=0xfd
+key no17=0x98
+key no18=0xd1
+key no19=0xb4
+key no20=0xc2
+key no21=0x1f
+key no22=0xee
+key no23=0xba
+key no24=0xf8
+key no25=0x62
+key no26=0xbf
+key no27=0xd3
+key no28=0x60
+key no29=0xcc
+key no30=0xa5
+key no31=0xa4
+

@@ -10,7 +10,7 @@ Stack bytes_to_allocate_on_start:2000000
 Init_stack_mem, alloc+key insertion
 Stack: Whoops. We need to allocate a bit more space.
 If successful, total bytes allocated:2000040
-My pid=27781
+My pid=4364
 a b c d e 
 x=3
 a b c n e 
@@ -29,8 +29,8 @@ Here's the matrix for determinant calculation:
 6 9 19 2 1 4 6 10 0 19 16 
 Determinant=-4802940486084
 
-New Secure calc_determinant_sec time:121.844 cpu seconds
-base_pointer:0, entire_stack:140193546588176, last_unused_stack_memory=140193546588176
+New Secure calc_determinant_sec time:125.976 cpu seconds
+base_pointer:0, entire_stack:140464149643280, last_unused_stack_memory=140464149643280
 
 Going to find keyshares.
 Total key groups found in code:1602
