@@ -179,6 +179,11 @@
 #endif				//does everything properly (+ splits the blocks), but does not add verification code
 
 
+#ifndef use_code_cache_with_unsplit_blocks
+#define use_code_cache_with_unsplit_blocks 0
+#endif				//EXPERIMENTAL: The code blocks that are cached are cached if being unsplit
+
+
 
 #include "crypto_functions.h"
 #include "secure_getters_setters.h"

@@ -4,6 +4,7 @@ aes
 sha256
 *sec
 *.s
+addresses_of_unsplit_blocks.txt
 assembly_sizes.txt
 a.out
 assembly_commands_for_parsing.txt

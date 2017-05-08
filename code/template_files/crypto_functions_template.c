@@ -39,7 +39,11 @@ int data_cache_latest_index;
 unsigned char keys_temp_space[1024];
 char count_mac_invocations_in_this_code_part=0;
 long long mac_size_invocation_counters[1024];
-
+long addresses_of_unsplit_blocks[10000];
+int num_of_addresses_of_unsplit_blocks;
+FILE *unsplit_block_addr_file;
+long addr_of_first_block_of_code;
+void find_addr_of_first_block_of_code();
 
 void init_crypto_stuctures(int print)
 {
@@ -89,6 +93,26 @@ void init_crypto_stuctures(int print)
 			mac_size_invocation_counters[i]=0;
 		count_mac_invocations_in_this_code_part=0;
 	#endif
+	if(use_code_cache_with_unsplit_blocks)
+	{
+		unsplit_block_addr_file=fopen("./addresses_of_unsplit_blocks.txt","r");
+		if (unsplit_block_addr_file==NULL)
+		{
+			fprintf(stderr,"!!!!!!!!!!!!!!!!File addresses_of_unsplit_blocks.txt not found!!!!!!!!!!!!!!!!!!!!!!\n");
+		}
+		else
+		{
+			num_of_addresses_of_unsplit_blocks=0;
+			while (!feof(unsplit_block_addr_file))
+			{
+				int scanf_retval=fscanf(unsplit_block_addr_file,"%ld",&addresses_of_unsplit_blocks[num_of_addresses_of_unsplit_blocks]);
+				if (scanf_retval>0)	
+					num_of_addresses_of_unsplit_blocks++;
+			}
+			find_addr_of_first_block_of_code();
+		}
+	}
+	
 	if (print)
 		printf("Crypto structures initialized.\n");
 }
@@ -105,6 +129,71 @@ void squeeze_bytes_in_place(unsigned char * arr,int length_of_array)
 	{
 		arr[i]=arr[2*i];
 	}
+}
+
+extern char __executable_start;   //in order to find limits of .text section in ELF files.
+extern char __etext;
+//checks the next <number_of_canaries> to see if they hold the canary value
+int check_the_next_canaries(void* p)
+{
+	int i;
+	for (i=0;i<number_of_canaries;i++)
+	{
+		if ( *((unsigned char*)p+i)!=(unsigned char)(canary_value))
+			return 0;
+	}
+	return 1;
+}
+
+void find_addr_of_first_block_of_code()
+{
+	unsigned char *p;
+	unsigned char* start_of_text=(unsigned char*)&__executable_start;  //we get the limits of .text section
+	unsigned char* end_of_text=(unsigned char*)&__etext;
+	int bytes_for_instr_len=1;
+	
+	for (p=start_of_text;p<=end_of_text;p++)
+	{
+		if (*p==0xEB && *(p+1)==(number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len+get_number_of_padded_nops(p)) && check_the_next_canaries(p+2)) //JMP <number of keys>+<number_of_canaries>+<number_of_mac_bytes>+<bytes_for_instr_len>
+		{
+			int length_of_useful_data=*(p+2+number_of_canaries);
+			addr_of_first_block_of_code=(long) (p-(length_of_useful_data-2));
+			break;
+		}
+	}
+}
+
+#define addr_in_code_as_offset_of_fist_block_addr(index) (addresses_of_unsplit_blocks[index]+addr_of_first_block_of_code)
+int find_addr_in_unsplit_blocks_addresses(unsigned char * address) //binary search!
+{
+	int first=0;
+	int last=num_of_addresses_of_unsplit_blocks-1;
+	int middle=(first+last)/2;
+	int iter=0;
+	long addr=(long)address;
+	
+	if (addr>addr_in_code_as_offset_of_fist_block_addr(last))
+		return last;
+		
+	while (first < last-1) 
+	{
+		if (addr_in_code_as_offset_of_fist_block_addr(middle) < addr)
+			first = middle;    
+		else if (addr_in_code_as_offset_of_fist_block_addr(middle) == addr) 
+		{
+			return middle;
+		}
+		else
+			last = middle;
+
+		middle = (first + last)/2;
+	}
+	if (addr>=addr_in_code_as_offset_of_fist_block_addr(last))
+		return last;
+	if (addr>=addr_in_code_as_offset_of_fist_block_addr(first))
+		return first;
+	else
+		fprintf(stderr,"ERROR in binary search!!\n");
 }
 
 void calc_and_set_mac_of_data(unsigned char *input,int length_all,int length_useful,unsigned char *output)
@@ -821,6 +910,12 @@ void init_code_cache()
 	}
 }
 
+#if use_code_cache_with_unsplit_blocks==1
+	#define mapped_code_addr(addr) (find_addr_in_unsplit_blocks_addresses(addr))
+#else
+	#define mapped_code_addr(addr) (addr)
+#endif
+
 #if code_cache_type==0
 /*Fully assosiative cache*/
 
@@ -841,7 +936,7 @@ int search_code_address_in_cache(unsigned char * addr)
 	{
 		for(i=num_of_cached_blocks_of_code-1;i>=0;i--)
 		{
-			if (code_cache[i]==(long) addr)
+			if (code_cache[i]==(long) mapped_code_addr(addr))
 			return i;
 		}
 	}
@@ -849,12 +944,12 @@ int search_code_address_in_cache(unsigned char * addr)
 	{
 		for (i=code_cache_latest_index-1;i>=0;i--) 
 		{
-			if (code_cache[i]==(long) addr)
+			if (code_cache[i]==(long) mapped_code_addr(addr))
 				return i;
 		}
 		for(i=num_of_cached_blocks_of_code-1;i>=code_cache_latest_index;i--)
 		{
-			if (code_cache[i]==(long) addr)
+			if (code_cache[i]==(long) mapped_code_addr(addr))
 			return i;
 		}
 	}
@@ -865,7 +960,7 @@ void add_addr_to_code_cache(unsigned char * addr)
 {
 	if (num_of_cached_blocks_of_code>0)
 	{
-		code_cache[code_cache_latest_index]=(long)addr;
+		code_cache[code_cache_latest_index]=(long)mapped_code_addr(addr);
 		inc_code_cache_index();
 	}
 }
@@ -878,7 +973,8 @@ void add_addr_to_code_cache(unsigned char * addr)
 #if use_fixed_size_chunks_of_code==1
 	#define size_of_full_block_of_code (number_of_mac_bytes+number_of_interleaved_keys+num_of_bytes_in_code_chunk+number_of_canaries+1)  //that is make sure adjacent blocks will not hit the same place in the cache
 #endif
-#if use_fixed_size_chunks_of_code==0
+#if use_fixed_size_chunks_of_code==0 || use_code_cache_with_unsplit_blocks==1
+	#undef size_of_full_block_of_code
 	#define size_of_full_block_of_code (1)
 #endif
 
@@ -886,8 +982,8 @@ int search_code_address_in_cache(unsigned char * addr)
 {
 	int i;
 	//check if addr is in cache.
-	if (code_cache[((long)addr/size_of_full_block_of_code)%num_of_cached_blocks_of_code]==(long)addr)
-		return (((long)addr/size_of_full_block_of_code)%num_of_cached_blocks_of_code);
+	if (code_cache[((long)mapped_code_addr(addr)/size_of_full_block_of_code)%num_of_cached_blocks_of_code]==(long)mapped_code_addr(addr))
+		return (((long)mapped_code_addr(addr)/size_of_full_block_of_code)%num_of_cached_blocks_of_code);
 	return -1;
 }
 
@@ -895,7 +991,7 @@ void add_addr_to_code_cache(unsigned char * addr)
 {
 	if (num_of_cached_blocks_of_code>0)
 	{
-		code_cache[((long)addr/size_of_full_block_of_code)%num_of_cached_blocks_of_code]=(long)addr;
+		code_cache[((long)mapped_code_addr(addr)/size_of_full_block_of_code)%num_of_cached_blocks_of_code]=(long)mapped_code_addr(addr);
 	}
 }
 #endif //direct mapped end
@@ -908,7 +1004,8 @@ void add_addr_to_code_cache(unsigned char * addr)
 #if use_fixed_size_chunks_of_code==1
 	#define size_of_full_block_of_code (number_of_mac_bytes+number_of_interleaved_keys+num_of_bytes_in_code_chunk+number_of_canaries+1)  //that is make sure adjacent blocks will not hit the same place in the cache
 #endif
-#if use_fixed_size_chunks_of_code==0
+#if use_fixed_size_chunks_of_code==0 || use_code_cache_with_unsplit_blocks==1
+	#undef size_of_full_block_of_code
 	#define size_of_full_block_of_code (1)
 #endif
 
@@ -918,10 +1015,10 @@ int search_code_address_in_cache(unsigned char * addr)
 {
 	int i,slot;
 	//check if addr is in cache. 
-	slot=((long)addr/size_of_full_block_of_code)%slots_in_code_cache_being_direct_mapped; //find the direct mapped slot
+	slot=((long)mapped_code_addr(addr)/size_of_full_block_of_code)%slots_in_code_cache_being_direct_mapped; //find the direct mapped slot
 	for (i=0;i<code_cache_set_assosiative_size;i++) //and search in it
 	{
-		if (code_cache[slot*code_cache_set_assosiative_size+i]==(long)addr)
+		if (code_cache[slot*code_cache_set_assosiative_size+i]==(long)mapped_code_addr(addr))
 			return (slot*code_cache_set_assosiative_size+i);
 	}
 	return -1;
@@ -932,8 +1029,8 @@ void add_addr_to_code_cache(unsigned char * addr)
 	if (num_of_cached_blocks_of_code>0)
 	{
 		int i,slot;
-		slot=((long)addr/size_of_full_block_of_code)%slots_in_code_cache_being_direct_mapped; //find the direct mapped slot
-		code_cache[slot*code_cache_set_assosiative_size+code_cache_slot_indexes_for_set_assosiative[slot]]=(long)addr;
+		slot=((long)mapped_code_addr(addr)/size_of_full_block_of_code)%slots_in_code_cache_being_direct_mapped; //find the direct mapped slot
+		code_cache[slot*code_cache_set_assosiative_size+code_cache_slot_indexes_for_set_assosiative[slot]]=(long)mapped_code_addr(addr);
 		code_cache_slot_indexes_for_set_assosiative[slot]=(code_cache_slot_indexes_for_set_assosiative[slot]+1)%code_cache_set_assosiative_size;
 	}
 }

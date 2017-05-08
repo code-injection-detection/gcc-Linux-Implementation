@@ -74,6 +74,8 @@ for line in src_lines:
 		newline='#define add_the_padded_nops_in_the_mac_in_fixed_size '+sys.argv[26]+'\n'
 	if '#define force_code_block_split_on_labels_and_calls' in line:
 		newline='#define force_code_block_split_on_labels_and_calls '+sys.argv[27]+'\n'		
+	if '#define use_code_cache_with_unsplit_blocks' in line:
+		newline='#define use_code_cache_with_unsplit_blocks '+sys.argv[28]+'\n'		
 					
 	headers_dst.write(newline)
 

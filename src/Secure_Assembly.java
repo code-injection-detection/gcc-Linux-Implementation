@@ -14,6 +14,10 @@ import java.io.*;
 public class Secure_Assembly {
 	
 	private static ArrayList<String> hashmap_of_assemby_sizes;
+	static int address_of_code_that_denotes_next_unsplit_block_change=0; //has the (relative to the first block of code) address of the actual code. Is added to a list when an (unsplit) block would change 
+	static int num_of_cmds_when_we_dont_split_blocks=0;
+	static int num_of_bytes_when_we_dont_split_blocks=0;
+	static ArrayList<Integer> list_of_addresses_that_denote_next_unsplit_block_change=new ArrayList<Integer>();
 
 	public static void main(String[] args) throws Exception
 	{
@@ -51,6 +55,7 @@ public class Secure_Assembly {
 		ArrayList<String> list_of_assembly_sizes = new ArrayList<String>();
 		HashMap<String,Integer> hashmap_of_assembly_sizes =  new HashMap<String, Integer>();
 		boolean force_code_block_split_on_labels_and_calls=false;
+		
 		
 
 		if (args.length==11)
@@ -117,20 +122,17 @@ public class Secure_Assembly {
 		
 		//If we used fixed size chunks of code, then we need to know the size of each command.
 		//test if the table with the sizes is present, and if yes load it into memory.
-		if (use_fixed_size_chunks_of_code)
-		{
-			String assembly_sizes_table_path=new File("../code/table_with_assembly_command_sizes.txt").getAbsolutePath();
-			File assembly_sizes_table = new File("../code/table_with_assembly_command_sizes.txt");
-			if(assembly_sizes_table.exists() && !assembly_sizes_table.isDirectory()) 
-			{ 
-				Scanner s = new Scanner(new File(assembly_sizes_table_path));
-				ArrayList<String> list = new ArrayList<String>();
-				while (s.hasNextLine()){
-				    list_of_assembly_sizes.add(s.nextLine());
-				}
-				s.close();
-				add_the_assembly_sizes_to_the_hashmap(list_of_assembly_sizes,hashmap_of_assembly_sizes);
+		String assembly_sizes_table_path=new File("../code/table_with_assembly_command_sizes.txt").getAbsolutePath();
+		File assembly_sizes_table = new File("../code/table_with_assembly_command_sizes.txt");
+		if(assembly_sizes_table.exists() && !assembly_sizes_table.isDirectory()) 
+		{ 
+			Scanner s = new Scanner(new File(assembly_sizes_table_path));
+			ArrayList<String> list = new ArrayList<String>();
+			while (s.hasNextLine()){
+			    list_of_assembly_sizes.add(s.nextLine());
 			}
+			s.close();
+			add_the_assembly_sizes_to_the_hashmap(list_of_assembly_sizes,hashmap_of_assembly_sizes);
 		}
 		
 		
@@ -147,6 +149,7 @@ public class Secure_Assembly {
 		}
 		
 		line_index=-1;
+		list_of_addresses_that_denote_next_unsplit_block_change.add(0);
 		boolean force_end_of_block=false;
 		for (String fun:function_names)
 		{	
@@ -205,6 +208,8 @@ public class Secure_Assembly {
 					for (int j = 0; j < num_of_interleaved_keys+number_of_canaries+num_of_mac_bytes+bytes_for_instr_len; j++)
 						list_of_lines.add("NOP"); 
 					list_of_lines.add("."+ ulabel + label_counter + ": " );          //we are just adding the label, not any command
+					address_of_code_that_denotes_next_unsplit_block_change+=2;
+					address_of_code_that_denotes_next_unsplit_block_change+=num_of_interleaved_keys+number_of_canaries+num_of_mac_bytes+bytes_for_instr_len;
 					//System.out.println(line);
 					i = 0;
 					label_counter++;
@@ -214,7 +219,7 @@ public class Secure_Assembly {
 				}
 				
 				//find size of cmd, if it is a cmd
-				if (use_fixed_size_chunks_of_code && (removeSpaces(line).startsWith(".")==false) /*make sure it's a command*/)
+				if (removeSpaces(line).startsWith(".")==false) /*make sure it's a command*/
 				{
 					String line_to_check_size=line;
 					if( line.trim().startsWith("j")) //pad .d32 to jmps to  calculate their proper size
@@ -229,27 +234,33 @@ public class Secure_Assembly {
 					//find size of command
 					size_of_current_cmd=get_size_of_assembly_command(line_to_check_size,ramtmp_file,list_of_assembly_sizes,hashmap_of_assembly_sizes);
 					//see if we should add it (only if it does not exceed the size of the fixed chunk)
-					int bytes_to_subtract=2; /*jmp*/
-					if ((check_code_verification_on_the_fly && !ignore_macs_even_if_there_are_mac_bytes) || (force_code_block_split_on_labels_and_calls)) //think that there is a verifier if we force block split
-						bytes_to_subtract+=7; /*size of verifier for fixed size blocks*/
-					//if the size of the current command is bigger than we can accommodate
-					if (size_of_current_cmd> num_of_bytes_in_code_chunk-bytes_to_subtract)
+					if (use_fixed_size_chunks_of_code)
 					{
-						int bytes_to_increase=size_of_current_cmd-(num_of_bytes_in_code_chunk-bytes_to_subtract);
-						System.out.println("The size of the code block is not big enough. Increase it by at least "+ bytes_to_increase+".");
-						System.exit(-2);
-					}
-					if (num_of_bytes_in_current_block+size_of_current_cmd>num_of_bytes_in_code_chunk-bytes_to_subtract)
-					{
-						if (force_num_of_instructions_over_bytes && i<num_of_grouped_orig_instr)
+						int bytes_to_subtract=2; /*jmp*/
+						if ((check_code_verification_on_the_fly && !ignore_macs_even_if_there_are_mac_bytes) || (force_code_block_split_on_labels_and_calls)) //think that there is a verifier if we force block split
+							bytes_to_subtract+=7; /*size of verifier for fixed size blocks*/
+						//if the size of the current command is bigger than we can accommodate
+						if (size_of_current_cmd> num_of_bytes_in_code_chunk-bytes_to_subtract)
 						{
-							int bytes_to_increase=num_of_bytes_in_current_block+size_of_current_cmd-(num_of_bytes_in_code_chunk-bytes_to_subtract);
-							System.out.println("The size of the code block is not big enough and we only managed to fit "+i+" instructions. Increase it by at least "+ bytes_to_increase+".");
-							System.exit(-3);
+							int bytes_to_increase=size_of_current_cmd-(num_of_bytes_in_code_chunk-bytes_to_subtract);
+							System.out.println("The size of the code block is not big enough. Increase it by at least "+ bytes_to_increase+".");
+							System.exit(-2);
 						}
-						force_end_of_block=true;
+						if (num_of_bytes_in_current_block+size_of_current_cmd>num_of_bytes_in_code_chunk-bytes_to_subtract)
+						{
+							if (force_num_of_instructions_over_bytes && i<num_of_grouped_orig_instr)
+							{
+								int bytes_to_increase=num_of_bytes_in_current_block+size_of_current_cmd-(num_of_bytes_in_code_chunk-bytes_to_subtract);
+								System.out.println("The size of the code block is not big enough and we only managed to fit "+i+" instructions. Increase it by at least "+ bytes_to_increase+".");
+								System.exit(-3);
+							}
+							force_end_of_block=true;
+						}
 					}
+					
 				}
+				
+				
 				
 								
 				//if we have exhausted the group of commands, we need to add a jump and nops, and a label after them
@@ -261,6 +272,8 @@ public class Secure_Assembly {
 					for (int j = 0; j < num_of_interleaved_keys+number_of_canaries+num_of_mac_bytes+bytes_for_instr_len; j++)
 						list_of_lines.add("NOP"); 
 					list_of_lines.add("."+ ulabel + label_counter + ": " );          //we are just adding the label, not any command
+					address_of_code_that_denotes_next_unsplit_block_change+=2;
+					address_of_code_that_denotes_next_unsplit_block_change+=num_of_interleaved_keys+number_of_canaries+num_of_mac_bytes+bytes_for_instr_len;
 					//System.out.println(line);
 					i = 0;
 					label_counter++;
@@ -295,28 +308,57 @@ public class Secure_Assembly {
 	
 				}
 				
+				
+				
 				if (removeSpaces(line).startsWith("."))
 				{
 					list_of_lines.add(line);
 					continue;
 				}
 				
+				if (use_fixed_size_chunks_of_code)
+				{
+					if (num_of_bytes_when_we_dont_split_blocks+size_of_current_cmd>num_of_bytes_in_code_chunk-9)
+					{
+						num_of_bytes_when_we_dont_split_blocks=0;
+						num_of_cmds_when_we_dont_split_blocks=0;
+					}
+				}
+				if (num_of_cmds_when_we_dont_split_blocks == num_of_grouped_orig_instr)
+				{
+					num_of_cmds_when_we_dont_split_blocks=0;
+					num_of_bytes_when_we_dont_split_blocks=0;
+				}
+				
+				//the end of the unsplit block
+				if ((num_of_bytes_when_we_dont_split_blocks==0 && use_fixed_size_chunks_of_code) ||  num_of_cmds_when_we_dont_split_blocks==0)
+				{
+					list_of_addresses_that_denote_next_unsplit_block_change.add(address_of_code_that_denotes_next_unsplit_block_change);
+				}
+				
+				
+				
+				
 				if (((check_code_verification_on_the_fly && !ignore_macs_even_if_there_are_mac_bytes) || force_code_block_split_on_labels_and_calls)/*we should force end of block even if we ignore mac verification??? */ && line.trim().startsWith("call") && function_is_one_of_the_hardware_ones(line.trim().split("\t")[1].trim())==false) //call should mark the end of a block, except if it is a secure getter/setter
 				{
 					list_of_lines.add(line);
 					i++;
+					num_of_cmds_when_we_dont_split_blocks++;
 					force_end_of_block=true;
 					if (use_fixed_size_chunks_of_code)
 					{
 						num_of_bytes_in_current_block+=size_of_current_cmd;
+						num_of_bytes_when_we_dont_split_blocks+=size_of_current_cmd;
 					}
+					address_of_code_that_denotes_next_unsplit_block_change+=size_of_current_cmd;
 					continue;
 				}
 				
 				
+				
 				//the default behavior is the program to add the next command
 				//except if we need to change a jump
-				if (use_fixed_size_chunks_of_code && line.trim().startsWith("j"))
+				if (line.trim().startsWith("j"))
 				{
 					String[] parts=line.trim().split("\t");
 					String cmd=parts[0];
@@ -324,7 +366,12 @@ public class Secure_Assembly {
 					if (parts.length>1)
 						operands=parts[1];
 					list_of_lines.add(cmd+".d32\t"+operands+"\n");
-					num_of_bytes_in_current_block+=size_of_current_cmd;
+					if (use_fixed_size_chunks_of_code)
+					{
+						num_of_bytes_in_current_block+=size_of_current_cmd;
+						num_of_bytes_when_we_dont_split_blocks+=size_of_current_cmd;
+					}
+					address_of_code_that_denotes_next_unsplit_block_change+=size_of_current_cmd;
 				}
 				else
 				{
@@ -332,9 +379,12 @@ public class Secure_Assembly {
 					if (use_fixed_size_chunks_of_code)
 					{
 						num_of_bytes_in_current_block+=size_of_current_cmd;
+						num_of_bytes_when_we_dont_split_blocks+=size_of_current_cmd;
 					}
+					address_of_code_that_denotes_next_unsplit_block_change+=size_of_current_cmd;
 				}
 				i++;
+				num_of_cmds_when_we_dont_split_blocks++;
 				
 			  }
 			
@@ -376,20 +426,24 @@ public class Secure_Assembly {
 		bw.flush();
 		
 		//write the new table with the new sizes
-		if (use_fixed_size_chunks_of_code)
+		assembly_sizes_table_path=new File("../code/table_with_assembly_command_sizes.txt").getAbsolutePath();
+		BufferedWriter sizes_new = new BufferedWriter(new FileWriter(assembly_sizes_table_path));
+		for (String line: list_of_assembly_sizes)
 		{
-			String assembly_sizes_table_path=new File("../code/table_with_assembly_command_sizes.txt").getAbsolutePath();
-			BufferedWriter sizes_new = new BufferedWriter(new FileWriter(assembly_sizes_table_path));
-			for (String line: list_of_assembly_sizes)
-			{
-				sizes_new.write(line);
-				sizes_new.newLine();
-			}
-			
-			sizes_new.flush();
+			sizes_new.write(line);
+			sizes_new.newLine();
 		}
+		sizes_new.flush();
 
 		
+		String addresses_of_unsplit_blocks_path=new File("../code/addresses_of_unsplit_blocks.txt").getAbsolutePath();
+		BufferedWriter addr_of_unsplit_blocks = new BufferedWriter(new FileWriter(addresses_of_unsplit_blocks_path));
+		for (Integer addr:list_of_addresses_that_denote_next_unsplit_block_change)
+		{
+			addr_of_unsplit_blocks.write( String.valueOf(addr) +"\n");
+		}
+		addr_of_unsplit_blocks.flush();
+
 	}
 	static String removeSpaces(String abc)
 	{
@@ -436,21 +490,6 @@ public class Secure_Assembly {
 	static int find_cmd_size_in_known_sizes(String cmd, ArrayList<String> list_of_assembly_sizes,HashMap<String,Integer> hashmap_of_assembly_sizes)
 	{
 		int i;
-		/*
-		//using the list of the strings
-		for (i=0;i<list_of_assembly_sizes.size();i++)
-		{
-			//find the actual command
-			String[] parts = list_of_assembly_sizes.get(i).split("-->");
-			String command=parts[0];
-			String sz=parts[1];
-			if (command.trim().equals(cmd.trim()))
-			{
-				Collections.swap(list_of_assembly_sizes,i,(int )(Math.random() * 100 + 1)); //set it near the top
-				return Integer.parseInt(sz.trim());
-			}
-		}
-		*/
 		//using the hashmap
 		Integer sz=hashmap_of_assembly_sizes.get(cmd.trim());
 		if (sz==null)	
@@ -507,10 +546,12 @@ public class Secure_Assembly {
 		//7 bytes overhead with fixed chunks, 14 with variable chunks
 		list_of_lines.add("pushfq"); //do_some_stuff() subtracts from rsp, so we save the flags
 
+		address_of_code_that_denotes_next_unsplit_block_change+=7;
         if (use_fixed_size_chunks_of_code==false)
         {
         	//42 will be replaced by the correct value later
         	list_of_lines.add("movb $42,num_of_useful_bytes_to_mac_in_code(%rip)"); //the variable size in that global
+        	address_of_code_that_denotes_next_unsplit_block_change+=7;
         }
         
         list_of_lines.add("call do_verify_code_on_the_fly");
