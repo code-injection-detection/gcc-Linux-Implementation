@@ -45,7 +45,7 @@ FILE *unsplit_block_addr_file;
 long addr_of_first_block_of_code;
 void find_addr_of_first_block_of_code();
 
-void init_crypto_stuctures(int print)
+void init_crypto_stuctures(int print, int find_addr_of_first_code_block)
 {
 	if (print)
 		printf("Initializing crypto structures.\n");
@@ -93,7 +93,7 @@ void init_crypto_stuctures(int print)
 			mac_size_invocation_counters[i]=0;
 		count_mac_invocations_in_this_code_part=0;
 	#endif
-	if(use_code_cache_with_unsplit_blocks)
+	if(use_code_cache_with_unsplit_blocks && find_addr_of_first_code_block)
 	{
 		unsplit_block_addr_file=fopen("./addresses_of_unsplit_blocks.txt","r");
 		if (unsplit_block_addr_file==NULL)

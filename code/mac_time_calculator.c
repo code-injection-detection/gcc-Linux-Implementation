@@ -36,7 +36,7 @@ int main()
 	memset(stuff_for_mac,0,1024);
 	memset(mac_output,0,50);
 	
-	init_crypto_stuctures(0);
+	init_crypto_stuctures(0,0);
 	
 	for (i=0;i<1024;i++)
 	{

@@ -2,7 +2,7 @@
 #define CRYPTO_FUNCTIONS_H
 
 
-void init_crypto_stuctures();
+void init_crypto_stuctures(int print,int find_addr_of_first_code_block);
 void squeeze_bytes_in_place(unsigned char * arr,int length_of_array);
 void calc_mac_aes_ecb(unsigned char *useful_data, int length_in_bytes);
 void set_mac_aes_ecb(unsigned char * output);

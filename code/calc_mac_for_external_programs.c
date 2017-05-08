@@ -21,7 +21,7 @@ int main(int argc, char* argv[])
 	if (argc<4)
 		usage(argv[0]);
 		
-	init_crypto_stuctures(0);
+	init_crypto_stuctures(0,0);
 
 	
 	len_of_all=atoi(argv[1]);
