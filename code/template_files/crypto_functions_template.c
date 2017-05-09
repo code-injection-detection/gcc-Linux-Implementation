@@ -39,7 +39,7 @@ int data_cache_latest_index;
 unsigned char keys_temp_space[1024];
 char count_mac_invocations_in_this_code_part=0;
 long long mac_size_invocation_counters[1024];
-long addresses_of_unsplit_blocks[10000];
+long addresses_of_unsplit_blocks[25000];
 int num_of_addresses_of_unsplit_blocks=0;
 FILE *unsplit_block_addr_file;
 long addr_of_first_block_of_code;
