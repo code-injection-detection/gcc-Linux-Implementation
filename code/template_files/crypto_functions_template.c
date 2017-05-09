@@ -172,6 +172,12 @@ int find_addr_in_unsplit_blocks_addresses(unsigned char * address) //binary sear
 	int iter=0;
 	long addr=(long)address;
 	
+	if (num_of_addresses_of_unsplit_blocks==0)
+	{
+		fprintf(stderr,"Why is num_of_addresses_of_unsplit_blocks 0?\n");
+		return 0;
+	}
+	
 	if (addr>addr_in_code_as_offset_of_fist_block_addr(last))
 		return last;
 		
@@ -931,12 +937,13 @@ int inc_code_cache_index()
 int search_code_address_in_cache(unsigned char * addr)
 {
 	int i;
+	long mapped_addr=(long)mapped_code_addr(addr);
 	//check if addr is in cache. For optimization purposes, check for the most recent blocks first
 	if (code_cache_latest_index==0)
 	{
 		for(i=num_of_cached_blocks_of_code-1;i>=0;i--)
 		{
-			if (code_cache[i]==(long) mapped_code_addr(addr))
+			if (code_cache[i]==mapped_addr)
 			return i;
 		}
 	}
@@ -944,12 +951,12 @@ int search_code_address_in_cache(unsigned char * addr)
 	{
 		for (i=code_cache_latest_index-1;i>=0;i--) 
 		{
-			if (code_cache[i]==(long) mapped_code_addr(addr))
+			if (code_cache[i]==mapped_addr)
 				return i;
 		}
 		for(i=num_of_cached_blocks_of_code-1;i>=code_cache_latest_index;i--)
 		{
-			if (code_cache[i]==(long) mapped_code_addr(addr))
+			if (code_cache[i]==mapped_addr)
 			return i;
 		}
 	}
@@ -960,7 +967,8 @@ void add_addr_to_code_cache(unsigned char * addr)
 {
 	if (num_of_cached_blocks_of_code>0)
 	{
-		code_cache[code_cache_latest_index]=(long)mapped_code_addr(addr);
+		long mapped_addr=(long)mapped_code_addr(addr);
+		code_cache[code_cache_latest_index]=mapped_addr;
 		inc_code_cache_index();
 	}
 }
@@ -981,9 +989,10 @@ void add_addr_to_code_cache(unsigned char * addr)
 int search_code_address_in_cache(unsigned char * addr)
 {
 	int i;
+	long mapped_addr=(long)mapped_code_addr(addr);
 	//check if addr is in cache.
-	if (code_cache[((long)mapped_code_addr(addr)/size_of_full_block_of_code)%num_of_cached_blocks_of_code]==(long)mapped_code_addr(addr))
-		return (((long)mapped_code_addr(addr)/size_of_full_block_of_code)%num_of_cached_blocks_of_code);
+	if (code_cache[(mapped_addr/size_of_full_block_of_code)%num_of_cached_blocks_of_code]==mapped_addr)
+		return ((mapped_addr/size_of_full_block_of_code)%num_of_cached_blocks_of_code);
 	return -1;
 }
 
@@ -991,7 +1000,8 @@ void add_addr_to_code_cache(unsigned char * addr)
 {
 	if (num_of_cached_blocks_of_code>0)
 	{
-		code_cache[((long)mapped_code_addr(addr)/size_of_full_block_of_code)%num_of_cached_blocks_of_code]=(long)mapped_code_addr(addr);
+		long mapped_addr=(long)mapped_code_addr(addr);
+		code_cache[(mapped_addr/size_of_full_block_of_code)%num_of_cached_blocks_of_code]=mapped_addr;
 	}
 }
 #endif //direct mapped end
@@ -1014,11 +1024,12 @@ void add_addr_to_code_cache(unsigned char * addr)
 int search_code_address_in_cache(unsigned char * addr)
 {
 	int i,slot;
+	long mapped_addr=(long)mapped_code_addr(addr);
 	//check if addr is in cache. 
-	slot=((long)mapped_code_addr(addr)/size_of_full_block_of_code)%slots_in_code_cache_being_direct_mapped; //find the direct mapped slot
+	slot=(mapped_addr/size_of_full_block_of_code)%slots_in_code_cache_being_direct_mapped; //find the direct mapped slot
 	for (i=0;i<code_cache_set_assosiative_size;i++) //and search in it
 	{
-		if (code_cache[slot*code_cache_set_assosiative_size+i]==(long)mapped_code_addr(addr))
+		if (code_cache[slot*code_cache_set_assosiative_size+i]==mapped_addr)
 			return (slot*code_cache_set_assosiative_size+i);
 	}
 	return -1;
@@ -1029,8 +1040,9 @@ void add_addr_to_code_cache(unsigned char * addr)
 	if (num_of_cached_blocks_of_code>0)
 	{
 		int i,slot;
-		slot=((long)mapped_code_addr(addr)/size_of_full_block_of_code)%slots_in_code_cache_being_direct_mapped; //find the direct mapped slot
-		code_cache[slot*code_cache_set_assosiative_size+code_cache_slot_indexes_for_set_assosiative[slot]]=(long)mapped_code_addr(addr);
+		long mapped_addr=(long)mapped_code_addr(addr);
+		slot=(mapped_addr/size_of_full_block_of_code)%slots_in_code_cache_being_direct_mapped; //find the direct mapped slot
+		code_cache[slot*code_cache_set_assosiative_size+code_cache_slot_indexes_for_set_assosiative[slot]]=mapped_addr;
 		code_cache_slot_indexes_for_set_assosiative[slot]=(code_cache_slot_indexes_for_set_assosiative[slot]+1)%code_cache_set_assosiative_size;
 	}
 }
