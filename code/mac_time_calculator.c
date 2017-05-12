@@ -27,7 +27,7 @@ unsigned char mac_output[50];
 
 int main()
 {
-	int i,j;
+	int i,j,k;
 	clock_t start,stop;
 	double tot_time;
 	int times_for_one_mac=10000000;
@@ -43,24 +43,48 @@ int main()
 		stuff_for_mac[i]=rand()%256;
 	}
 	
-	for (i=1;i<290;i++)
+	if (set_as_given_that_everything_maced_will_be_fixed_and_multiple_of_16==0)
 	{
-		start=clock();
-		for (j=0;j<times_for_one_mac;j++)
+		for (i=1;i<290;i++)
 		{
-			//printf("i=%d,j=%d\n",i,j);
-			#if squeeze_keys_when_macing==0
-				calc_mac(stuff_for_mac,i,i>32?i-32:i,mac_output);
-			#else
-				calc_mac(stuff_for_mac,i,i>16?i-16:i,mac_output);
-			#endif
+			start=clock();
+			for (j=0;j<times_for_one_mac;j++)
+			{
+				//printf("i=%d,j=%d\n",i,j);
+				#if squeeze_keys_when_macing==0
+					calc_mac(stuff_for_mac,i,i>32?i-32:i,mac_output);
+				#else
+					calc_mac(stuff_for_mac,i,i>16?i-16:i,mac_output);
+				#endif
+			}
+			stop=clock();
+		
+			tot_time=((double) (stop - start)) / CLOCKS_PER_SEC;
+			printf("Mac size:%d, loops:%d, time:%lf\n",i,times_for_one_mac,tot_time);
 		}
-		stop=clock();
 		
-		tot_time=((double) (stop - start)) / CLOCKS_PER_SEC;
-		printf("Mac size:%d, loops:%d, time:%lf\n",i,times_for_one_mac,tot_time);
 	}
+	else
+	{
+		for (k=1;k<18;k++)
+		{	
+			i=k*16;
+			start=clock();
+			for (j=0;j<times_for_one_mac;j++)
+			{
+				//printf("i=%d,j=%d\n",i,j);
+				#if squeeze_keys_when_macing==0
+					calc_mac(stuff_for_mac,i,i>32?i-32:i,mac_output);
+				#else
+					calc_mac(stuff_for_mac,i,i>16?i-16:i,mac_output);
+				#endif
+			}
+			stop=clock();
 		
+			tot_time=((double) (stop - start)) / CLOCKS_PER_SEC;
+			printf("Mac size:%d, loops:%d, time:%lf\n",i,times_for_one_mac,tot_time);
+		}
+	}
 	clear_crypto_structures();
 	return 0;
 }
