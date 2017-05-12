@@ -68,7 +68,7 @@ void init_crypto_stuctures(int print, int find_addr_of_first_code_block)
 	#endif
 	#if mac_algorithm==3 || mac_algorithm==4
 		EVP_EncryptInit_ex(&aes_ctx, EVP_aes_128_cbc(), NULL, aes_key,initialization_vector);
-		#if mac_algorithm==4
+		#if mac_algorithm==4 ||  set_as_given_that_everything_maced_will_be_fixed_and_multiple_of_16==1
 			EVP_CIPHER_CTX_set_padding(&aes_ctx, 0); //disable padding
 		#endif
 	#endif
@@ -402,7 +402,10 @@ void encrypt_aes_cbc(unsigned char *buf_to_be_encrypted,int len_of_buf)
 		EVP_EncryptUpdate(&aes_ctx, encrypted_data, &length_of_encrypted_data,buf_to_be_encrypted, len_of_buf);
 		EVP_EncryptFinal_ex(&aes_ctx, encrypted_data + length_of_encrypted_data, &tmplen);
 		length_of_encrypted_data+=tmplen;
-		//fprintf(stderr,"length_of_encrypted_data:%d\n",length_of_encrypted_data);
+		/*
+		 if ((len_of_buf%16==0 || len_of_buf%16==1) && rand()%1000000==0)  //just printing some times
+			fprintf(stderr,"length_of_encrypted_data:%d\n",length_of_encrypted_data);
+		*/
 		
 		/*
 		AES_cbc_encrypt(buf_to_be_encrypted, encrypted_data, len_of_buf, &aes_enc_key,initialization_vector, AES_ENCRYPT);
@@ -488,8 +491,12 @@ void calc_and_set_mac_of_data_aes_cbc(char * input, int length_of_all, char * ou
 #if count_mac_invocations==1
 		memset(output,0,number_of_mac_bytes); //ignore proper mac calculation, just make them 0
 #else
-		len_padded=prepend_length_aes_cbc(input,length_of_all);
-		encrypt_aes_cbc(intermediate_buf_for_macing,length_of_all+len_padded);
+		#if set_as_given_that_everything_maced_will_be_fixed_and_multiple_of_16==0
+			len_padded=prepend_length_aes_cbc(input,length_of_all);
+			encrypt_aes_cbc(intermediate_buf_for_macing,length_of_all+len_padded);
+		#else
+			encrypt_aes_cbc(input,length_of_all);
+		#endif
 		set_mac_aes_cbc(output);
 #endif
 	}

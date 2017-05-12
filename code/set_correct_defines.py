@@ -76,7 +76,10 @@ for line in src_lines:
 		newline='#define force_code_block_split_on_labels_and_calls '+sys.argv[27]+'\n'		
 	if '#define use_code_cache_with_unsplit_blocks' in line:
 		newline='#define use_code_cache_with_unsplit_blocks '+sys.argv[28]+'\n'		
-					
+	if '#define set_as_given_that_everything_maced_will_be_fixed_and_multiple_of_16' in line:
+		newline='#define set_as_given_that_everything_maced_will_be_fixed_and_multiple_of_16 '+sys.argv[29]+'\n'
+
+
 	headers_dst.write(newline)
 
 

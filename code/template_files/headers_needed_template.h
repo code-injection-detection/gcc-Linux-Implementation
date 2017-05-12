@@ -184,6 +184,11 @@
 #endif				//EXPERIMENTAL: The code blocks that are cached are cached if being unsplit
 
 
+#ifndef set_as_given_that_everything_maced_will_be_fixed_and_multiple_of_16
+#define set_as_given_that_everything_maced_will_be_fixed_and_multiple_of_16 0
+#endif				//this means that we can disable length prepending and padding
+
+
 
 #include "crypto_functions.h"
 #include "secure_getters_setters.h"
