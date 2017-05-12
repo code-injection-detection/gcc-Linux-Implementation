@@ -4,8 +4,8 @@
 #put this script somewhere outside of the repo directory
 PATH_TO_AUTOMATE_SH=/home/menoobs/virus_detection/gcc-Linux-Implementation/code/
 ORIGINAL_DIR=`pwd`
-NAME_OF_SECURE_FUNCTION=calc_determinant_sec
-BENCHMARK_NAME=calc_det_11_squeezed_keys_with_padded_nops_maced_no_physical_cache
+NAME_OF_SECURE_FUNCTION=find_primes_up_to_a_number
+BENCHMARK_NAME=primes_150k_squeezed_keys_with_padded_nops_maced_caching_code_unsplit_blocks
 
 CODE_CACHE_TYPE=2  #0 -> fully assosiative
 				   #1 -> direct mapped
@@ -15,15 +15,17 @@ DATA_CACHE_TYPE=2  #0 -> fully assosiative
 				   #2 -> set assosiative
 CODE_CACHE_ASSOC=2
 DATA_CACHE_ASSOC=2
-SECURE_HEAP_SIZE=100000
-SECURE_STACK_SIZE=2000000
+SECURE_HEAP_SIZE=15000000
+SECURE_STACK_SIZE=200000
 MAX_NUM_OF_CMDS_IN_FIXED=35
 TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES=0
 CALC_TIME_WITH_SEPARATE_MAC_ADDITION=1
 USE_CACHE_FOR_CODE_WHEN_CACHE_ENABLED=1
 USE_CACHE_FOR_DATA_WHEN_CACHE_ENABLED=1
 PRODUCE_SECURE_EXEC=1
-RUN_SECURE_EXEC=0
+RUN_SECURE_EXEC=1
+USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=1 #EXPERIMENTAL: The code blocks that are cached are cached if being unsplit
+
 
 if [[ ( "$TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES" -eq 1 ) ]]; then
 	sed -i 's/TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES=0/TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES=1/' ${ORIGINAL_DIR}/backup_automate.sh
@@ -38,6 +40,12 @@ fi
 if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 0 ) ]]; then #the "1" part is inside the loops
 	sed -i 's/COUNT_MAC_INVOCATIONS=1/COUNT_MAC_INVOCATIONS=0/' ${ORIGINAL_DIR}/backup_automate.sh
 fi
+
+if [[ ( "$USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS" -eq 0 ) ]]; then
+	sed -i 's/USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=1/USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=0/' ${ORIGINAL_DIR}/backup_automate.sh
+fi
+
+
 
 if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 1) && ( "$RUN_SECURE_EXEC" -eq 1 ) ]]; then #calculate proper mac times
 	cd ${PATH_TO_AUTOMATE_SH}
@@ -58,6 +66,9 @@ SECURE_EXEC_DIR=${BENCH_RESULTS_DIR}/secure_executables/
 cp ${ORIGINAL_DIR}/backup_automate.sh ${PATH_TO_AUTOMATE_SH}/automate.sh
 cp ${PATH_TO_AUTOMATE_SH}/automate.sh ${ORIGINAL_DIR}/automate_template.sh
 
+if [[ ( "$USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS" -eq 1 ) ]]; then
+	sed -i 's/USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=0/USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=1/' ${ORIGINAL_DIR}/automate_template.sh
+fi
 
 #VARIABLE_CODE_SIZE_NUMBERS="39 7 1"
 #FIXED_CODE_SIZE_NUMBERS="20 55 71 75"
@@ -66,7 +77,7 @@ VARIABLE_CODE_SIZE_NUMBERS="39 30 20 10 7 1"
 CACHE_SIZES="20 40 60 80 100 150 200"
 #CACHE_SIZES="1 2 4 6 8 10"
 #CODE_AND_DATA_CACHE_ASSOCS="DIRECT_MAPPED"
-CODE_AND_DATA_CACHE_ASSOCS="2 4 8"
+CODE_AND_DATA_CACHE_ASSOCS="2 4"
 
 
 #do the variable code size
@@ -75,6 +86,7 @@ for var_size in ${VARIABLE_CODE_SIZE_NUMBERS}; do
 	#change the max number of commands for the variable code size
 	sed -i 's/echo "If you REALLY want such a value (it is big however), change the automate.sh script." ; exit//' ${ORIGINAL_DIR}/automate_template.sh
 
+<<COMMENT
 	#no macs
 	NAME_OF_BENCHMARK="NO_MACS_VAR_SIZE_${var_size}"
 	echo ${NAME_OF_BENCHMARK}
@@ -196,7 +208,8 @@ for var_size in ${VARIABLE_CODE_SIZE_NUMBERS}; do
 		echo -n ${NAME_OF_BENCHMARK} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
 		${ORIGINAL_DIR}/get_the_seconds.py ${NAME_OF_FILE} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
 	fi
-	
+COMMENT
+
 	#using cache
 	for cache_size in ${CACHE_SIZES}; do
 		for cache_assoc in ${CODE_AND_DATA_CACHE_ASSOCS}; do
@@ -211,6 +224,7 @@ for var_size in ${VARIABLE_CODE_SIZE_NUMBERS}; do
 			NAME_OF_ALL_KEYSHARES_FOR_VERIF=${SECURE_EXEC_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}_all_keyshares
 			NAME_OF_HEAP_KEYSHARES=${SECURE_EXEC_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}_heap_keyshares
 			NAME_OF_STACK_KEYSHARES=${SECURE_EXEC_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}_stack_keyshares
+			NAME_OF_UNSPLIT_CODE_BLOCK_ADDRESSES=${SECURE_EXEC_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}_unsplit_code_block_addresses
 			cd ${PATH_TO_AUTOMATE_SH}
 			cp ${ORIGINAL_DIR}/automate_template.sh ${PATH_TO_AUTOMATE_SH}/automate.sh
 			if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 1 ) ]]; then
@@ -232,11 +246,17 @@ for var_size in ${VARIABLE_CODE_SIZE_NUMBERS}; do
 				cp heap_keyshares ${NAME_OF_HEAP_KEYSHARES}
 				cp stack_keyshares ${NAME_OF_STACK_KEYSHARES}
 				cp all_keyshares_for_verification ${NAME_OF_ALL_KEYSHARES_FOR_VERIF}
+				if [[ ( "$USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS" -eq 1 ) ]]; then
+					cp addresses_of_unsplit_blocks.txt ${NAME_OF_UNSPLIT_CODE_BLOCK_ADDRESSES}
+				fi
 			else
 				cp ${NAME_OF_EXEC} ./main_program_ksec
 				cp ${NAME_OF_HEAP_KEYSHARES} heap_keyshares
 				cp ${NAME_OF_STACK_KEYSHARES} stack_keyshares
 				cp ${NAME_OF_ALL_KEYSHARES_FOR_VERIF} all_keyshares_for_verification
+				if [[ ( "$USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS" -eq 1 ) ]]; then
+					cp ${NAME_OF_UNSPLIT_CODE_BLOCK_ADDRESSES} addresses_of_unsplit_blocks.txt
+				fi
 			fi
 			
 			if [[ ( "$RUN_SECURE_EXEC" -eq 1 ) ]]; then
@@ -252,6 +272,7 @@ for var_size in ${VARIABLE_CODE_SIZE_NUMBERS}; do
 		done
 	done
 
+<<COMMENT
 	#doing_everything
 	NAME_OF_BENCHMARK="DOING_EVERYTHING_VAR_SIZE_${var_size}"
 	echo ${NAME_OF_BENCHMARK}
@@ -287,6 +308,8 @@ for var_size in ${VARIABLE_CODE_SIZE_NUMBERS}; do
 		echo -n ${NAME_OF_BENCHMARK} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
 		${ORIGINAL_DIR}/get_the_seconds.py ${NAME_OF_FILE} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
 	fi
+COMMENT
+
 done
 
 
@@ -294,10 +317,14 @@ done
 cp ${ORIGINAL_DIR}/backup_automate.sh ${PATH_TO_AUTOMATE_SH}/automate.sh
 cp ${PATH_TO_AUTOMATE_SH}/automate.sh ${ORIGINAL_DIR}/automate_template.sh
 
+if [[ ( "$USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS" -eq 1 ) ]]; then
+	sed -i 's/USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=0/USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=1/' ${ORIGINAL_DIR}/automate_template.sh
+fi
 
 #do the fixed code size
 for FIXED_SIZE in ${FIXED_CODE_SIZE_NUMBERS}; do
 
+<<COMMENT
 	#no macs
 	NAME_OF_BENCHMARK="NO_MACS_FIXED_SIZE_${FIXED_SIZE}"
 	echo ${NAME_OF_BENCHMARK}
@@ -420,7 +447,7 @@ for FIXED_SIZE in ${FIXED_CODE_SIZE_NUMBERS}; do
 		echo -n ${NAME_OF_BENCHMARK} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
 		${ORIGINAL_DIR}/get_the_seconds.py ${NAME_OF_FILE} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
 	fi
-
+COMMENT
 
 	#using cache
 	for cache_size in ${CACHE_SIZES}; do
@@ -436,6 +463,7 @@ for FIXED_SIZE in ${FIXED_CODE_SIZE_NUMBERS}; do
 			NAME_OF_ALL_KEYSHARES_FOR_VERIF=${SECURE_EXEC_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}_all_keyshares
 			NAME_OF_HEAP_KEYSHARES=${SECURE_EXEC_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}_heap_keyshares
 			NAME_OF_STACK_KEYSHARES=${SECURE_EXEC_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}_stack_keyshares
+			NAME_OF_UNSPLIT_CODE_BLOCK_ADDRESSES=${SECURE_EXEC_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}_unsplit_code_block_addresses
 			cd ${PATH_TO_AUTOMATE_SH}
 			cp ${ORIGINAL_DIR}/automate_template.sh ${PATH_TO_AUTOMATE_SH}/automate.sh
 			if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 1 ) ]]; then
@@ -457,11 +485,17 @@ for FIXED_SIZE in ${FIXED_CODE_SIZE_NUMBERS}; do
 				cp heap_keyshares ${NAME_OF_HEAP_KEYSHARES}
 				cp stack_keyshares ${NAME_OF_STACK_KEYSHARES}
 				cp all_keyshares_for_verification ${NAME_OF_ALL_KEYSHARES_FOR_VERIF}
+				if [[ ( "$USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS" -eq 1 ) ]]; then
+					cp addresses_of_unsplit_blocks.txt ${NAME_OF_UNSPLIT_CODE_BLOCK_ADDRESSES} 
+				fi
 			else
 				cp ${NAME_OF_EXEC} ./main_program_ksec
 				cp ${NAME_OF_HEAP_KEYSHARES} heap_keyshares
 				cp ${NAME_OF_STACK_KEYSHARES} stack_keyshares
 				cp ${NAME_OF_ALL_KEYSHARES_FOR_VERIF} all_keyshares_for_verification
+				if [[ ( "$USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS" -eq 1 ) ]]; then
+					cp ${NAME_OF_UNSPLIT_CODE_BLOCK_ADDRESSES} addresses_of_unsplit_blocks.txt
+				fi
 			fi
 			if [[ ( "$RUN_SECURE_EXEC" -eq 1 ) ]]; then
 				if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 0 ) ]]; then
@@ -475,6 +509,7 @@ for FIXED_SIZE in ${FIXED_CODE_SIZE_NUMBERS}; do
 			fi
 		done
 	done
+<<COMMENT
 
 	#doing_everything
 	NAME_OF_BENCHMARK="DOING_EVERYTHING_FIXED_SIZE_${FIXED_SIZE}"
@@ -511,7 +546,8 @@ for FIXED_SIZE in ${FIXED_CODE_SIZE_NUMBERS}; do
 		echo -n ${NAME_OF_BENCHMARK} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
 		${ORIGINAL_DIR}/get_the_seconds.py ${NAME_OF_FILE} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
 	fi
-	
+COMMENT
+
 done
 
 
