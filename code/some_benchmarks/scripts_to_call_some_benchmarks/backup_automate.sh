@@ -1,16 +1,17 @@
 #!/bin/bash
 
-SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS=1
-DECLARE_GLOBAL_KEYS_AS_AN_ARRAY=0
-INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS=1
-ADD_CODE_ON_THE_FLY_VERIFICATION=1
-FORCE_NUM_OF_INSTRUCTIONS_OVER_NUM_OF_BYTES=0
-DO_NOT_MAC_WHAT_WHE_ADD_IN_CODE=1 #ignore our additions to the code (like verification procedure, jmps etc)
-USE_INLINE_CODE_FOR_DELAYS=0 #make it 1 when tou want to benchmark normal times. The script will not terminate properly, but you will have an executable that can give you normal run times
-CODE_CACHE_TYPE=2  #0 -> fully assosiative
+SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS=1  #default 1
+DECLARE_GLOBAL_KEYS_AS_AN_ARRAY=0  #default 0
+INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS=1 #default 1
+
+ADD_CODE_ON_THE_FLY_VERIFICATION=1 #default 1
+FORCE_NUM_OF_INSTRUCTIONS_OVER_NUM_OF_BYTES=0 #for fixed size length, the default config (0) is to just have a fixed size code block without caring to complete the number of instructions given per block. If it is set to 1, then every block should have X instructions, or else an error occurs.
+DO_NOT_MAC_WHAT_WHE_ADD_IN_CODE=1 #ignore our additions to the code (like verification procedure, jmps etc) when calculating mac. Default 1
+USE_INLINE_CODE_FOR_DELAYS=0 #make it 1 when tou want to benchmark normal times (where extra code is added to the normal functions to simulate a fair (for the secure functions) delay. Default 0.
+CODE_CACHE_TYPE=2  #0 -> fully assosiative (default 2)
 				   #1 -> direct mapped
 				   #2 -> set assosiative
-DATA_CACHE_TYPE=2  #0 -> fully assosiative
+DATA_CACHE_TYPE=2  #0 -> fully assosiative (default 2)
 				   #1 -> direct mapped
 				   #2 -> set assosiative
 				   
@@ -19,17 +20,17 @@ NUM_OF_CACHED_BLOCKS_OF_CODE=0 #if a code block is in the cache, it does not hav
 CODE_CACHE_SET_ASSOSIATIVE_SIZE=2 #the size of the set in the code cache
 NUM_OF_CACHED_BLOCKS_OF_DATA=0 #if a data block is in the cache, it does not have to be verified. If it is 0, we have no cache
 DATA_CACHE_SET_ASSOSIATIVE_SIZE=2 #the size of the set in the data cache
-IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES=0
-IGNORE_MACS_LAST_MOMENT_EVEN_IF_THERE_ARE_MAC_BYTES=0
+IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES=0  #put the macs in the memory, but do absolutely nothing about  (default 0)
+IGNORE_MACS_LAST_MOMENT_EVEN_IF_THERE_ARE_MAC_BYTES=0 #put the macs in memory, include the on the fly verification code, and when it comes to calculate them, don't do it (default 0)
 FORCE_CODE_BLOCK_SPLIT_ON_LABELS_AND_CALLS=0 #use it with IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES=1, the blocks are split but no verification code added
-TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES=0 
-SQEEZE_KEYS_WHEN_MACING=1  #reduces the size of the keys from 32 bytes to 16 when calculating mac
-COUNT_MAC_INVOCATIONS=0 #ignores mac correctness and reports mac invocations
-ADD_THE_PADDED_NOPS_IN_THE_MAC_IN_FIXED_SIZE=1 #takes into account the padded nops in the mac
-USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=0 #EXPERIMENTAL: The code blocks that are cached are cached if being unsplit
-SET_AS_GIVEN_THAT_EVERYTHING_MACED_WILL_BE_FIXED_AND_MULTIPLE_OF_16=1 #this means that we can disable length prepending and padding
+TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES=0 #don't call the secure getters and setters for the loop counters. It seems wrong to not call them. Default 0.
+SQEEZE_KEYS_WHEN_MACING=1  #R the size of the keys from 32 bytes to 16 when calculating mac. Default 1
+COUNT_MAC_INVOCATIONS=0 #Ignores mac correctness and reports mac invocations. Default 0.
+ADD_THE_PADDED_NOPS_IN_THE_MAC_IN_FIXED_SIZE=1 #takes into account the padded nops in the mac calculation. Default 1.
+USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=0 #EXPERIMENTAL: The code blocks that are cached are cached if being unsplit. Default 0.
+SET_AS_GIVEN_THAT_EVERYTHING_MACED_WILL_BE_FIXED_AND_MULTIPLE_OF_16=0 #this means that we can disable length prepending and padding. Default 0.
 
-
+#usage
 if [[ ( "$#" -ne 9 ) && ( "$#" -ne 10) ]]; then
     echo "Please execute as following:"
     echo -e "\n$0 <a> <b> <c> <d> <e> <f> <g> <h> <i> <j>"
@@ -47,18 +48,19 @@ if [[ ( "$#" -ne 9 ) && ( "$#" -ne 10) ]]; then
     exit
 fi
 
-NUM_OF_INTERLEAVED_KEYS=5
-NUM_OF_GROUPED_INSTRUCTIONS=1
-NUM_OF_GROUPED_USEFUL_BYTES=4
-NUM_OF_TOTAL_BYTES_ALLOC=10000
-NUM_OF_CANARIES=2
-NUM_OF_GROUPED_USEFUL_STACK_BYTES=4
-NUM_OF_TOTAL_STACK_BYTES_ALLOC=8000
-NUM_OF_GLOBAL_USEFUL_BYTES=8
-NUM_OF_MAC_BYTES=16
-USE_FIXED_SIZE_CHUNKS_OF_CODE=0
-NUM_OF_BYTES_IN_CODE_CHUNK=20 #verification code + useful code + jmps
+NUM_OF_INTERLEAVED_KEYS=32 #The number of bytes for both the keyshares in a block
+NUM_OF_GROUPED_INSTRUCTIONS=1 #grouped code instructions per code block
+NUM_OF_GROUPED_USEFUL_BYTES=8 #the useful bytes in a heap block
+NUM_OF_TOTAL_BYTES_ALLOC=10000 #the size of the secure heap
+NUM_OF_CANARIES=3 
+NUM_OF_GROUPED_USEFUL_STACK_BYTES=8 #the useful bytes in a stack block
+NUM_OF_TOTAL_STACK_BYTES_ALLOC=8000 #the size of the secure stack
+NUM_OF_GLOBAL_USEFUL_BYTES=8  #the useful bytes in a data segment block
+NUM_OF_MAC_BYTES=16 
+USE_FIXED_SIZE_CHUNKS_OF_CODE=0 #should we use fixed chunks in code blocks? The preferred option is yes.
+NUM_OF_BYTES_IN_CODE_CHUNK=20 #Maximum value for code (verification code + useful code + jmps) per code block. The block may be split if we encounter label or call.
 
+#set the values
 if [ "$#" -eq 9 ]; then
 	NUM_OF_INTERLEAVED_KEYS=$1
 	NUM_OF_GROUPED_INSTRUCTIONS=$2
@@ -113,15 +115,15 @@ fi
 
 echo ""
 
-
+#don't care about the following, unless FORCE_NUM_OF_INSTRUCTIONS_OVER_NUM_OF_BYTES=1
 #if [ "$NUM_OF_GROUPED_INSTRUCTIONS" -gt "20" ]; then
 #	echo "Caution! The length of the grouped instructions should not be >253 bytes under no circumstances!"
 #	echo "Your value of grouped instructions is big enough to cause concerns. Exiting for safety."
 #	echo "If you REALLY want such a value (it is big however), change the automate.sh script." ; exit
 #fi
 
-if [ "$NUM_OF_BYTES_IN_CODE_CHUNK" -lt "12" ]; then
-	echo "Caution! The length of the code chunk should be bigger or equal than 12"
+if [ "$NUM_OF_BYTES_IN_CODE_CHUNK" -lt "20" ]; then
+	echo "Caution! The length of the code chunk should be bigger or equal than 20"
 	echo "Your value of code chunk length is small enough to cause concerns. Exiting for safety."
 	echo "If you REALLY want such a value (it is small however), change the automate.sh script."
 	exit
@@ -152,7 +154,7 @@ if [[ ( "$NUM_OF_CACHED_BLOCKS_OF_DATA" -ne 0 ) && ( "$NUM_OF_GROUPED_USEFUL_STA
 	exit
 fi
 
-#Checking if the .class files are present
+#Checking if the .class files are present. If not (or out of date), we create them.
 if [ ! -d "../bin" ]; then  #if directory does not exist
 	echo "The 'bin' directory with the class files is not present!" 
 	echo "The script will do the job for you. Make sure Java compiler is installed."
@@ -201,16 +203,20 @@ fi
 rm -f addresses_of_unsplit_blocks.txt
 
 echo "Changing defines according to input..."
+#this script changes the defines according to user input, so that se secure program knows the constants as headers.
 python3 set_correct_defines.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_TOTAL_STACK_BYTES_ALLOC $NUM_OF_GLOBAL_USEFUL_BYTES $NUM_OF_MAC_BYTES $INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS $USE_FIXED_SIZE_CHUNKS_OF_CODE $NUM_OF_BYTES_IN_CODE_CHUNK $DO_NOT_MAC_WHAT_WHE_ADD_IN_CODE $ADD_CODE_ON_THE_FLY_VERIFICATION $USE_INLINE_CODE_FOR_DELAYS $NUM_OF_CACHED_BLOCKS_OF_CODE $NUM_OF_CACHED_BLOCKS_OF_DATA $IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES $CODE_CACHE_TYPE $DATA_CACHE_TYPE $CODE_CACHE_SET_ASSOSIATIVE_SIZE $DATA_CACHE_SET_ASSOSIATIVE_SIZE $IGNORE_MACS_LAST_MOMENT_EVEN_IF_THERE_ARE_MAC_BYTES $TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES $SQEEZE_KEYS_WHEN_MACING $COUNT_MAC_INVOCATIONS $ADD_THE_PADDED_NOPS_IN_THE_MAC_IN_FIXED_SIZE $FORCE_CODE_BLOCK_SPLIT_ON_LABELS_AND_CALLS $USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS $SET_AS_GIVEN_THAT_EVERYTHING_MACED_WILL_BE_FIXED_AND_MULTIPLE_OF_16
 if [ "$INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS" == "0" ]; then
+	#we now insert the code that manipulates the secure stack
 	python3 insert_new_stack_commands.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_MAC_BYTES
 fi
 if [ "$INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS" == "1" ]; then
+	#we now insert the code that manipulates the secure stack
 	python3 insert_new_stack_commands_groups_of_vars_as_arrays.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_MAC_BYTES
 fi
 echo "Changed defines."
 
 echo "Copying header files, secure getters/setters, crypto functions and initializer..."
+	#copying some template files (that do not have to be changed).
 	cp ./template_files/crypto_functions_template.h crypto_functions.h
 	cp ./template_files/secure_getters_setters_template.h secure_getters_setters.h
 	cp ./template_files/secure_getters_setters_template.c secure_getters_setters.c
@@ -221,40 +227,43 @@ echo "Copied these files."
 
 echo "Compiling hash and encryption calculators, as well as the crypto initializer..."
 	(cd crypto_algorithms; make >/dev/null ;
-	 cp sha256_for_us.c ../sha256.c ; 
+	 cp sha256_for_us.c ../sha256.c ; #the sha256 implementation
 	 cp sha256.h ../ ; 
 	 cd .. ; 
 	 gcc -O3 -c sha256.c #-mno-red-zone;
 	 rm -f sha256.c sha256.h  #removing the sha stuff that we don't need.
 	 gcc -O3 -c crypto_functions.c -lcrypto -Wno-div-by-zero #-mno-red-zone
 	 if [ "$ADD_CODE_ON_THE_FLY_VERIFICATION" -eq "1" ]; then
-		#find the number of subtractions we have to do to fetch the return address in the verifier
+		#find the number of subtractions we have to do to fetch the return address (which is in the stack) in the verifier
 		 LINE_OF_VERIFIER=$(objdump -d crypto_functions.o | grep -n "<do_verify_code_on_the_fly>:" | grep -Eo '^[0123456789]+')
 		 LINE_OF_MOV=$(objdump -d crypto_functions.o | grep -C 10 -n "<do_verify_code_on_the_fly>:" | grep "mov    0x10(%rsp),%rax" | grep -Eo '^[0123456789]+')
 		 NUM_OF_8_BYTE_PUSHES=$(( $LINE_OF_MOV-$LINE_OF_VERIFIER -1 ))
 		 BYTE_DIFFERENCE=$(( NUM_OF_8_BYTE_PUSHES*8 ))
-		 STR_FOR_SED="s/movq 0x10(%rsp),%rax;/movq ${BYTE_DIFFERENCE}(%rsp),%rax;/g"
+		 STR_FOR_SED="s/movq 0x10(%rsp),%rax;/movq ${BYTE_DIFFERENCE}(%rsp),%rax;/g" #changing the offset from %rsp to get the return address
 		 #replace and put the proper offset
 		 sed -i "$STR_FOR_SED" crypto_functions.c
 		 #and compile again
 		 gcc -O3 -c crypto_functions.c -lcrypto -Wno-div-by-zero #-mno-red-zone
 	 fi
+	 #compile the extra stuff that would be implemented in hardware
 	 gcc -O3 -c secure_stack_manipulation_functions.c -lcrypto #-mno-red-zone
-	 gcc -O3 -c calc_mac_for_external_programs.c -lcrypto #-mno-red-zone
-	 gcc -O3 -c mac_time_calculator.c -lcrypto #-mno-red-zone
+	 gcc -O3 -c calc_mac_for_external_programs.c -lcrypto #-mno-red-zone #this one just calcs a mac
+	 gcc -O3 -c mac_time_calculator.c -lcrypto #-mno-red-zone  #this one calculates mac times, for all possible sizes
 	 gcc -O3 calc_mac_for_external_programs.o ./sha256.o ./crypto_functions.o -o calc_mac_for_external_programs -lcrypto #-mno-red-zone
 	 gcc -O3 mac_time_calculator.o ./sha256.o ./crypto_functions.o -o mac_time_calculator -lcrypto #-mno-red-zone
-	 gcc -O3 initializer.c -c -mno-red-zone
+	 gcc -O3 initializer.c -c -mno-red-zone #this one runs 
 	 )
 echo "Compiled hash and encryption calculators, and the crypto initializer."
 
 
 if [ "$SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS" != "0" ]; then
 	echo "Inserting keys among global variables and copying templates...."
+	#this secures the data segment
 	./insert_keys_and_macs_among_globals.py $NUM_OF_INTERLEAVED_KEYS $DECLARE_GLOBAL_KEYS_AS_AN_ARRAY $NUM_OF_GLOBAL_USEFUL_BYTES $NUM_OF_MAC_BYTES $SQEEZE_KEYS_WHEN_MACING
 	echo "Inserted keys among global variables and copied templates."
 else
 	echo "Copying templates to target files"
+	#copying the rest of the templates
 	#headers_needed and general_tests are missing, they are taken care of the first python script
 	cp ./template_files/memory_manager_template.c memory_manager.c
 	cp ./template_files/verification_procedure_template.c verification_procedure.c
@@ -270,16 +279,17 @@ fi
 
 
 echo "Compiling secure getters and setters..."
-	gcc -O3 -c secure_getters_setters.c -lcrypto #-mno-red-zone
+	gcc -O3 -c secure_getters_setters.c -lcrypto #-mno-red-zone #these getters and setters are normally implemented in hardware
 echo "Compiled secure getters and setters."
 
 echo "Compiling...."
-make
+make #compiling the actual program
 echo "Compiled."
 
 echo "Inserting NOPs into assembly..."
 mkdir -p /run/shm/
-ramtmp="$(mktemp -p /run/shm/)"
+ramtmp="$(mktemp -p /run/shm/)" #temporary file
+#this java code inserts the nops in assembly, as well as the jmps and the on-the-fly verification code
 java -cp ../bin Secure_Assembly $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_INSTRUCTIONS $NUM_OF_CANARIES $NUM_OF_MAC_BYTES $ADD_CODE_ON_THE_FLY_VERIFICATION $USE_FIXED_SIZE_CHUNKS_OF_CODE $NUM_OF_BYTES_IN_CODE_CHUNK $FORCE_NUM_OF_INSTRUCTIONS_OVER_NUM_OF_BYTES $ramtmp $IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES $FORCE_CODE_BLOCK_SPLIT_ON_LABELS_AND_CALLS
 if [ $? -eq 0 ]; then
 		: #all ok
@@ -325,6 +335,7 @@ echo "Assembled."
 
 
 echo "Replacing NOPs with canaries,keys and macs..."
+#this java code searches through the binary, finds the jmps+rest of nops, and replaces the nops with canaries,padded nops (in case of fixed length), keys and macs
 java -cp ../bin Secure_Machine_Code $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_TOTAL_STACK_BYTES_ALLOC $NUM_OF_MAC_BYTES $ADD_CODE_ON_THE_FLY_VERIFICATION $USE_FIXED_SIZE_CHUNKS_OF_CODE $NUM_OF_BYTES_IN_CODE_CHUNK $DO_NOT_MAC_WHAT_WHE_ADD_IN_CODE $IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES $SQEEZE_KEYS_WHEN_MACING $ADD_THE_PADDED_NOPS_IN_THE_MAC_IN_FIXED_SIZE $FORCE_CODE_BLOCK_SPLIT_ON_LABELS_AND_CALLS
 echo "NOPs replaced with keys."
 
