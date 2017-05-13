@@ -284,11 +284,12 @@ public class Secure_Assembly {
 					{
 						list_of_lines.add(line);
 						got_inside_while=1;
-						if (sc.hasNext(Pattern.compile("^[ \t\n]*$")) ||  sc.hasNext(Pattern.compile("^[ \t]*\\..*$")) ||   sc.hasNext(Pattern.compile("^\\..*$")) )
+						if ( sc.hasNext(Pattern.compile("^[ \t\n]*$")) ||  sc.hasNext(Pattern.compile("^[ \t]*\\..*$")) ||   sc.hasNext(Pattern.compile("^\\..*$")) || /*dunno why, does not work with dollar in the end*/sc.hasNext(Pattern.compile("\\..*")))
 						{
 							line = sc.next();
 							line_index++;
 							line = removeNewlines(line);
+							
 						}
 						else
 						{
