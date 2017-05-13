@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#this script creates the actual secure program
+
 SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS=1  #default 1
 DECLARE_GLOBAL_KEYS_AS_AN_ARRAY=0  #default 0
 INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS=1 #default 1

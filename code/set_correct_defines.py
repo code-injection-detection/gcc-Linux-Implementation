@@ -1,21 +1,29 @@
 #!/usr/bin/env python3
 
+
 import sys
 import copy
 
+'''
+This script sets the proper defines in the headers_needed.h file, given the user configurations.
+The first part is the important one, the second implements an old (wrong) version of the stack.
+'''
 
+#get the template
 headers_src=open('./template_files/headers_needed_template.h','r')
+#prepare to write onto the non-template file
 headers_dst=open('headers_needed.h','w')
 
 
 
 
 src_lines= headers_src.readlines()
-src_lines = [x for x in src_lines if not "PYTHON IGNORE" in x]
+src_lines = [x for x in src_lines if not "PYTHON IGNORE" in x] #drop the "PYTHON IGNORE" files
 
 
 for line in src_lines:
 	newline=line
+	#change the defines
 	if '#define number_of_interleaved_keys' in line:
 		newline='#define number_of_interleaved_keys ('+sys.argv[1]+')\n'
 	if '#define bytes_used_for_keyshares' in line:
@@ -90,14 +98,22 @@ headers_dst.close()
 ###########################  JOB DONE FOR HEADERS ###################################
 #####################################################################################
 
+#####################################################################################
+######## OBSOLETE PART BELOW. KEEPING IT FOR BACKWARDS COMPATIBILITY REASONS ########
+#####################################################################################
+
+
 # GOING TO DO REPLACEMENTS FOR INITIALIZATION REQUESTS
+
+#the target is to read the annotations for the secure stack (the old version) and produce the code that is needed.
+#The code using the old stack is in general_tests_template.c
 
 temp_line=''
 temp_line2=''
 temp_line3=''
 temp_line4=''
 
-#BASIC PARSER. Sets the correct values to the dictionaries
+#BASIC PARSER. Sets the correct values to the dictionaries that hold the details for each type of variable
 def insert_into_dictionaries(dictionary,line,ptr):
 	temp_line=line.strip().split('|')
 	temp_line2=temp_line[0].strip()
