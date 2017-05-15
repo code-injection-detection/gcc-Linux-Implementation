@@ -5,8 +5,14 @@ import copy
 import platform
 import gc
 
+'''
+This script inserts the commands that implement the secure stack.
+It parses the function annotations in tests_with_new_stack_template.c
+which describe the parameters, local vars, where the function is being called etc
+'''
 
-#stach frame: args (arg(1), arg(2)...) , return value, return address, base pointer, local vars
+
+#stack frame: args (arg(1), arg(2)...) , return value, return address, base pointer, local vars
 
 tests_src=open('./template_files/tests_with_new_stack_template.c','r')
 tests_dst=open('tests_with_new_stack.c','w')
@@ -58,7 +64,18 @@ def type_of_var_in_declaration(index):
 		return 'arb_ptr'
 
 
-
+#parses the local parameters and puts the into the dictionary
+#eg
+'''
+NUM_OF_PARAMETERS: 5
+		chars: 0 
+		ints: 2 | names: X,Y
+		longs: 0
+		floats: 0
+		doubles: 0
+		pointers: 1 | names: TEST_PTR | size_of_pointed_elements:10 
+		arb_pointers: 2 | names: STUFF,STUFF2 | size_of_objects:5,7
+'''
 def process_params_locals(type_of_vars):
 	global params_locals_lines
 	global function_dict
@@ -96,7 +113,7 @@ def calculate_chunks_needed_for_a_size(size_in_bytes):
 	return chunks_num
 	
 	
-	
+#how many chunks (blocks) the local variables are going to take. Their amounts are read from the dictionary.
 def calculate_chunks_for_params_locals(type_of_vars):
 	global function_dict
 	
@@ -154,6 +171,7 @@ def find_type_of_var_in_C(type_of_var):
 	return name_of_var_in_c
 
 
+#calulcates the size of the function frame
 def calc_size_of_fun_in_stack():
 	global function_dict
 	
@@ -243,7 +261,7 @@ def add_code_for_function_calling(fun_name,write_to,params):
 		dst_lines.append(line)
 	
 	
-	
+#these are the lines that are put at the start of each function (eg definitions of local var and param macros, setting of base pointer etc)
 def add_the_function_header():
 	global function_dict
 	
@@ -302,7 +320,7 @@ def add_the_function_header():
 	
 	
 	
-	
+#the code at the end of each function
 def add_the_function_footer(bool_for_undef):
 	global function_dict
 	
@@ -325,7 +343,7 @@ def add_the_function_footer(bool_for_undef):
 		dst_lines.append(line)
 		
 		
-		
+#set the return value
 def copy_result_to_return_space():
 	global function_dict
 	
@@ -377,6 +395,7 @@ write_result_to_currently_called=''
 
 for line in src_lines:
 	
+	#parse the lines and populate the dictionary
 	if ((in_parameters) or (in_local_variables)) and (cnt_params_locals_lines<7): #7, each for every type of parameter or local variable
 		cnt_params_locals_lines+=1
 		params_locals_lines.append(line)

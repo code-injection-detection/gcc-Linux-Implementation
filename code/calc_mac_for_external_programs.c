@@ -2,6 +2,7 @@
 
 extern void calc_and_set_mac_of_data_sha256(char * input, long length, char * output);
 
+//finds the mac, given a bytestream. It is used by java and python.
 
 void usage(char * name)
 {
@@ -29,14 +30,14 @@ int main(int argc, char* argv[])
 	
 	for (i=0;i<len_of_all;i++)
 	{
-		bytes[i]=atoi(argv[3+i]);
+		bytes[i]=atoi(argv[3+i]); //get the bytes
 	}
 	
 	//for (j=0;j<3;j++) //let's do it 3 times, for debugging reasons
 	{
-		calc_and_set_mac_of_data(bytes,len_of_all,len_of_useful,mac);
+		calc_and_set_mac_of_data(bytes,len_of_all,len_of_useful,mac); //calc
 		
-		for (i=0;i<number_of_mac_bytes;i++)
+		for (i=0;i<number_of_mac_bytes;i++) //print
 		{
 			printf("%d ",mac[i]);
 		}

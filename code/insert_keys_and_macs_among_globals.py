@@ -9,7 +9,25 @@ import hashlib
 from collections import Iterable
 from subprocess import Popen, PIPE
 
+#example of invocation
+'''
+//GLOBAL DECLARATION
+typedef struct
+{
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:double
+double global_double_variable_for_testing;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:int
+int test_global;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:int 
+int secured_i;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:long
+long secured_sum;
+}global_vars;
+'''
+
+
 #input files that are going to be checked if they have global declarations
+#currently, only the main_program_template.c has
 inputfiles=[ './template_files/memory_manager_template.c',
 			 './template_files/stack_manager_template.c',
 			 './template_files/functions_needed_header_template.c',
@@ -205,6 +223,7 @@ def add_keys_and_macs_one_line(var_type):
 		filelines_out.append(s)
 
 #for every chunk, useless bytes are padded so as to make the size of the chunk to be fixed
+#For example, if a global is an int (4 bytes) and the useful size per block is 8 s, the rest have to be padded.
 def pad_random_useless_bytes(var_type,num):
 	global filelines_out
 	global useless_bytes_cnt
@@ -293,7 +312,8 @@ chunk_bytes_cnt=0
 var_size=1
 
 
-#insert keys among the global variables in the code
+
+#insert keys among the global variables in the code, by searching for canary strings
 for fileindex,filein in enumerate(inputfiles):
 	#read lines
 	filehandler=open(filein,'r')
@@ -307,7 +327,7 @@ for fileindex,filein in enumerate(inputfiles):
 	filehandler=open(fileout,'w')
 	processing_global=0
 	for line in filelines_in:
-		if canary_str in line:
+		if canary_str in line:  #global variable following
 			var_size=4
 			if (len(line.split('|')))>1:
 				var_size=int(process_var_size(line.split('|')[1].split(':')[1].strip().lower()))
