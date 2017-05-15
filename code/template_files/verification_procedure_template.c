@@ -132,12 +132,12 @@ void find_keyshares(int choice)
 	for (p=entire_memory_chunk,heap_cnt=0;heap_cnt<total_bytes_allocated;)
 	{
 
-		if (type_of_bytes==0)
+		if (type_of_bytes==0) //useful
 		{
 			heap_cnt+=bytes_for_useful_data;
 			type_of_bytes=1;
 		}
-		else if (type_of_bytes==1)
+		else if (type_of_bytes==1) //keys
 		{
 			//checking the keys
 			for (keycnt=0;keycnt<number_of_interleaved_keys;keycnt++)
@@ -148,7 +148,7 @@ void find_keyshares(int choice)
 			heap_cnt+=bytes_used_for_keyshares;
 			type_of_bytes=2;
 		}
-		else if (type_of_bytes==2)
+		else if (type_of_bytes==2) //macs
 		{
 			heap_cnt+=number_of_mac_bytes;
 			type_of_bytes=0;
@@ -161,12 +161,12 @@ void find_keyshares(int choice)
 	for (p=entire_stack_memory_chunk,stack_cnt=0;stack_cnt<total_stack_bytes_allocated;)
 	{
 
-		if (type_of_bytes==0)
+		if (type_of_bytes==0) //useful
 		{
 			stack_cnt+=stack_bytes_for_useful_data;
 			type_of_bytes=1;
 		}
-		else if (type_of_bytes==1)
+		else if (type_of_bytes==1) //keys
 		{
 			//checking the keys
 			for (keycnt=0;keycnt<number_of_interleaved_keys;keycnt++)
@@ -177,7 +177,7 @@ void find_keyshares(int choice)
 			stack_cnt+=stack_bytes_used_for_keyshares;
 			type_of_bytes=2;
 		}
-		else if (type_of_bytes==2)
+		else if (type_of_bytes==2) //macs
 		{
 			stack_cnt+=number_of_mac_bytes;
 			type_of_bytes=0;

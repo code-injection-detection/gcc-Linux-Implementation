@@ -136,14 +136,14 @@ void print_fun_params_that_point_in_stack(fun_params * params);
 /**************************STACK MANIPULATION FUNCTIONS END**************************************/
 /************************************************************************************************/
 
-
+/*The rest are old functions, used for the old implementation of the secure stack*/
 
 /************************************************************************************************/
 /*****************************PARAMETER FUNCTIONS START******************************************/
 /************************************************************************************************/
 
 
-
+/*OBSOLETE, STAYS HERE FOR BACKWARDS COMPATIBILITY*/
 /*Initialises a fun_params struct.
  * We use the following convention for the multiple arguments: 
  * First one integer (used as boolean) value: if we actually want any parameters
@@ -317,7 +317,7 @@ fun_params * init_function_params(int want_elements, ...)
 	return params;
 }
 
-
+/*OBSOLETE, STAYS HERE FOR BACKWARDS COMPATIBILITY*/
 /*Initialises a fun_params struct with some variables uninitialised, if asked.
  * We use the following convention for the multiple arguments: 
  * First one integer (used as boolean) value: if we actually want any parameters
@@ -515,7 +515,7 @@ fun_params * init_function_params_with_uninitialised_elements(int want_elements,
 
 
 
-
+/*OBSOLETE, STAYS HERE FOR BACKWARDS COMPATIBILITY*/
 /*Puts the parameters into the secure stack. Now the pointers in the fun_params struct
  * point to the secure stack. This is done to find access them at will, in a secure way.
  * Important: The parameters are allocated  and inserted one type (chars,ints...) at once. 
@@ -651,7 +651,7 @@ fun_params * put_fun_params_into_secure_stack(fun_params * params)
 	return ret;
 }
 
-
+/*OBSOLETE, STAYS HERE FOR BACKWARDS COMPATIBILITY*/
 //frees the fun_params structure
 void free_fun_params(fun_params* params)
 {
@@ -679,6 +679,7 @@ void free_fun_params(fun_params* params)
 	}
 }
 
+/*OBSOLETE, STAYS HERE FOR BACKWARDS COMPATIBILITY*/
 //frees the fun_params structure, but not the pointers that point to the secure stack
 void free_fun_params_that_point_to_stack(fun_params* params)
 {
@@ -688,7 +689,7 @@ void free_fun_params_that_point_to_stack(fun_params* params)
 	free(params);
 }
 
-
+/*OBSOLETE, STAYS HERE FOR BACKWARDS COMPATIBILITY*/
 fun_params * put_fun_params_into_secure_stack_and_free(fun_params * params)
 {
 	fun_params * ret;
@@ -724,7 +725,7 @@ void print_stack_mem(unsigned char * stack_mem)
 
 }
 
-
+/*OBSOLETE, STAYS HERE FOR BACKWARDS COMPATIBILITY*/
 void print_fun_params(fun_params * params)
 {
 	long i;
@@ -821,7 +822,7 @@ void print_fun_params(fun_params * params)
 
 }
 
-
+/*OBSOLETE, STAYS HERE FOR BACKWARDS COMPATIBILITY*/
 void print_fun_params_that_point_in_stack(fun_params * params)
 {
 	long i;
@@ -929,7 +930,7 @@ void print_fun_params_that_point_in_stack(fun_params * params)
 /***********************TESTING FUNCTIONS AND INCLUDES START*************************************/
 /************************************************************************************************/
 
-
+/*OBSOLETE, STAYS HERE FOR BACKWARDS COMPATIBILITY*/
 fun_params * tower_of_Hanoi_init_secure_template(int n, char fromrod, char torod, char auxrod)
 {
 	char three_chars[3];
