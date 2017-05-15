@@ -21,7 +21,7 @@ void * error_checking_malloc(long size_in_bytes, const char * fun_name,int line)
 	return ret;
 }
 
-
+//checks that the output of the verification procedure is correct
 void verify_all_keyshares_from_file(unsigned char * keys_array)
 {
 	FILE *all_keyshares_file;

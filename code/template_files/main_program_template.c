@@ -31,10 +31,9 @@ int foo(int x)
 return k;
 }
 
-//practically main(), but crypto functions must be initialized beforehand
+//practically main(), but crypto functions must be initialized beforehand (in initializer_template.c, where the actual main() is)
 int main_program_function()
 {
-	char bob[10];
 	pid_t pid;
 	int i;
 	int k;
@@ -50,7 +49,7 @@ int main_program_function()
 
 	
 	//initialise the verification procedure thread that will wait to be called
-	//DANGER: Problems may occur with on-the-fly code verification! //DON'T DO IT AT THE MOMENT
+	//DANGER: Problems may occur with on-the-fly code verification! Multi-threading is not supported yet. //DON'T DO IT AT THE MOMENT
 	//init_verification_procedure_thread();
 	
 	

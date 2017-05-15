@@ -26,7 +26,7 @@ IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES=0  #put the macs in the memory, but do a
 IGNORE_MACS_LAST_MOMENT_EVEN_IF_THERE_ARE_MAC_BYTES=0 #put the macs in memory, include the on the fly verification code, and when it comes to calculate them, don't do it (default 0)
 FORCE_CODE_BLOCK_SPLIT_ON_LABELS_AND_CALLS=0 #use it with IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES=1, the blocks are split but no verification code added
 TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES=0 #don't call the secure getters and setters for the loop counters. It seems wrong to not call them. Default 0.
-SQEEZE_KEYS_WHEN_MACING=1  #R the size of the keys from 32 bytes to 16 when calculating mac. Default 1
+SQEEZE_KEYS_WHEN_MACING=1  #Reduces the size of the keys from 32 bytes to 16 when calculating mac. Default 1
 COUNT_MAC_INVOCATIONS=0 #Ignores mac correctness and reports mac invocations. Default 0.
 ADD_THE_PADDED_NOPS_IN_THE_MAC_IN_FIXED_SIZE=1 #takes into account the padded nops in the mac calculation. Default 1.
 USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=0 #EXPERIMENTAL: The code blocks that are cached are cached if being unsplit. Default 0.
