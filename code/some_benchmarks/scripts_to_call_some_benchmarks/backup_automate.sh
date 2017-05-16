@@ -27,7 +27,7 @@ SQEEZE_KEYS_WHEN_MACING=1  #reduces the size of the keys from 32 bytes to 16 whe
 COUNT_MAC_INVOCATIONS=0 #ignores mac correctness and reports mac invocations
 ADD_THE_PADDED_NOPS_IN_THE_MAC_IN_FIXED_SIZE=1 #takes into account the padded nops in the mac
 USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=0 #EXPERIMENTAL: The code blocks that are cached are cached if being unsplit
-SET_AS_GIVEN_THAT_EVERYTHING_MACED_WILL_BE_FIXED_AND_MULTIPLE_OF_16=1 #this means that we can disable length prepending and padding
+SET_AS_GIVEN_THAT_EVERYTHING_MACED_WILL_BE_FIXED_AND_MULTIPLE_OF_16=0 #this means that we can disable length prepending and padding
 
 
 if [[ ( "$#" -ne 9 ) && ( "$#" -ne 10) ]]; then

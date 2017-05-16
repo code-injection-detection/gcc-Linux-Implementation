@@ -1,0 +1,59 @@
+Initializing crypto structures.
+Crypto structures initialized.
+Initializing heap memory
+bytes_to_allocate_on_start:400000
+Init_mem, alloc+key insertion
+Great!. No need to allocate more than the defined amount.
+If successful, total bytes allocated:400000
+Initializing stack memory
+Stack bytes_to_allocate_on_start:55000000
+Init_stack_mem, alloc+key insertion
+Stack: Great!. No need to allocate more than the defined amount.
+If successful, total bytes allocated:55000000
+My pid=21086
+a b c d e 
+x=3
+a b c n e 
+x=11
+
+New Secure matrix_multiplication_sec time:725.118 cpu seconds
+base_pointer:0, entire_stack:139977142407184, last_unused_stack_memory=139977142407184
+
+Going to find keyshares.
+Total key groups found in code:4145
+
+key no0=0x41
+key no1=0xa5
+key no2=0x56
+key no3=0xe5
+key no4=0x6f
+key no5=0xaf
+key no6=0x29
+key no7=0xaf
+key no8=0xf1
+key no9=0x69
+key no10=0xd9
+key no11=0x69
+key no12=0xf9
+key no13=0x14
+key no14=0xe4
+key no15=0x60
+key no16=0xc9
+key no17=0x43
+key no18=0x4d
+key no19=0xea
+key no20=0x6f
+key no21=0x80
+key no22=0x4e
+key no23=0xb8
+key no24=0xe4
+key no25=0x28
+key no26=0x55
+key no27=0x7c
+key no28=0x2c
+key no29=0xf7
+key no30=0x44
+key no31=0x57
+
+
+Mac invocation, length:32, number:15982503925
