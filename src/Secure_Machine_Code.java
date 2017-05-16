@@ -7,7 +7,7 @@ import java.security.*;
 
 /*
  * This code reads a compiled exe file and then locates the nop instructions
- * and replaces them with the key share values.
+ * and replaces them with the key share and mac values. Also, it replaces some other bytes inside the executable too.
  * 
  */ 
 

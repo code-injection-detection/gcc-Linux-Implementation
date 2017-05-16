@@ -38,7 +38,7 @@ public class Secure_Assembly {
 		int num_of_grouped_orig_instr= 1;
 		int label_counter = 0;
 		int i = 0;
-		int  num_of_interleaved_keys = 5;   //this should be equal to the number of keys we use in Secure_Machine_Code.java (now that we assume that 1 NOP = 1key)
+		int  num_of_interleaved_keys = 32;   //this should be equal to the number of keys we use in Secure_Machine_Code.java (now that we assume that 1 NOP = 1key)
 		int  number_of_canaries=2;
 		int  num_of_mac_bytes=4;
 		int bytes_for_instr_len=1; //one byte that denotes the length of the useful bytes + 2 bytes for jmp. If fixed chunks of code are active. Does the same. The padded nops are not included.
@@ -132,6 +132,7 @@ public class Secure_Assembly {
 			    list_of_assembly_sizes.add(s.nextLine());
 			}
 			s.close();
+            //add the sizes of each assembly command to a data structure from which we can search easily
 			add_the_assembly_sizes_to_the_hashmap(list_of_assembly_sizes,hashmap_of_assembly_sizes);
 		}
 		
@@ -178,8 +179,9 @@ public class Secure_Assembly {
 			}
 			
 			num_of_bytes_in_current_block=0;
-			// This inserts the jumps and NOPs in the code.
+			// This inserts the verification code,jumps and NOPs in the code.
 			// It breaks at the end of the code ("end")
+            //rememeber: we are in a function
 			while(sc.hasNext())
 			{
 				boolean reached_end_of_function=false;
@@ -284,11 +286,12 @@ public class Secure_Assembly {
 					{
 						list_of_lines.add(line);
 						got_inside_while=1;
+                        //is the next command a label as well?
 						if ( sc.hasNext(Pattern.compile("^[ \t\n]*$")) ||  sc.hasNext(Pattern.compile("^[ \t]*\\..*$")) ||   sc.hasNext(Pattern.compile("^\\..*$")) || /*dunno why, does not work with dollar in the end*/sc.hasNext(Pattern.compile("\\..*")))
 						{
 							line = sc.next();
 							line_index++;
-							line = removeNewlines(line);
+							line = removeNewlines(line); //if yes, add it
 							
 						}
 						else
@@ -310,7 +313,6 @@ public class Secure_Assembly {
 				}
 				
 				
-				
 				if (removeSpaces(line).startsWith("."))
 				{
 					list_of_lines.add(line);
@@ -319,7 +321,7 @@ public class Secure_Assembly {
 				
 				if (use_fixed_size_chunks_of_code)
 				{
-					if (num_of_bytes_when_we_dont_split_blocks+size_of_current_cmd>num_of_bytes_in_code_chunk-9)
+					if (num_of_bytes_when_we_dont_split_blocks+size_of_current_cmd>num_of_bytes_in_code_chunk-9) //9= verification call + jmp
 					{
 						num_of_bytes_when_we_dont_split_blocks=0;
 						num_of_cmds_when_we_dont_split_blocks=0;
@@ -339,7 +341,7 @@ public class Secure_Assembly {
 				
 				
 				
-				
+				//check if cmd is a call (which means block split), except if it is one of some special functions
 				if (((check_code_verification_on_the_fly && !ignore_macs_even_if_there_are_mac_bytes) || force_code_block_split_on_labels_and_calls)/*we should force end of block even if we ignore mac verification??? */ && line.trim().startsWith("call") && function_is_one_of_the_hardware_ones(line.trim().split("\t")[1].trim())==false) //call should mark the end of a block, except if it is a secure getter/setter
 				{
 					list_of_lines.add(line);
@@ -411,8 +413,7 @@ public class Secure_Assembly {
 		}
 		*/
 		
-		// This write the modified lines into a new ASM
-		// You can use TASM to compile this ASM into machine code
+        //write all the lines to the output file
 		String finalfile = "";
 		String newfilename = filename.substring(0,filename.length()-2) + "_sec.s";
 		//System.out.println("NOPs added to file: "+newfilename);
@@ -426,7 +427,7 @@ public class Secure_Assembly {
 		bw.write(finalfile);
 		bw.flush();
 		
-		//write the new table with the new sizes
+		//write the new table with the new assembly sizes
 		assembly_sizes_table_path=new File("../code/table_with_assembly_command_sizes.txt").getAbsolutePath();
 		BufferedWriter sizes_new = new BufferedWriter(new FileWriter(assembly_sizes_table_path));
 		for (String line: list_of_assembly_sizes)
@@ -475,6 +476,7 @@ public class Secure_Assembly {
 		return line;
 	}
 	
+    //we put the sizes of the nown assembly commands into a good data structure
 	static void add_the_assembly_sizes_to_the_hashmap(ArrayList<String> list_of_assembly_sizes, HashMap<String,Integer> hashmap_of_assembly_sizes)
 	{
 		for (int i=0;i<list_of_assembly_sizes.size();i++)
@@ -499,7 +501,8 @@ public class Secure_Assembly {
 			return sz;
 	}
 	
-	
+	//Finds the size of an assembly command. If it is known, its easy. If it is not nown it assembles it
+    //and disassembles it
 	static int get_size_of_assembly_command(String cmd,String ramtmp_file,ArrayList<String> list_of_assembly_sizes,HashMap<String,Integer> hashmap_of_assembly_sizes) throws IOException, InterruptedException
 	{
 		String line=cmd.trim().replace("\t", " ");
@@ -514,8 +517,9 @@ public class Secure_Assembly {
 				"/bin/sh",
 				"-c",
 				"echo '"+line+"' | as -o "+ramtmp_file+" && objdump -d "+ramtmp_file+" | "+size_calculator_filename
-				};
-
+				};  
+        //like: "echo 'mov %rax,%rbx' | as -o tmp_file && objdump -d tmp_file | ../code/one_assembly_cmd_size_finder.py"
+            
 		int is_size_found=find_cmd_size_in_known_sizes(cmd,list_of_assembly_sizes,hashmap_of_assembly_sizes);
 		if (is_size_found>-1)
 			return (is_size_found);
