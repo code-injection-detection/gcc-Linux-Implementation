@@ -4,9 +4,11 @@
 #define len_2power128 17 //2^128-1 is 16 bytes.
 #define block_length 16
 
+//the sha256 mac is implemented elsewhere
 extern void calc_and_set_mac_of_data_sha256(char * input, long length, char * output);
 
 EVP_CIPHER_CTX aes_ctx;
+//that's the aes ey for AES-CBC. It is considered known to all
 unsigned char aes_key[] = {42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57};
 AES_KEY aes_enc_key;
 unsigned char initialization_vector[]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
@@ -29,22 +31,26 @@ int length_of_encrypted_data;
 size_t length_of_maced_data;
 int tmplen;
 long code_cache[num_of_cached_blocks_of_code]; //in here, the addresses of the blocks of code that are cached are stored.
-int code_cache_latest_index;
+int code_cache_latest_index; //for fully assosiateve code cache
 int code_cache_slot_indexes_for_set_assosiative[(num_of_cached_blocks_of_code/code_cache_set_assosiative_size)];
 long data_cache[num_of_cached_blocks_of_data]; //in here, the addresses of the blocks of code that are cached are stored.
 unsigned char macs_in_data_cache[num_of_cached_blocks_of_data*number_of_mac_bytes]; //holds the mac bytes of the data cache, for them to be written back without recalculating
 unsigned char data_cache_dirty_bits[num_of_cached_blocks_of_data];
 int data_cache_slot_indexes_for_set_assosiative[(num_of_cached_blocks_of_data/data_cache_set_assosiative_size)];
-int data_cache_latest_index;
+int data_cache_latest_index; //for fully assosiateve data cache
 unsigned char keys_temp_space[1024];
 char count_mac_invocations_in_this_code_part=0;
 long long mac_size_invocation_counters[1024];
-long addresses_of_unsplit_blocks[25000];
+
+//experimental: when calculating cache on unsplit code blocks
+long addresses_of_unsplit_blocks[25000]; 
 int num_of_addresses_of_unsplit_blocks=0;
 FILE *unsplit_block_addr_file;
 long addr_of_first_block_of_code;
 void find_addr_of_first_block_of_code();
+//end of experimental declarations
 
+//called before everything else
 void init_crypto_stuctures(int print, int find_addr_of_first_code_block)
 {
 	if (print)
@@ -102,6 +108,7 @@ void init_crypto_stuctures(int print, int find_addr_of_first_code_block)
 		}
 		else
 		{
+			//read the addresses of the unsplit blocks and put them in an array
 			num_of_addresses_of_unsplit_blocks=0;
 			while (!feof(unsplit_block_addr_file))
 			{
@@ -145,6 +152,8 @@ int check_the_next_canaries(void* p)
 	return 1;
 }
 
+//experimental: when using the unsplit blocks of code, we have to find the address of the
+//first secured part of the code
 void find_addr_of_first_block_of_code()
 {
 	unsigned char *p;
@@ -154,6 +163,7 @@ void find_addr_of_first_block_of_code()
 	
 	for (p=start_of_text;p<=end_of_text;p++)
 	{
+		//the first address can be found by finding the first jmp and its canaries
 		if (*p==0xEB && *(p+1)==(number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len+get_number_of_padded_nops(p)) && check_the_next_canaries(p+2)) //JMP <number of keys>+<number_of_canaries>+<number_of_mac_bytes>+<bytes_for_instr_len>
 		{
 			int length_of_useful_data=*(p+2+number_of_canaries);
@@ -164,6 +174,8 @@ void find_addr_of_first_block_of_code()
 }
 
 #define addr_in_code_as_offset_of_fist_block_addr(index) (addresses_of_unsplit_blocks[index]+addr_of_first_block_of_code)
+//experimental:given a code address ,we want to find when this address would fall in, should the code blocks
+//were not split. We do this by searching the array
 int find_addr_in_unsplit_blocks_addresses(unsigned char * address) //binary search!
 {
 	int first=0;
@@ -199,9 +211,14 @@ int find_addr_in_unsplit_blocks_addresses(unsigned char * address) //binary sear
 	if (addr>=addr_in_code_as_offset_of_fist_block_addr(first))
 		return first;
 	else
+	{
 		fprintf(stderr,"ERROR in binary search!!\n");
+		fprintf(stderr,"addr=%ld, first addr=%ld\n".(long)addr,(long)addr_in_code_as_offset_of_fist_block_addr(first));
+	}
 }
 
+
+//depending on the algorithm, the correct function is called
 void calc_and_set_mac_of_data(unsigned char *input,int length_all,int length_useful,unsigned char *output)
 {
 #if squeeze_keys_when_macing==1
@@ -212,6 +229,7 @@ void calc_and_set_mac_of_data(unsigned char *input,int length_all,int length_use
 		mac_size_invocation_counters[length_all-number_of_interleaved_keys/2]+=1;
 	}
 #endif
+	//save the keys and squeeze them
 	memcpy(keys_temp_space,(unsigned char*)(input)+(int)((length_all)-number_of_interleaved_keys),number_of_interleaved_keys);
 	squeeze_bytes_in_place((unsigned char*)(input)+(int)((length_all)-number_of_interleaved_keys),number_of_interleaved_keys);
 #if mac_algorithm==0
@@ -229,6 +247,7 @@ void calc_and_set_mac_of_data(unsigned char *input,int length_all,int length_use
 #if mac_algorithm==4
 	calc_and_set_mac_of_data_aes_cbc((input),(length_all)-number_of_interleaved_keys/2,(output));
 #endif
+	//restore the keys
 	memcpy((unsigned char*)(input)+(int)((length_all)-number_of_interleaved_keys),keys_temp_space,number_of_interleaved_keys);
 #else
 #if count_mac_invocations==1
@@ -408,6 +427,7 @@ void encrypt_aes_cbc(unsigned char *buf_to_be_encrypted,int len_of_buf)
 		*/
 		
 		/*
+		//another version that is slower (it's software) and has the length wrong
 		AES_cbc_encrypt(buf_to_be_encrypted, encrypted_data, len_of_buf, &aes_enc_key,initialization_vector, AES_ENCRYPT);
 		if (len_of_buf%16==0)
 			length_of_encrypted_data=len_of_buf+16; //length is wrong
@@ -440,15 +460,10 @@ int prepend_length_aes_cbc(char * input,int length)
 	char num_of_zeros_to_pad_up_to_full_block;
 	int number_above_full_block;
 	
-	/*
-	//for inserting the length in an entire block
-	memset(intermediate_buf_for_macing,0,(block_length- sizeof(long)));
-	memcpy(intermediate_buf_for_macing+(block_length- sizeof(long)),&length,sizeof(long));
-	memcpy(intermediate_buf_for_macing+block_length,input,length_of_all);
-	*/
+
 	if (length<=255) //practically always happens
 	{
-		char_length=(char)length;
+		char_length=(char)length; //prepend a byte
 		len_padded=sizeof(char);
 		memcpy(intermediate_buf_for_macing,&char_length,len_padded);
 		#if mac_algorithm==4
@@ -466,7 +481,7 @@ int prepend_length_aes_cbc(char * input,int length)
 	}
 	else
 	{
-		len_padded=sizeof(int);
+		len_padded=sizeof(int); //prepend four bytes
 		memcpy(intermediate_buf_for_macing,&length,len_padded);
 		#if mac_algorithm==4
 			number_above_full_block=(length+sizeof(int))%block_length;
@@ -524,12 +539,12 @@ void clear_crypto_structures()
 		CMAC_CTX_free(cmac_ctx);
 	#endif
 	#if count_mac_invocations==1
-	int i;
-	for (i=0;i<1024;i++)
-	{
-		if (mac_size_invocation_counters[i]>0)
-			fprintf(stdout,"\nMac invocation, length:%d, number:%Ld\n",i,mac_size_invocation_counters[i]);
-	}
+		int i;
+		for (i=0;i<1024;i++)
+		{
+			if (mac_size_invocation_counters[i]>0)
+				fprintf(stdout,"\nMac invocation, length:%d, number:%Ld\n",i,mac_size_invocation_counters[i]);
+		}
 	#endif
 }
 
@@ -576,6 +591,7 @@ int check_code_mac_for_error(unsigned char * input, int total_mac_bytes, int use
 	{
 		
 #if do_not_mac_what_we_add_in_code==1 //using defined if's , for speed
+//if we are not macing the on-the-fly verification code, the jmps and the canaries
 		{
 			int length_of_verifier=size_of_commands_before_getting_addr+1; //the final pop command
 			if (ignore_macs_even_if_there_are_mac_bytes)
@@ -640,11 +656,12 @@ int check_next_canaries_for_crypto(void* p)
 
 
 unsigned char mac_for_verification[number_of_mac_bytes];
+//that's for data
 void verify_mac_onthefly(unsigned char * input, int total_mac_bytes, int useful_mac_bytes,const char * fun_name,int line)
 {
 	if (number_of_mac_bytes>0 && !ignore_macs_last_moment_even_if_there_are_mac_bytes)
 	{
-		if (continue_getting_data_addr(input)==-1)
+		if (continue_getting_data_addr(input)==-1) //check the cache
 		{
 			calc_and_set_mac_of_data(input,total_mac_bytes,useful_mac_bytes,mac_for_verification);
 			if (0!=memcmp(input+total_mac_bytes,mac_for_verification,number_of_mac_bytes)) //CRYPTO_memcmp?
@@ -702,7 +719,7 @@ void update_mac_when_setting_data(unsigned char * input, int total_mac_bytes, in
 
 /*********************************************************************************************************/
 /*********************************************************************************************************/
-/*Functions that for on-the-fly code verification testing*/
+/*Functions that are for on-the-fly code verification*/
 /*********************************************************************************************************/
 /*********************************************************************************************************/
 void do_nothing_function()
@@ -721,7 +738,7 @@ const char do_nothing[] = "\xc3";
 
 
 
-
+//this is a test function for testing on-the-fly code verification
 void test_find_primes_up_to_a_number(int num)
 {
 	
@@ -776,7 +793,7 @@ void test_find_primes_up_to_a_number(int num)
 
 
 
-
+//variables that will temporarily hold the %xmm registers
 __m128 xmm0_var;
 __m128 xmm1_var;
 __m128 xmm2_var;
@@ -794,11 +811,13 @@ __m128 xmm13_var;
 __m128 xmm14_var;
 __m128 xmm15_var;
 
+//the function that is called at the start of each code block, to verify it mac
 void do_verify_code_on_the_fly()
 {
 	//get return adress from stack, to see where to mac
 	__asm__(
 			  "pushq %rax;"
+			  //the following "0x10" will change if the offset of the return address is different
 			  "movq 0x10(%rsp),%rax;" //return address (rsp+X) in %rax (well, do_some_stuff subtracts 8 from %rsp, and perhaps we have some pushes too...)
 			  "movq %rax,code_where_to_start_macing(%rip);" //the verifier knows that it should subtract an amount of bytes
 			);
@@ -821,6 +840,7 @@ void do_verify_code_on_the_fly()
               "pushq %r15;" //saved by the calling convention but we use it to align the stack
 			);
 
+	//save the %xmm registers
 	__asm__(    "movdqu %xmm0,xmm0_var(%rip);"
 				"movdqu %xmm1,xmm1_var(%rip);"
 				"movdqu %xmm2,xmm2_var(%rip);"
@@ -846,13 +866,14 @@ void do_verify_code_on_the_fly()
 		}
 		else
 		{
-			; //it's going to be filled by the assembly code and java on the fly
+			; //if we use variable size, the size of the useful bytes will be filled by java
 		}
 		
 		__asm__("movq %rsp,%r15;" //align stack to 16 bytes for call, as System V ABI dictates
 				"and $0xfffffffffffffff0,%rsp;"
 				);
-				
+		
+		//check the cache and if the code block is not there then mac and add it to the cache
 		if (-1==continue_macing_current_code_addr((unsigned char*)(code_where_to_start_macing) - size_of_commands_before_getting_addr)) //if using cache for code
 		{		
 			verify_code_on_the_fly();
@@ -862,7 +883,7 @@ void do_verify_code_on_the_fly()
         __asm__("movq %r15, %rsp;" //restore stack to the number it was
 				);     
              
-             
+    //restore the %xmm registers
     __asm__(    "movdqu xmm0_var(%rip),%xmm0;"
 				"movdqu xmm1_var(%rip),%xmm1;"
 				"movdqu xmm2_var(%rip),%xmm2;"
