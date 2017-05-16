@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-#gives a line in commas
 import sys
 
+#gives a line of benchmarks  can be put into a spreadsheet easily
 name_of_file="./calc_determinant_sec_calc_det_11_squeezed_keys_with_padded_nops_maced/aggregated_results.txt"
 
 file_src=open(name_of_file,'r')

@@ -1,3 +1,10 @@
+
+#Call with simply typing "make" to produce first executable. Secure it with Java and the run "make secure" again for the second executable.
+#Then you can add keyshares to the second executable.
+
+#If you type "make static [secure]", static linking is activated
+
+
 CC=gcc
 PG= #-pg 
 FLAGS_to_assembly= -O0
@@ -6,16 +13,12 @@ FLAGS_to_secure_object = -O0
 FLAGS_in_the_end= -lm -pthread -lcrypto -mno-red-zone
 OBJECT_FILES_TO_BE_LINKED= ./sha256.o ./secure_getters_setters.o ./crypto_functions.o ./initializer.o ./secure_stack_manipulation_functions.o
 
+#if we want static linking
 ifeq ($(filter-out secure,$(MAKECMDGOALS)),static)
  FLAGS_to_assembly+=  -static
  FLAGS_to_object+=  -static
  FLAGS_to_secure_object+=  -static
 endif
-
-#Call with simply typing "make" to produce first executable. Secure it with Java and the run "make secure" again for the second executable.
-#Then you can add keyshares to the second executable.
-
-#If you type "make static [secure]", static linking is activated
 
 
 default: main_program.s main_program

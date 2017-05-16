@@ -1,5 +1,8 @@
 #include "headers_needed.h"
 
+//this is the big function that will engulf the secure functions
+//the normal counterparts are in general_tests_template.c
+//(hanoi is in stack_manager_test_suite_template.c)
 
 //DONT USE sizeof() in sizes!! PYTHON does not know that!
 
@@ -562,6 +565,8 @@ void great_function_that_wraps_the_tests()
 	//HEY PYTHON CALLING FUNCTION : test_custom_function_sum | WRITE RESULT TO: x |PARAMETERS TO CALL WITH: 5,6,NULL,stuff,stuff2
 	printf("x=%d\n",x);
 	
+	
+	//hanoi
 	/*
 	_securestart=clock(); 
 	count_mac_invocations_in_this_code_part=1;
@@ -573,6 +578,8 @@ void great_function_that_wraps_the_tests()
 	printf("New Secure towers_of_hanoi time:%lg cpu seconds\n",_securetime); 
 	*/
 	
+	
+	//sieve of Eratosthenes
 	/*
 	_securestart=clock();
 	count_mac_invocations_in_this_code_part=1;
@@ -584,6 +591,8 @@ void great_function_that_wraps_the_tests()
 	printf("New Secure Sieve of Eratosthenes time:%lg cpu seconds\n",_securetime); 
 	*/
 	
+	
+	//primes
 	/*
 	_securestart=clock();
 	count_mac_invocations_in_this_code_part=1;
@@ -595,6 +604,8 @@ void great_function_that_wraps_the_tests()
 	printf("New Secure find_primes_up_to_a_number time:%lg cpu seconds\n",_securetime);
 	*/
 	
+	
+	//matrix multiplication
 	/*
 	 _securestart=clock();
 	 count_mac_invocations_in_this_code_part=1;
@@ -607,7 +618,7 @@ void great_function_that_wraps_the_tests()
 	*/
 	
 	
-	
+	//determinant calculation
 	/*
 	int size_of_matrix_for_det=11;
 	int *matrix_for_det=init_matrix_for_determinant_calc(size_of_matrix_for_det);

@@ -1,7 +1,8 @@
 #include "headers_needed.h"
 
 #include "./crypto_algorithms/sha256.h"
-//#include "./crypto_algorithms/sha256.c" //not needed since we link with the object file
+
+//These functions verify the macs
 
 void check_heap_macs()
 {

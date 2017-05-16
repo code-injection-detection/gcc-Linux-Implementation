@@ -1,6 +1,9 @@
 #ifndef HEADERS_NEEDED_H
 #define HEADERS_NEEDED_H
 
+//here are the definitions of the constants (and other things)
+//many of these change by set_correct_defines.py
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -59,11 +62,11 @@
 
 
 #ifndef number_of_interleaved_keys 
-#define number_of_interleaved_keys (5)
-#endif				//in code
+#define number_of_interleaved_keys (32)
+#endif				//the keys in code. They are the same everywhere though
 
 #ifndef bytes_used_for_keyshares
-#define bytes_used_for_keyshares (5)
+#define bytes_used_for_keyshares (32)
 #endif				//This one is for the memory, not for the interleaved NOPs. The number should be the same as number_of_interleaved_keys
 
 #ifndef bytes_to_allocate_on_start
@@ -71,14 +74,13 @@
 #endif				//The secure heap bytes (some bytes more may be needed, to complete full blocks)		
 
 #ifndef bytes_for_useful_data
-#define bytes_for_useful_data (4)
+#define bytes_for_useful_data (8)
 #endif				//The heap "useful" bytes. Important: It is not (currently) possible to split this bytegroup into multiple parts.
 				    //which means that should someone allocate x bytegroups but does not need the last one as a whole, we cannot give the rest of it to someone else
 
 #ifndef number_of_canaries
-#define number_of_canaries (2)
+#define number_of_canaries (3)
 #endif				//The number of the canary values before the keyshares in the code, to denote that keyshares follow.
-				    //which means that should someone allocate x bytegroups but does not need the last one as a whole, we cannot give the rest of it to someone else
 
 #ifndef canary_value
 #define canary_value (0x42)
@@ -86,7 +88,7 @@
 
 
 #ifndef stack_bytes_used_for_keyshares
-#define stack_bytes_used_for_keyshares (5)
+#define stack_bytes_used_for_keyshares (32)
 #endif				//This one is for the stack. The number should be the same as number_of_interleaved_keys
 
 #ifndef stack_bytes_to_allocate_on_start
@@ -94,7 +96,7 @@
 #endif
 
 #ifndef stack_bytes_for_useful_data
-#define stack_bytes_for_useful_data (4)
+#define stack_bytes_for_useful_data (8)
 #endif				//practically the "useful" bytes in the stack. Important: It is not (currently) possible to split this bytegroup into multiple parts.
 				    //which means that should someone allocate x bytegroups but does not need the last one as a whole, we cannot give the rest of it to someone else
 
@@ -103,7 +105,7 @@
 #endif				//The size of the global useful bytes
 
 #ifndef number_of_mac_bytes
-#define number_of_mac_bytes (4)
+#define number_of_mac_bytes (16)
 #endif				//The size of the Message Authentication Code (MAC) in bytes. The MAC follows the keyshares
 
 
@@ -132,11 +134,7 @@
 
 #ifndef use_inline_code_for_delays
 #define use_inline_code_for_delays 1
-#endif				//This is a boolean variable that determines if, for delay purposes, we should use pushes and pops for function parameters in normal functions
-
-#ifndef use_inline_code_for_delays
-#define use_inline_code_for_delays 1
-#endif				//This is a boolean variable that determines if, for delay purposes, we should use pushes and pops for function parameters in normal functions
+#endif				//This is a boolean variable that determines if, for delay purposes, we should use extra code in normal functions
 
 
 #ifndef num_of_cached_blocks_of_code
@@ -168,11 +166,11 @@
 
 #ifndef count_mac_invocations
 #define count_mac_invocations 0
-#endif				//counts the mac invokations in order to calculate delay due to macs
+#endif				//counts the mac invocations in order to calculate delay due to macs
 
 #ifndef add_the_padded_nops_in_the_mac_in_fixed_size
 #define add_the_padded_nops_in_the_mac_in_fixed_size 1
-#endif				//counts the mac invokations in order to calculate delay due to macs
+#endif				//when using fixed size blocks, the mac should be calculated on the padded nops, too
 
 #ifndef force_code_block_split_on_labels_and_calls
 #define force_code_block_split_on_labels_and_calls 0

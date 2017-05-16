@@ -17,8 +17,8 @@ def RepresentsInt(s):
 
 assembly_sizes_filename="assembly_sizes.txt"
 assembly_filename="main_program_sec.s"
-number_of_nops_in_code=int(sys.argv[1])
-num_of_bytes_in_code_chunk=int(sys.argv[2])
+number_of_nops_in_code=int(sys.argv[1]) #after the jmp
+num_of_bytes_in_code_chunk=int(sys.argv[2]) #verif+useful+jmp
 add_code_on_the_fly_verification=int(sys.argv[3])
 linesout=[]
 lines_sizes=[]
@@ -53,7 +53,7 @@ while i<len(lines_assembly) and j<len(lines_sizes):
 	if (i<len(lines_assembly)):
 		linesout.append(lines_assembly[i])
 	
-	#iterate the sizes file until the same point
+	#iterate the sizes file until the same point in order to reach the same jmp
 	while j<len(lines_sizes) and ("NOPS_HERE" not in lines_sizes[j].strip()):
 		j=j+1
 	
@@ -68,7 +68,7 @@ while i<len(lines_assembly) and j<len(lines_sizes):
 			former_cmd_and_size=lines_sizes[j-k].strip()
 			if (RepresentsInt(former_cmd_and_size.split(" ")[0])):	
 				size_of_former_cmd=int(former_cmd_and_size.split(" ")[0])
-				total_size_of_cmds+=size_of_former_cmd
+				total_size_of_cmds+=size_of_former_cmd #add the sizes
 				k+=1
 			else:
 				break

@@ -3,6 +3,7 @@
 
 //Lets find prime numbers!
 //Not using sqrt function
+//old stack implementation
 void secure_find_primes_up_to_a_number(int num)
 {
 	
@@ -105,7 +106,7 @@ void secure_find_primes_up_to_a_number(int num)
 }
 
 
-
+//normal function
 void find_primes_up_to_a_number(int num)
 {
 	
@@ -209,7 +210,7 @@ void simple_sieve_of_Eratosthenes(int num)
 	
 }
 
-
+//old stack implementation
 void secure_sieve_of_Eratosthenes(int num)
 {
 	/*
@@ -312,7 +313,7 @@ void secure_sieve_of_Eratosthenes(int num)
 
 
 
-
+//old stack implementation
 void user_friendly_secure_sieve_of_Eratosthenes(int num)
 {
 	/*
@@ -462,6 +463,7 @@ void fill_matrices_for_multiplication(int size,int maxnum)
 	
 }
 
+//normal function
 void matrix_multiplication(int size,int maxnum)
 {
 	int i,j,k,l,sum;
@@ -490,6 +492,7 @@ void matrix_multiplication(int size,int maxnum)
 	
 }		
 
+//old stack implementation
 void user_friendly_secure_matrix_multiplication(int size,int maxnum)
 {
 	fun_params * mm_params;
@@ -620,6 +623,7 @@ void global_sum_calculator(int times,int maxval)
 }
 
 //these variables are declared in the global struct
+//the following definitions don't work now
 //ATTENTION: FORMER GLOBAL VARIABLE FOLLOWING! | SIZE:int 
 //int secured_i=0;
 //ATTENTION: FORMER GLOBAL VARIABLE FOLLOWING! | SIZE:long
@@ -648,7 +652,7 @@ int * array_for_calc_det_delay_ptr[1];
 int size_for_calc_det_delay;
 long det_result_for_delay;
 
-
+//normal function
 long calc_determinant(int *matrix,int dim)
 {
 	int isminus,j,p,q,t,r,s;
@@ -690,6 +694,7 @@ long calc_determinant(int *matrix,int dim)
 				  "pushq %rax;\n"
 				);
 		*/
+		//other code (which simulates delay), which is correct
 		size_for_calc_det_delay=4;
 		array_for_calc_det_delay_ints[0]=dim-1;
 		size_for_calc_det_delay=8;
@@ -702,6 +707,7 @@ long calc_determinant(int *matrix,int dim)
 	__asm__ ( "add $16,%rsp;\n"
 			);
 	*/
+	// other code (which simulates delay), which is correct
 	det_result_for_delay=array_for_calc_det_delay_ints[0]; //just access memory
 #endif
 		}

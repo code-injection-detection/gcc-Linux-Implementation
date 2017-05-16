@@ -1,6 +1,6 @@
 #include "headers_needed.h"
 
-/* The memory image should be like ('o'=useful data, 'x'=keyshares ,'m'= MAC bytes):
+/* The heap memory image should be like ('o'=useful data, 'x'=keyshares ,'m'= MAC bytes):
 oooxxxxxxmmmooo.....xxxxxxmmmoooxxxxxxmmm
 Which means: n times useful data, n times keyshares, n times mac bytes
 Let's call these groups of bytes as chunks (of useful data, and of keyshares+macs)

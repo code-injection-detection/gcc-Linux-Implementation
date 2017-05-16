@@ -2,6 +2,8 @@
 
 import sys
 
+#just isolates the total seconds that a program would take
+
 result_file=open(sys.argv[1],'r')
 res_lines=result_file.readlines()
 
