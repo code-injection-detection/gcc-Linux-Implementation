@@ -4,8 +4,9 @@ import java.io.*;
 /*
  * This program takes as input (has hardcoded name of file in it). The file
  * is a .asm / assembly file hence, it is in text format.
- * It inserts nop instructions (which will be replaced with keyshares) between
- * instructions. 
+ * For every block of code, it inserts jmps and verification code (if asked).
+ * Also,it inserts nop instructions (which will be replaced with canaries,keyshares and macs) between
+ * instructions. If using fixed-size code blocks, it insert the padded nops too.
  * It does this by some not-very-clean parsing, (but we could refine it later)
  * (The point is that parsing an assembly file is still way easier than parsing
  * a C file.)

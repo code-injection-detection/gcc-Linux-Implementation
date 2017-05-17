@@ -33,12 +33,12 @@ public class Secure_Machine_Code {
 		int number_of_nop_groups_replaced=0;
 		//int n = 2;
 		
-		int number_of_interleaved_keys = 5; //this should be equal to the number of nops we insert in Secure_Assembly.java (now that we assume that 1 NOP = 1key)
-		int num_of_keys_in_heap=5; //this should be equal to the number of keys we interleave in the heap
-		int num_of_keys_in_stack=5; //this should be equal to the number of keys we interleave in the stack
-		int useful_bytes_between_keys_in_heap=4;
-		int useful_bytes_between_keys_in_stack=4;
-		int num_of_mac_bytes=4;
+		int number_of_interleaved_keys = 32; //this should be equal to the number of nops we insert in Secure_Assembly.java (now that we assume that 1 NOP = 1key)
+		int num_of_keys_in_heap=32; //this should be equal to the number of keys we interleave in the heap
+		int num_of_keys_in_stack=32; //this should be equal to the number of keys we interleave in the stack
+		int useful_bytes_between_keys_in_heap=8;
+		int useful_bytes_between_keys_in_stack=8;
+		int num_of_mac_bytes=16;
 		long total_bytes_trying_to_allocate_in_heap=2048;
 		long total_bytes_trying_to_allocate_in_stack=1024;
 		long useful_chunks_in_heap;
@@ -143,7 +143,7 @@ public class Secure_Machine_Code {
 	    	arr[i] = list.get(i);
 	    }
 	    int n = arr.length;
-	    cnt_for_instr_bytes=0;
+	    cnt_for_instr_bytes=0; //these two counters count for every block
 	    cnt_for_useful_bytes=0;
 	    if (use_fixed_size_chunks_of_code)
 	    {
@@ -155,9 +155,10 @@ public class Secure_Machine_Code {
 	    	number_of_padded_nops=0;
 	    }
 
-
+	    //iterate over the bytes of the executable
 	    for(int i=0;i<n-(2+number_of_interleaved_keys+number_of_canaries+num_of_mac_bytes+bytes_for_instr_len+num_of_bytes_in_code_chunk);) //the num_of_bytes_in_code_chunk is not correct, but works since there is no code in the last part of the executable
 	    {
+	    	//find the start of the code
 			if (k_nops_after_us(number_of_nops_to_denote_program_start,arr,i-2) && arr[i+number_of_nops_to_denote_program_start]!=(byte)0x90)  //-2 because the funtions adds +2
 			{
 				//System.out.println("found 300 nops at position "+i);
@@ -169,6 +170,7 @@ public class Secure_Machine_Code {
 					number_of_padded_nops=num_of_bytes_in_code_chunk-cnt_for_useful_bytes;
 				}
 			}
+			//find a jmp+proper offset+correct_number_of_nops
 	    	if(arr[i]==-21 && (arr[i+1] == (byte)(number_of_interleaved_keys+number_of_canaries+num_of_mac_bytes+bytes_for_instr_len+(use_fixed_size_chunks_of_code?(number_of_padded_nops-2):0))) && (use_fixed_size_chunks_of_code?number_of_padded_nops>=0:true) && k_nops_after_us(number_of_interleaved_keys+number_of_canaries+num_of_mac_bytes+bytes_for_instr_len+(use_fixed_size_chunks_of_code?(number_of_padded_nops-2):0),arr,i)) // int -21 = jmp opcode, and the arr[i+1] has to be the offset (number of nops + 1 ) , and we have to have num_of_keys NOPs after us
 	    	{
 				
@@ -189,6 +191,7 @@ public class Secure_Machine_Code {
 				//System.out.flush();
 
 				number_of_nop_groups_replaced++;
+				//insert canaries
 				for(int j=0;j<number_of_canaries;j++)
 				{
 					arr[i+2+j] = (byte)canary_value;
@@ -203,6 +206,7 @@ public class Secure_Machine_Code {
 				{
 					for(int j=0;j<bytes_for_instr_len;j++)
 					{
+						//set the byte after the canaries to denote the length of the useful bytes
 						if (use_fixed_size_chunks_of_code==false && num_of_mac_bytes==0)
 							arr[i+2+j+number_of_canaries]=(byte)0;
 						else if (use_fixed_size_chunks_of_code)
@@ -213,8 +217,9 @@ public class Secure_Machine_Code {
 					if (use_fixed_size_chunks_of_code==false && check_code_verification_on_the_fly && !ignore_macs_even_if_there_are_mac_bytes)
 					{
 						//set the correct value in "movq $42,num_of_useful_bytes_to_mac_in_code(%rip)"
+						//when using variable length blocks
 						int num_of_useful_butes_to_mac_in_code=cnt_for_instr_bytes+number_of_canaries+1;
-						int length_of_instructions_up_to_byte_42=7;//22;
+						int length_of_instructions_up_to_byte_42=7;
 						if (arr[i-(cnt_for_instr_bytes-2)+length_of_instructions_up_to_byte_42]!=(byte)42) //7 bytes is the length of the instructions up to 42
 						{
 							System.out.println("Could not find 42 in movb $42,num_of_useful_bytes_to_mac_in_code(%rip)!. Exiting.");
@@ -229,7 +234,8 @@ public class Secure_Machine_Code {
 
     			
 				byte[] random_bytes_generated= new byte[number_of_interleaved_keys]; //to check accidental creation of "used" opcodes
-	    		for(int j=0;j<number_of_interleaved_keys;j++)
+	    		//put the keys
+				for(int j=0;j<number_of_interleaved_keys;j++)
 	    		{
 	    			byte temp = randomByte();
 	    					
@@ -304,6 +310,7 @@ public class Secure_Machine_Code {
 							new_stuff_in_code_to_be_MACed[cnt_in_new_mac]=(byte)(cnt_for_instr_bytes-length_of_verifier_in_variable_chunks-2);
 							cnt_in_new_mac++;
 						}
+						//iterate through the bytes, ignoring what we shouldn't mac
 						for (int cnt_in_old_mac=0;cnt_in_old_mac<all_bytes_length;cnt_in_old_mac++)
 						{
 							if (check_code_verification_on_the_fly && !ignore_macs_even_if_there_are_mac_bytes && !force_code_block_split_on_labels_and_calls && cnt_in_old_mac<length_of_verifier)
@@ -360,7 +367,7 @@ public class Secure_Machine_Code {
 				}
 	    	}
 	    	else
-	    	{
+	    	{ //done for every command that is not a jmp over keys and macs
 				if (num_of_mac_bytes>0)
 					cnt_for_instr_bytes++;
 				if (use_fixed_size_chunks_of_code)
@@ -373,7 +380,6 @@ public class Secure_Machine_Code {
 	    }
 		
 	    //System.out.println("Number of interleaved nops:" + number_of_interleaved_nops);
-	    //System.out.println("Number of ttl bts:" + total_bytes_trying_to_allocate_in_heap);
 	    
 	    
 	    //inserting keyshares into heap keyshare file
@@ -489,6 +495,7 @@ public class Secure_Machine_Code {
 		return (  (byte) ((int)Math.floor((Math.random()*256)))  ); 
 	}
 	
+	//check if there are k nops after the current position
 	static boolean k_nops_after_us(int k, byte[] arr, int arrindex)  
 	{
 		int i=arrindex+2; //we start where we expect the first nop to be found
@@ -515,7 +522,7 @@ public class Secure_Machine_Code {
 		}
 	}
 	
-
+	//check if we created a sequence of keys that is the jmp+offset+canaries
 	static boolean produced_bad_opcode( byte[] random_bytes_generated,int number_of_interleaved_keys, int number_of_canaries,int number_of_mac_bytes,int bytes_for_instr_len,int number_of_padded_nops,int pos,byte canary_value)
 	{
 		for (int i=0;i<number_of_canaries;i++)
@@ -531,6 +538,7 @@ public class Secure_Machine_Code {
 		return true;
 	}
 	
+	//calculate mac given an array, it calls an exteral C program
 	static byte[] calculate_mac(int length_of_mac, int length_of_useful_bytes, byte[] stuff_to_be_maced,int num_of_mac_bytes) throws IOException,InterruptedException
 	{
 		byte[] mac= new byte[num_of_mac_bytes];
@@ -541,9 +549,9 @@ public class Secure_Machine_Code {
 		String mac_calculator_filename=new File("../code/calc_mac_for_external_programs").getAbsolutePath();
 		String exec_str="";
 		
-		args[0]=length_of_mac;
-		args[1]=length_of_useful_bytes;
-		for (int i=0;i<length_of_mac;i++)
+		args[0]=length_of_mac; //first argument
+		args[1]=length_of_useful_bytes; //second argument
+		for (int i=0;i<length_of_mac;i++) //rest of the arguments
 		{
 			args[i+2]=(int)stuff_to_be_maced[i];
 		}
