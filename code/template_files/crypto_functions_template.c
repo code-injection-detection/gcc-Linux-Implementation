@@ -213,7 +213,7 @@ int find_addr_in_unsplit_blocks_addresses(unsigned char * address) //binary sear
 	else
 	{
 		fprintf(stderr,"ERROR in binary search!!\n");
-		fprintf(stderr,"addr=%ld, first addr=%ld\n".(long)addr,(long)addr_in_code_as_offset_of_fist_block_addr(first));
+		fprintf(stderr,"addr=%ld, first addr=%ld\n",(long)addr,(long)addr_in_code_as_offset_of_fist_block_addr(first));
 	}
 }
 
