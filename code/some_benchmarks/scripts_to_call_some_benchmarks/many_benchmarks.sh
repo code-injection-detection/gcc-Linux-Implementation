@@ -4,8 +4,8 @@
 #put this script somewhere outside of the repo directory
 PATH_TO_AUTOMATE_SH=/home/menoobs/virus_detection/gcc-Linux-Implementation/code/
 ORIGINAL_DIR=`pwd`
-NAME_OF_SECURE_FUNCTION=matrix_multiplication_sec
-BENCHMARK_NAME=matrix_multiplication_sec_mm_800_2000_squeezed_keys_with_padded_nops_maced_data_blocks_same_size_as_code_blocks_and_multiple_of_16_V3
+NAME_OF_SECURE_FUNCTION=find_primes_up_to_a_number
+BENCHMARK_NAME=primes_150k_squeezed_keys_with_padded_nops_maced_data_blocks_same_size_as_code_blocks_and_multiple_of_16_do_not_mac_when_label_splits_blocks
 
 CODE_CACHE_TYPE=2  #0 -> fully assosiative
 				   #1 -> direct mapped
@@ -15,8 +15,8 @@ DATA_CACHE_TYPE=2  #0 -> fully assosiative
 				   #2 -> set assosiative
 CODE_CACHE_ASSOC=2
 DATA_CACHE_ASSOC=2
-SECURE_HEAP_SIZE=400000
-SECURE_STACK_SIZE=55000000
+SECURE_HEAP_SIZE=1500000
+SECURE_STACK_SIZE=60000
 MAX_NUM_OF_CMDS_IN_FIXED=35
 TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES=0
 CALC_TIME_WITH_SEPARATE_MAC_ADDITION=1
@@ -27,7 +27,7 @@ RUN_SECURE_EXEC=1
 USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=0 #EXPERIMENTAL: The code blocks that are cached are cached if being unsplit
 DATA_BLOCK_EQUAL_TO_CODE_BLOCK=1 #equal in size, not in number
 SET_AS_GIVEN_THAT_EVERYTHING_MACED_WILL_BE_FIXED_AND_MULTIPLE_OF_16=1 #this means that we can disable length prepending and padding
-
+WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL=0 #EXPERIMENTAL: Does not calculate the mac when splitting blocks due to label encounter and we continue normal execution. Only calcs mac when we jump to that label.
 
 if [[ ( "$TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES" -eq 1 ) ]]; then
 	sed -i 's/TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES=0/TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES=1/' ${ORIGINAL_DIR}/backup_automate.sh
@@ -55,8 +55,13 @@ if [[ ( "$SET_AS_GIVEN_THAT_EVERYTHING_MACED_WILL_BE_FIXED_AND_MULTIPLE_OF_16" -
 	sed -i 's/SET_AS_GIVEN_THAT_EVERYTHING_MACED_WILL_BE_FIXED_AND_MULTIPLE_OF_16=1/SET_AS_GIVEN_THAT_EVERYTHING_MACED_WILL_BE_FIXED_AND_MULTIPLE_OF_16=0/' ${ORIGINAL_DIR}/backup_automate.sh
 fi
 
+if [[ ( "$WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL" -eq 0 ) ]]; then
+	sed -i 's/WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL=1/WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL=0/' ${ORIGINAL_DIR}/backup_automate.sh
+fi
 
-<<COMMENT
+
+
+
 if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 1) && ( "$RUN_SECURE_EXEC" -eq 1 ) ]]; then #calculate proper mac times
 	cd ${PATH_TO_AUTOMATE_SH}
 	sed -i 's/COUNT_MAC_INVOCATIONS=1/COUNT_MAC_INVOCATIONS=0/' ./automate.sh
@@ -71,7 +76,7 @@ if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 1) && ( "$RUN_SECURE_EXEC" -
 	time ./mac_time_calculator > mac_invocation_times.txt
 	cd ${ORIGINAL_DIR}
 fi
-COMMENT
+
 
 #create benchmakrs dir
 mkdir -p ${ORIGINAL_DIR}/${NAME_OF_SECURE_FUNCTION}_${BENCHMARK_NAME}
@@ -106,7 +111,9 @@ do_benchmarks() {
 		sed -i 's/USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=0/USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=1/' ${ORIGINAL_DIR}/automate_template.sh
 	fi
 
-	
+	if [[ ( "$WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL" -eq 1 ) ]]; then
+		sed -i 's/WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL=0/WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL=1/' ${ORIGINAL_DIR}/automate_template.sh
+	fi
 
 
 	if [[ ( "$DATA_BLOCK_SIZE_AS_CODE_BLOCK" -eq 0 ) ]]; then
@@ -361,6 +368,10 @@ do_benchmarks() {
 
 	if [[ ( "$USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS" -eq 1 ) ]]; then
 		sed -i 's/USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=0/USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=1/' ${ORIGINAL_DIR}/automate_template.sh
+	fi
+
+	if [[ ( "$WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL" -eq 1 ) ]]; then
+		sed -i 's/WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL=0/WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL=1/' ${ORIGINAL_DIR}/automate_template.sh
 	fi
 
 	#do the fixed code size
