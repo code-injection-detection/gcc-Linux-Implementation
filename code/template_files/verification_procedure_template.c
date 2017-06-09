@@ -110,7 +110,17 @@ void find_keyshares(int choice)
 	//using start and end of text section
 	for (p=start_of_text;p<=end_of_text;)
 	{
-		if (*p==0xEB && *(p+1)==(number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len+get_number_of_padded_nops(p)) && check_next_canaries(p+2)) //JMP <number of keys>+<number_of_canaries>+<number_of_mac_bytes>+<bytes_for_instr_len>
+		int number_of_jumped_bytes1=number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len+get_number_of_padded_nops(p);
+		int number_of_jumped_bytes2;
+		if (when_splitting_blocks_do_not_invoke_verif_unless_on_label)
+		{
+			number_of_jumped_bytes2=number_of_jumped_bytes1 + (use_fixed_size_chunks_of_code?(7 /*7=verif code length*/):14 /*14=verif code length*/);
+		}
+		else
+		{
+			number_of_jumped_bytes2=number_of_jumped_bytes1;
+		}
+		if (*p==0xEB && ( *(p+1)==number_of_jumped_bytes1 || *(p+1)==number_of_jumped_bytes2 ) && check_next_canaries(p+2)) //JMP <number of keys>+<number_of_canaries>+<number_of_mac_bytes>+<bytes_for_instr_len>
 		{ 
 			//printf("0x%02x ",*(p+1));
 			code_key_groups_found++;

@@ -19,7 +19,9 @@ public class Secure_Assembly {
 	static int num_of_cmds_when_we_dont_split_blocks=0;
 	static int num_of_bytes_when_we_dont_split_blocks=0;
 	static ArrayList<Integer> list_of_addresses_that_denote_next_unsplit_block_change=new ArrayList<Integer>();
+	static boolean when_splitting_blocks_do_not_invoke_verif_unless_on_label=false; //experimental
 
+	
 	public static void main(String[] args) throws Exception
 	{
 		//use this if executing manually
@@ -58,8 +60,7 @@ public class Secure_Assembly {
 		boolean force_code_block_split_on_labels_and_calls=false;
 		
 		
-
-		if (args.length==11)
+		if (args.length==12)
 		{
 			num_of_interleaved_keys=Integer.parseInt(args[0]);
 			num_of_grouped_orig_instr=Integer.parseInt(args[1]);
@@ -93,6 +94,11 @@ public class Secure_Assembly {
 				force_code_block_split_on_labels_and_calls=false;
 			else
 				force_code_block_split_on_labels_and_calls=true;
+			
+			if (Integer.parseInt(args[11])==0)
+				when_splitting_blocks_do_not_invoke_verif_unless_on_label=false;
+			else
+				when_splitting_blocks_do_not_invoke_verif_unless_on_label=true;
 
 		}
 		else
@@ -269,9 +275,24 @@ public class Secure_Assembly {
 				//if we have exhausted the group of commands, we need to add a jump and nops, and a label after them
 				if (force_end_of_block || i == num_of_grouped_orig_instr || (((!ignore_macs_even_if_there_are_mac_bytes  && check_code_verification_on_the_fly) || force_code_block_split_on_labels_and_calls)  && /*label with .L<numbers> */Pattern.compile("^[ \t]*\\.L[0123456789]+:$").matcher(line).matches() ))
 				{
+					
 					force_end_of_block=false;
 					num_of_bytes_in_current_block=0;
-					list_of_lines.add(" jmp " + "." + ulabel + label_counter);
+					
+					
+					//experimental for splits of blocks due to label
+					boolean forced_block_split_because_of_label=false;
+					String name_of_second_label="";
+					if (when_splitting_blocks_do_not_invoke_verif_unless_on_label &&  /*label with .L<numbers> */Pattern.compile("^[ \t]*\\.L[0123456789]+:$").matcher(line).matches() && (force_end_of_block==false && i!=num_of_grouped_orig_instr) )
+					{
+						forced_block_split_because_of_label=true;
+						list_of_lines.add(" jmp " + "." + ulabel + label_counter+"_2");
+						name_of_second_label="." + ulabel + label_counter+"_2";
+					}
+					else
+					{
+						list_of_lines.add(" jmp " + "." + ulabel + label_counter);
+					}
 					for (int j = 0; j < num_of_interleaved_keys+number_of_canaries+num_of_mac_bytes+bytes_for_instr_len; j++)
 						list_of_lines.add("NOP"); 
 					list_of_lines.add("."+ ulabel + label_counter + ": " );          //we are just adding the label, not any command
@@ -304,6 +325,12 @@ public class Secure_Assembly {
 					if (check_code_verification_on_the_fly && !ignore_macs_even_if_there_are_mac_bytes)
 					{
 						add_code_verification_lines(list_of_lines,use_fixed_size_chunks_of_code);
+					}
+					
+					//experimental for splits of blocks due to label
+					if (when_splitting_blocks_do_not_invoke_verif_unless_on_label && forced_block_split_because_of_label)
+					{
+						list_of_lines.add(name_of_second_label +": ");
 					}
 					
 					if (got_inside_while==1)

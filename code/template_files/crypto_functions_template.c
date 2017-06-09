@@ -564,7 +564,7 @@ int check_mac_for_error(unsigned char * input, int total_mac_bytes, int useful_m
 
 int get_number_of_padded_nops(unsigned char *p)
 {
-	if (use_fixed_size_chunks_of_code==0)
+	if (use_fixed_size_chunks_of_code==0 || *p!=0xEB)
 	{
 		return 0;
 	}

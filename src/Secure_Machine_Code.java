@@ -12,6 +12,12 @@ import java.security.*;
  */ 
 
 public class Secure_Machine_Code {
+	
+	static boolean when_splitting_blocks_do_not_invoke_verif_unless_on_label=false; //experimental
+	static boolean use_fixed_size_chunks_of_code=false;
+	static int number_of_nops_to_denote_program_start=300;
+
+	
 	public static void main(String[] args) throws Exception
 	{
 		//use this if executing manually
@@ -27,6 +33,7 @@ public class Secure_Machine_Code {
 		String memory_manager_filename=new File("../code/memory_manager.c").getAbsolutePath();
 		String global_keys_filename=new File("../code/global_keyshares").getAbsolutePath();
 		String all_keyshares_filename=new File("../code/all_keyshares_for_verification").getAbsolutePath();
+		
 		
 		String newfilename = filename.substring(0,filename.length()-3)+"ksec";
 		Runtime r = Runtime.getRuntime();
@@ -46,9 +53,7 @@ public class Secure_Machine_Code {
 		int number_of_canaries=2;
 		int bytes_for_instr_len=1;
 		int cnt_for_instr_bytes=0; //counts the useful bytes that come before the keyshares
-		int number_of_nops_to_denote_program_start=300;
 		byte canary_value=0x42; //says:after me, keyshares follow!
-		boolean use_fixed_size_chunks_of_code=false;
 		boolean check_code_verification_on_the_fly=false;
 		int num_of_bytes_in_code_chunk=20;
 		int number_of_padded_nops=0;
@@ -71,7 +76,7 @@ public class Secure_Machine_Code {
 		boolean squeeze_keys_when_macing=false;
 		boolean add_the_padded_nops_in_the_mac_in_fixed_size=false;
 		
-		if (args.length==15)
+		if (args.length==16)
 		{
 			number_of_interleaved_keys=Integer.parseInt(args[0]);
 			num_of_keys_in_heap=number_of_interleaved_keys;
@@ -117,6 +122,11 @@ public class Secure_Machine_Code {
 				force_code_block_split_on_labels_and_calls=false;
 			else
 				force_code_block_split_on_labels_and_calls=true;
+			
+			if (Integer.parseInt(args[15])==0)
+				when_splitting_blocks_do_not_invoke_verif_unless_on_label=false;
+			else
+				when_splitting_blocks_do_not_invoke_verif_unless_on_label=true;
 		}
 		else
 		{
@@ -171,7 +181,17 @@ public class Secure_Machine_Code {
 				}
 			}
 			//find a jmp+proper offset+correct_number_of_nops
-	    	if(arr[i]==-21 && (arr[i+1] == (byte)(number_of_interleaved_keys+number_of_canaries+num_of_mac_bytes+bytes_for_instr_len+(use_fixed_size_chunks_of_code?(number_of_padded_nops-2):0))) && (use_fixed_size_chunks_of_code?number_of_padded_nops>=0:true) && k_nops_after_us(number_of_interleaved_keys+number_of_canaries+num_of_mac_bytes+bytes_for_instr_len+(use_fixed_size_chunks_of_code?(number_of_padded_nops-2):0),arr,i)) // int -21 = jmp opcode, and the arr[i+1] has to be the offset (number of nops + 1 ) , and we have to have num_of_keys NOPs after us
+			byte number_of_jumped_bytes1 =(byte)(number_of_interleaved_keys+number_of_canaries+num_of_mac_bytes+bytes_for_instr_len+(use_fixed_size_chunks_of_code?(number_of_padded_nops-2):0));
+			byte number_of_jumped_bytes2;
+			if (when_splitting_blocks_do_not_invoke_verif_unless_on_label)
+			{
+				number_of_jumped_bytes2=(byte)(number_of_interleaved_keys+number_of_canaries+num_of_mac_bytes+bytes_for_instr_len+(use_fixed_size_chunks_of_code?(number_of_padded_nops-2 +7 /*7=verif code length*/):14 /*14=verif code length*/));
+			}
+			else
+			{
+				number_of_jumped_bytes2=number_of_jumped_bytes1;
+			}
+	    	if(arr[i]==-21 && (arr[i+1] == number_of_jumped_bytes1 || arr[i+1] == number_of_jumped_bytes2 ) && (use_fixed_size_chunks_of_code?number_of_padded_nops>=0:true) && ( k_nops_after_us(number_of_jumped_bytes1,arr,i) || k_nops_after_us(number_of_jumped_bytes2,arr,i) )) // int -21 = jmp opcode, and the arr[i+1] has to be the offset (number of nops + 1 ) , and we have to have num_of_keys NOPs after us
 	    	{
 				
 				if (num_of_mac_bytes>0)
@@ -498,10 +518,11 @@ public class Secure_Machine_Code {
 	//check if there are k nops after the current position
 	static boolean k_nops_after_us(int k, byte[] arr, int arrindex)  
 	{
+		int k_new=k;
 		int i=arrindex+2; //we start where we expect the first nop to be found
-		if (arr.length<=i+k)
+		if (arr.length<=i+k_new)
 			return false;
-		for(int j=1;j<=k;j++,i++)
+		for(int j=1;j<=k_new;j++,i++)
 		{
 			if (arr[i]!= (byte) 0x90) //NOP opcode
 				return false;

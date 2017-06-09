@@ -187,6 +187,10 @@
 #endif				//this means that we can disable length prepending and padding
 
 
+#ifndef when_splitting_blocks_do_not_invoke_verif_unless_on_label
+#define when_splitting_blocks_do_not_invoke_verif_unless_on_label 0
+#endif				//EXPERIMENTAL: Does not calculate the mac when splitting blocks due to label encounter and we continue normal execution. Only calcs mac when we jump to that label.
+
 
 #include "crypto_functions.h"
 #include "secure_getters_setters.h"

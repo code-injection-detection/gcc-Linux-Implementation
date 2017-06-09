@@ -86,6 +86,8 @@ for line in src_lines:
 		newline='#define use_code_cache_with_unsplit_blocks '+sys.argv[28]+'\n'		
 	if '#define set_as_given_that_everything_maced_will_be_fixed_and_multiple_of_16' in line:
 		newline='#define set_as_given_that_everything_maced_will_be_fixed_and_multiple_of_16 '+sys.argv[29]+'\n'
+	if '#define when_splitting_blocks_do_not_invoke_verif_unless_on_label' in line:
+		newline='#define when_splitting_blocks_do_not_invoke_verif_unless_on_label '+sys.argv[30]+'\n'
 
 
 	headers_dst.write(newline)
