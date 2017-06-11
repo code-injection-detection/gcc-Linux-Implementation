@@ -4,8 +4,8 @@
 #put this script somewhere outside of the repo directory
 PATH_TO_AUTOMATE_SH=/home/menoobs/virus_detection/gcc-Linux-Implementation/code/
 ORIGINAL_DIR=`pwd`
-NAME_OF_SECURE_FUNCTION=find_primes_up_to_a_number
-BENCHMARK_NAME=primes_150k_squeezed_keys_with_padded_nops_maced_data_blocks_same_size_as_code_blocks_and_multiple_of_16_do_not_mac_when_label_splits_blocks
+NAME_OF_SECURE_FUNCTION=matrix_multiplication_sec
+BENCHMARK_NAME=matrix_mult_800_2000_squeezed_keys_with_padded_nops_maced_data_blocks_same_size_as_code_blocks_and_multiple_of_16_do_not_mac_when_label_splits_blocks_v2
 
 CODE_CACHE_TYPE=2  #0 -> fully assosiative
 				   #1 -> direct mapped
@@ -15,8 +15,8 @@ DATA_CACHE_TYPE=2  #0 -> fully assosiative
 				   #2 -> set assosiative
 CODE_CACHE_ASSOC=2
 DATA_CACHE_ASSOC=2
-SECURE_HEAP_SIZE=1500000
-SECURE_STACK_SIZE=60000
+SECURE_HEAP_SIZE=200000
+SECURE_STACK_SIZE=44123123
 MAX_NUM_OF_CMDS_IN_FIXED=35
 TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES=0
 CALC_TIME_WITH_SEPARATE_MAC_ADDITION=1

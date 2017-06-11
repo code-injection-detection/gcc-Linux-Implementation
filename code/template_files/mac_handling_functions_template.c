@@ -84,7 +84,7 @@ void check_code_macs()
 	
 	
 	//using start and end of text section
-	for (p=start_of_text;p<=end_of_text;)
+	for (p=start_of_text;p<=end_of_text-(number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len);)
 	{
 		int number_of_jumped_bytes1=number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len+get_number_of_padded_nops(p);
 		int number_of_jumped_bytes2;
