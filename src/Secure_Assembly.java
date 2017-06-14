@@ -364,7 +364,10 @@ public class Secure_Assembly {
 				//the end of the unsplit block
 				if ((num_of_bytes_when_we_dont_split_blocks==0 && use_fixed_size_chunks_of_code) ||  num_of_cmds_when_we_dont_split_blocks==0)
 				{
-					list_of_addresses_that_denote_next_unsplit_block_change.add(address_of_code_that_denotes_next_unsplit_block_change);
+					if (address_of_code_that_denotes_next_unsplit_block_change!=7) //that is because it thinks that the first verification code is a block on its own, as all the counters are still 0
+					{
+						list_of_addresses_that_denote_next_unsplit_block_change.add(address_of_code_that_denotes_next_unsplit_block_change);
+					}
 				}
 				
 				
