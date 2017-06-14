@@ -50,9 +50,10 @@ void calc_mac(unsigned char *input,int length_all,int length_useful, unsigned ch
 #endif
 }
 
-#define number_of_different_macs 10000
+#define number_of_different_macs 1
 
-//many possible macs because we should consider the cache calculation a cache miss
+//many possible macs because we should consider the cache calculation a cache miss?
+//well no, the cache miss is calculated on the getter and setter. The mac does not need to pay another cache miss.
 unsigned char stuff_for_mac[number_of_different_macs][1024];
 unsigned char mac_output[50];
 
