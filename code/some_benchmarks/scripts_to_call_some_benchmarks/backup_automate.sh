@@ -30,7 +30,7 @@ SQEEZE_KEYS_WHEN_MACING=1  #Reduces the size of the keys from 32 bytes to 16 whe
 COUNT_MAC_INVOCATIONS=0 #Ignores mac correctness and reports mac invocations. Default 0.
 ADD_THE_PADDED_NOPS_IN_THE_MAC_IN_FIXED_SIZE=1 #takes into account the padded nops in the mac calculation. Default 1.
 USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=0 #EXPERIMENTAL: The code blocks that are cached are cached if being unsplit. Default 0.
-SET_AS_GIVEN_THAT_EVERYTHING_MACED_WILL_BE_FIXED_AND_MULTIPLE_OF_16=0 #this means that we can disable length prepending and padding. Default 0.
+SET_AS_GIVEN_THAT_EVERYTHING_MACED_WILL_BE_FIXED_AND_MULTIPLE_OF_16=1 #this means that we can disable length prepending and padding. Default 0.
 WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL=0 #EXPERIMENTAL: Does not calculate the mac when splitting blocks due to label encounter and we continue normal execution. Only calcs mac when we jump to that label.
 
 
@@ -239,10 +239,13 @@ echo "Compiling hash and encryption calculators, as well as the crypto initializ
 	 gcc -O3 -c crypto_functions.c -lcrypto -Wno-div-by-zero #-mno-red-zone
 	 if [ "$ADD_CODE_ON_THE_FLY_VERIFICATION" -eq "1" ]; then
 		#find the number of subtractions we have to do to fetch the return address (which is in the stack) in the verifier
-		 LINE_OF_VERIFIER=$(objdump -d crypto_functions.o | grep -n "<do_verify_code_on_the_fly>:" | grep -Eo '^[0123456789]+')
-		 LINE_OF_MOV=$(objdump -d crypto_functions.o | grep -C 10 -n "<do_verify_code_on_the_fly>:" | grep "mov    0x10(%rsp),%rax" | grep -Eo '^[0123456789]+')
-		 NUM_OF_8_BYTE_PUSHES=$(( $LINE_OF_MOV-$LINE_OF_VERIFIER -1 ))
-		 BYTE_DIFFERENCE=$(( NUM_OF_8_BYTE_PUSHES*8 ))
+         FIRST_LINES_OF_VERIF_PROCEDURE="$(objdump -d crypto_functions.o | grep -A 20  '<do_verify_code_on_the_fly>:')"
+         BYTE_DIFFERENCE=$(echo "$FIRST_LINES_OF_VERIF_PROCEDURE" | ./finder_of_stack_pointer_reduction.py)
+		 #old, wrong way sometimes:
+		 #LINE_OF_VERIFIER=$(objdump -d crypto_functions.o | grep -n "<do_verify_code_on_the_fly>:" | grep -Eo '^[0123456789]+')
+		 #LINE_OF_MOV=$(objdump -d crypto_functions.o | grep -C 10 -n "<do_verify_code_on_the_fly>:" | grep "mov    0x10(%rsp),%rax" | grep -Eo '^[0123456789]+')
+		 #NUM_OF_8_BYTE_PUSHES=$(( $LINE_OF_MOV-$LINE_OF_VERIFIER -1 ))
+		 #BYTE_DIFFERENCE=$(( NUM_OF_8_BYTE_PUSHES*8 ))
 		 STR_FOR_SED="s/movq 0x10(%rsp),%rax;/movq ${BYTE_DIFFERENCE}(%rsp),%rax;/g" #changing the offset from %rsp to get the return address
 		 #replace and put the proper offset
 		 sed -i "$STR_FOR_SED" crypto_functions.c

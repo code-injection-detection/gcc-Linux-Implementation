@@ -223,7 +223,8 @@ int find_addr_in_unsplit_blocks_addresses(unsigned char * address) //binary sear
 	else
 	{
 		fprintf(stderr,"ERROR in binary search!!\n");
-		fprintf(stderr,"addr=%ld, first addr=%ld\n",(long)addr,(long)addr_in_code_as_offset_of_fist_block_addr(first));
+		fprintf(stderr,"addr=%ld, currently first addr=%ld\n",(long)addr,(long)addr_in_code_as_offset_of_fist_block_addr(first));
+		fprintf(stderr,"globally first addr=%ld\n",(long)addr_in_code_as_offset_of_fist_block_addr(0));
 	}
 }
 
@@ -821,6 +822,10 @@ __m128 xmm13_var;
 __m128 xmm14_var;
 __m128 xmm15_var;
 
+//disable gcc optimizations temporarily since the Pushes done there WILL break the fetching of the return address
+#pragma GCC push_options
+#pragma GCC optimize ("O0")
+
 //the function that is called at the start of each code block, to verify it mac
 void do_verify_code_on_the_fly()
 {
@@ -882,7 +887,7 @@ void do_verify_code_on_the_fly()
 		__asm__("movq %rsp,%r15;" //align stack to 16 bytes for call, as System V ABI dictates
 				"and $0xfffffffffffffff0,%rsp;"
 				);
-		
+				
 		//check the cache and if the code block is not there then mac and add it to the cache
 		if (-1==continue_macing_current_code_addr((unsigned char*)(code_where_to_start_macing) - size_of_commands_before_getting_addr)) //if using cache for code
 		{		
@@ -936,8 +941,8 @@ void do_verify_code_on_the_fly()
     __asm__( "popq %rax;" //the register in which we stored the return address
 			);
 }
-
-
+//re-enable gcc optimizations
+#pragma GCC pop_options
 
 /*********************Code Cache Functions *********************/
 void init_code_cache()
