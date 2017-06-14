@@ -50,7 +50,10 @@ void calc_mac(unsigned char *input,int length_all,int length_useful, unsigned ch
 #endif
 }
 
-unsigned char stuff_for_mac[1024];
+#define number_of_different_macs 10000
+
+//many possible macs because we should consider the cache calculation a cache miss
+unsigned char stuff_for_mac[number_of_different_macs][1024];
 unsigned char mac_output[50];
 
 
@@ -60,17 +63,22 @@ int main()
 	clock_t start,stop;
 	double tot_time;
 	int times_for_one_mac=10000000;
+	int index_of_macs=0;
 	
 	srand(time(NULL));
-	memset(stuff_for_mac,0,1024);
+	for (i=0;i<number_of_different_macs;i++)
+		memset(stuff_for_mac[i],0,1024);
 	memset(mac_output,0,50);
 	
 	init_crypto_stuctures(0,0);
 	
-	for (i=0;i<1024;i++)
+	for (i=0;i<number_of_different_macs;i++)
 	{
-		stuff_for_mac[i]=rand()%256; //get a random bytestream to mac
-	}
+		for (j=0;j<1024;j++)
+		{
+			stuff_for_mac[i][j]=rand()%256; //get a random bytestream to mac
+		}
+	}	
 	
 	if (set_as_given_that_everything_maced_will_be_fixed_and_multiple_of_16==0)
 	{
@@ -81,10 +89,11 @@ int main()
 			{
 				//printf("i=%d,j=%d\n",i,j);
 				#if squeeze_keys_when_macing==0
-					calc_mac(stuff_for_mac,i,i>32?i-32:i,mac_output);
+					calc_mac(stuff_for_mac[index_of_macs],i,i>32?i-32:i,mac_output);
 				#else
-					calc_mac(stuff_for_mac,i,i>16?i-16:i,mac_output);
+					calc_mac(stuff_for_mac[index_of_macs],i,i>16?i-16:i,mac_output);
 				#endif
+				index_of_macs=(index_of_macs+1)%number_of_different_macs;
 			}
 			stop=clock();
 		
@@ -103,10 +112,12 @@ int main()
 			{
 				//printf("i=%d,j=%d\n",i,j);
 				#if squeeze_keys_when_macing==0
-					calc_mac(stuff_for_mac,i,i>32?i-32:i,mac_output);
+					calc_mac(stuff_for_mac[index_of_macs],i,i>32?i-32:i,mac_output);
 				#else
-					calc_mac(stuff_for_mac,i,i>16?i-16:i,mac_output);
+					calc_mac(stuff_for_mac[index_of_macs],i,i>16?i-16:i,mac_output);
 				#endif
+				index_of_macs=(index_of_macs+1)%number_of_different_macs;
+
 			}
 			stop=clock();
 		
