@@ -396,7 +396,14 @@ public class Secure_Assembly {
 					}
 					else
 					{
-						list_of_addresses_that_denote_next_unsplit_block_change.add(address_of_code_that_denotes_next_unsplit_block_change);
+						if (split_the_blocks_when_the_secure_cpu_would)
+						{
+							list_of_addresses_that_denote_next_unsplit_block_change.add(address_of_code_that_denotes_next_unsplit_block_change-7); //the block starts at the verification procedure, so we subtract its size
+						}
+						else
+						{
+							list_of_addresses_that_denote_next_unsplit_block_change.add(address_of_code_that_denotes_next_unsplit_block_change);
+						}
 					}
 				}
 				
