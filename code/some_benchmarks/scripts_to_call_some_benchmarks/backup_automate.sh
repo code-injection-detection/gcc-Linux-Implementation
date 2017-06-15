@@ -32,7 +32,7 @@ ADD_THE_PADDED_NOPS_IN_THE_MAC_IN_FIXED_SIZE=1 #takes into account the padded no
 USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=0 #EXPERIMENTAL: The code blocks that are cached are cached if being unsplit. Default 0.
 SET_AS_GIVEN_THAT_EVERYTHING_MACED_WILL_BE_FIXED_AND_MULTIPLE_OF_16=1 #this means that we can disable length prepending and padding. Default 0.
 WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL=0 #EXPERIMENTAL: Does not calculate the mac when splitting blocks due to label encounter and we continue normal execution. Only calcs mac when we jump to that label.
-SPLIT_THE_BLOCKS_WHEN_THE_SECURE_CPU_WOULD=0 #EXPERIMENTAL. WE NEED USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=1 AND WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL=1 for this one to work. Splits blocks when encountering call or label, but calculates the mac on the unsplit block.
+SPLIT_THE_BLOCKS_WHEN_THE_SECURE_CPU_WOULD=0 #EXPERIMENTAL. IT changes the values of WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL and USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS to hold its value. Splits blocks when encountering call or label, but calculates the mac on the unsplit block.
 
 #usage
 if [[ ( "$#" -ne 9 ) && ( "$#" -ne 10) ]]; then
@@ -156,6 +156,16 @@ fi
 if [[ ( "$NUM_OF_CACHED_BLOCKS_OF_DATA" -ne 0 ) && ( "$NUM_OF_GROUPED_USEFUL_STACK_BYTES" -ne "$NUM_OF_GLOBAL_USEFUL_BYTES" ) ]]; then
 	echo "Can't have data cache and the useful bytes in the stack be different in number than those in the globals."
 	exit
+fi
+
+if [ "$SPLIT_THE_BLOCKS_WHEN_THE_SECURE_CPU_WOULD" -eq "1" ]; then
+	WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL=1
+	USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=1
+fi
+
+if [ "$SPLIT_THE_BLOCKS_WHEN_THE_SECURE_CPU_WOULD" -eq "0" ]; then
+	WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL=0
+	USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=0
 fi
 
 #Checking if the .class files are present. If not (or out of date), we create them.

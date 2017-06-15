@@ -20,7 +20,7 @@ public class Secure_Assembly {
 	static int num_of_bytes_when_we_dont_split_blocks=0;
 	static ArrayList<Integer> list_of_addresses_that_denote_next_unsplit_block_change=new ArrayList<Integer>();
 	static boolean when_splitting_blocks_do_not_invoke_verif_unless_on_label=false; //experimental
-	static boolean split_the_blocks_when_the_secure_cpu_would;
+	static boolean split_the_blocks_when_the_secure_cpu_would; //should be the same value as  when_splitting_blocks_do_not_invoke_verif_unless_on_label
 	
 	public static void main(String[] args) throws Exception
 	{
@@ -275,7 +275,7 @@ public class Secure_Assembly {
 					
 				}
 				
-				
+				boolean the_block_has_been_split_because_of_the_secure_cpu=false;
 				
 								
 				//if we have exhausted the group of commands, we need to add a jump and nops, and a label after them
@@ -285,11 +285,7 @@ public class Secure_Assembly {
 				{
 					
 					boolean forced_block_split_because_secure_cpu_would=split_the_blocks_when_the_secure_cpu_would && ((use_fixed_size_chunks_of_code &&(num_of_bytes_when_we_dont_split_blocks+size_of_current_cmd>num_of_bytes_in_code_chunk-9) /*9= verification call + jmp*/ )|| (num_of_cmds_when_we_dont_split_blocks == num_of_grouped_orig_instr) );
-					
-					force_end_of_block=false;
-					num_of_bytes_in_current_block=0;
-					
-					
+										
 					
 					//experimental for splits of blocks due to label
 					boolean forced_block_split_because_of_label=false;
@@ -308,6 +304,9 @@ public class Secure_Assembly {
 						if (forced_block_split_because_secure_cpu_would)
 						{
 							list_of_lines.add("# forcing block split because secure cpu would");
+							the_block_has_been_split_because_of_the_secure_cpu=true;
+							num_of_bytes_when_we_dont_split_blocks=0;
+							num_of_cmds_when_we_dont_split_blocks=0;
 						}
 						else
 						{
@@ -315,6 +314,9 @@ public class Secure_Assembly {
 						}
 						list_of_lines.add(" jmp " + "." + ulabel + label_counter);
 					}
+					force_end_of_block=false;
+					num_of_bytes_in_current_block=0;
+					
 					for (int j = 0; j < num_of_interleaved_keys+number_of_canaries+num_of_mac_bytes+bytes_for_instr_len; j++)
 						list_of_lines.add("NOP"); 
 					list_of_lines.add("."+ ulabel + label_counter + ": " );          //we are just adding the label, not any command
@@ -355,6 +357,11 @@ public class Secure_Assembly {
 						list_of_lines.add(name_of_second_label +": ");
 					}
 					
+					if (the_block_has_been_split_because_of_the_secure_cpu)
+					{
+						list_of_addresses_that_denote_next_unsplit_block_change.add(address_of_code_that_denotes_next_unsplit_block_change-7); //the block starts at the verification procedure, so we subtract its size
+					}
+					
 					if (got_inside_while==1)
 					{
 						continue;
@@ -369,44 +376,7 @@ public class Secure_Assembly {
 					continue;
 				}
 				
-				if (use_fixed_size_chunks_of_code)
-				{
-					if (num_of_bytes_when_we_dont_split_blocks+size_of_current_cmd>num_of_bytes_in_code_chunk-9) //9= verification call + jmp
-					{
-						num_of_bytes_when_we_dont_split_blocks=0;
-						num_of_cmds_when_we_dont_split_blocks=0;
-					}
-				}
-				if (num_of_cmds_when_we_dont_split_blocks == num_of_grouped_orig_instr)
-				{
-					num_of_cmds_when_we_dont_split_blocks=0;
-					num_of_bytes_when_we_dont_split_blocks=0;
-				}
-				
-				//the end of the unsplit block
-				if ((num_of_bytes_when_we_dont_split_blocks==0 && use_fixed_size_chunks_of_code) ||  num_of_cmds_when_we_dont_split_blocks==0)
-				{
-					//check some edge cases
-					if ((address_of_code_that_denotes_next_unsplit_block_change==7 && use_fixed_size_chunks_of_code && check_code_verification_on_the_fly && !ignore_macs_even_if_there_are_mac_bytes)
-						|| (address_of_code_that_denotes_next_unsplit_block_change==0)
-						|| (address_of_code_that_denotes_next_unsplit_block_change==14 && !use_fixed_size_chunks_of_code && check_code_verification_on_the_fly && !ignore_macs_even_if_there_are_mac_bytes)
-					   ) //that is because it thinks that the first verification code is a block on its own, as all the counters are still 0
-					{
-						; //do nothing
-					}
-					else
-					{
-						if (split_the_blocks_when_the_secure_cpu_would)
-						{
-							list_of_addresses_that_denote_next_unsplit_block_change.add(address_of_code_that_denotes_next_unsplit_block_change-7); //the block starts at the verification procedure, so we subtract its size
-						}
-						else
-						{
-							list_of_addresses_that_denote_next_unsplit_block_change.add(address_of_code_that_denotes_next_unsplit_block_change);
-						}
-					}
-				}
-				
+								
 				
 				
 				//check if cmd is a call (which means block split), except if it is one of some special functions
