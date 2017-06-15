@@ -20,7 +20,7 @@ public class Secure_Assembly {
 	static int num_of_bytes_when_we_dont_split_blocks=0;
 	static ArrayList<Integer> list_of_addresses_that_denote_next_unsplit_block_change=new ArrayList<Integer>();
 	static boolean when_splitting_blocks_do_not_invoke_verif_unless_on_label=false; //experimental
-
+	static boolean split_the_blocks_when_the_secure_cpu_would;
 	
 	public static void main(String[] args) throws Exception
 	{
@@ -60,7 +60,7 @@ public class Secure_Assembly {
 		boolean force_code_block_split_on_labels_and_calls=false;
 		
 		
-		if (args.length==12)
+		if (args.length==13)
 		{
 			num_of_interleaved_keys=Integer.parseInt(args[0]);
 			num_of_grouped_orig_instr=Integer.parseInt(args[1]);
@@ -99,6 +99,11 @@ public class Secure_Assembly {
 				when_splitting_blocks_do_not_invoke_verif_unless_on_label=false;
 			else
 				when_splitting_blocks_do_not_invoke_verif_unless_on_label=true;
+				
+			if (Integer.parseInt(args[12])==0)
+				split_the_blocks_when_the_secure_cpu_would=false;
+			else
+				split_the_blocks_when_the_secure_cpu_would=true;
 
 		}
 		else
@@ -263,7 +268,8 @@ public class Secure_Assembly {
 								System.out.println("The size of the code block is not big enough and we only managed to fit "+i+" instructions. Increase it by at least "+ bytes_to_increase+".");
 								System.exit(-3);
 							}
-							force_end_of_block=true;
+							if (!split_the_blocks_when_the_secure_cpu_would)
+								force_end_of_block=true; //force end of block unless we expect the splits to happen counting on how the secure cpu would split
 						}
 					}
 					
@@ -273,24 +279,40 @@ public class Secure_Assembly {
 				
 								
 				//if we have exhausted the group of commands, we need to add a jump and nops, and a label after them
-				if (force_end_of_block || i == num_of_grouped_orig_instr || (((!ignore_macs_even_if_there_are_mac_bytes  && check_code_verification_on_the_fly) || force_code_block_split_on_labels_and_calls)  && /*label with .L<numbers> */Pattern.compile("^[ \t]*\\.L[0123456789]+:$").matcher(line).matches() ))
+				if ((force_end_of_block || (i == num_of_grouped_orig_instr && !split_the_blocks_when_the_secure_cpu_would) || (((!ignore_macs_even_if_there_are_mac_bytes  && check_code_verification_on_the_fly) || force_code_block_split_on_labels_and_calls)  && /*label with .L<numbers> */Pattern.compile("^[ \t]*\\.L[0123456789]+:$").matcher(line).matches() ))
+					|| split_the_blocks_when_the_secure_cpu_would && ((use_fixed_size_chunks_of_code &&(num_of_bytes_when_we_dont_split_blocks+size_of_current_cmd>num_of_bytes_in_code_chunk-9) /*9= verification call + jmp*/ )|| (num_of_cmds_when_we_dont_split_blocks == num_of_grouped_orig_instr) )
+					)
 				{
+					
+					boolean forced_block_split_because_secure_cpu_would=split_the_blocks_when_the_secure_cpu_would && ((use_fixed_size_chunks_of_code &&(num_of_bytes_when_we_dont_split_blocks+size_of_current_cmd>num_of_bytes_in_code_chunk-9) /*9= verification call + jmp*/ )|| (num_of_cmds_when_we_dont_split_blocks == num_of_grouped_orig_instr) );
 					
 					force_end_of_block=false;
 					num_of_bytes_in_current_block=0;
 					
 					
+					
 					//experimental for splits of blocks due to label
 					boolean forced_block_split_because_of_label=false;
 					String name_of_second_label="";
-					if (when_splitting_blocks_do_not_invoke_verif_unless_on_label &&  /*label with .L<numbers> */Pattern.compile("^[ \t]*\\.L[0123456789]+:$").matcher(line).matches() && (force_end_of_block==false && i!=num_of_grouped_orig_instr) )
+					if ((when_splitting_blocks_do_not_invoke_verif_unless_on_label &&  /*label with .L<numbers> */Pattern.compile("^[ \t]*\\.L[0123456789]+:$").matcher(line).matches() && (force_end_of_block==false && i!=num_of_grouped_orig_instr) )
+					    && (!forced_block_split_because_secure_cpu_would) //if secure cpu forces block split, we MUST hit verification procedure every time
+					   )
 					{
+						list_of_lines.add("#forcing block split because of label but verif may not be called");
 						forced_block_split_because_of_label=true;
 						list_of_lines.add(" jmp " + "." + ulabel + label_counter+"_2");
 						name_of_second_label="." + ulabel + label_counter+"_2";
 					}
 					else
 					{
+						if (forced_block_split_because_secure_cpu_would)
+						{
+							list_of_lines.add("# forcing block split because secure cpu would");
+						}
+						else
+						{
+							list_of_lines.add("# forcing block split because of call or full group of code was completed (not counting how the secure cpu would count though)");
+						}
 						list_of_lines.add(" jmp " + "." + ulabel + label_counter);
 					}
 					for (int j = 0; j < num_of_interleaved_keys+number_of_canaries+num_of_mac_bytes+bytes_for_instr_len; j++)

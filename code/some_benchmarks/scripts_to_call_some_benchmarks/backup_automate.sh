@@ -32,7 +32,7 @@ ADD_THE_PADDED_NOPS_IN_THE_MAC_IN_FIXED_SIZE=1 #takes into account the padded no
 USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=0 #EXPERIMENTAL: The code blocks that are cached are cached if being unsplit. Default 0.
 SET_AS_GIVEN_THAT_EVERYTHING_MACED_WILL_BE_FIXED_AND_MULTIPLE_OF_16=1 #this means that we can disable length prepending and padding. Default 0.
 WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL=0 #EXPERIMENTAL: Does not calculate the mac when splitting blocks due to label encounter and we continue normal execution. Only calcs mac when we jump to that label.
-
+SPLIT_THE_BLOCKS_WHEN_THE_SECURE_CPU_WOULD=0 #EXPERIMENTAL. WE NEED USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=1 AND WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL=1 for this one to work. Splits blocks when encountering call or label, but calculates the mac on the unsplit block.
 
 #usage
 if [[ ( "$#" -ne 9 ) && ( "$#" -ne 10) ]]; then
@@ -297,7 +297,7 @@ echo "Inserting NOPs into assembly..."
 mkdir -p /run/shm/
 ramtmp="$(mktemp -p /run/shm/)" #temporary file
 #this java code inserts the nops in assembly, as well as the jmps and the on-the-fly verification code
-java -cp ../bin Secure_Assembly $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_INSTRUCTIONS $NUM_OF_CANARIES $NUM_OF_MAC_BYTES $ADD_CODE_ON_THE_FLY_VERIFICATION $USE_FIXED_SIZE_CHUNKS_OF_CODE $NUM_OF_BYTES_IN_CODE_CHUNK $FORCE_NUM_OF_INSTRUCTIONS_OVER_NUM_OF_BYTES $ramtmp $IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES $FORCE_CODE_BLOCK_SPLIT_ON_LABELS_AND_CALLS $WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL
+java -cp ../bin Secure_Assembly $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_INSTRUCTIONS $NUM_OF_CANARIES $NUM_OF_MAC_BYTES $ADD_CODE_ON_THE_FLY_VERIFICATION $USE_FIXED_SIZE_CHUNKS_OF_CODE $NUM_OF_BYTES_IN_CODE_CHUNK $FORCE_NUM_OF_INSTRUCTIONS_OVER_NUM_OF_BYTES $ramtmp $IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES $FORCE_CODE_BLOCK_SPLIT_ON_LABELS_AND_CALLS $WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL $SPLIT_THE_BLOCKS_WHEN_THE_SECURE_CPU_WOULD
 if [ $? -eq 0 ]; then
 		: #all ok
 	else
