@@ -117,7 +117,6 @@ public class Secure_Assembly {
 		{
 			split_the_blocks_when_the_secure_cpu_would=false;
 			when_splitting_blocks_do_not_invoke_verif_unless_on_label=false;
-			force_code_block_split_on_labels_and_calls=false;
 		}
 		
 		//we parse the file once to find the functions
