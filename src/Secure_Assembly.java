@@ -112,6 +112,13 @@ public class Secure_Assembly {
 			System.exit(2);
 		}
 		
+		//this means that we only split blocks when the block fills
+		if (ignore_macs_even_if_there_are_mac_bytes)
+		{
+			split_the_blocks_when_the_secure_cpu_would=false;
+			when_splitting_blocks_do_not_invoke_verif_unless_on_label=false;
+			force_code_block_split_on_labels_and_calls=false;
+		}
 		
 		//we parse the file once to find the functions
 		//System.out.println("These are the function names:");
