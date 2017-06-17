@@ -5,7 +5,7 @@
 PATH_TO_AUTOMATE_SH=/home/menoobs/virus_detection/gcc-Linux-Implementation/code/
 ORIGINAL_DIR=`pwd`
 NAME_OF_SECURE_FUNCTION=matrix_multiplication_sec
-BENCHMARK_NAME=matrix_mult_800_2000_squeezed_keys_with_padded_nops_maced_data_blocks_same_size_as_code_blocks_and_multiple_of_16_do_not_mac_when_label_splits_blocks_v2
+BENCHMARK_NAME=mm_800_2000_squeezed_keys_with_padded_nops_maced_data_blocks_same_size_as_code_blocks_and_multiple_of_16_emulate_secure_cpu_block_split
 
 CODE_CACHE_TYPE=2  #0 -> fully assosiative
 				   #1 -> direct mapped
@@ -16,7 +16,7 @@ DATA_CACHE_TYPE=2  #0 -> fully assosiative
 CODE_CACHE_ASSOC=2
 DATA_CACHE_ASSOC=2
 SECURE_HEAP_SIZE=200000
-SECURE_STACK_SIZE=44123123
+SECURE_STACK_SIZE=44000000
 MAX_NUM_OF_CMDS_IN_FIXED=35
 TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES=0
 CALC_TIME_WITH_SEPARATE_MAC_ADDITION=1
@@ -24,10 +24,10 @@ USE_CACHE_FOR_CODE_WHEN_CACHE_ENABLED=1
 USE_CACHE_FOR_DATA_WHEN_CACHE_ENABLED=1
 PRODUCE_SECURE_EXEC=1
 RUN_SECURE_EXEC=1
-USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=0 #EXPERIMENTAL: The code blocks that are cached are cached if being unsplit
+USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=1 #EXPERIMENTAL: The code blocks that are cached are cached if being unsplit
 DATA_BLOCK_EQUAL_TO_CODE_BLOCK=1 #equal in size, not in number
 SET_AS_GIVEN_THAT_EVERYTHING_MACED_WILL_BE_FIXED_AND_MULTIPLE_OF_16=1 #this means that we can disable length prepending and padding
-SPLIT_THE_BLOCKS_WHEN_THE_SECURE_CPU_WOULD=0 #EXPERIMENTAL: Tries to simulate when the secure cpu would split blocks
+SPLIT_THE_BLOCKS_WHEN_THE_SECURE_CPU_WOULD=1 #EXPERIMENTAL: Tries to simulate when the secure cpu would split blocks
 
 if [[ ( "$TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES" -eq 1 ) ]]; then
 	sed -i 's/TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES=0/TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES=1/' ${ORIGINAL_DIR}/backup_automate.sh
@@ -44,7 +44,7 @@ if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 0 ) ]]; then #the "1" part i
 fi
 
 if [[ ( "$USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS" -eq 0 ) ]]; then
-	sed -i 's/USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=1/USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=0/' ${ORIGINAL_DIR}/backup_automate.sh
+	sed -i 's/USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=1 #/USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=0 #/' ${ORIGINAL_DIR}/backup_automate.sh
 fi
 
 if [[ ( "$SET_AS_GIVEN_THAT_EVERYTHING_MACED_WILL_BE_FIXED_AND_MULTIPLE_OF_16" -eq 1 ) ]]; then
@@ -107,7 +107,7 @@ do_benchmarks() {
 	cp ${PATH_TO_AUTOMATE_SH}/automate.sh ${ORIGINAL_DIR}/automate_template.sh
 
 	if [[ ( "$USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS" -eq 1 ) ]]; then
-		sed -i 's/USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=0/USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=1/' ${ORIGINAL_DIR}/automate_template.sh
+		sed -i 's/USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=0 #/USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=1 #/' ${ORIGINAL_DIR}/automate_template.sh
 	fi
 
 
@@ -366,7 +366,7 @@ do_benchmarks() {
 	cp ${PATH_TO_AUTOMATE_SH}/automate.sh ${ORIGINAL_DIR}/automate_template.sh
 
 	if [[ ( "$USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS" -eq 1 ) ]]; then
-		sed -i 's/USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=0/USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=1/' ${ORIGINAL_DIR}/automate_template.sh
+		sed -i 's/USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=0 #/USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=1 #/' ${ORIGINAL_DIR}/automate_template.sh
 	fi
 
 	if [[ ( "$SPLIT_THE_BLOCKS_WHEN_THE_SECURE_CPU_WOULD" -eq 1 ) ]]; then

@@ -6,11 +6,11 @@ Init_mem, alloc+key insertion
 Great!. No need to allocate more than the defined amount.
 If successful, total bytes allocated:15000000
 Initializing stack memory
-Stack bytes_to_allocate_on_start:200000
+Stack bytes_to_allocate_on_start:300000
 Init_stack_mem, alloc+key insertion
-Stack: Whoops. We need to allocate a bit more space.
-If successful, total bytes allocated:200064
-My pid=18448
+Stack: Great!. No need to allocate more than the defined amount.
+If successful, total bytes allocated:300000
+My pid=32708
 a b c d e 
 x=3
 a b c n e 
@@ -23,44 +23,44 @@ Primes:
 
 Total number of primes:13848
 
-New Secure find_primes_up_to_a_number time:168.958 cpu seconds
-base_pointer:0, entire_stack:140335591301136, last_unused_stack_memory=140335591301136
+New Secure find_primes_up_to_a_number time:96.952 cpu seconds
+base_pointer:0, entire_stack:140152725180432, last_unused_stack_memory=140152725180432
 
 Going to find keyshares.
 Total key groups found in code:2326
 
-key no0=0x26
-key no1=0x21
-key no2=0xf5
-key no3=0x4e
-key no4=0x76
-key no5=0x07
-key no6=0xc2
-key no7=0x2b
-key no8=0x3b
-key no9=0xa0
-key no10=0x54
-key no11=0xf2
-key no12=0xb7
-key no13=0x8a
-key no14=0x34
-key no15=0xcf
-key no16=0xbe
-key no17=0x9e
-key no18=0x08
-key no19=0x48
-key no20=0xfa
-key no21=0xd1
-key no22=0xf8
-key no23=0x45
-key no24=0x1d
-key no25=0x40
-key no26=0x06
-key no27=0xfb
-key no28=0xf2
-key no29=0xca
-key no30=0xce
-key no31=0x13
+key no0=0x27
+key no1=0x7f
+key no2=0xb2
+key no3=0xc5
+key no4=0x81
+key no5=0x26
+key no6=0x1d
+key no7=0x9b
+key no8=0x46
+key no9=0xc9
+key no10=0x57
+key no11=0x31
+key no12=0x0a
+key no13=0x63
+key no14=0xcf
+key no15=0x75
+key no16=0x47
+key no17=0xa7
+key no18=0x00
+key no19=0x61
+key no20=0xd8
+key no21=0x76
+key no22=0xc4
+key no23=0xef
+key no24=0xc6
+key no25=0xac
+key no26=0xa1
+key no27=0xc6
+key no28=0xbb
+key no29=0xcd
+key no30=0x32
+key no31=0x2b
 
 
-Mac invocation, length:64, number:3461384897
+Mac invocation, length:64, number:635872
