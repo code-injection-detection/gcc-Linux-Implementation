@@ -592,6 +592,11 @@ unsigned char new_stuff_in_code_to_be_MACed[1024];
 #if use_fixed_size_chunks_of_code==0
 	#define size_of_commands_before_getting_addr (13) //the size in bytes of the assembly commands before fetching the current address( to reach the start of the mac-ed block)
 #endif
+
+
+//disable optimizations temporarily, for stability reasons
+#pragma GCC push_options
+#pragma GCC optimize ("O0")
 int check_code_mac_for_error(unsigned char * input, int total_mac_bytes, int useful_mac_bytes)
 {
 	int error=0;
@@ -652,6 +657,7 @@ int check_code_mac_for_error(unsigned char * input, int total_mac_bytes, int use
 	}
 	return error;
 }
+#pragma GCC pop_options //re-enable optimizations
 
 //checks the next <number_of_canaries> to see if they hold the canary value
 int check_next_canaries_for_crypto(void* p)
