@@ -66,8 +66,9 @@ while i<len(lines_assembly) and j<len(lines_sizes):
 		total_size_of_cmds=0
 		while k<=j:
 			former_cmd_and_size=lines_sizes[j-k].strip()
-			if (RepresentsInt(former_cmd_and_size.split(" ")[0])):	
-				size_of_former_cmd=int(former_cmd_and_size.split(" ")[0])
+			former_cmd_and_size_split_space=former_cmd_and_size.split(" ")
+			if (RepresentsInt(former_cmd_and_size_split_space[0])):	
+				size_of_former_cmd=int(former_cmd_and_size_split_space[0])
 				total_size_of_cmds+=size_of_former_cmd #add the sizes
 				k+=1
 			else:
