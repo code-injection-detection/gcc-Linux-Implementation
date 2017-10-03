@@ -1,0 +1,17 @@
+no macs world:
+1) splits when block of code is full
+2) label: no split
+3) call: no split
+
+ignoring macs world:
+1) splits when block of code is full
+2) label: no split
+3) call: no split
+
+
+Everything in world:
+1)Splits when secure cpu would, but extra splits are necessary for :
+2)Labels: split, but check only wehn hitting them (note: if no cache, should we check if the label is in the same block so as not to verify?)
+3) calls: split, and verify 
+
+
