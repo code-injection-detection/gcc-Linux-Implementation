@@ -88,6 +88,10 @@ for line in src_lines:
 		newline='#define set_as_given_that_everything_maced_will_be_fixed_and_multiple_of_16 '+sys.argv[29]+'\n'
 	if '#define when_splitting_blocks_do_not_invoke_verif_unless_on_label' in line:
 		newline='#define when_splitting_blocks_do_not_invoke_verif_unless_on_label '+sys.argv[30]+'\n'
+	if '#define size_of_jmp_command' in line:
+		newline='#define size_of_jmp_command '+sys.argv[31]+'\n'
+	if '#define overhead_of_verif' in line:
+		newline='#define overhead_of_verif '+sys.argv[32]+'\n'
 
 
 	headers_dst.write(newline)

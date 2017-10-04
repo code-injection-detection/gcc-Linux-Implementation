@@ -191,6 +191,13 @@
 #define when_splitting_blocks_do_not_invoke_verif_unless_on_label 0
 #endif				//EXPERIMENTAL: Does not calculate the mac when splitting blocks due to label encounter and we continue normal execution. Only calcs mac when we jump to that label.
 
+#ifndef size_of_jmp_command
+#define size_of_jmp_command 5
+#endif				//the size of the jmp.d32 <label> command, used when we have fixed size blocks
+
+#ifndef overhead_of_verif
+#define overhead_of_verif 5
+#endif				//overhead of verification call per block: 7 for fixed size, 14 for variable size (obsolete)
 
 #include "crypto_functions.h"
 #include "secure_getters_setters.h"

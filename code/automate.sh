@@ -33,6 +33,9 @@ USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=0 #The code blocks that are cached are cached
 SET_AS_GIVEN_THAT_EVERYTHING_MACED_WILL_BE_FIXED_AND_MULTIPLE_OF_16=1 #this means that we can disable length prepending and padding. Default 0.
 WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL=0 #Does not calculate the mac when splitting blocks due to label encounter and we continue normal execution. Only calcs mac when we jump to that label.
 SPLIT_THE_BLOCKS_WHEN_THE_SECURE_CPU_WOULD=0 #It changes the values of WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL and USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS to hold its value. Splits blocks when encountering call or label, but calculates the mac on the unsplit block.
+SIZE_OF_JMP_COMMAND=5 #jmp.d32 <label>
+OVERHEAD_OF_VERIFICATION=7 #7 for fixed size, 14 for variable size (obsolete)
+
 
 #usage
 if [[ ( "$#" -ne 9 ) && ( "$#" -ne 10) ]]; then
@@ -195,6 +198,23 @@ else
 		 fi
 	fi
 	
+	if [ ! -f ../bin/Secure_Assembly_new.class ]; then #if .class file is not there
+		echo "Secure_Assembly_new class file not found!"
+		echo "The script will do the job for you. Make sure Java compiler is installed."
+		echo "Compiling Java class..."
+		javac ../src/Secure_Assembly_new.java
+		mv ../src/Secure_Assembly_new.class ../bin/
+		echo "Compiled Java class."
+	else if [ ../bin/Secure_Assembly_new.class -ot ../src/Secure_Assembly_new.java ]; then #if the class file is older than the code
+			echo "Secure_Assembly_new class file is out of date!"
+			echo "The script will do the job for you. Make sure Java compiler is installed."
+			echo "Compiling Java class..."
+			javac ../src/Secure_Assembly_new.java
+			mv ../src/Secure_Assembly_new.class ../bin/
+			echo "Compiled Java class."
+		 fi
+	fi
+	
 	if [ ! -f ../bin/Secure_Machine_Code.class ]; then #if .class file is not there
 		echo "Secure_Machine_Code class file not found!"
 		echo "The script will do the job for you. Make sure Java compiler is installed."
@@ -211,6 +231,24 @@ else
 		echo "Compiled Java class."
 		fi
 	fi
+	
+	if [ ! -f ../bin/Secure_Machine_Code_new.class ]; then #if .class file is not there
+		echo "Secure_Machine_Code_new class file not found!"
+		echo "The script will do the job for you. Make sure Java compiler is installed."
+		echo "Compiling Java class..."
+		javac ../src/Secure_Machine_Code_new.java
+		mv ../src/Secure_Machine_Code_new.class ../bin/
+		echo "Compiled Java class."
+	else if [ ../bin/Secure_Machine_Code_new.class -ot ../src/Secure_Machine_Code_new.java ]; then #if the class file is older than the code
+		echo "Secure_Machine_Code_new class file is out of date!"
+		echo "The script will do the job for you. Make sure Java compiler is installed."
+		echo "Compiling Java class..."
+		javac ../src/Secure_Machine_Code_new.java
+		mv ../src/Secure_Machine_Code_new.class ../bin/
+		echo "Compiled Java class."
+		fi
+	fi
+	
 fi
 
 #removing potentially old stuff...
@@ -218,7 +256,7 @@ rm -f addresses_of_unsplit_blocks.txt
 
 echo "Changing defines according to input..."
 #this script changes the defines according to user input, so that se secure program knows the constants as headers.
-python3 set_correct_defines.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_TOTAL_STACK_BYTES_ALLOC $NUM_OF_GLOBAL_USEFUL_BYTES $NUM_OF_MAC_BYTES $INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS $USE_FIXED_SIZE_CHUNKS_OF_CODE $NUM_OF_BYTES_IN_CODE_CHUNK $DO_NOT_MAC_WHAT_WHE_ADD_IN_CODE $ADD_CODE_ON_THE_FLY_VERIFICATION $USE_INLINE_CODE_FOR_DELAYS $NUM_OF_CACHED_BLOCKS_OF_CODE $NUM_OF_CACHED_BLOCKS_OF_DATA $IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES $CODE_CACHE_TYPE $DATA_CACHE_TYPE $CODE_CACHE_SET_ASSOSIATIVE_SIZE $DATA_CACHE_SET_ASSOSIATIVE_SIZE $IGNORE_MACS_LAST_MOMENT_EVEN_IF_THERE_ARE_MAC_BYTES $TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES $SQEEZE_KEYS_WHEN_MACING $COUNT_MAC_INVOCATIONS $ADD_THE_PADDED_NOPS_IN_THE_MAC_IN_FIXED_SIZE $FORCE_CODE_BLOCK_SPLIT_ON_LABELS_AND_CALLS $USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS $SET_AS_GIVEN_THAT_EVERYTHING_MACED_WILL_BE_FIXED_AND_MULTIPLE_OF_16 $WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL
+python3 set_correct_defines.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_TOTAL_STACK_BYTES_ALLOC $NUM_OF_GLOBAL_USEFUL_BYTES $NUM_OF_MAC_BYTES $INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS $USE_FIXED_SIZE_CHUNKS_OF_CODE $NUM_OF_BYTES_IN_CODE_CHUNK $DO_NOT_MAC_WHAT_WHE_ADD_IN_CODE $ADD_CODE_ON_THE_FLY_VERIFICATION $USE_INLINE_CODE_FOR_DELAYS $NUM_OF_CACHED_BLOCKS_OF_CODE $NUM_OF_CACHED_BLOCKS_OF_DATA $IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES $CODE_CACHE_TYPE $DATA_CACHE_TYPE $CODE_CACHE_SET_ASSOSIATIVE_SIZE $DATA_CACHE_SET_ASSOSIATIVE_SIZE $IGNORE_MACS_LAST_MOMENT_EVEN_IF_THERE_ARE_MAC_BYTES $TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES $SQEEZE_KEYS_WHEN_MACING $COUNT_MAC_INVOCATIONS $ADD_THE_PADDED_NOPS_IN_THE_MAC_IN_FIXED_SIZE $FORCE_CODE_BLOCK_SPLIT_ON_LABELS_AND_CALLS $USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS $SET_AS_GIVEN_THAT_EVERYTHING_MACED_WILL_BE_FIXED_AND_MULTIPLE_OF_16 $WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL $SIZE_OF_JMP_COMMAND $OVERHEAD_OF_VERIFICATION
 if [ "$INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS" == "0" ]; then
 	#we now insert the code that manipulates the secure stack
 	python3 insert_new_stack_commands.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_MAC_BYTES
