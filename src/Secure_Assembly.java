@@ -19,7 +19,7 @@ public class Secure_Assembly {
 	static int num_of_cmds_when_we_dont_split_blocks=0;
 	static int num_of_bytes_when_we_dont_split_blocks=0;
 	static ArrayList<Integer> list_of_addresses_that_denote_next_unsplit_block_change=new ArrayList<Integer>();
-	static boolean when_splitting_blocks_do_not_invoke_verif_unless_on_label=false; //experimental
+	static boolean when_splitting_blocks_do_not_invoke_verif_unless_on_label=false; //practically determined by "split_the_blocks_when_the_secure_cpu_would"
 	static boolean split_the_blocks_when_the_secure_cpu_would; //should be the same value as  when_splitting_blocks_do_not_invoke_verif_unless_on_label
 	
 	public static void main(String[] args) throws Exception
@@ -293,7 +293,7 @@ public class Secure_Assembly {
 					boolean forced_block_split_because_secure_cpu_would=split_the_blocks_when_the_secure_cpu_would && ((use_fixed_size_chunks_of_code &&(num_of_bytes_when_we_dont_split_blocks+size_of_current_cmd>num_of_bytes_in_code_chunk-9) /*9= verification call + jmp*/ )|| (num_of_cmds_when_we_dont_split_blocks == num_of_grouped_orig_instr) );
 										
 					
-					//experimental for splits of blocks due to label
+					//for splits of blocks due to label
 					boolean forced_block_split_because_of_label=false;
 					String name_of_second_label="";
 					if ((when_splitting_blocks_do_not_invoke_verif_unless_on_label &&  /*label with .L<numbers> */Pattern.compile("^[ \t]*\\.L[0123456789]+:$").matcher(line).matches() && (force_end_of_block==false && i!=num_of_grouped_orig_instr) )
@@ -357,7 +357,7 @@ public class Secure_Assembly {
 						add_code_verification_lines(list_of_lines,use_fixed_size_chunks_of_code);
 					}
 					
-					//experimental for splits of blocks due to label
+					//for splits of blocks due to label
 					if (when_splitting_blocks_do_not_invoke_verif_unless_on_label && forced_block_split_because_of_label)
 					{
 						list_of_lines.add(name_of_second_label +": ");
