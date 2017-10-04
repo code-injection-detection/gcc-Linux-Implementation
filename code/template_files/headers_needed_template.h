@@ -199,6 +199,11 @@
 #define overhead_of_verif 5
 #endif				//overhead of verification call per block: 7 for fixed size, 14 for variable size (obsolete)
 
+#ifndef using_large_jmps_and_code_blocks_with_3_worlds
+#define using_large_jmps_and_code_blocks_with_3_worlds 0
+#endif				//using the new implementation which reduces the variables that we have
+
+
 #include "crypto_functions.h"
 #include "secure_getters_setters.h"
 

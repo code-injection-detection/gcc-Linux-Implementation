@@ -92,6 +92,8 @@ for line in src_lines:
 		newline='#define size_of_jmp_command '+sys.argv[31]+'\n'
 	if '#define overhead_of_verif' in line:
 		newline='#define overhead_of_verif '+sys.argv[32]+'\n'
+	if '#define using_large_jmps_and_code_blocks_with_3_worlds' in line:
+		newline='#define using_large_jmps_and_code_blocks_with_3_worlds '+sys.argv[33]+'\n'
 
 
 	headers_dst.write(newline)
