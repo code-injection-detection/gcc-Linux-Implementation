@@ -42,7 +42,7 @@ public class Secure_Assembly_new {
 		int  num_of_interleaved_keys = 32;   //this should be equal to the number of keys we use in Secure_Machine_Code.java (now that we assume that 1 NOP = 1key)
 		int  number_of_canaries=3;
 		int  num_of_mac_bytes=16;
-		int bytes_for_instr_len=2; //one byte that denotes the length of the useful bytes + 2 bytes for jmp. Verification code is included. Does the same. The padded nops are not included.
+		int bytes_for_instr_len=2; //2 bytes that denotes the length of the useful bytes + <size_of_jmp_command> bytes for jmp. Verification code is included. Does the same. The padded nops are not included.
 		int number_of_nops_to_denote_program_start=300;
 		boolean check_code_verification_on_the_fly=false;
 		int num_of_bytes_in_code_chunk=20;

@@ -1,6 +1,6 @@
 #include "headers_needed.h"
 
-#define safe_length_for_buffer_storage 2048
+#define safe_length_for_buffer_storage 33048
 #define len_2power128 17 //2^128-1 is 16 bytes.
 #define block_length 16
 
