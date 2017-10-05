@@ -20,6 +20,7 @@ public class Secure_Machine_Code_new {
 	static int overhead_for_verif=7;
 	static int size_of_jmp_command=5;
 	static int bytes_for_instr_len=2;
+	static boolean verify_everything; //everything calculated world
 
 	
 	public static void main(String[] args) throws Exception
@@ -73,7 +74,7 @@ public class Secure_Machine_Code_new {
 		boolean squeeze_keys_when_macing=false;
 		boolean add_the_padded_nops_in_the_mac_in_fixed_size=false;
 		
-		if (args.length==14)
+		if (args.length==15)
 		{
 			number_of_interleaved_keys=Integer.parseInt(args[0]);
 			num_of_keys_in_heap=number_of_interleaved_keys;
@@ -115,6 +116,11 @@ public class Secure_Machine_Code_new {
 				split_the_blocks_when_the_secure_cpu_would=false;
 			else
 				split_the_blocks_when_the_secure_cpu_would=true;
+				
+			if (Integer.parseInt(args[14])==0)
+				verify_everything=false;
+			else
+				verify_everything=true;
 
 		}
 		else
@@ -122,6 +128,25 @@ public class Secure_Machine_Code_new {
 			System.out.println("Incorrect number of arguments!");
 			System.exit(-1);
 		}
+		
+		if (verify_everything && ignore_macs_even_if_there_are_mac_bytes)
+		{
+			System.out.println("Secure_Machine_Code_new: Impossible configuration. Both verify_everything and ignore_macs_even_if_there_are_mac_bytes set.");
+			System.exit(-1);
+		}
+		
+		if (verify_everything && num_of_mac_bytes==0)
+		{
+			System.out.println("Secure_Machine_code_new: Impossible configuration. Both verify_everything and num_of_mac_bytes==0.");
+			System.exit(-1);
+		}
+		
+		if (num_of_mac_bytes==0 && ignore_macs_even_if_there_are_mac_bytes)
+		{
+			System.out.println("Secure_Machine_Code_new: Impossible configuration. Both ignore_macs_even_if_there_are_mac_bytes and num_of_mac_bytes==0.");
+			System.exit(-1);
+		}
+		
 		
 		ArrayList[] keys = new ArrayList[number_of_interleaved_keys];
 		
@@ -162,7 +187,7 @@ public class Secure_Machine_Code_new {
 			//find a jmp+proper offset+correct_number_of_nops
 			byte number_of_jumped_bytes1 =(byte)(number_of_interleaved_keys+number_of_canaries+num_of_mac_bytes+bytes_for_instr_len+(number_of_padded_nops-size_of_jmp_command));
 			byte number_of_jumped_bytes2;
-			if (split_the_blocks_when_the_secure_cpu_would)
+			if (split_the_blocks_when_the_secure_cpu_would || verify_everything)
 			{
 				number_of_jumped_bytes2=(byte)(number_of_interleaved_keys+number_of_canaries+num_of_mac_bytes+bytes_for_instr_len+(number_of_padded_nops-size_of_jmp_command +overhead_for_verif /*7=verif code length*/));
 			}
@@ -281,7 +306,7 @@ public class Secure_Machine_Code_new {
 						//iterate through the bytes, ignoring what we shouldn't mac
 						for (int cnt_in_old_mac=0;cnt_in_old_mac<all_bytes_length;cnt_in_old_mac++)
 						{
-							if (check_code_verification_on_the_fly && !ignore_macs_even_if_there_are_mac_bytes && cnt_in_old_mac<length_of_verifier)
+							if ((check_code_verification_on_the_fly && !ignore_macs_even_if_there_are_mac_bytes)|| verify_everything) && cnt_in_old_mac<length_of_verifier)
 							{
 								; //do nothing
 							}

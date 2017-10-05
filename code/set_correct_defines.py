@@ -94,6 +94,11 @@ for line in src_lines:
 		newline='#define overhead_of_verif '+sys.argv[32]+'\n'
 	if '#define using_large_jmps_and_code_blocks_with_3_worlds' in line:
 		newline='#define using_large_jmps_and_code_blocks_with_3_worlds '+sys.argv[33]+'\n'
+	if '#define bytes_for_instructions_length' in line:
+		newline='#define bytes_for_instructions_length '+sys.argv[34]+'\n'
+	if '#define verify_everything' in line:
+		newline='#define verify_everything '+sys.argv[34]+'\n'
+		
 
 
 	headers_dst.write(newline)

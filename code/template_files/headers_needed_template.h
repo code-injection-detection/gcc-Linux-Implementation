@@ -196,12 +196,20 @@
 #endif				//the size of the jmp.d32 <label> command, used when we have fixed size blocks
 
 #ifndef overhead_of_verif
-#define overhead_of_verif 5
+#define overhead_of_verif 7
 #endif				//overhead of verification call per block: 7 for fixed size, 14 for variable size (obsolete)
 
 #ifndef using_large_jmps_and_code_blocks_with_3_worlds
 #define using_large_jmps_and_code_blocks_with_3_worlds 0
 #endif				//using the new implementation which reduces the variables that we have
+
+#ifndef bytes_for_instructions_length
+#define bytes_for_instructions_length 1
+#endif				//the number of bytes after the canaries that hold the size of the verif+useful bytes+the jmp bytes
+
+#ifndef verify_everything
+#define verify_everything 0
+#endif				//third world
 
 
 #include "crypto_functions.h"

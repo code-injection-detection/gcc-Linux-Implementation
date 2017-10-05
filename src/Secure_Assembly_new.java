@@ -21,6 +21,7 @@ public class Secure_Assembly_new {
 	static boolean split_the_blocks_when_the_secure_cpu_would;
 	static int overhead_for_verif=7;
 	static int size_of_jmp_command=5;
+	static boolean verify_everything; //everything calculated world
 	
 	public static void main(String[] args) throws Exception
 	{
@@ -42,7 +43,7 @@ public class Secure_Assembly_new {
 		int  num_of_interleaved_keys = 32;   //this should be equal to the number of keys we use in Secure_Machine_Code.java (now that we assume that 1 NOP = 1key)
 		int  number_of_canaries=3;
 		int  num_of_mac_bytes=16;
-		int bytes_for_instr_len=2; //2 bytes that denotes the length of the useful bytes + <size_of_jmp_command> bytes for jmp. Verification code is included. Does the same. The padded nops are not included.
+		int bytes_for_instr_len=2; //2 bytes that denote the length of the useful bytes + <size_of_jmp_command> bytes for jmp. Verification code is included. Does the same. The padded nops are not included.
 		int number_of_nops_to_denote_program_start=300;
 		boolean check_code_verification_on_the_fly=false;
 		int num_of_bytes_in_code_chunk=20;
@@ -55,7 +56,7 @@ public class Secure_Assembly_new {
 		HashMap<String,Integer> hashmap_of_assembly_sizes =  new HashMap<String, Integer>();
 				
 		
-		if (args.length==8)
+		if (args.length==9)
 		{
 			num_of_interleaved_keys=Integer.parseInt(args[0]);
 			number_of_canaries=Integer.parseInt(args[1]);
@@ -80,6 +81,10 @@ public class Secure_Assembly_new {
 			else
 				split_the_blocks_when_the_secure_cpu_would=true;
 
+			if (Integer.parseInt(args[8])==0)
+				verify_everything=false;
+			else
+				verify_everything=true;
 		}
 		else
 		{
@@ -93,6 +98,25 @@ public class Secure_Assembly_new {
 			//actually different world
 			split_the_blocks_when_the_secure_cpu_would=false;
 		}
+		
+		if (verify_everything && ignore_macs_even_if_there_are_mac_bytes)
+		{
+			System.out.println("Secure_Assembly_new: Impossible configuration. Both verify_everything and ignore_macs_even_if_there_are_mac_bytes set.");
+			System.exit(-1);
+		}
+		
+		if (verify_everything && num_of_mac_bytes==0)
+		{
+			System.out.println("Secure_Assembly_new: Impossible configuration. Both verify_everything and num_of_mac_bytes==0.");
+			System.exit(-1);
+		}
+		
+		if (num_of_mac_bytes==0 && ignore_macs_even_if_there_are_mac_bytes)
+		{
+			System.out.println("Secure_Assembly_new: Impossible configuration. Both ignore_macs_even_if_there_are_mac_bytes and num_of_mac_bytes==0.");
+			System.exit(-1);
+		}
+		
 		
 		//we parse the file once to find the functions
 		//System.out.println("These are the function names:");
@@ -162,7 +186,7 @@ public class Secure_Assembly_new {
 					//add_label_for_start_of_function
 					list_of_lines.add(".START_OF_FUNCTION_"+list_of_lines.get(list_of_lines.size()-3));
 					
-					if (check_code_verification_on_the_fly && !ignore_macs_even_if_there_are_mac_bytes)
+					if ((check_code_verification_on_the_fly && !ignore_macs_even_if_there_are_mac_bytes) || verify_everything)
 					{
 						add_code_verification_lines(list_of_lines);
 					}
@@ -230,7 +254,7 @@ public class Secure_Assembly_new {
 					size_of_current_cmd=get_size_of_assembly_command(line_to_check_size,ramtmp_file,list_of_assembly_sizes,hashmap_of_assembly_sizes);
 					//see if we should add it (only if it does not exceed the size of the fixed chunk)
 					int bytes_to_subtract=size_of_jmp_command; /*jmp*/
-					if ((check_code_verification_on_the_fly && !ignore_macs_even_if_there_are_mac_bytes) ) //think that there is a verifier if we force block split
+					if ((check_code_verification_on_the_fly && !ignore_macs_even_if_there_are_mac_bytes) || verify_everything )
 						bytes_to_subtract+=overhead_for_verif; /*size of verifier for fixed size blocks*/
 					//if the size of the current command is bigger than we can accommodate
 					if (size_of_current_cmd> num_of_bytes_in_code_chunk-bytes_to_subtract)
@@ -251,7 +275,7 @@ public class Secure_Assembly_new {
 				
 								
 				//if we have exhausted the group of commands, we need to add a jump and nops, and a label after them
-				if ((force_end_of_block || ((!ignore_macs_even_if_there_are_mac_bytes  && check_code_verification_on_the_fly)  && /*label with .L<numbers> */Pattern.compile("^[ \t]*\\.L[0123456789]+:$").matcher(line).matches() ))
+				if ((force_end_of_block || (((!ignore_macs_even_if_there_are_mac_bytes  && check_code_verification_on_the_fly) || verify_everything)  && /*label with .L<numbers> */Pattern.compile("^[ \t]*\\.L[0123456789]+:$").matcher(line).matches() ))
 					|| split_the_blocks_when_the_secure_cpu_would && (num_of_bytes_when_we_dont_split_blocks+size_of_current_cmd>num_of_bytes_in_code_chunk-(size_of_jmp_command+overhead_for_verif)) /*usually 12= verification call + jmp*/  
 					)
 				{
@@ -316,7 +340,7 @@ public class Secure_Assembly_new {
 						}
 					}
 					
-					if (check_code_verification_on_the_fly && !ignore_macs_even_if_there_are_mac_bytes)
+					if ((check_code_verification_on_the_fly && !ignore_macs_even_if_there_are_mac_bytes) || verify_everything)
 					{
 						add_code_verification_lines(list_of_lines);
 					}
@@ -350,7 +374,7 @@ public class Secure_Assembly_new {
 				
 				
 				//check if cmd is a call (which means block split), except if it is one of some special functions
-				if ((check_code_verification_on_the_fly && !ignore_macs_even_if_there_are_mac_bytes)  && line.trim().startsWith("call") && function_is_one_of_the_hardware_ones(line.trim().split("\t")[1].trim())==false) //call should mark the end of a block, except if it is a secure getter/setter
+				if (((check_code_verification_on_the_fly && !ignore_macs_even_if_there_are_mac_bytes) || verify_everything)  && line.trim().startsWith("call") && function_is_one_of_the_hardware_ones(line.trim().split("\t")[1].trim())==false) //call should mark the end of a block, except if it is a secure getter/setter
 				{
 					list_of_lines.add(line);
 					i++;

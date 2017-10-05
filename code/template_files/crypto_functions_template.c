@@ -43,7 +43,7 @@ char count_mac_invocations_in_this_code_part=0;
 long long mac_size_invocation_counters[1024];
 
 //experimental: when calculating cache on unsplit code blocks
-long addresses_of_unsplit_blocks[25000]; 
+long addresses_of_unsplit_blocks[40000]; 
 int num_of_addresses_of_unsplit_blocks=0;
 FILE *unsplit_block_addr_file;
 long addr_of_first_block_of_code;
@@ -152,22 +152,23 @@ int check_the_next_canaries(void* p)
 	return 1;
 }
 
-//experimental: when using the unsplit blocks of code, we have to find the address of the
+//when using the unsplit blocks of code, we have to find the address of the
 //first secured part of the code
 void find_addr_of_first_block_of_code()
 {
 	unsigned char *p;
 	unsigned char* start_of_text=(unsigned char*)&__executable_start;  //we get the limits of .text section
 	unsigned char* end_of_text=(unsigned char*)&__etext;
-	int bytes_for_instr_len=1;
+	int bytes_for_instr_len=bytes_for_instructions_length;
+	int fixed_size_verif_overhead=overhead_of_verif;
 	
 	for (p=start_of_text;p<=end_of_text;p++)
 	{
 		int number_of_jumped_bytes1=number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len+get_number_of_padded_nops(p);
 		int number_of_jumped_bytes2;
-		if (when_splitting_blocks_do_not_invoke_verif_unless_on_label)
+		if (when_splitting_blocks_do_not_invoke_verif_unless_on_label || verify_everything)
 		{
-			number_of_jumped_bytes2=number_of_jumped_bytes1 + (use_fixed_size_chunks_of_code?(7 /*7=verif code length*/):14 /*14=verif code length*/);
+			number_of_jumped_bytes2=number_of_jumped_bytes1 + (use_fixed_size_chunks_of_code?(fixed_size_verif_overhead /*7=verif code length*/):14 /*14=verif code length*/);
 		}
 		else
 		{
