@@ -306,7 +306,7 @@ public class Secure_Machine_Code_new {
 						//iterate through the bytes, ignoring what we shouldn't mac
 						for (int cnt_in_old_mac=0;cnt_in_old_mac<all_bytes_length;cnt_in_old_mac++)
 						{
-							if ((check_code_verification_on_the_fly && !ignore_macs_even_if_there_are_mac_bytes)|| verify_everything) && cnt_in_old_mac<length_of_verifier)
+							if (((check_code_verification_on_the_fly && !ignore_macs_even_if_there_are_mac_bytes)|| verify_everything) && cnt_in_old_mac<length_of_verifier)
 							{
 								; //do nothing
 							}
