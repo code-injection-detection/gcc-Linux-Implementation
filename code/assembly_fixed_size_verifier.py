@@ -67,8 +67,8 @@ while j<len(lines_sizes):
 		sys.stderr.write("Error in nop count. The number of the total nops is not correct. Line: "+str(j)+"\n")
 		sys.exit(-1)
 		
-	if (all_nops_for_this_block>127):
-		sys.stderr.write("Error in number of NOPs: They are more than 127. Line: "+str(j)+"\n")
+	if (all_nops_for_this_block>2**15-1):
+		sys.stderr.write("Error in number of NOPs: They are more than 32767. Line: "+str(j)+"\n")
 		sys.exit(-1)
 	
 	j=j+1

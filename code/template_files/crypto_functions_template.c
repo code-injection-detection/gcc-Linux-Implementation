@@ -40,7 +40,7 @@ int data_cache_slot_indexes_for_set_assosiative[(num_of_cached_blocks_of_data/da
 int data_cache_latest_index; //for fully assosiateve data cache
 unsigned char keys_temp_space[1024];
 char count_mac_invocations_in_this_code_part=0;
-long long mac_size_invocation_counters[1024];
+long long mac_size_invocation_counters[17000];
 
 //experimental: when calculating cache on unsplit code blocks
 long addresses_of_unsplit_blocks[40000]; 
@@ -152,6 +152,7 @@ int check_the_next_canaries(void* p)
 	return 1;
 }
 
+
 //when using the unsplit blocks of code, we have to find the address of the
 //first secured part of the code
 void find_addr_of_first_block_of_code()
@@ -166,26 +167,28 @@ void find_addr_of_first_block_of_code()
 	{
 		int number_of_jumped_bytes1=number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len+get_number_of_padded_nops(p);
 		int number_of_jumped_bytes2;
-		if (when_splitting_blocks_do_not_invoke_verif_unless_on_label || verify_everything)
+		if ( verify_everything )
 		{
-			number_of_jumped_bytes2=number_of_jumped_bytes1 + (use_fixed_size_chunks_of_code?(fixed_size_verif_overhead /*7=verif code length*/):14 /*14=verif code length*/);
+			number_of_jumped_bytes2=number_of_jumped_bytes1 + fixed_size_verif_overhead;
 		}
 		else
 		{
 			number_of_jumped_bytes2=number_of_jumped_bytes1;
 		}
 		//the first address can be found by finding the first jmp and its canaries
-		if (*p==0xEB && (*(p+1)==number_of_jumped_bytes1 || *(p+1)==number_of_jumped_bytes2) && check_the_next_canaries(p+2)) //JMP <number of keys>+<number_of_canaries>+<number_of_mac_bytes>+<bytes_for_instr_len>
+		if (*p==0xE9 && (*((int*)(p+1))==number_of_jumped_bytes1 || *((int*)(p+1))==number_of_jumped_bytes2) && check_the_next_canaries(p+size_of_jmp_command)) //JMP <number of keys>+<number_of_canaries>+<number_of_mac_bytes>+<bytes_for_instr_len>
 		{
-			int length_of_useful_data=*(p+2+number_of_canaries);
-			addr_of_first_block_of_code=(long) (p-(length_of_useful_data-2));
+			int length_of_useful_data=*((short*)(p+size_of_jmp_command+number_of_canaries));
+			addr_of_first_block_of_code=(long) (p-(length_of_useful_data-size_of_jmp_command));
 			break;
 		}
+
+		
 	}
 }
 
 #define addr_in_code_as_offset_of_fist_block_addr(index) (addresses_of_unsplit_blocks[index]+addr_of_first_block_of_code)
-//experimental:given a code address ,we want to find when this address would fall in, should the code blocks
+//given a code address ,we want to find when this address would fall in, should the code blocks
 //were not split. We do this by searching the array
 int find_addr_in_unsplit_blocks_addresses(unsigned char * address) //binary search!
 {
@@ -552,7 +555,7 @@ void clear_crypto_structures()
 	#endif
 	#if count_mac_invocations==1
 		int i;
-		for (i=0;i<1024;i++)
+		for (i=0;i<17000;i++)
 		{
 			if (mac_size_invocation_counters[i]>0)
 				fprintf(stdout,"\nMac invocation, length:%d, number:%Ld\n",i,mac_size_invocation_counters[i]);
@@ -576,20 +579,22 @@ int check_mac_for_error(unsigned char * input, int total_mac_bytes, int useful_m
 
 int get_number_of_padded_nops(unsigned char *p)
 {
-	if (use_fixed_size_chunks_of_code==0 || *p!=0xEB)
+	if (*p!=0xE9)
 	{
 		return 0;
 	}
 	else
 	{
-		return (num_of_bytes_in_code_chunk - *(p+2+number_of_canaries));
+		return (num_of_bytes_in_code_chunk - *((short*)(p+size_of_jmp_command+number_of_canaries)));
 	}
 }
 
-unsigned char new_stuff_in_code_to_be_MACed[1024];
+unsigned char new_stuff_in_code_to_be_MACed[40024];
 #if use_fixed_size_chunks_of_code==1
-	#define size_of_commands_before_getting_addr (6) //the size in bytes of the assembly commands before fetching the current address( to reach the start of the mac-ed block)
+	#define size_of_commands_before_getting_addr ((overhead_of_verif)-1) //the size in bytes of the assembly commands before fetching the current address( to reach the start of the mac-ed block)
 #endif
+
+//obsolete
 #if use_fixed_size_chunks_of_code==0
 	#define size_of_commands_before_getting_addr (13) //the size in bytes of the assembly commands before fetching the current address( to reach the start of the mac-ed block)
 #endif
@@ -613,26 +618,28 @@ int check_code_mac_for_error(unsigned char * input, int total_mac_bytes, int use
 			int length_of_verifier=size_of_commands_before_getting_addr+1; //the final pop command
 			if (ignore_macs_even_if_there_are_mac_bytes)
 				length_of_verifier=0;
-			int code_length=input[useful_mac_bytes-1]; //input[useful_mac_bytes-1] holds the bytes for the code <verifier+proper code+jmp>
+			
+			//now let's find the code length. It will be in 2 bytes, set in the end of the padded nops. It holds the bytes for the code <verifier+proper code+jmp>
+			int code_length;
+			//if there is only one padded nop
+			if (check_the_next_canaries((char*) &input[useful_mac_bytes-(bytes_for_instructions_length+number_of_canaries+1)]))
+			{
+				code_length=*((short*) &input[useful_mac_bytes-(bytes_for_instructions_length+1)]);
+			}
+			else //else grab the last 2 bytes (they will be the proper bytes that hold the code length, or the padded nops which have been changed to hold that value
+			{
+				code_length=*((short*) &(input[useful_mac_bytes-(bytes_for_instructions_length)]));
+			}
 			//throw away what we've put in the code (verifier,jmp etc)
 			int cnt_in_new_mac=0;
-			//copy size of proper commands into first place for variable chunks
-			if (!use_fixed_size_chunks_of_code)
-			{
-				//When macing only necessary bytes and using variable code block sizes, 
-				//the cpu has to know the size of the code to fetch it atomically. 
-				//So adding one extra byte to the mac
-				new_stuff_in_code_to_be_MACed[0]=(unsigned char)(code_length-length_of_verifier-2);
-				cnt_in_new_mac++;
-			}
 			//copy proper code
-			memcpy(new_stuff_in_code_to_be_MACed+cnt_in_new_mac,input+length_of_verifier,code_length-length_of_verifier-2);
-			cnt_in_new_mac+=code_length-length_of_verifier-2;
+			memcpy(new_stuff_in_code_to_be_MACed+cnt_in_new_mac,input+length_of_verifier,code_length-length_of_verifier-size_of_jmp_command);
+			cnt_in_new_mac+=code_length-length_of_verifier-size_of_jmp_command;
 			//copy nops
 			if (use_fixed_size_chunks_of_code && add_the_padded_nops_in_the_mac_in_fixed_size)
 			{
-				memcpy(new_stuff_in_code_to_be_MACed+cnt_in_new_mac,input+code_length+number_of_canaries+1,total_mac_bytes-(number_of_interleaved_keys+code_length+number_of_canaries+1));
-				cnt_in_new_mac+=total_mac_bytes-(number_of_interleaved_keys+code_length+number_of_canaries+1);
+				memcpy(new_stuff_in_code_to_be_MACed+cnt_in_new_mac,input+code_length+number_of_canaries+bytes_for_instructions_length,total_mac_bytes-(number_of_interleaved_keys+code_length+number_of_canaries+bytes_for_instructions_length));
+				cnt_in_new_mac+=total_mac_bytes-(number_of_interleaved_keys+code_length+number_of_canaries+bytes_for_instructions_length);
 			}
 			//copy keys
 			memcpy(new_stuff_in_code_to_be_MACed+cnt_in_new_mac,input+useful_mac_bytes,number_of_interleaved_keys);
@@ -882,18 +889,15 @@ void do_verify_code_on_the_fly()
 				);
 		
 			//test_find_primes_up_to_a_number(100);
-		if (use_fixed_size_chunks_of_code)
-		{
-			num_of_useful_bytes_to_mac_in_code=num_of_bytes_in_code_chunk+number_of_canaries+1;
-		}
-		else
-		{
-			; //if we use variable size, the size of the useful bytes will be filled by java
-		}
+
+		num_of_useful_bytes_to_mac_in_code=num_of_bytes_in_code_chunk+number_of_canaries+bytes_for_instructions_length;
+
 		
 		__asm__("movq %rsp,%r15;" //align stack to 16 bytes for call, as System V ABI dictates
 				"and $0xfffffffffffffff0,%rsp;"
 				);
+				
+		//printf("Code where to start macing:%ld\n",code_where_to_start_macing);
 				
 		//check the cache and if the code block is not there then mac and add it to the cache
 		if (-1==continue_macing_current_code_addr((unsigned char*)(code_where_to_start_macing) - size_of_commands_before_getting_addr)) //if using cache for code
@@ -901,7 +905,7 @@ void do_verify_code_on_the_fly()
 			verify_code_on_the_fly();
 			add_addr_to_code_cache((unsigned char*)(code_where_to_start_macing) - size_of_commands_before_getting_addr); //addr
 		}
-             
+        
         __asm__("movq %r15, %rsp;" //restore stack to the number it was
 				);     
              
@@ -1029,7 +1033,7 @@ void add_addr_to_code_cache(unsigned char * addr)
 /*For direct mapped cache*/
 
 #if use_fixed_size_chunks_of_code==1
-	#define size_of_full_block_of_code (number_of_mac_bytes+number_of_interleaved_keys+num_of_bytes_in_code_chunk+number_of_canaries+1)  //that is make sure adjacent blocks will not hit the same place in the cache
+	#define size_of_full_block_of_code (number_of_mac_bytes+number_of_interleaved_keys+num_of_bytes_in_code_chunk+number_of_canaries+bytes_for_instructions_length)  //that is make sure adjacent blocks will not hit the same place in the cache
 #endif
 #if use_fixed_size_chunks_of_code==0 || use_code_cache_with_unsplit_blocks==1
 	#undef size_of_full_block_of_code
@@ -1062,7 +1066,7 @@ void add_addr_to_code_cache(unsigned char * addr)
 /*For set assosiative cache*/
 
 #if use_fixed_size_chunks_of_code==1
-	#define size_of_full_block_of_code (number_of_mac_bytes+number_of_interleaved_keys+num_of_bytes_in_code_chunk+number_of_canaries+1)  //that is make sure adjacent blocks will not hit the same place in the cache
+	#define size_of_full_block_of_code (number_of_mac_bytes+number_of_interleaved_keys+num_of_bytes_in_code_chunk+number_of_canaries+bytes_for_instructions_length)  //that is make sure adjacent blocks will not hit the same place in the cache
 #endif
 #if use_fixed_size_chunks_of_code==0 || use_code_cache_with_unsplit_blocks==1
 	#undef size_of_full_block_of_code

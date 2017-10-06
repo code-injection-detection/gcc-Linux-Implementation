@@ -43,7 +43,7 @@ unique_cnt=0
 while i<len(lines_assembly) and j<len(lines_sizes):
 	#iterate in assembly file until the next jmp instruction
 	unique_str="UNIQUE"+str(unique_cnt)
-	jmp_unique_str="jmp ."+unique_str
+	jmp_unique_str="jmp.d32 ."+unique_str
 	
 	while i<len(lines_assembly) and (jmp_unique_str not in lines_assembly[i].strip()):
 		linesout.append(lines_assembly[i])

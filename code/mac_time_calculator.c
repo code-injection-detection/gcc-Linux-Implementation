@@ -54,7 +54,7 @@ void calc_mac(unsigned char *input,int length_all,int length_useful, unsigned ch
 
 //many possible macs because we should consider the cache calculation a cache miss?
 //well no, the cache miss is calculated on the getter and setter. The mac does not need to pay another cache miss.
-unsigned char stuff_for_mac[number_of_different_macs][1024];
+unsigned char stuff_for_mac[number_of_different_macs][4096];
 unsigned char mac_output[50];
 
 
@@ -68,14 +68,14 @@ int main()
 	
 	srand(time(NULL));
 	for (i=0;i<number_of_different_macs;i++)
-		memset(stuff_for_mac[i],0,1024);
+		memset(stuff_for_mac[i],0,4096);
 	memset(mac_output,0,50);
 	
 	init_crypto_stuctures(0,0);
 	
 	for (i=0;i<number_of_different_macs;i++)
 	{
-		for (j=0;j<1024;j++)
+		for (j=0;j<4096;j++)
 		{
 			stuff_for_mac[i][j]=rand()%256; //get a random bytestream to mac
 		}
@@ -83,7 +83,7 @@ int main()
 	
 	if (set_as_given_that_everything_maced_will_be_fixed_and_multiple_of_16==0)
 	{
-		for (i=1;i<290;i++) //for mac sizes 1...290
+		for (i=1;i<800;i++) //for mac sizes 1...800
 		{
 			start=clock();
 			for (j=0;j<times_for_one_mac;j++) //calulate the mac several thousand times (10 mil default)
@@ -105,7 +105,7 @@ int main()
 	}
 	else //if we are sure that the only possible macs would have a length of a muptiple of 16
 	{
-		for (k=1;k<18;k++) //from 16 to 18*16 (=288)
+		for (k=1;k<70;k++) //from 16 to 70*16 (=1120)
 		{	
 			i=k*16;
 			start=clock();

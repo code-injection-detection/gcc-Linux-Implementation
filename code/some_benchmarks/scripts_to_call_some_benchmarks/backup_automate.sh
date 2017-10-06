@@ -18,7 +18,7 @@ DATA_CACHE_TYPE=2  #0 -> fully assosiative (default 2)
 				   #2 -> set assosiative
 				   
 			
-NUM_OF_CACHED_BLOCKS_OF_CODE=0 #if a code block is in the cache, it does not have to be verified. If it is 0, we have no cache
+NUM_OF_CACHED_BLOCKS_OF_CODE=00 #if a code block is in the cache, it does not have to be verified. If it is 0, we have no cache
 CODE_CACHE_SET_ASSOSIATIVE_SIZE=2 #the size of the set in the code cache
 NUM_OF_CACHED_BLOCKS_OF_DATA=0 #if a data block is in the cache, it does not have to be verified. If it is 0, we have no cache
 DATA_CACHE_SET_ASSOSIATIVE_SIZE=2 #the size of the set in the data cache
@@ -29,10 +29,15 @@ TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES=0 #don't call the secure getters and 
 SQEEZE_KEYS_WHEN_MACING=1  #Reduces the size of the keys from 32 bytes to 16 when calculating mac. Default 1
 COUNT_MAC_INVOCATIONS=0 #Ignores mac correctness and reports mac invocations. Default 0.
 ADD_THE_PADDED_NOPS_IN_THE_MAC_IN_FIXED_SIZE=1 #takes into account the padded nops in the mac calculation. Default 1.
-USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=0 #EXPERIMENTAL: The code blocks that are cached are cached if being unsplit. Default 0.
-SET_AS_GIVEN_THAT_EVERYTHING_MACED_WILL_BE_FIXED_AND_MULTIPLE_OF_16=1 #this means that we can disable length prepending and padding. Default 0.
-WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL=0 #EXPERIMENTAL: Does not calculate the mac when splitting blocks due to label encounter and we continue normal execution. Only calcs mac when we jump to that label.
-SPLIT_THE_BLOCKS_WHEN_THE_SECURE_CPU_WOULD=0 #EXPERIMENTAL. IT changes the values of WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL and USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS to hold its value. Splits blocks when encountering call or label, but calculates the mac on the unsplit block.
+USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=1 #The code blocks that are cached are cached if being unsplit. Default 0.
+SET_AS_GIVEN_THAT_EVERYTHING_MACED_WILL_BE_FIXED_AND_MULTIPLE_OF_16=0 #this means that we can disable length prepending and padding. Default 0.
+WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL=1 #Does not calculate the mac when splitting blocks due to label encounter and we continue normal execution. Only calcs mac when we jump to that label.
+SPLIT_THE_BLOCKS_WHEN_THE_SECURE_CPU_WOULD=1 #It changes the values of WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL and USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS to hold its value. Splits blocks when encountering call or label, but calculates the mac on the unsplit block.
+SIZE_OF_JMP_COMMAND=5 #jmp.d32 <label>
+BYTES_FOR_INSTR_LEN=2 #the number of bytes after the canaries that hold the size of the verif+useful bytes+the jmp bytes
+OVERHEAD_OF_VERIFICATION=7 #7 for fixed size, 14 for variable size (obsolete)
+USING_LARGE_JMPS_AND_CODE_BLOCKS_WITH_3_WORLDS=1 #using the new implementation which restricts the variables that we have. The worlds are: no macs, ignoring macs, splitting and caching like secure cpu would
+VERIFY_EVERYTHING=1 #the third world
 
 #usage
 if [[ ( "$#" -ne 9 ) && ( "$#" -ne 10) ]]; then
@@ -195,6 +200,23 @@ else
 		 fi
 	fi
 	
+	if [ ! -f ../bin/Secure_Assembly_new.class ]; then #if .class file is not there
+		echo "Secure_Assembly_new class file not found!"
+		echo "The script will do the job for you. Make sure Java compiler is installed."
+		echo "Compiling Java class..."
+		javac ../src/Secure_Assembly_new.java
+		mv ../src/Secure_Assembly_new.class ../bin/
+		echo "Compiled Java class."
+	else if [ ../bin/Secure_Assembly_new.class -ot ../src/Secure_Assembly_new.java ]; then #if the class file is older than the code
+			echo "Secure_Assembly_new class file is out of date!"
+			echo "The script will do the job for you. Make sure Java compiler is installed."
+			echo "Compiling Java class..."
+			javac ../src/Secure_Assembly_new.java
+			mv ../src/Secure_Assembly_new.class ../bin/
+			echo "Compiled Java class."
+		 fi
+	fi
+	
 	if [ ! -f ../bin/Secure_Machine_Code.class ]; then #if .class file is not there
 		echo "Secure_Machine_Code class file not found!"
 		echo "The script will do the job for you. Make sure Java compiler is installed."
@@ -211,14 +233,33 @@ else
 		echo "Compiled Java class."
 		fi
 	fi
+	
+	if [ ! -f ../bin/Secure_Machine_Code_new.class ]; then #if .class file is not there
+		echo "Secure_Machine_Code_new class file not found!"
+		echo "The script will do the job for you. Make sure Java compiler is installed."
+		echo "Compiling Java class..."
+		javac ../src/Secure_Machine_Code_new.java
+		mv ../src/Secure_Machine_Code_new.class ../bin/
+		echo "Compiled Java class."
+	else if [ ../bin/Secure_Machine_Code_new.class -ot ../src/Secure_Machine_Code_new.java ]; then #if the class file is older than the code
+		echo "Secure_Machine_Code_new class file is out of date!"
+		echo "The script will do the job for you. Make sure Java compiler is installed."
+		echo "Compiling Java class..."
+		javac ../src/Secure_Machine_Code_new.java
+		mv ../src/Secure_Machine_Code_new.class ../bin/
+		echo "Compiled Java class."
+		fi
+	fi
+	
 fi
 
 #removing potentially old stuff...
 rm -f addresses_of_unsplit_blocks.txt
 
+START_TIME_FIRST_PART=$(date +%s.%N)
 echo "Changing defines according to input..."
 #this script changes the defines according to user input, so that se secure program knows the constants as headers.
-python3 set_correct_defines.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_TOTAL_STACK_BYTES_ALLOC $NUM_OF_GLOBAL_USEFUL_BYTES $NUM_OF_MAC_BYTES $INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS $USE_FIXED_SIZE_CHUNKS_OF_CODE $NUM_OF_BYTES_IN_CODE_CHUNK $DO_NOT_MAC_WHAT_WHE_ADD_IN_CODE $ADD_CODE_ON_THE_FLY_VERIFICATION $USE_INLINE_CODE_FOR_DELAYS $NUM_OF_CACHED_BLOCKS_OF_CODE $NUM_OF_CACHED_BLOCKS_OF_DATA $IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES $CODE_CACHE_TYPE $DATA_CACHE_TYPE $CODE_CACHE_SET_ASSOSIATIVE_SIZE $DATA_CACHE_SET_ASSOSIATIVE_SIZE $IGNORE_MACS_LAST_MOMENT_EVEN_IF_THERE_ARE_MAC_BYTES $TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES $SQEEZE_KEYS_WHEN_MACING $COUNT_MAC_INVOCATIONS $ADD_THE_PADDED_NOPS_IN_THE_MAC_IN_FIXED_SIZE $FORCE_CODE_BLOCK_SPLIT_ON_LABELS_AND_CALLS $USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS $SET_AS_GIVEN_THAT_EVERYTHING_MACED_WILL_BE_FIXED_AND_MULTIPLE_OF_16 $WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL
+python3 set_correct_defines.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_TOTAL_STACK_BYTES_ALLOC $NUM_OF_GLOBAL_USEFUL_BYTES $NUM_OF_MAC_BYTES $INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS $USE_FIXED_SIZE_CHUNKS_OF_CODE $NUM_OF_BYTES_IN_CODE_CHUNK $DO_NOT_MAC_WHAT_WHE_ADD_IN_CODE $ADD_CODE_ON_THE_FLY_VERIFICATION $USE_INLINE_CODE_FOR_DELAYS $NUM_OF_CACHED_BLOCKS_OF_CODE $NUM_OF_CACHED_BLOCKS_OF_DATA $IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES $CODE_CACHE_TYPE $DATA_CACHE_TYPE $CODE_CACHE_SET_ASSOSIATIVE_SIZE $DATA_CACHE_SET_ASSOSIATIVE_SIZE $IGNORE_MACS_LAST_MOMENT_EVEN_IF_THERE_ARE_MAC_BYTES $TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES $SQEEZE_KEYS_WHEN_MACING $COUNT_MAC_INVOCATIONS $ADD_THE_PADDED_NOPS_IN_THE_MAC_IN_FIXED_SIZE $FORCE_CODE_BLOCK_SPLIT_ON_LABELS_AND_CALLS $USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS $SET_AS_GIVEN_THAT_EVERYTHING_MACED_WILL_BE_FIXED_AND_MULTIPLE_OF_16 $WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL $SIZE_OF_JMP_COMMAND $OVERHEAD_OF_VERIFICATION $USING_LARGE_JMPS_AND_CODE_BLOCKS_WITH_3_WORLDS $BYTES_FOR_INSTR_LEN $VERIFY_EVERYTHING
 if [ "$INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS" == "0" ]; then
 	#we now insert the code that manipulates the secure stack
 	python3 insert_new_stack_commands.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_MAC_BYTES
@@ -303,11 +344,17 @@ echo "Compiling...."
 make #compiling the actual program
 echo "Compiled."
 
+END_TIME_FIRST_PART=$(date +%s.%N)
+
 echo "Inserting NOPs into assembly..."
 mkdir -p /run/shm/
 ramtmp="$(mktemp -p /run/shm/)" #temporary file
 #this java code inserts the nops in assembly, as well as the jmps and the on-the-fly verification code
-java -cp ../bin Secure_Assembly $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_INSTRUCTIONS $NUM_OF_CANARIES $NUM_OF_MAC_BYTES $ADD_CODE_ON_THE_FLY_VERIFICATION $USE_FIXED_SIZE_CHUNKS_OF_CODE $NUM_OF_BYTES_IN_CODE_CHUNK $FORCE_NUM_OF_INSTRUCTIONS_OVER_NUM_OF_BYTES $ramtmp $IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES $FORCE_CODE_BLOCK_SPLIT_ON_LABELS_AND_CALLS $WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL $SPLIT_THE_BLOCKS_WHEN_THE_SECURE_CPU_WOULD
+if [ "$BYTES_FOR_INSTR_LEN" == "1" ]; then
+	java -cp ../bin Secure_Assembly $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_INSTRUCTIONS $NUM_OF_CANARIES $NUM_OF_MAC_BYTES $ADD_CODE_ON_THE_FLY_VERIFICATION $USE_FIXED_SIZE_CHUNKS_OF_CODE $NUM_OF_BYTES_IN_CODE_CHUNK $FORCE_NUM_OF_INSTRUCTIONS_OVER_NUM_OF_BYTES $ramtmp $IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES $FORCE_CODE_BLOCK_SPLIT_ON_LABELS_AND_CALLS $WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL $SPLIT_THE_BLOCKS_WHEN_THE_SECURE_CPU_WOULD
+else
+	java -cp ../bin Secure_Assembly_new $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_MAC_BYTES $ADD_CODE_ON_THE_FLY_VERIFICATION $NUM_OF_BYTES_IN_CODE_CHUNK $ramtmp $IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES $SPLIT_THE_BLOCKS_WHEN_THE_SECURE_CPU_WOULD $VERIFY_EVERYTHING
+fi
 if [ $? -eq 0 ]; then
 		: #all ok
 	else
@@ -318,11 +365,14 @@ if [ $? -eq 0 ]; then
 rm -f $ramtmp
 echo "NOPs inserted."
 
+END_TIME_FIRST_JAVA_PART=$(date +%s.%N)
+#echo "Lines of main_program_sec.s: " `cat main_program_sec.s |wc -l`
+
 if [ "$#" -eq 10 ]; then
 	echo "Padding the nops for each block of code in order to reach fixed size blocks..."
 	#assembling and disassembling
 	cat main_program_sec.s | as && objdump -d > assembly_commands_for_parsing.txt
-	NUM_OF_NOPS=$(( $NUM_OF_CANARIES + 1 + $NUM_OF_INTERLEAVED_KEYS + $NUM_OF_MAC_BYTES ))
+	NUM_OF_NOPS=$(( $NUM_OF_CANARIES + $BYTES_FOR_INSTR_LEN + $NUM_OF_INTERLEAVED_KEYS + $NUM_OF_MAC_BYTES ))
 	#calculating sizes of commands
 	./assembly_parser_and_size_finder.py $NUM_OF_NOPS > assembly_sizes.txt
 	#padding bytes
@@ -350,9 +400,21 @@ echo "Assembling code with NOPs..."
 make secure
 echo "Assembled."
 
+END_TIME_NOPS_PADDED_AND_MAKE=$(date +%s.%N)
 
 echo "Replacing NOPs with canaries,keys and macs..."
 #this java code searches through the binary, finds the jmps+rest of nops, and replaces the nops with canaries,padded nops (in case of fixed length), keys and macs
-java -cp ../bin Secure_Machine_Code $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_TOTAL_STACK_BYTES_ALLOC $NUM_OF_MAC_BYTES $ADD_CODE_ON_THE_FLY_VERIFICATION $USE_FIXED_SIZE_CHUNKS_OF_CODE $NUM_OF_BYTES_IN_CODE_CHUNK $DO_NOT_MAC_WHAT_WHE_ADD_IN_CODE $IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES $SQEEZE_KEYS_WHEN_MACING $ADD_THE_PADDED_NOPS_IN_THE_MAC_IN_FIXED_SIZE $FORCE_CODE_BLOCK_SPLIT_ON_LABELS_AND_CALLS $WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL
+if [ "$BYTES_FOR_INSTR_LEN" == "1" ]; then
+	java -cp ../bin Secure_Machine_Code $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_TOTAL_STACK_BYTES_ALLOC $NUM_OF_MAC_BYTES $ADD_CODE_ON_THE_FLY_VERIFICATION $USE_FIXED_SIZE_CHUNKS_OF_CODE $NUM_OF_BYTES_IN_CODE_CHUNK $DO_NOT_MAC_WHAT_WHE_ADD_IN_CODE $IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES $SQEEZE_KEYS_WHEN_MACING $ADD_THE_PADDED_NOPS_IN_THE_MAC_IN_FIXED_SIZE $FORCE_CODE_BLOCK_SPLIT_ON_LABELS_AND_CALLS $WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL
+else
+	java -cp ../bin Secure_Machine_Code_new $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_TOTAL_STACK_BYTES_ALLOC $NUM_OF_MAC_BYTES $ADD_CODE_ON_THE_FLY_VERIFICATION $NUM_OF_BYTES_IN_CODE_CHUNK $DO_NOT_MAC_WHAT_WHE_ADD_IN_CODE $IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES $SQEEZE_KEYS_WHEN_MACING $ADD_THE_PADDED_NOPS_IN_THE_MAC_IN_FIXED_SIZE $SPLIT_THE_BLOCKS_WHEN_THE_SECURE_CPU_WOULD $VERIFY_EVERYTHING
+fi
 echo "NOPs replaced with keys."
+END_TIME_SECOND_JAVA_PART=$(date +%s.%N)
 
+echo ""
+echo "First part time:  $(echo "scale=3; ($END_TIME_FIRST_PART - $START_TIME_FIRST_PART)*1000/1000" | bc) seconds"
+echo "First Java part time:  $(echo "scale=3; ($END_TIME_FIRST_JAVA_PART - $END_TIME_FIRST_PART)*1000/1000" | bc) seconds"
+echo "Padding NOPs & make time:  $(echo "scale=3; ($END_TIME_NOPS_PADDED_AND_MAKE - $END_TIME_FIRST_JAVA_PART)*1000/1000" | bc) seconds"
+echo "Second Java part time:  $(echo "scale=3; ($END_TIME_SECOND_JAVA_PART - $END_TIME_NOPS_PADDED_AND_MAKE)*1000/1000" | bc) seconds"
+echo "Total compilation time:  $(echo "scale=3; ($END_TIME_SECOND_JAVA_PART - $START_TIME_FIRST_PART)*1000/1000" | bc) seconds"

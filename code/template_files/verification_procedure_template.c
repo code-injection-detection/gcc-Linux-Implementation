@@ -88,7 +88,7 @@ void find_keyshares(int choice)
 	long fun_name;
 	long heap_cnt;
 	long stack_cnt;
-	int bytes_for_instr_len=1;
+	int bytes_for_instr_len=bytes_for_instructions_length;
 	int type_of_bytes=0; //0->useful bytes, 1-> keyshares, 2->mac bytes
 	char ret;
 	char keyout_buffer[KEYOUT_BUFFER_SIZE];
@@ -112,23 +112,23 @@ void find_keyshares(int choice)
 	{
 		int number_of_jumped_bytes1=number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len+get_number_of_padded_nops(p);
 		int number_of_jumped_bytes2;
-		if (when_splitting_blocks_do_not_invoke_verif_unless_on_label)
+		if (verify_everything)
 		{
-			number_of_jumped_bytes2=number_of_jumped_bytes1 + (use_fixed_size_chunks_of_code?(7 /*7=verif code length*/):14 /*14=verif code length*/);
+			number_of_jumped_bytes2=number_of_jumped_bytes1 + overhead_of_verif;
 		}
 		else
 		{
 			number_of_jumped_bytes2=number_of_jumped_bytes1;
 		}
-		if (*p==0xEB && ( *(p+1)==number_of_jumped_bytes1 || *(p+1)==number_of_jumped_bytes2 ) && check_next_canaries(p+2)) //JMP <number of keys>+<number_of_canaries>+<number_of_mac_bytes>+<bytes_for_instr_len>
+		if (*p==0xE9 && ( *((int*)(p+1))==number_of_jumped_bytes1 || *((int*)(p+1))==number_of_jumped_bytes2 ) && check_next_canaries(p+size_of_jmp_command)) //JMP <number of keys>+<number_of_canaries>+<number_of_mac_bytes>+<bytes_for_instr_len>
 		{ 
 			//printf("0x%02x ",*(p+1));
 			code_key_groups_found++;
 			for (keycnt=0;keycnt<number_of_interleaved_keys;keycnt++)
 			{
-				keys[keycnt]^= (unsigned char) *(p+2+keycnt+number_of_canaries+bytes_for_instr_len+get_number_of_padded_nops(p));
+				keys[keycnt]^= (unsigned char) *(p+size_of_jmp_command+keycnt+number_of_canaries+bytes_for_instr_len+get_number_of_padded_nops(p));
 			}
-			p+=(number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len+get_number_of_padded_nops(p))+2; //jump over all the canaries,keys,macs
+			p+=(number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len+get_number_of_padded_nops(p))+size_of_jmp_command; //jump over all the canaries,keys,macs
 		}
 		else
 		{

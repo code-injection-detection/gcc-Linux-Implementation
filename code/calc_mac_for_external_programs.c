@@ -15,8 +15,8 @@ int main(int argc, char* argv[])
 {
 	int len_of_all;
 	int len_of_useful;
-	unsigned char bytes[2048];
-	unsigned char mac[2048];
+	unsigned char bytes[60048];
+	unsigned char mac[60048];
 	int i,j;
 	
 	if (argc<4)

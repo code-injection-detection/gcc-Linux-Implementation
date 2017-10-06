@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.security.*;
+import java.lang.StringBuilder;
 
 /*
  * This code reads a compiled exe file and then locates the nop instructions
@@ -70,7 +71,7 @@ public class Secure_Machine_Code_new {
 		FileOutputStream all_keyshares_file_for_verification=new FileOutputStream(new File(all_keyshares_filename));
 		Path path = FileSystems.getDefault().getPath(global_keys_filename);
 		byte [] global_keys = Files.readAllBytes(path);
-		byte[] stuff_in_code_to_be_MACed=new byte[2048];
+		byte[] stuff_in_code_to_be_MACed=new byte[40000];
 		boolean squeeze_keys_when_macing=false;
 		boolean add_the_padded_nops_in_the_mac_in_fixed_size=false;
 		
@@ -185,11 +186,11 @@ public class Secure_Machine_Code_new {
 				number_of_padded_nops=num_of_bytes_in_code_chunk-cnt_for_useful_bytes;
 			}
 			//find a jmp+proper offset+correct_number_of_nops
-			byte number_of_jumped_bytes1 =(byte)(number_of_interleaved_keys+number_of_canaries+num_of_mac_bytes+bytes_for_instr_len+(number_of_padded_nops-size_of_jmp_command));
-			byte number_of_jumped_bytes2;
-			if (split_the_blocks_when_the_secure_cpu_would || verify_everything)
+			int number_of_jumped_bytes1 =(number_of_interleaved_keys+number_of_canaries+num_of_mac_bytes+bytes_for_instr_len+(number_of_padded_nops-size_of_jmp_command));
+			int number_of_jumped_bytes2;
+			if (split_the_blocks_when_the_secure_cpu_would || verify_everything) //possible label encouter, we jump over the verification too, since it will not be executed, unless we jmp into the label
 			{
-				number_of_jumped_bytes2=(byte)(number_of_interleaved_keys+number_of_canaries+num_of_mac_bytes+bytes_for_instr_len+(number_of_padded_nops-size_of_jmp_command +overhead_for_verif /*7=verif code length*/));
+				number_of_jumped_bytes2=(number_of_interleaved_keys+number_of_canaries+num_of_mac_bytes+bytes_for_instr_len+(number_of_padded_nops-size_of_jmp_command +overhead_for_verif /*7=verif code length*/));
 			}
 			else
 			{
@@ -205,8 +206,8 @@ public class Secure_Machine_Code_new {
 			ByteBuffer wrapped = ByteBuffer.wrap(bytes_after_current_cmd); // big-endian by default
 			wrapped.order(ByteOrder.LITTLE_ENDIAN); //now little endian
 			int integer_after_current_cmd=wrapped.getInt(); //holds the next 4 bytes as integer
-			
-	    	if(arr[i]==0xe9 && (integer_after_current_cmd == number_of_jumped_bytes1 || integer_after_current_cmd == number_of_jumped_bytes2 ) && (number_of_padded_nops>=0) && ( k_nops_after_us(number_of_jumped_bytes1,arr,i) || k_nops_after_us(number_of_jumped_bytes2,arr,i) )) // 0xe9 = jmp opcode, and the arr[i+1....] has to be the offset (number of nops + 1 ) , and we have to have num_of_keys NOPs after us
+
+	    	if(arr[i]==(byte)0xe9 /*0xe9, jmp opcode*/ && (integer_after_current_cmd == number_of_jumped_bytes1 || integer_after_current_cmd == number_of_jumped_bytes2 ) && (number_of_padded_nops>=0) && ( k_nops_after_us(number_of_jumped_bytes1,arr,i) || k_nops_after_us(number_of_jumped_bytes2,arr,i) )) // 0xe9 = jmp opcode, and the arr[i+1....] has to be the offset (number of nops + 1 ) , and we have to have num_of_keys NOPs after us
 	    	{
 				
 				if (num_of_mac_bytes>0)
@@ -268,7 +269,7 @@ public class Secure_Machine_Code_new {
 				{
 					for(int j=0;j<bytes_for_instr_len;j++)
 					{
-						arr[i-number_of_interleaved_keys-1+j] = bytes_of_cnt_of_useful_bytes[j];
+						arr[i-number_of_interleaved_keys-bytes_for_instr_len+j] = bytes_of_cnt_of_useful_bytes[j];
 					}	
 				}
 				
