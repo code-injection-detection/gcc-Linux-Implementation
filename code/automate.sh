@@ -18,7 +18,7 @@ DATA_CACHE_TYPE=2  #0 -> fully assosiative (default 2)
 				   #2 -> set assosiative
 				   
 			
-NUM_OF_CACHED_BLOCKS_OF_CODE=00 #if a code block is in the cache, it does not have to be verified. If it is 0, we have no cache
+NUM_OF_CACHED_BLOCKS_OF_CODE=0 #if a code block is in the cache, it does not have to be verified. If it is 0, we have no cache
 CODE_CACHE_SET_ASSOSIATIVE_SIZE=2 #the size of the set in the code cache
 NUM_OF_CACHED_BLOCKS_OF_DATA=0 #if a data block is in the cache, it does not have to be verified. If it is 0, we have no cache
 DATA_CACHE_SET_ASSOSIATIVE_SIZE=2 #the size of the set in the data cache
@@ -40,66 +40,49 @@ USING_LARGE_JMPS_AND_CODE_BLOCKS_WITH_3_WORLDS=1 #using the new implementation w
 VERIFY_EVERYTHING=1 #the third world
 
 #usage
-if [[ ( "$#" -ne 9 ) && ( "$#" -ne 10) ]]; then
+if [[ ( "$#" -ne 9 ) ]]; then
     echo "Please execute as following:"
-    echo -e "\n$0 <a> <b> <c> <d> <e> <f> <g> <h> <i> <j>"
-    echo "Where: a=number_of_interleaved keys in code, b=number_of grouped instructions in code"
-    echo "c=number of canary values before keyshares in code, to denote keyshare presence"
-    echo "d=number of grouped useful bytes in heap memory, e=total bytes to (try to) pre-allocate in heap memory"
-    echo "f=number of grouped useful bytes in stack memory, g=total bytes to (try to) pre-allocate in stack memory"
-    echo "h=number of grouped useful bytes between keyshares in global variables"
-    echo "i=number of bytes for MACs"
-	echo "j=size in bytes of a fixed chunk in code (optional, and if b's bytes are more that j an error will be raised, unless the corresponding flag in automate.sh script is changed)."
-	echo "if j is given, b is ignored"
-    echo "Example: $0 32 1 3 8 25000 8 20000 8 16"
-	echo "OR:"
-	echo "Example: $0 32 1 3 8 25000 8 20000 8 16 16"
+    echo -e "\n$0 <a> <b> <c> <d> <e> <f> <g> <h> <i>"
+    echo "Where: a=number_of_interleaved keys in code"
+    echo "b=number of canary values before keyshares in code, to denote keyshare presence"
+    echo "c=number of grouped useful bytes in heap memory, d=total bytes to (try to) pre-allocate in heap memory"
+    echo "e=number of grouped useful bytes in stack memory, f=total bytes to (try to) pre-allocate in stack memory"
+    echo "g=number of grouped useful bytes between keyshares in global variables"
+    echo "h=number of bytes for MACs"
+	echo "i=size in bytes of a fixed chunk in code"
+	echo "Example: $0 32 3 16 50000 16 40000 16 16 28"
     exit
 fi
 
 NUM_OF_INTERLEAVED_KEYS=32 #The number of bytes for both the keyshares in a block
-NUM_OF_GROUPED_INSTRUCTIONS=1 #grouped code instructions per code block
-NUM_OF_GROUPED_USEFUL_BYTES=8 #the useful bytes in a heap block
+NUM_OF_GROUPED_INSTRUCTIONS=80 #grouped code instructions per code block (obsolete)
+NUM_OF_GROUPED_USEFUL_BYTES=16 #the useful bytes in a heap block
 NUM_OF_TOTAL_BYTES_ALLOC=10000 #the size of the secure heap
 NUM_OF_CANARIES=3 
-NUM_OF_GROUPED_USEFUL_STACK_BYTES=8 #the useful bytes in a stack block
+NUM_OF_GROUPED_USEFUL_STACK_BYTES=16 #the useful bytes in a stack block
 NUM_OF_TOTAL_STACK_BYTES_ALLOC=8000 #the size of the secure stack
-NUM_OF_GLOBAL_USEFUL_BYTES=8  #the useful bytes in a data segment block
+NUM_OF_GLOBAL_USEFUL_BYTES=16  #the useful bytes in a data segment block
 NUM_OF_MAC_BYTES=16 
-USE_FIXED_SIZE_CHUNKS_OF_CODE=0 #should we use fixed chunks in code blocks? The preferred option is yes.
-NUM_OF_BYTES_IN_CODE_CHUNK=20 #Maximum value for code (verification code + useful code + jmps) per code block. The block may be split if we encounter label or call.
+USE_FIXED_SIZE_CHUNKS_OF_CODE=1 #should we use fixed chunks in code blocks? The preferred option is yes.
+NUM_OF_BYTES_IN_CODE_CHUNK=28 #Maximum value for code (verification code + useful code + jmps) per code block. The block may be split if we encounter label or call.
 
 #set the values
+
 if [ "$#" -eq 9 ]; then
 	NUM_OF_INTERLEAVED_KEYS=$1
-	NUM_OF_GROUPED_INSTRUCTIONS=$2
-	NUM_OF_CANARIES=$3
-	NUM_OF_GROUPED_USEFUL_BYTES=$4
-	NUM_OF_TOTAL_BYTES_ALLOC=$5
-	NUM_OF_GROUPED_USEFUL_STACK_BYTES=$6
-	NUM_OF_TOTAL_STACK_BYTES_ALLOC=$7
-	NUM_OF_GLOBAL_USEFUL_BYTES=$8
-	NUM_OF_MAC_BYTES=$9
-fi
-
-if [ "$#" -eq 10 ]; then
-	NUM_OF_INTERLEAVED_KEYS=$1
-	NUM_OF_GROUPED_INSTRUCTIONS=$2
-	NUM_OF_CANARIES=$3
-	NUM_OF_GROUPED_USEFUL_BYTES=$4
-	NUM_OF_TOTAL_BYTES_ALLOC=$5
-	NUM_OF_GROUPED_USEFUL_STACK_BYTES=$6
-	NUM_OF_TOTAL_STACK_BYTES_ALLOC=$7
-	NUM_OF_GLOBAL_USEFUL_BYTES=$8
-	NUM_OF_MAC_BYTES=$9
-	NUM_OF_BYTES_IN_CODE_CHUNK=${10}
+	NUM_OF_CANARIES=$2
+	NUM_OF_GROUPED_USEFUL_BYTES=$3
+	NUM_OF_TOTAL_BYTES_ALLOC=$4
+	NUM_OF_GROUPED_USEFUL_STACK_BYTES=$5
+	NUM_OF_TOTAL_STACK_BYTES_ALLOC=$6
+	NUM_OF_GLOBAL_USEFUL_BYTES=$7
+	NUM_OF_MAC_BYTES=$8
+	NUM_OF_BYTES_IN_CODE_CHUNK=$9  #${10} for a tenth parameter
 	USE_FIXED_SIZE_CHUNKS_OF_CODE=1
 fi
 
 echo -n "NUM_OF_INTERLEAVED_KEYS: "
 echo $NUM_OF_INTERLEAVED_KEYS
-echo -n "NUM_OF_GROUPED_INSTRUCTIONS: "
-echo $NUM_OF_GROUPED_INSTRUCTIONS
 echo -n "NUM_OF_GROUPED_USEFUL_BYTES: "
 echo $NUM_OF_GROUPED_USEFUL_BYTES
 echo -n "NUM_OF_TOTAL_BYTES_ALLOC: "
@@ -116,23 +99,14 @@ echo -n "NUM_OF_GLOBAL_USEFUL_BYTES: "
 echo $NUM_OF_GLOBAL_USEFUL_BYTES
 echo -n "NUM_OF_MAC_BYTES: "
 echo $NUM_OF_MAC_BYTES
-
-if [ "$#" -eq 10 ]; then
-	echo -n "NUM_OF_BYTES_IN_CODE_CHUNK: "
-	echo $NUM_OF_BYTES_IN_CODE_CHUNK
-fi
+echo -n "NUM_OF_BYTES_IN_CODE_CHUNK: "
+echo $NUM_OF_BYTES_IN_CODE_CHUNK
 
 echo ""
 
-#don't care about the following, unless FORCE_NUM_OF_INSTRUCTIONS_OVER_NUM_OF_BYTES=1
-#if [ "$NUM_OF_GROUPED_INSTRUCTIONS" -gt "20" ]; then
-#	echo "Caution! The length of the grouped instructions should not be >253 bytes under no circumstances!"
-#	echo "Your value of grouped instructions is big enough to cause concerns. Exiting for safety."
-#	echo "If you REALLY want such a value (it is big however), change the automate.sh script." ; exit
-#fi
 
-if [ "$NUM_OF_BYTES_IN_CODE_CHUNK" -lt "20" ]; then
-	echo "Caution! The length of the code chunk should be bigger or equal than 20"
+if [ "$NUM_OF_BYTES_IN_CODE_CHUNK" -lt "28" ]; then
+	echo "Caution! The length of the code chunk should be bigger or equal than 28"
 	echo "Your value of code chunk length is small enough to cause concerns. Exiting for safety."
 	echo "If you REALLY want such a value (it is small however), change the automate.sh script."
 	exit
@@ -368,33 +342,33 @@ echo "NOPs inserted."
 END_TIME_FIRST_JAVA_PART=$(date +%s.%N)
 #echo "Lines of main_program_sec.s: " `cat main_program_sec.s |wc -l`
 
-if [ "$#" -eq 10 ]; then
-	echo "Padding the nops for each block of code in order to reach fixed size blocks..."
-	#assembling and disassembling
-	cat main_program_sec.s | as && objdump -d > assembly_commands_for_parsing.txt
-	NUM_OF_NOPS=$(( $NUM_OF_CANARIES + $BYTES_FOR_INSTR_LEN + $NUM_OF_INTERLEAVED_KEYS + $NUM_OF_MAC_BYTES ))
-	#calculating sizes of commands
-	./assembly_parser_and_size_finder.py $NUM_OF_NOPS > assembly_sizes.txt
-	#padding bytes
-	./nop_padder_for_fixed_size_code_blocks.py $NUM_OF_NOPS $NUM_OF_BYTES_IN_CODE_CHUNK $ADD_CODE_ON_THE_FLY_VERIFICATION > assembly_with_padded_nops.s
-	mv assembly_with_padded_nops.s main_program_sec.s
-	
-	
-	#verifying that blocks are fixed size
-	#do the same thing with the new main_program_sec.s
-	cat main_program_sec.s | as && objdump -d > assembly_commands_for_parsing.txt
-	./assembly_parser_and_size_finder.py $NUM_OF_NOPS > assembly_sizes.txt
-	./assembly_fixed_size_verifier.py $NUM_OF_NOPS $NUM_OF_BYTES_IN_CODE_CHUNK $ADD_CODE_ON_THE_FLY_VERIFICATION $NUM_OF_CANARIES $NUM_OF_INTERLEAVED_KEYS $NUM_OF_MAC_BYTES
-	if [ $? -eq 0 ]; then
-		: #all ok
-	else
-		echo "Error. Could not make the code blocks to be fixed size."
-		exit
-	fi
-	
-	#rm -f assembly_commands_for_parsing.txt assembly_sizes.txt
-	echo "Padded the nops."
+
+echo "Padding the nops for each block of code in order to reach fixed size blocks..."
+#assembling and disassembling
+cat main_program_sec.s | as && objdump -d > assembly_commands_for_parsing.txt
+NUM_OF_NOPS=$(( $NUM_OF_CANARIES + $BYTES_FOR_INSTR_LEN + $NUM_OF_INTERLEAVED_KEYS + $NUM_OF_MAC_BYTES ))
+#calculating sizes of commands
+./assembly_parser_and_size_finder.py $NUM_OF_NOPS > assembly_sizes.txt
+#padding bytes
+./nop_padder_for_fixed_size_code_blocks.py $NUM_OF_NOPS $NUM_OF_BYTES_IN_CODE_CHUNK $ADD_CODE_ON_THE_FLY_VERIFICATION > assembly_with_padded_nops.s
+mv assembly_with_padded_nops.s main_program_sec.s
+
+
+#verifying that blocks are fixed size
+#do the same thing with the new main_program_sec.s
+cat main_program_sec.s | as && objdump -d > assembly_commands_for_parsing.txt
+./assembly_parser_and_size_finder.py $NUM_OF_NOPS > assembly_sizes.txt
+./assembly_fixed_size_verifier.py $NUM_OF_NOPS $NUM_OF_BYTES_IN_CODE_CHUNK $ADD_CODE_ON_THE_FLY_VERIFICATION $NUM_OF_CANARIES $NUM_OF_INTERLEAVED_KEYS $NUM_OF_MAC_BYTES
+if [ $? -eq 0 ]; then
+	: #all ok
+else
+	echo "Error. Could not make the code blocks to be fixed size."
+	exit
 fi
+
+#rm -f assembly_commands_for_parsing.txt assembly_sizes.txt
+echo "Padded the nops."
+
 
 echo "Assembling code with NOPs..."
 make secure

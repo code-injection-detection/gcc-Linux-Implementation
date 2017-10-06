@@ -197,19 +197,25 @@ public class Secure_Machine_Code_new {
 				number_of_jumped_bytes2=number_of_jumped_bytes1;
 			}
 			
-			//get next 4 bytes of cmd
-			byte[] bytes_after_current_cmd=new byte[size_of_jmp_command-1];
-			for (int j=0;j<size_of_jmp_command-1;j++)
+			ByteBuffer wrapped;
+			int integer_after_current_cmd=-1;
+			byte[] bytes_after_current_cmd;
+			if (arr[i]==(byte)0xe9)
 			{
-				bytes_after_current_cmd[j]=arr[i+1+j];
-			}
-			ByteBuffer wrapped = ByteBuffer.wrap(bytes_after_current_cmd); // big-endian by default
-			wrapped.order(ByteOrder.LITTLE_ENDIAN); //now little endian
-			int integer_after_current_cmd=wrapped.getInt(); //holds the next 4 bytes as integer
+				//get next 4 bytes of cmd
+				bytes_after_current_cmd=new byte[size_of_jmp_command-1];
+				for (int j=0;j<size_of_jmp_command-1;j++)
+				{
+					bytes_after_current_cmd[j]=arr[i+1+j];
+				}
+				wrapped = ByteBuffer.wrap(bytes_after_current_cmd); // big-endian by default
+				wrapped.order(ByteOrder.LITTLE_ENDIAN); //now little endian
+				integer_after_current_cmd=wrapped.getInt(); //holds the next 4 bytes as integer
 
+			}
+			
 	    	if(arr[i]==(byte)0xe9 /*0xe9, jmp opcode*/ && (integer_after_current_cmd == number_of_jumped_bytes1 || integer_after_current_cmd == number_of_jumped_bytes2 ) && (number_of_padded_nops>=0) && ( k_nops_after_us(number_of_jumped_bytes1,arr,i) || k_nops_after_us(number_of_jumped_bytes2,arr,i) )) // 0xe9 = jmp opcode, and the arr[i+1....] has to be the offset (number of nops + 1 ) , and we have to have num_of_keys NOPs after us
 	    	{
-				
 				if (num_of_mac_bytes>0)
 					cnt_for_instr_bytes+=size_of_jmp_command;
 				
@@ -467,7 +473,7 @@ public class Secure_Machine_Code_new {
 		System.out.println("Number of nop groups replaced: "+number_of_nop_groups_replaced);
 		if (number_of_nop_groups_replaced<=20)
 		{
-			System.out.println("ALERT: The number of nop groups replaced is too low!. THATS MOST LIKELY AN ERROR. Most likely the jmp was more than 127 bytes!");
+			System.out.println("ALERT: The number of nop groups replaced is too low!. THATS MOST LIKELY AN ERROR.");
 			System.out.println("!!!!!!!!!!");
 		}
 	}
