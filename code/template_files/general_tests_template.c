@@ -770,3 +770,65 @@ int * init_matrix_for_determinant_calc(int sz)
 	return (matrix);
 	
 }
+
+
+void check_new_unsecure_heap()
+{
+	int * a;
+	int *b;
+	int *c;
+	init_unsecure_heap();
+	printf("initialized unsecure heap\n");
+	printf("total_uheap_bytes_allocated:%ld\n",total_uheap_bytes_allocated);
+	a=error_checking_umalloc_memory(5*sizeof(int),__func__,__LINE__);
+	memset(a,0x41,5*sizeof(int));
+	printf("\nallocated a\n");
+	print_uheap_lists();
+	printf("a=%ld,b=%ld,c=%ld\n",(long)a,(long)b,(long)c);
+	b=error_checking_umalloc_memory(5*sizeof(int),__func__,__LINE__);
+	memset(a,0x42,5*sizeof(int));
+	printf("\nallocated b\n");
+	print_uheap_lists();
+	printf("a=%ld,b=%ld,c=%ld\n",(long)a,(long)b,(long)c);
+	c=error_checking_umalloc_memory(5*sizeof(int),__func__,__LINE__);
+	memset(a,0x43,5*sizeof(int));
+	printf("\nallocated c\n");
+	print_uheap_lists();
+	printf("a=%ld,b=%ld,c=%ld\n",(long)a,(long)b,(long)c);
+	ufree_memory(b);
+	printf("\nfreed b\n");
+	print_uheap_lists();
+	printf("a=%ld,b=%ld,c=%ld\n",(long)a,(long)b,(long)c);
+	ufree_memory(a);
+	printf("\nfreed a\n");
+	print_uheap_lists();
+	printf("a=%ld,b=%ld,c=%ld\n",(long)a,(long)b,(long)c);
+	a=error_checking_umalloc_memory(5*sizeof(int),__func__,__LINE__);
+	memset(a,0x41,5*sizeof(int));
+	printf("\nallocated a\n");
+	print_uheap_lists();
+	printf("a=%ld,b=%ld,c=%ld\n",(long)a,(long)b,(long)c);
+	ufree_memory(c);
+	printf("\nfreed c\n");
+	print_uheap_lists();
+	printf("a=%ld,b=%ld,c=%ld\n",(long)a,(long)b,(long)c);
+	ufree_memory(a);
+	printf("\nfreed a\n");
+	print_uheap_lists();
+	printf("a=%ld,b=%ld,c=%ld\n",(long)a,(long)b,(long)c);
+	a=error_checking_umalloc_memory(49921,__func__,__LINE__);
+	memset(a,0x42,49921);
+	printf("\nallocated huge a\n");
+	print_uheap_lists();
+	printf("a=%ld,b=%ld,c=%ld\n",(long)a,(long)b,(long)c);
+	ufree_memory(a);
+	printf("\nfreed huge a\n");
+	print_uheap_lists();
+	printf("a=%ld,b=%ld,c=%ld\n",(long)a,(long)b,(long)c);
+	
+	
+	
+	free_unsecure_heap();
+}
+
+

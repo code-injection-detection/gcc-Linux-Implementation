@@ -311,10 +311,10 @@ else
 fi
 
 
-echo "Compiling secure getters and setters as well as the heap manager..."
+echo "Compiling secure getters and setters..."
 	gcc -O3 -c secure_getters_setters.c -lcrypto #-mno-red-zone #these getters and setters are normally implemented in hardware
-	gcc -O0 -c heap_manager_new_unsafe.c -lcrypto -mno-red-zone #no optimization!
-echo "Compiled secure getters and setters and the heap manager."
+	#gcc -O0 -c heap_manager_new_unsafe.c -lcrypto -mno-red-zone #no optimization!
+echo "Compiled secure getters and setters."
 
 echo "Compiling...."
 make #compiling the actual program

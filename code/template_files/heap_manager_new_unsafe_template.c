@@ -7,8 +7,6 @@
  
 /*Wherever you see "u" in a variable/function name, it means unsafe/unsecure*/
 
-extern  void * error_checking_malloc(long,const char *,int); 
-
 #define uminimum_free_chunk_size (16)  //bytes 
  
 unsigned char * unsecure_heap;
@@ -28,13 +26,14 @@ long ufree_chunks_num;
 long ualloc_chunks_num;
 
 
-void init_memory_manager()
+void init_unsecure_heap()
 {
 	uheap_metadata meta;
 	
 	//let's make it a multiple of 16. If it is, add 16 more. Why not.
 	total_uheap_bytes_allocated=bytes_to_allocate_on_start+(16-bytes_to_allocate_on_start%16);
 	unsecure_heap=error_checking_malloc(total_uheap_bytes_allocated,__func__,__LINE__);
+	memset(unsecure_heap,0,total_uheap_bytes_allocated); //set them 0 for convenience
 	//init metadata of free block
 	meta.size=total_uheap_bytes_allocated-sizeof(uheap_metadata) -sizeof(long); //count the size at the end too
 	meta.previous=NULL;
@@ -49,6 +48,12 @@ void init_memory_manager()
 	ualloc_chunks_num=0;
 }
 
+void free_unsecure_heap()
+{
+	free(unsecure_heap);
+}
+
+
 void print_unsecure_heap(unsigned char * mem)
 {
 	/*Memory printing, for testing purposes*/
@@ -57,6 +62,21 @@ void print_unsecure_heap(unsigned char * mem)
 	p=&mem[0];
 	printf("Printing uheap memory. Address of uheap %ld, address to print from %ld\n",(long)unsecure_heap,(long)mem);
 	for (i=0;i<((unsigned char*)unsecure_heap+total_uheap_bytes_allocated)-mem;i++)
+	{
+		printf("0x%02x ",p[i]);
+	}
+	printf("\n");
+
+}
+
+void print_unsecure_heap_range(unsigned char * mem,long size_to_print)
+{
+	/*Memory printing, for testing purposes*/
+	long i;
+	unsigned char * p;
+	p=&mem[0];
+	printf("Printing uheap memory. Address of uheap %ld, address to print from %ld, print %ld bytes total\n",(long)unsecure_heap,(long)mem,size_to_print);
+	for (i=0;i<size_to_print;i++)
 	{
 		printf("0x%02x ",p[i]);
 	}
@@ -77,7 +97,7 @@ void print_ulist(uheap_metadata * head)
 	
 	for (temp=head;temp!=NULL;temp=temp->next)
 	{
-		printf("Node %ld: Size in bytes=%ld, position in mem=%ld\n",i,temp->size,(long)temp);
+		printf("Node %ld: Size in bytes=%ld, position in mem=%ld , previous: %ld, next: %ld\n",i,temp->size,(long)temp,(long)temp->previous,(long)temp->next);
 		i++;
 	}
 }
@@ -134,14 +154,6 @@ void ufree_memory(void * ptr)
 	{
 		ualloc_chunks_list=NULL;
 	}
-	if (next_alloc!=NULL)
-	{
-		next_alloc->previous=prev_alloc;
-		if (ualloc_chunks_list==chunk_meta) //they point to the same address
-		{
-			ualloc_chunks_list=next_alloc;
-		}
-	}
 	if (prev_alloc!=NULL)
 	{
 		prev_alloc->next=next_alloc;
@@ -150,16 +162,21 @@ void ufree_memory(void * ptr)
 			ualloc_chunks_list=prev_alloc;
 		}
 	}
+	if (next_alloc!=NULL)
+	{
+		next_alloc->previous=prev_alloc;
+		if (ualloc_chunks_list==chunk_meta) //they point to the same address
+		{
+			ualloc_chunks_list=next_alloc; //notice that if the same was activated for prev_alloc, it is not done now
+		}
+	}
 	
 	//now it's time to try to merge the free chunks, if possible
-	prev_in_heap=(uheap_metadata *)( (unsigned char*) chunk_meta    -  (long)((unsigned char*) chunk_meta - sizeof(long))  );
-	next_in_heap=(uheap_metadata *)( (unsigned char*) chunk_meta    +  (long)((unsigned char*) chunk_meta->size + sizeof(long) )  );
+	prev_in_heap=(uheap_metadata *)( (unsigned char*) chunk_meta    -  *((long*)((unsigned char*) chunk_meta - sizeof(long))) -sizeof(uheap_metadata) -sizeof(long) );
+	next_in_heap=(uheap_metadata *)( (unsigned char*) chunk_meta    + sizeof(uheap_metadata)+ chunk_meta->size + sizeof(long)  );
 	
-	if (ufree_chunks_list==NULL)
-	{
-		ufree_chunks_list=chunk_meta;
-		ufree_chunks_num++;
-	}
+	//IMPORTANT! We do not know if prev_in_heap and next_in_heap point to each other at all!
+	
 	
 	//should we merge the next one?
 	if (!uout_of_bounds_ptr(next_in_heap))
@@ -167,7 +184,6 @@ void ufree_memory(void * ptr)
 		if (next_in_heap->in_use==0)
 		{
 			merge_next=1;
-			ufree_chunks_num--;
 		}
 	}
 	
@@ -177,19 +193,25 @@ void ufree_memory(void * ptr)
 		if (prev_in_heap->in_use==0)
 		{
 			merge_prev=1;
-			ufree_chunks_num--;
 		}
 	}
 	
 	if (merge_next && merge_prev) //merge both
 	{
-		if (ufree_chunks_list==next_in_heap) //we need to change where the start of the list points to
-		{
-			ufree_chunks_list=prev_in_heap;
-		}
+		//ok we have 2 , possibly independent nodes into the list and we want to merge them. We erase the <next_in_heap> node.
 		prev_in_heap->next=next_in_heap->next;
+		if (next_in_heap->next!=NULL)
+		{
+			(next_in_heap->next)->previous=next_in_heap->previous;
+		}
+		if (next_in_heap->previous!=NULL)
+		{
+			(next_in_heap->previous)->next=next_in_heap->next;
+		}
+		
 		prev_in_heap->size= prev_in_heap->size+ sizeof(long) + sizeof(uheap_metadata) + chunk_meta->size+sizeof(long) + sizeof(uheap_metadata) + next_in_heap->size;
-		*(long*)((unsigned char*) next_in_heap + sizeof(uheap_metadata) + next_in_heap->size)=prev_in_heap->size;
+		*((long*)((unsigned char*) next_in_heap + sizeof(uheap_metadata) + next_in_heap->size))=prev_in_heap->size;
+		ufree_chunks_num--;
 	}
 	
 	if (merge_next && !merge_prev) //merge the next one only
@@ -199,19 +221,41 @@ void ufree_memory(void * ptr)
 			ufree_chunks_list=chunk_meta;
 		}
 		chunk_meta->next=next_in_heap->next;
+		chunk_meta->previous=next_in_heap->previous; //set the correct previous!
+		if (next_in_heap->previous!=NULL)
+		{
+			(next_in_heap->previous)->next=chunk_meta;
+		}
+		if (next_in_heap->next!=NULL)
+		{
+			(next_in_heap->next)->previous=chunk_meta;
+		}
 		chunk_meta->size=chunk_meta->size+sizeof(long)+sizeof(uheap_metadata) + next_in_heap->size;
-		*(long*)((unsigned char*) next_in_heap + sizeof(uheap_metadata) + next_in_heap->size)=chunk_meta->size;
+		*((long*)((unsigned char*) next_in_heap + sizeof(uheap_metadata) + next_in_heap->size))=chunk_meta->size;
 	}
 	
 	if (!merge_next && merge_prev) //merge the previous one only
 	{
-		if (ufree_chunks_list==chunk_meta) //we need to change where the start of the list points to
-		{
-			ufree_chunks_list=prev_in_heap;
-		}
-		prev_in_heap->next=chunk_meta->next;
+		//just change the size of this one
 		prev_in_heap->size= prev_in_heap->size+ sizeof(long) + sizeof(uheap_metadata) + chunk_meta->size;
-		*(long*)((unsigned char*) chunk_meta + sizeof(uheap_metadata) + chunk_meta->size)=prev_in_heap->size;
+		*((long*)((unsigned char*) chunk_meta + sizeof(uheap_metadata) + chunk_meta->size))=prev_in_heap->size;
+	}
+	if (!merge_next && !merge_prev) //merge none, i.e. create a new node and put it at the start of the free nodes list
+	{
+		ufree_chunks_num++;
+		if  (ufree_chunks_list!=NULL)
+		{
+			ufree_chunks_list->previous=chunk_meta;
+			chunk_meta->next=ufree_chunks_list;
+			ufree_chunks_list=chunk_meta;
+			chunk_meta->previous=NULL;
+		}
+		else
+		{
+			ufree_chunks_list=chunk_meta;
+			chunk_meta->next=NULL;
+			chunk_meta->previous=NULL;
+		}
 	}
 	
 } //end of ufree_memory()
@@ -261,14 +305,13 @@ unsigned char * umalloc(long bytes_asked_to_allocate)
 	
 	if (chunk_found==NULL)
 		return NULL;
-		
 
 	//do we need just a part of the chunk, or are we going to give it all?
 	give_entire_chunk=1;
 	//check if the remaining is large enough
 	if (chunk_found->size - bytes_to_allocate >= sizeof(long) /*for new chunk*/ + sizeof(uheap_metadata) /*for old, cut chunk*/ + uminimum_free_chunk_size) /*for old, cut chunk*/ //there is enough
 		give_entire_chunk=0;
-	
+		
 	if (give_entire_chunk==1)
 	{
 		chunk_found->in_use=1; //that's only what should change in the chunk in this case
@@ -304,35 +347,45 @@ unsigned char * umalloc(long bytes_asked_to_allocate)
 	else //give_entire_chunk==0
 	{
 		prev_free=chunk_found->previous;
+		next_free=chunk_found->next;
 		
 		//set the new metadata in the newly created chunk
 		new_meta=(uheap_metadata*) ((unsigned char*) chunk_found + sizeof(uheap_metadata) + bytes_to_allocate + sizeof(long));
 		new_meta->in_use=0;
 		new_meta->previous=prev_free;
-		new_meta->next=chunk_found->next;
+		new_meta->next=next_free;
 		new_meta->size=chunk_found->size - (bytes_to_allocate+sizeof(long)+sizeof(uheap_metadata));
-		*(long*)((unsigned char*)new_meta + sizeof(uheap_metadata) + new_meta->size) = new_meta->size;
+		*((long*)((unsigned char*)new_meta + sizeof(uheap_metadata) + new_meta->size)) = new_meta->size;
 		
-		//set the metadata in the chunk found
-		chunk_found->in_use=1;
-		*(long*)((unsigned char*)new_meta -sizeof(long))=bytes_to_allocate; //write the new size
-		chunk_found->size=bytes_to_allocate;
-		//will set the pointers in the end
 		
-		if (prev_free==NULL)
+		//now set the neigbors of the new
+		if (ufree_chunks_list==chunk_found)
 		{
 			ufree_chunks_list=new_meta;
 		}
-		else
+		if (prev_free!=NULL)
 		{
 			prev_free->next=new_meta;
 		}
-			
+		if (next_free!=NULL)
+		{
+			next_free->previous=new_meta;
+		}
+		
+		//set the metadata in the chunk found
+		chunk_found->in_use=1;
+		*((long*)((unsigned char*)new_meta -sizeof(long)))=bytes_to_allocate; //write the new size
+		chunk_found->size=bytes_to_allocate;
+		//will set the pointers in the end
+					
 	}
-	
+
 	//and now lets put it in the start of the allocated chunks list
 	ualloc_chunks_num++;
-	ualloc_chunks_list->previous=chunk_found;
+	if (ualloc_chunks_list!=NULL)
+	{
+		ualloc_chunks_list->previous=chunk_found;
+	}
 	chunk_found->next=ualloc_chunks_list;
 	ualloc_chunks_list=chunk_found;
 	chunk_found->previous=NULL;

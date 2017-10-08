@@ -31,7 +31,7 @@ all: main_program.s main_program main_program_sec
 static: default
 	
 
-main_program.s: main_program.c memory_manager.c verification_procedure.c memory_manager_test_suite.c stack_manager.c stack_manager_test_suite.c general_tests.c
+main_program.s: main_program.c memory_manager.c verification_procedure.c memory_manager_test_suite.c stack_manager.c stack_manager_test_suite.c general_tests.c heap_manager_new_unsafe.c
 	$(CC) $(FLAGS_to_assembly) main_program.c -S $(FLAGS_in_the_end)
 
 main_program: main_program.s
