@@ -32,6 +32,8 @@
 #include <ucontext.h>
 #include <sys/mman.h>
 #include <openssl/aes.h>
+#include <assert.h>
+
 
 #define mac_algorithm 3  //0->sha256,   //PROBLEM WITH code on-the-fly verification
 						 //1-> AES_ECB with MAC=x*A+B, 

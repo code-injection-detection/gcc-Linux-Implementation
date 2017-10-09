@@ -26,6 +26,11 @@ long ufree_chunks_num;
 long ualloc_chunks_num;
 
 
+void ucheck_free_list_consistency(int type);
+void ucheck_alloc_list_consistency(int type);
+int check_chunk(uheap_metadata *chunk,int type);
+void print_chunk(uheap_metadata *chunk);
+
 void init_unsecure_heap()
 {
 	uheap_metadata meta;
@@ -84,34 +89,45 @@ void print_unsecure_heap_range(unsigned char * mem,long size_to_print)
 
 }
 
-void print_ulist(uheap_metadata * head)
+void print_ulist(uheap_metadata * head,long fd)
 {
 	uheap_metadata * temp;
 	long i=0;
+	FILE *fp;
+	
+	if (fd==1)
+		fp=stdout;
+	else
+		fp=stderr;
 	
 	if (head==NULL)
 	{
-		printf("List is empty.\n");
+		fprintf(fp,"List is empty.\n");
 		return;
 	}
 	
 	for (temp=head;temp!=NULL;temp=temp->next)
 	{
-		printf("Node %ld: Size in bytes=%ld, position in mem=%ld , previous: %ld, next: %ld\n",i,temp->size,(long)temp,(long)temp->previous,(long)temp->next);
+		fprintf(fp,"Node %ld: In_use=%ld, Size in bytes=%ld, position in mem=%ld , previous: %ld, next: %ld\n",i,temp->in_use,temp->size,(long)temp,(long)temp->previous,(long)temp->next);
 		i++;
 	}
 }
 
-void print_uheap_lists()
+void print_uheap_lists(long fd)
 {
-	printf("Printing lists in unsafe heap\n");
-	printf("uFree chunks list:\n");
-	printf("Number of nodes:%ld\n",ufree_chunks_num);
-	print_ulist(ufree_chunks_list);
+	FILE *fp;
+	if (fd==1)
+		fp=stdout;
+	else
+		fp=stderr;
+	fprintf(fp,"Printing lists in unsafe heap\n");
+	fprintf(fp,"uFree chunks list:\n");
+	fprintf(fp,"Number of nodes:%ld\n",ufree_chunks_num);
+	print_ulist(ufree_chunks_list,fd);
 	
-	printf("uAllocated chunks list:\n");
-	printf("Number of nodes:%ld\n",ualloc_chunks_num);
-	print_ulist(ualloc_chunks_list);
+	fprintf(fp,"uAllocated chunks list:\n");
+	fprintf(fp,"Number of nodes:%ld\n",ualloc_chunks_num);
+	print_ulist(ualloc_chunks_list,fd);
 	
 }
 
@@ -144,6 +160,13 @@ void ufree_memory(void * ptr)
 	//the metadata are going to be some bytes behind
 	chunk_meta=(uheap_metadata*)((unsigned char*) ptr - sizeof(uheap_metadata));
 	
+	if (chunk_meta->in_use==0)
+	{
+		fprintf(stderr,"ERROR. Attempted to free an already free position in the unsecure heap. position: %ld\n",(long)ptr);
+		print_uheap_lists(2);
+		exit(12);
+	}
+	
 	chunk_meta->in_use=0;
 	prev_alloc=chunk_meta->previous;
 	next_alloc=chunk_meta->next;
@@ -152,6 +175,7 @@ void ufree_memory(void * ptr)
 	if (prev_alloc==NULL && next_alloc==NULL)
 	//the list is empty
 	{
+		assert(ualloc_chunks_num==0);
 		ualloc_chunks_list=NULL;
 	}
 	if (prev_alloc!=NULL)
@@ -172,7 +196,14 @@ void ufree_memory(void * ptr)
 	}
 	
 	//now it's time to try to merge the free chunks, if possible
-	prev_in_heap=(uheap_metadata *)( (unsigned char*) chunk_meta    -  *((long*)((unsigned char*) chunk_meta - sizeof(long))) -sizeof(uheap_metadata) -sizeof(long) );
+	if ((unsigned char*) chunk_meta!=(unsigned char*)unsecure_heap) //if we free the first chunk, there is no previous one
+	{
+		prev_in_heap=(uheap_metadata *)( (unsigned char*) chunk_meta    -  *((long*)((unsigned char*) chunk_meta - sizeof(long))) -sizeof(uheap_metadata) -sizeof(long) );
+	}
+	else
+	{
+		prev_in_heap=NULL;
+	}
 	next_in_heap=(uheap_metadata *)( (unsigned char*) chunk_meta    + sizeof(uheap_metadata)+ chunk_meta->size + sizeof(long)  );
 	
 	//IMPORTANT! We do not know if prev_in_heap and next_in_heap point to each other at all!
@@ -199,7 +230,7 @@ void ufree_memory(void * ptr)
 	if (merge_next && merge_prev) //merge both
 	{
 		//ok we have 2 , possibly independent nodes into the list and we want to merge them. We erase the <next_in_heap> node.
-		prev_in_heap->next=next_in_heap->next;
+		
 		if (next_in_heap->next!=NULL)
 		{
 			(next_in_heap->next)->previous=next_in_heap->previous;
@@ -208,6 +239,37 @@ void ufree_memory(void * ptr)
 		{
 			(next_in_heap->previous)->next=next_in_heap->next;
 		}
+		
+		if (ufree_chunks_list==next_in_heap)
+		{
+			if(next_in_heap->next==prev_in_heap)
+			{
+				; //prefect, everything is set, just:
+				ufree_chunks_list=prev_in_heap;
+				prev_in_heap->previous=NULL;
+			}	
+			else
+			{
+				//lift prev_in_heap from its place and put it in the start
+				if (prev_in_heap->next!=NULL)
+				{
+					(prev_in_heap->next)->previous=prev_in_heap->previous;
+				}
+				if (prev_in_heap->previous!=NULL)
+				{
+					(prev_in_heap->previous)->next=prev_in_heap->next;
+				}
+				
+				if (next_in_heap->next!=NULL)
+				{
+					(next_in_heap->next)->previous=prev_in_heap; //make the second in the list point to the first
+				}
+				prev_in_heap->next=next_in_heap->next;
+				prev_in_heap->previous=NULL;
+				ufree_chunks_list=prev_in_heap; 
+			}
+		}
+		
 		
 		prev_in_heap->size= prev_in_heap->size+ sizeof(long) + sizeof(uheap_metadata) + chunk_meta->size+sizeof(long) + sizeof(uheap_metadata) + next_in_heap->size;
 		*((long*)((unsigned char*) next_in_heap + sizeof(uheap_metadata) + next_in_heap->size))=prev_in_heap->size;
@@ -231,7 +293,7 @@ void ufree_memory(void * ptr)
 			(next_in_heap->next)->previous=chunk_meta;
 		}
 		chunk_meta->size=chunk_meta->size+sizeof(long)+sizeof(uheap_metadata) + next_in_heap->size;
-		*((long*)((unsigned char*) next_in_heap + sizeof(uheap_metadata) + next_in_heap->size))=chunk_meta->size;
+		*((long*)((unsigned char*) chunk_meta + sizeof(uheap_metadata) + chunk_meta->size))=chunk_meta->size;
 	}
 	
 	if (!merge_next && merge_prev) //merge the previous one only
@@ -257,6 +319,20 @@ void ufree_memory(void * ptr)
 			chunk_meta->previous=NULL;
 		}
 	}
+	
+	/*
+	//checking calls
+	if (merge_next && !merge_prev)
+	{
+	printf("Checking chunk..\n");
+	print_chunk(chunk_meta);
+	check_chunk(chunk_meta,1);
+	printf("checked chunk.\n");
+	}
+	*/
+	//printf("merge next=%d,merge prev=%d\n",merge_next,merge_prev);
+	//ucheck_free_list_consistency(1);
+	//ucheck_alloc_list_consistency(1);
 	
 } //end of ufree_memory()
 
@@ -355,8 +431,7 @@ unsigned char * umalloc(long bytes_asked_to_allocate)
 		new_meta->previous=prev_free;
 		new_meta->next=next_free;
 		new_meta->size=chunk_found->size - (bytes_to_allocate+sizeof(long)+sizeof(uheap_metadata));
-		*((long*)((unsigned char*)new_meta + sizeof(uheap_metadata) + new_meta->size)) = new_meta->size;
-		
+		*((long*)((unsigned char*)new_meta + sizeof(uheap_metadata) + new_meta->size)) = new_meta->size;		
 		
 		//now set the neigbors of the new
 		if (ufree_chunks_list==chunk_found)
@@ -390,6 +465,21 @@ unsigned char * umalloc(long bytes_asked_to_allocate)
 	ualloc_chunks_list=chunk_found;
 	chunk_found->previous=NULL;
 	
+	/*
+	//checking calls
+	if (give_entire_chunk==0)
+	{
+		printf("Checking chunk..\n");
+		print_chunk(new_meta);
+		check_chunk(new_meta,1);
+	}
+	printf("Checking chunk..\n");
+	print_chunk(chunk_found);
+	check_chunk(chunk_found,2);
+	*/
+	//ucheck_free_list_consistency(2);
+	//ucheck_alloc_list_consistency(2);
+	
 	//return the start of the useful data
 	return ((unsigned char*) chunk_found + sizeof(uheap_metadata));
 
@@ -404,9 +494,179 @@ void * error_checking_umalloc_memory(long bytes_for_allocation,const char * fun_
 	ret=umalloc(bytes_for_allocation);
 	if (ret==NULL)
 	{
-		fprintf(stderr,"Umalloc() in function %s, line %d. Perhaps not enough memory?\n",fun_name,line);
+		fprintf(stderr,"Umalloc() in function %s, line %d. Requested %ld bytes. Perhaps not enough memory?\n",fun_name,line,bytes_for_allocation);
 		exit(52);
 	}
 	return ret;	
 }
 
+#define max_total_blocks (10000)
+
+
+void print_chunk(uheap_metadata *chunk)
+{
+	printf("Chunk at position %ld, in_use:%ld, previous:%ld,next:%ld,size:%ld\n",(long)chunk,chunk->in_use,(long)chunk->previous,(long)chunk->next,chunk->size);
+}
+
+
+int check_chunk(uheap_metadata *chunk,int type) //type=1- > free, type=2->alloc
+{
+	int retval=1;
+	long chunk_size;
+	
+	if (type==1 && chunk->in_use==1)
+	{
+		fprintf(stderr,"chunk at position %ld is marked as allocated but is in the free list\n",(long)chunk);
+		printf("\n\n");
+		uheap_metadata * temp;
+		printf("Free list:\n");
+		for (temp=ufree_chunks_list;temp!=NULL;temp=temp->next)
+			print_chunk(temp);
+		printf("Alloc list:\n");
+		for (temp=ualloc_chunks_list;temp!=NULL;temp=temp->next)
+			print_chunk(temp);
+		printf("\n\n");
+		retval=0;
+	}
+	if (type==2 && chunk->in_use==0)
+	{
+		fprintf(stderr,"chunk at position %ld is marked as freed but is in the alloc list\n",(long)chunk);
+		printf("\n\n");
+		uheap_metadata * temp;
+		printf("Free list:\n");
+		for (temp=ufree_chunks_list;temp!=NULL;temp=temp->next)
+			print_chunk(temp);
+		printf("Alloc list:\n");
+		for (temp=ualloc_chunks_list;temp!=NULL;temp=temp->next)
+			print_chunk(temp);
+		printf("\n\n");
+		retval=0;
+	}
+	
+	chunk_size=chunk->size;
+	if (*((long*)((unsigned char*) chunk + sizeof(uheap_metadata) + chunk_size))!=chunk_size)
+	{
+		fprintf(stderr,"chunk at position %ld (in %s list) does not have its size properly set in its end\n",(long)chunk,type==1?"free":"alloc");
+		fprintf(stderr,"Size at that position (%ld) should be %ld but it is %ld.\n",(long)((unsigned char*) chunk + sizeof(uheap_metadata) + chunk_size),chunk_size,*((long*)((unsigned char*) chunk + sizeof(uheap_metadata) + chunk_size)));
+		print_chunk(chunk);
+		
+		printf("\n\n");
+		uheap_metadata * temp;
+		if (type==1)
+		{
+			for (temp=ufree_chunks_list;temp!=NULL;temp=temp->next)
+				print_chunk(temp);
+		}
+		if (type==2)
+		{
+			for (temp=ualloc_chunks_list;temp!=NULL;temp=temp->next)
+				print_chunk(temp);
+		}
+		printf("\n\n");
+		retval=0;
+	}
+	if (chunk->next!=NULL && (chunk->next)->previous!=chunk)
+	{
+		fprintf(stderr,"chunk at position %ld (in %s list) does not have good pointer with its next neighbor\n",(long)chunk,type==1?"free":"alloc");
+		print_chunk(chunk);
+		print_chunk(chunk->next);
+		retval=0;
+	}
+	if (chunk->previous!=NULL && (chunk->previous)->next!=chunk)
+	{
+		fprintf(stderr,"chunk at position %ld (in %s list) does not have good pointer with its previous neighbor\n",(long)chunk,type==1?"free":"alloc");
+		print_chunk(chunk);
+		print_chunk(chunk->previous);
+		retval=0;
+	}
+	
+	return retval;
+}
+
+
+void ucheck_free_list_consistency(int type)//type=1- > coming from ufree, type=2-> coming form umalloc
+{
+	int total_blocks;
+	uheap_metadata * temp;
+	int temp_retval;
+	
+	total_blocks=0;
+	for (temp=ufree_chunks_list;temp!=NULL;temp=temp->next)
+	{
+		total_blocks++;
+		temp_retval=check_chunk(temp,1);
+		if (temp_retval==0)
+		{
+			fprintf(stderr,"ERROR. Coming from %s\n",type==1?"ufree":"umalloc");
+			fprintf(stderr,"problem in chunk of free list.\n");
+			exit(13);
+		}
+		if (total_blocks> max_total_blocks)
+		{
+			fprintf(stderr,"ERROR. Coming from %s\n",type==1?"ufree":"umalloc");
+			fprintf(stderr,"Total free blocks exceeded the max number.\n");
+			exit(14);
+		}
+		if (total_blocks>1 && temp->previous==NULL)
+		{
+			fprintf(stderr,"ERROR. Coming from %s\n",type==1?"ufree":"umalloc");
+			fprintf(stderr,"A chunk in the middle of a list has NULL previous.\n");
+			fprintf(stderr,"Printing free list\n");
+			print_ulist(ufree_chunks_list,1);
+			exit(15);
+		}
+	}
+	if ((long)total_blocks!=(long)ufree_chunks_num)
+	{
+			fprintf(stderr,"ERROR. Coming from %s\n",type==1?"ufree":"umalloc");
+			fprintf(stderr,"Different size of free list (%ld) and ufree_chunks_num(%ld).\n",(long)total_blocks,ufree_chunks_num);
+			for (temp=ufree_chunks_list;temp!=NULL;temp=temp->next)
+				print_chunk(temp);
+			exit(14);
+	}
+		
+}
+
+
+void ucheck_alloc_list_consistency(int type)//type=1- > coming from ufree, type=2-> coming form umalloc
+{
+	int total_blocks;
+	uheap_metadata * temp;
+	int temp_retval;
+	
+	total_blocks=0;
+	for (temp=ualloc_chunks_list;temp!=NULL;temp=temp->next)
+	{
+		total_blocks++;
+		temp_retval=check_chunk(temp,2);
+		if (temp_retval==0)
+		{
+			fprintf(stderr,"ERROR. Coming from %s\n",type==1?"ufree":"umalloc");
+			fprintf(stderr,"problem in chunk of alloc list.\n");
+			exit(13);
+		}
+		if (total_blocks> max_total_blocks)
+		{
+			fprintf(stderr,"ERROR. Coming from %s\n",type==1?"ufree":"umalloc");
+			fprintf(stderr,"Total alloc blocks exceeded the max number.\n");
+			exit(14);
+		}
+		if (total_blocks>1 && temp->previous==NULL)
+		{
+			fprintf(stderr,"ERROR. Coming from %s\n",type==1?"ufree":"umalloc");
+			fprintf(stderr,"A chunk in the middle of a list has NULL previous.\n");
+			fprintf(stderr,"Printing alloc list\n");
+			print_ulist(ualloc_chunks_list,1);
+			exit(15);
+		}
+	}
+	if ((long)total_blocks!=(long)ualloc_chunks_num)
+	{
+			fprintf(stderr,"ERROR. Coming from %s\n",type==1?"ufree":"umalloc");
+			fprintf(stderr,"Different size of alloc list (%ld) and ualloc_chunks_num(%ld).\n",(long)total_blocks,ualloc_chunks_num);
+			for (temp=ualloc_chunks_list;temp!=NULL;temp=temp->next)
+				print_chunk(temp);
+			exit(14);
+	}
+		
+}

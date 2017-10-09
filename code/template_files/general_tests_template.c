@@ -783,52 +783,131 @@ void check_new_unsecure_heap()
 	a=error_checking_umalloc_memory(5*sizeof(int),__func__,__LINE__);
 	memset(a,0x41,5*sizeof(int));
 	printf("\nallocated a\n");
-	print_uheap_lists();
+	print_uheap_lists(1);
 	printf("a=%ld,b=%ld,c=%ld\n",(long)a,(long)b,(long)c);
 	b=error_checking_umalloc_memory(5*sizeof(int),__func__,__LINE__);
 	memset(a,0x42,5*sizeof(int));
 	printf("\nallocated b\n");
-	print_uheap_lists();
+	print_uheap_lists(1);
 	printf("a=%ld,b=%ld,c=%ld\n",(long)a,(long)b,(long)c);
 	c=error_checking_umalloc_memory(5*sizeof(int),__func__,__LINE__);
 	memset(a,0x43,5*sizeof(int));
 	printf("\nallocated c\n");
-	print_uheap_lists();
+	print_uheap_lists(1);
 	printf("a=%ld,b=%ld,c=%ld\n",(long)a,(long)b,(long)c);
 	ufree_memory(b);
 	printf("\nfreed b\n");
-	print_uheap_lists();
+	print_uheap_lists(1);
 	printf("a=%ld,b=%ld,c=%ld\n",(long)a,(long)b,(long)c);
 	ufree_memory(a);
 	printf("\nfreed a\n");
-	print_uheap_lists();
+	print_uheap_lists(1);
 	printf("a=%ld,b=%ld,c=%ld\n",(long)a,(long)b,(long)c);
 	a=error_checking_umalloc_memory(5*sizeof(int),__func__,__LINE__);
 	memset(a,0x41,5*sizeof(int));
 	printf("\nallocated a\n");
-	print_uheap_lists();
+	print_uheap_lists(1);
 	printf("a=%ld,b=%ld,c=%ld\n",(long)a,(long)b,(long)c);
 	ufree_memory(c);
 	printf("\nfreed c\n");
-	print_uheap_lists();
+	print_uheap_lists(1);
 	printf("a=%ld,b=%ld,c=%ld\n",(long)a,(long)b,(long)c);
 	ufree_memory(a);
 	printf("\nfreed a\n");
-	print_uheap_lists();
+	print_uheap_lists(1);
 	printf("a=%ld,b=%ld,c=%ld\n",(long)a,(long)b,(long)c);
 	a=error_checking_umalloc_memory(49921,__func__,__LINE__);
 	memset(a,0x42,49921);
 	printf("\nallocated huge a\n");
-	print_uheap_lists();
+	print_uheap_lists(1);
 	printf("a=%ld,b=%ld,c=%ld\n",(long)a,(long)b,(long)c);
 	ufree_memory(a);
 	printf("\nfreed huge a\n");
-	print_uheap_lists();
+	print_uheap_lists(1);
 	printf("a=%ld,b=%ld,c=%ld\n",(long)a,(long)b,(long)c);
-	
 	
 	
 	free_unsecure_heap();
 }
 
+
+void test_unsecure_heap_many_allocs_frees(int n)
+{
+	char * in_use;
+	int ** numbers;
+	int i,j,num,k;
+	long sum;
+	double avg;
+	init_unsecure_heap();
+
+	srand(time(NULL));
+	in_use=error_checking_umalloc_memory(n*sizeof(char),__func__,__LINE__);
+	for (k=0;k<n;k++)
+		in_use[k]=1;
+	numbers=error_checking_umalloc_memory(n*sizeof(int*),__func__,__LINE__);
+	for (i=0;i<n;i++)
+	{
+		numbers[i]=error_checking_umalloc_memory(30*sizeof(int),__func__,__LINE__);
+		for (j=0;j<30;j++)
+			numbers[i][j]=1+i%10;
+	}
+	sum=0;
+	for (i=0;i<n;i++)
+	{
+		for (j=0;j<30;j++)
+			sum+=numbers[i][j];
+	}
+	avg=sum/(n*30.0);
+	printf("\n\navg: %lf\n\n",avg);
+	
+	//print_uheap_lists(1);
+	//print_unsecure_heap_range(in_use-32,1000);
+	//return;
+	for (i=0;i<5000;i++)
+	{
+		for (j=0;j<100;j++)
+		{
+			num=rand()%n;
+			//free that num
+			if (in_use[num]==1)
+			{
+				ufree_memory(numbers[num]);
+				in_use[num]=0;
+			}
+		}
+		
+		for (j=0;j<300;j++)
+		{
+			num=rand()%n;
+			if (in_use[num]==0)
+			{
+				//alloc that num
+				numbers[num]=error_checking_umalloc_memory(30*sizeof(int),__func__,__LINE__);
+				for (k=0;k<30;k++)
+					numbers[num][k]=1+num%10;
+				in_use[num]=1;
+			}
+		}
+		
+		//if (i%50==0)
+		//	print_uheap_lists(1);
+	}
+	print_uheap_lists(1);
+	printf("\n\n");
+	printf("Let's find the sum of all.");
+	
+	sum=0;
+	for (i=0;i<n;i++)
+	{
+		if (in_use[i])
+		{
+			for (j=0;j<30;j++)
+				sum+=numbers[i][j];
+		}
+	}
+	avg=sum/(n*30.0);
+	printf("\n\n final avg: %lf\n\n",avg);
+	
+	free_unsecure_heap();
+}
 

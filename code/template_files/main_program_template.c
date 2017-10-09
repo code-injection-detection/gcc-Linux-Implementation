@@ -90,6 +90,8 @@ int main_program_function()
 	TEST_NORMAL_AND_SECURE_TIME(primes not very fast version,find_primes_up_to_a_number(primes_up_to);,
 								secure_find_primes_up_to_a_number(primes_up_to);)
 	
+	//test_unsecure_heap_many_allocs_frees(1990);
+	
 	//check_new_unsecure_heap();
 	
 	//call_and_calc_unsecured_determinant(11);
