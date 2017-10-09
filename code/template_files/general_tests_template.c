@@ -834,9 +834,9 @@ void check_new_unsecure_heap()
 void test_unsecure_heap_many_allocs_frees(int n)
 {
 	char * in_use;
-	int ** numbers;
+	double ** numbers;
 	int i,j,num,k;
-	long sum;
+	double sum;
 	double avg;
 	init_unsecure_heap();
 
@@ -844,12 +844,12 @@ void test_unsecure_heap_many_allocs_frees(int n)
 	in_use=error_checking_umalloc_memory(n*sizeof(char),__func__,__LINE__);
 	for (k=0;k<n;k++)
 		in_use[k]=1;
-	numbers=error_checking_umalloc_memory(n*sizeof(int*),__func__,__LINE__);
+	numbers=error_checking_umalloc_memory(n*sizeof(double*),__func__,__LINE__);
 	for (i=0;i<n;i++)
 	{
-		numbers[i]=error_checking_umalloc_memory(30*sizeof(int),__func__,__LINE__);
+		numbers[i]=error_checking_umalloc_memory(30*sizeof(double),__func__,__LINE__);
 		for (j=0;j<30;j++)
-			numbers[i][j]=1+i%10;
+			numbers[i][j]=0.5+ i%10;
 	}
 	sum=0;
 	for (i=0;i<n;i++)
@@ -863,9 +863,12 @@ void test_unsecure_heap_many_allocs_frees(int n)
 	//print_uheap_lists(1);
 	//print_unsecure_heap_range(in_use-32,1000);
 	//return;
-	for (i=0;i<5000;i++)
+	
+	double step_of_freeing_allocing=500;
+	int repeats=5000;
+	for (i=0;i<repeats;i++)
 	{
-		for (j=0;j<100;j++)
+		for (j=0;j<step_of_freeing_allocing;j++)
 		{
 			num=rand()%n;
 			//free that num
@@ -876,18 +879,21 @@ void test_unsecure_heap_many_allocs_frees(int n)
 			}
 		}
 		
-		for (j=0;j<300;j++)
+		for (j=0;j<step_of_freeing_allocing;j++)
 		{
 			num=rand()%n;
 			if (in_use[num]==0)
 			{
 				//alloc that num
-				numbers[num]=error_checking_umalloc_memory(30*sizeof(int),__func__,__LINE__);
+				numbers[num]=error_checking_umalloc_memory(30*sizeof(double),__func__,__LINE__);
 				for (k=0;k<30;k++)
-					numbers[num][k]=1+num%10;
+					numbers[num][k]=0.5+num%10;
 				in_use[num]=1;
 			}
 		}
+		
+		step_of_freeing_allocing=step_of_freeing_allocing*(999.0/1000);
+		//printf("step:%lf\n",step_of_freeing_allocing);
 		
 		//if (i%50==0)
 		//	print_uheap_lists(1);
