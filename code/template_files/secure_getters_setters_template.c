@@ -1,7 +1,9 @@
 #include "headers_needed.h"
 
 extern long total_bytes_allocated; /*total bytes allocated for the secure heap (perhaps different than the amount asked)*/
+extern long total_sheap_bytes_allocatedbytes_allocated;
 extern unsigned char * entire_memory_chunk; /*points to the start of the secure heap*/
+extern unsigned char * secure_heap;
 extern unsigned char* last_unused_memory; /*old, use memory manager functions instead*/
 
 
@@ -449,6 +451,28 @@ void get_arbitrary_block_in_heap_with_offset(long data_size,void * start,long of
 }
 
 
+//getters of secure heap metadata
+long get_sheap_meta_size(sheap_metadata* meta)
+{
+	return get_long_int(meta);
+}
+
+long get_sheap_meta_previous(sheap_metadata* meta)
+{
+	return get_long_int_array_element(meta,1);
+}
+
+long get_sheap_meta_next(sheap_metadata* meta)
+{
+	return get_long_int_array_element(meta,2);
+}
+
+long get_sheap_meta_in_use(sheap_metadata* meta)
+{
+	return get_long_int_array_element(meta,3);
+}
+
+
 /************************************************************************************************/
 /********************************SECURE HEAP GETTERS END*****************************************/
 /************************************************************************************************/
@@ -545,6 +569,28 @@ void set_arbitrary_block_in_heap(long data_size,void * start_of_block,void * src
 void set_arbitrary_block_in_heap_with_offset(long data_size,void * start,long offset,void * src)
 {
 	set_secure_data(src,data_size, start,2,offset);
+}
+
+
+//setters of secure heap metadata
+void set_sheap_meta_size(sheap_metadata* meta,long value)
+{
+	set_long_int(meta,value);
+}
+
+void set_sheap_meta_previous(sheap_metadata* meta,long value)
+{
+	set_long_int_array_element(meta,1,value);
+}
+
+void set_sheap_meta_next(sheap_metadata* meta,long value)
+{
+	set_long_int_array_element(meta,2,value);
+}
+
+void set_sheap_meta_in_use(sheap_metadata* meta,long value)
+{
+	set_long_int_array_element(meta,3,value);
 }
 
 /************************************************************************************************/

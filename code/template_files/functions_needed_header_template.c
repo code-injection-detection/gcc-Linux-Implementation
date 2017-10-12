@@ -110,6 +110,7 @@ void calc_and_set_mac_of_data_sha256(char * input, long length, char * output);
 
 #include "memory_manager.c" //Including the C files because all the functions must be in the same file in order to be secured
 #include "heap_manager_new_unsafe.c"
+#include "heap_manager_new_secure.c"
 #include "stack_manager.c"
 #include "general_tests.c"
 #include "tests_with_new_stack.c"

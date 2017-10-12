@@ -104,7 +104,7 @@ def process_var_size(var_size): #This has to be improved in the future not to ha
 		return 4
 	if var_size=='char':
 		return 1
-	if var_size=='long' or var_size=='ptr':
+	if var_size=='long' or var_size=='ptr' or var_size=='pointer':
 		if ('64' in platform.architecture()[0]):
 			return 8
 		else:

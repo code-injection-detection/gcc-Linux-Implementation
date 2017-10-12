@@ -253,6 +253,7 @@ echo "Copying header files, secure getters/setters, crypto functions and initial
 	cp ./template_files/initializer_template.c initializer.c
 	cp ./template_files/secure_stack_manipulation_functions_template.c secure_stack_manipulation_functions.c
 	cp ./template_files/heap_manager_new_unsafe_template.c heap_manager_new_unsafe.c
+	cp ./template_files/heap_manager_new_secure_template.c heap_manager_new_secure.c
 echo "Copied these files."
 
 echo "Compiling hash and encryption calculators, as well as the crypto initializer..."

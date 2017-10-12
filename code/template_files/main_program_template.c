@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include "headers_needed.h"
 
 //GLOBAL DECLARATION
 typedef struct
@@ -13,6 +14,18 @@ int test_global;
 int secured_i;
 //ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:long
 long secured_sum;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:pointer
+unsigned char * secure_heap;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:long
+long total_sheap_bytes_allocated;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:pointer
+sheap_metadata * sfree_chunks_list;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:pointer
+sheap_metadata * salloc_chunks_list;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:long
+long sfree_chunks_num;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:long
+long salloc_chunks_num;
 }global_vars;
 
 global_vars globals = {
@@ -90,7 +103,7 @@ int main_program_function()
 	TEST_NORMAL_AND_SECURE_TIME(primes not very fast version,find_primes_up_to_a_number(primes_up_to);,
 								secure_find_primes_up_to_a_number(primes_up_to);)
 	
-	//test_unsecure_heap_many_allocs_frees(1990);
+	test_unsecure_heap_many_allocs_frees(1990);
 	
 	//check_new_unsecure_heap();
 	

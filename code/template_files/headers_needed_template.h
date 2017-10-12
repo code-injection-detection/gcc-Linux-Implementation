@@ -223,6 +223,17 @@ void calc_and_set_mac_of_data(unsigned char *input,int length_all,int length_use
 
 
 /**************************  SOME TYPEDEFS START *********************************/
+
+//the secure heap list metadata
+typedef struct sheap_metadata_struct{
+	long size; //the size of the USEFUL data. Metadata at the start and end are not counted.
+	struct sheap_metadata_struct * previous;
+	struct sheap_metadata_struct * next;
+	long in_use;  //basically a boolean. We reserve more space because of possible future extra functionality.
+} sheap_metadata;
+
+
+
 //OLD SECURE STACK IMPEMENTATION
 /*This is the way that the function parameters will be passed, and declared inside a function*/
 typedef struct function_element_parameters{

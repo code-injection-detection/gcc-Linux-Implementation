@@ -17,6 +17,7 @@ verification_procedure.c
 memory_manager.c
 stack_manager.c
 heap_manager_new_unsafe.c
+heap_manager_new_secure.c
 functions_needed_header.c
 functions_needed_footer.c
 mac_handling_functions.c
