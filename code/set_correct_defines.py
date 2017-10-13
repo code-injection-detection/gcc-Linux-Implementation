@@ -98,8 +98,9 @@ for line in src_lines:
 		newline='#define bytes_for_instructions_length '+sys.argv[34]+'\n'
 	if '#define verify_everything' in line:
 		newline='#define verify_everything '+sys.argv[34]+'\n'
-		
-
+	if '#define use_new_secure_heap' in line:
+		newline='#define use_new_secure_heap '+sys.argv[35]+'\n'
+	
 
 	headers_dst.write(newline)
 

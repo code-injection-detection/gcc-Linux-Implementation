@@ -211,6 +211,10 @@
 
 #ifndef verify_everything
 #define verify_everything 0
+#endif				//third world 
+
+#ifndef use_new_secure_heap
+#define use_new_secure_heap 0
 #endif				//third world
 
 
@@ -226,7 +230,7 @@ void calc_and_set_mac_of_data(unsigned char *input,int length_all,int length_use
 
 //the secure heap list metadata
 typedef struct sheap_metadata_struct{
-	long size; //the size of the USEFUL data. Metadata at the start and end are not counted.
+	long size; //the size of the USEFUL data IN CHUNKS, NOT IN BYTES (like the unsecure version). Metadata at the start and end are not counted.
 	struct sheap_metadata_struct * previous;
 	struct sheap_metadata_struct * next;
 	long in_use;  //basically a boolean. We reserve more space because of possible future extra functionality.

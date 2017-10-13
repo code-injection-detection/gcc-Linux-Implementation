@@ -1,7 +1,7 @@
 #include "headers_needed.h"
 
 extern long total_bytes_allocated; /*total bytes allocated for the secure heap (perhaps different than the amount asked)*/
-extern long total_sheap_bytes_allocatedbytes_allocated;
+extern long total_sheap_bytes_allocated;
 extern unsigned char * entire_memory_chunk; /*points to the start of the secure heap*/
 extern unsigned char * secure_heap;
 extern unsigned char* last_unused_memory; /*old, use memory manager functions instead*/
@@ -98,7 +98,7 @@ long insert_data_into_mem(long data_size,unsigned char * data, unsigned char * m
   long total_data_inserted=0;
   long data_remaining;
 
-
+	
   p=&mem_where_to_insert[0];
   i=0;  
 
@@ -338,7 +338,6 @@ void set_secure_data(void * source,long data_size, unsigned char * data_start, i
 }
 
 
-
 /************************************************************************************************/
 /********************************SECURE HEAP GETTERS START***************************************/
 /************************************************************************************************/
@@ -452,24 +451,24 @@ void get_arbitrary_block_in_heap_with_offset(long data_size,void * start,long of
 
 
 //getters of secure heap metadata
-long get_sheap_meta_size(sheap_metadata* meta)
+long get_sheap_meta_size(void * meta)
 {
-	return get_long_int(meta);
+	return get_long_int((sheap_metadata*)meta);
 }
 
-long get_sheap_meta_previous(sheap_metadata* meta)
+sheap_metadata* get_sheap_meta_previous(void * meta)
 {
-	return get_long_int_array_element(meta,1);
+	return ((sheap_metadata*) get_long_int_array_element((sheap_metadata*)meta,1));
 }
 
-long get_sheap_meta_next(sheap_metadata* meta)
+sheap_metadata* get_sheap_meta_next(void * meta)
 {
-	return get_long_int_array_element(meta,2);
+	return ((sheap_metadata*) get_long_int_array_element((sheap_metadata*)meta,2));
 }
 
-long get_sheap_meta_in_use(sheap_metadata* meta)
+long get_sheap_meta_in_use(void * meta)
 {
-	return get_long_int_array_element(meta,3);
+	return get_long_int_array_element((sheap_metadata*)meta,3);
 }
 
 
@@ -573,24 +572,24 @@ void set_arbitrary_block_in_heap_with_offset(long data_size,void * start,long of
 
 
 //setters of secure heap metadata
-void set_sheap_meta_size(sheap_metadata* meta,long value)
+void set_sheap_meta_size(void * meta,long value)
 {
-	set_long_int(meta,value);
+	set_long_int((sheap_metadata*)meta,value);
 }
 
-void set_sheap_meta_previous(sheap_metadata* meta,long value)
+void set_sheap_meta_previous(void * meta,void * value)
 {
-	set_long_int_array_element(meta,1,value);
+	set_long_int_array_element((sheap_metadata*)meta,1,(long)value);
 }
 
-void set_sheap_meta_next(sheap_metadata* meta,long value)
+void set_sheap_meta_next(void * meta,void * value)
 {
-	set_long_int_array_element(meta,2,value);
+	set_long_int_array_element((sheap_metadata*)meta,2,(long)value);
 }
 
-void set_sheap_meta_in_use(sheap_metadata* meta,long value)
+void set_sheap_meta_in_use(void * meta,long value)
 {
-	set_long_int_array_element(meta,3,value);
+	set_long_int_array_element((sheap_metadata*)meta,3,value);
 }
 
 /************************************************************************************************/

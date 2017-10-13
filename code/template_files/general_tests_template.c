@@ -918,3 +918,110 @@ void test_unsecure_heap_many_allocs_frees(int n)
 	free_unsecure_heap();
 }
 
+
+void test_secure_heap_many_allocs_frees(int n)
+{
+	char * in_use;
+	double ** numbers;
+	int i,j,num,k,num2;
+	double sum;
+	double avg;
+	init_sheap();
+
+	srand(time(NULL));
+	print_sheap_lists(1);
+	in_use=error_checking_smalloc_memory(n*sizeof(char),__func__,__LINE__);
+	for (k=0;k<n;k++)
+	{
+		//in_use[k]=1;
+		set_char_array_element(in_use,k,1);
+	}
+	print_sheap_lists(1);
+	numbers=error_checking_smalloc_memory(n*sizeof(double*),__func__,__LINE__);
+	print_sheap_lists(1);
+	for (i=0;i<n;i++)
+	{
+		set_pointer_array_element(numbers,i,error_checking_smalloc_memory(30*sizeof(double),__func__,__LINE__));
+		for (j=0;j<30;j++)
+		{
+			//numbers[i][j]=0.5+ i%10;
+			set_double_array_element(get_pointer_array_element(numbers,i),j,0.5+ i%10);
+		}
+	}
+	sum=0;
+	for (i=0;i<n;i++)
+	{
+		for (j=0;j<30;j++)
+		{
+			//sum+=numbers[i][j];
+			sum+=get_double_array_element(get_pointer_array_element(numbers,i),j);
+		}
+	}
+	avg=sum/(n*30.0);
+	printf("\n\navg: %lf\n\n",avg);
+	
+	//print_sheap_lists(1);
+	//print_secure_heap_range(in_use-32,1000);
+	//return;
+	
+	double step_of_freeing_allocing=500;
+	int repeats=20;
+	for (i=0;i<repeats;i++)
+	{
+		for (j=0;j<step_of_freeing_allocing;j++)
+		{
+			num=rand()%n;
+			//free that num
+			if (get_char_array_element(in_use,num)==1)
+			{
+				sfree_memory(get_pointer_array_element(numbers,num));
+				//in_use[num]=0;
+				set_char_array_element(in_use,num,0);
+			}
+		}
+		for (j=0;j<step_of_freeing_allocing;j++)
+		{
+			num=rand()%n;
+			num2=10+rand()%40;
+			if (get_char_array_element(in_use,num)==0)
+			{
+				//alloc that num
+				set_pointer_array_element(numbers,num,error_checking_smalloc_memory(num2*sizeof(double),__func__,__LINE__));
+				for (k=0;k<num2;k++)
+				{
+					//numbers[num][k]=0.5+num%10;
+					set_double_array_element(get_pointer_array_element(numbers,num),k,0.5+num%10);
+				}
+				//in_use[num]=1;
+				set_char_array_element(in_use,num,1);
+			}
+		}
+		
+		//step_of_freeing_allocing=step_of_freeing_allocing*(999.0/1000);
+		//printf("step:%lf\n",step_of_freeing_allocing);
+		
+		//if (i%50==0)
+		//	print_sheap_lists(1);
+	}
+	print_sheap_lists(1);
+	printf("\n\n");
+	printf("Let's find the sum of all.");
+	
+	sum=0;
+	for (i=0;i<n;i++)
+	{
+		if (get_char_array_element(in_use,i))
+		{
+			for (j=0;j<30;j++)
+			{
+				//sum+=numbers[i][j];
+				sum+=get_double_array_element(get_pointer_array_element(numbers,i),j);
+			}
+		}
+	}
+	avg=sum/(n*30.0);
+	printf("\n\n final avg: %lf\n\n",avg);
+	
+	free_secure_heap();
+}
+

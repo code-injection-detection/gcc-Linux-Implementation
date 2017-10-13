@@ -696,7 +696,15 @@ public class Secure_Assembly {
 								 "get_global_long_int",
 								 "get_global_float",
 								 "get_global_double",
-								 "get_global_ptr"
+								 "get_global_ptr",
+                                 "set_sheap_meta_size",
+                                 "set_sheap_meta_previous",
+                                 "set_sheap_meta_next",
+                                 "set_sheap_meta_in_use",
+                                 "get_sheap_meta_size",
+                                 "get_sheap_meta_previous",
+                                 "get_sheap_meta_next",
+                                 "get_sheap_meta_in_use"
 								};
 		
 		if (Arrays.asList(safe_functions).contains(fun_name.trim()))
