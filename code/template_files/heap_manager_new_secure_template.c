@@ -39,8 +39,8 @@ Its goal is not to make something necessarily efficient, but functional.
 #define sminimum_free_chunk_size (bytes_for_useful_data)  //one block of bytes 
 
 unsigned char * secure_heap;
-long total_sheap_bytes_allocated; /*total bytes allocated for the secure heap (multiple of 16)*/
-long total_chunks_in_secure_heap;
+long total_sheap_bytes_allocated; /*total bytes allocated for the secure heap (multiple of 16), not secured since it is considered fixed*/
+long total_chunks_in_secure_heap; /*again, not secured since the size of the heap is considered fixed*/
 
 /*The start of each used AND unused block has the following info. Notice that is has 32 bytes for 64-bit x86*/
 /*It is defined in headers_needed_template.h, since we need it to declare the globals*/

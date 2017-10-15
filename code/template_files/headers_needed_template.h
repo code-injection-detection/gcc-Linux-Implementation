@@ -310,8 +310,6 @@ long secured_sum;
 void * entire_stack_memory_chunk;
 //ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:pointer
 unsigned char * secure_heap;
-//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:long
-long total_sheap_bytes_allocated;
 //ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:pointer
 sheap_metadata * sfree_chunks_list;
 //ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:pointer
@@ -320,8 +318,6 @@ sheap_metadata * salloc_chunks_list;
 long sfree_chunks_num;
 //ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:long
 long salloc_chunks_num;
-//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:long
-long total_chunks_in_secure_heap;
 //ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:int
 int size_of_sheap_metadata_in_chunks;
 }global_vars;
