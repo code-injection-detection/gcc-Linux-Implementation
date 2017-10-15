@@ -3,40 +3,11 @@
 #include <time.h>
 #include "headers_needed.h"
 
-//GLOBAL DECLARATION
-typedef struct
-{
-//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:double
-double global_double_variable_for_testing;
-//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:int
-int test_global;
-//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:int 
-int secured_i;
-//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:long
-long secured_sum;
-//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:pointer
-unsigned char * secure_heap;
-//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:long
-long total_sheap_bytes_allocated;
-//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:pointer
-sheap_metadata * sfree_chunks_list;
-//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:pointer
-sheap_metadata * salloc_chunks_list;
-//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:long
-long sfree_chunks_num;
-//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:long
-long salloc_chunks_num;
-//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:long
-long total_chunks_in_secure_heap;
-//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:int
-int size_of_sheap_metadata_in_chunks;
-}global_vars;
+//global type declaration in headers_needed_template.h
 
 global_vars globals = {
 //PLEASE PYTHON INITIALISE THE GLOBAL VARS
 };
-
-
 
 #include "functions_needed_header.c" //Including the C file because all the functions must be in the same file in order to be secured
 
@@ -102,22 +73,20 @@ int main_program_function()
 								towerOfHanoi_secure_using_template(hanoi_up_to,'A','C','B');)
 	*/
 	
-	
 	int primes_up_to=100;
 	TEST_NORMAL_AND_SECURE_TIME(primes not very fast version,find_primes_up_to_a_number(primes_up_to);,
 								secure_find_primes_up_to_a_number(primes_up_to);)
 	
 	//test_unsecure_heap_many_allocs_frees(1990);
-	test_secure_heap_many_allocs_frees(1990);
+	//test_secure_heap_many_allocs_frees(1990);
 	
 	//check_new_unsecure_heap();
 	
 	//call_and_calc_unsecured_determinant(11);
-	
-	/*
+
 	CLEAR_CACHES;
 	great_function_that_wraps_the_tests();
-	*/
+	
 	
 	/*
 	int Times=4000;

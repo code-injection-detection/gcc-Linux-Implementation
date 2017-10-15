@@ -66,14 +66,15 @@ chunks_and_old_mem allocate_mem_into_secure_stack(long stack_bytes_to_allocate)
 	ret.chunks_allocated=chunks_needed_to_allocate;
 	
 	//perform the allocation
-	last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) + (chunks_needed_to_allocate*c+ chunks_needed_to_allocate*b+chunks_needed_to_allocate*d);
+	last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) + (chunks_needed_to_allocate*(c+b+d));
+	
 	
 	//stack overflow check
 	//this way, allocating the last chunk results in the last_unused_stack_memory to reach out of the stack.
-	if ((unsigned char*)last_unused_stack_memory > ((unsigned char*)entire_stack_memory_chunk) + total_stack_bytes_allocated)
+	if ((unsigned char*)last_unused_stack_memory > ((unsigned char*)GET_GLOBAL_PTR(globals.entire_stack_memory_chunk)) + total_stack_bytes_allocated)
 	{
 		//cancel last increase
-		last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_needed_to_allocate*c+ chunks_needed_to_allocate*b+chunks_needed_to_allocate*d);
+		last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_needed_to_allocate*(c+b+d));
 		//return NULL
 		ret.chunks_allocated=0;
 		ret.old_mem=NULL;
@@ -104,9 +105,10 @@ unsigned char * allocate_mem_into_secure_stack_in_chunks(long chunks_to_allocate
 	//perform the allocation
 	last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) + (chunks_to_allocate)*(b+c+d);
 	
+	
 	//stack overflow check
 	//this way, allocating the last chunk results in the last_unused_stack_memory to reach out of the stack.
-	if ((unsigned char*)last_unused_stack_memory > ((unsigned char*)entire_stack_memory_chunk) + total_stack_bytes_allocated)
+	if ((unsigned char*)last_unused_stack_memory > ((unsigned char*)GET_GLOBAL_PTR(globals.entire_stack_memory_chunk)) + total_stack_bytes_allocated)
 	{
 		//cancel last increase
 		last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_to_allocate)*(b+c+d);
@@ -152,7 +154,7 @@ void free_mem_from_secure_stack(long stack_bytes_to_free)
 		chunks_needed_to_free++;
 	
 	//perform the deallocation
-	last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_needed_to_free*c + chunks_needed_to_free*b+chunks_needed_to_free*d);
+	last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_needed_to_free*(c+b+d));
 	
 }
 
@@ -167,7 +169,7 @@ void free_chunks_from_secure_stack(long chunks_to_free)
 	long chunks_needed_to_free=chunks_to_free;
 	
 	//perform the deallocation
-	last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_needed_to_free*c + chunks_needed_to_free*b+chunks_needed_to_free*d);
+	last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_needed_to_free*(c+b+d));
 }
 
 

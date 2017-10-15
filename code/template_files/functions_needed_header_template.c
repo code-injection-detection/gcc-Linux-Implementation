@@ -145,7 +145,7 @@ void init_heap_and_stack_mem()
 void free_heap_and_stack_memory()
 {
 	free_secure_mem(entire_memory_chunk);	
-	free_secure_stack_mem(entire_stack_memory_chunk);
+	free_secure_stack_mem((unsigned char*)GET_GLOBAL_PTR(globals.entire_stack_memory_chunk));
 }
 
 #include "mac_handling_functions.c"

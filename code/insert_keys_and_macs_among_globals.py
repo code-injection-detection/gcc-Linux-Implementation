@@ -28,7 +28,8 @@ long secured_sum;
 
 #input files that are going to be checked if they have global declarations
 #currently, only the main_program_template.c has
-inputfiles=[ './template_files/memory_manager_template.c',
+inputfiles=[ 'headers_needed.h',
+             './template_files/memory_manager_template.c',
 			 './template_files/stack_manager_template.c',
 			 './template_files/functions_needed_header_template.c',
 			 './template_files/memory_manager_test_suite_template.c',
@@ -42,7 +43,8 @@ inputfiles=[ './template_files/memory_manager_template.c',
 		   ]
 
 #the corresponding output files
-outputfiles=[ 'memory_manager.c',
+outputfiles=['headers_needed.h', 
+             'memory_manager.c',
 			 'stack_manager.c',
 			 'functions_needed_header.c',
 			 'memory_manager_test_suite.c',

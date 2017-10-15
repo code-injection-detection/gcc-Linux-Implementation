@@ -168,7 +168,7 @@ void find_keyshares(int choice)
 
 	//taking into account the stack keys
 	type_of_bytes=0;
-	for (p=entire_stack_memory_chunk,stack_cnt=0;stack_cnt<total_stack_bytes_allocated;)
+	for (p=(unsigned char*)GET_GLOBAL_PTR(globals.entire_stack_memory_chunk),stack_cnt=0;stack_cnt<total_stack_bytes_allocated;)
 	{
 
 		if (type_of_bytes==0) //useful

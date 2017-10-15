@@ -226,6 +226,7 @@
 void calc_and_set_mac_of_data(unsigned char *input,int length_all,int length_useful,unsigned char *output);
 
 
+
 /**************************  SOME TYPEDEFS START *********************************/
 
 //the secure heap list metadata
@@ -290,5 +291,43 @@ typedef struct chunks_and_old_memory{
 } chunks_and_old_mem;
 
 /**************************  SOME TYPEDEFS END *********************************/
+
+
+/************************* SECURE GLOBAL DECLARATION *****************************/
+
+//GLOBAL DECLARATION
+typedef struct global_variables_struct
+{
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:double
+double global_double_variable_for_testing;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:int
+int test_global;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:int 
+int secured_i;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:long
+long secured_sum;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:pointer
+void * entire_stack_memory_chunk;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:pointer
+unsigned char * secure_heap;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:long
+long total_sheap_bytes_allocated;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:pointer
+sheap_metadata * sfree_chunks_list;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:pointer
+sheap_metadata * salloc_chunks_list;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:long
+long sfree_chunks_num;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:long
+long salloc_chunks_num;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:long
+long total_chunks_in_secure_heap;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:int
+int size_of_sheap_metadata_in_chunks;
+}global_vars;
+
+extern global_vars globals;
+
+/**************************SECURE GLOBAL DECLARATION END *************************/
 
 #endif

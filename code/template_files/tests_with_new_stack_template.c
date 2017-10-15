@@ -570,7 +570,7 @@ void great_function_that_wraps_the_tests()
 	/*
 	_securestart=clock(); 
 	count_mac_invocations_in_this_code_part=1;
-	//HEY PYTHON CALLING FUNCTION : towers_of_hanoi_sec |PARAMETERS TO CALL WITH: 'a','c','b',28
+	//HEY PYTHON CALLING FUNCTION : towers_of_hanoi_sec |PARAMETERS TO CALL WITH: 'a','c','b',20
 	count_mac_invocations_in_this_code_part=0;
 	_secureend=clock(); 
 	_securetime=((double) (_secureend - _securestart)) / CLOCKS_PER_SEC; 
@@ -596,7 +596,7 @@ void great_function_that_wraps_the_tests()
 	/*
 	_securestart=clock();
 	count_mac_invocations_in_this_code_part=1;
-	//HEY PYTHON CALLING FUNCTION : find_primes_up_to_a_number_sec | PARAMETERS TO CALL WITH: 150000
+	//HEY PYTHON CALLING FUNCTION : find_primes_up_to_a_number_sec | PARAMETERS TO CALL WITH: 1000
 	count_mac_invocations_in_this_code_part=0;
 	_secureend=clock(); 
 	_securetime=((double) (_secureend - _securestart)) / CLOCKS_PER_SEC; 
@@ -641,7 +641,7 @@ void great_function_that_wraps_the_tests()
 	printf("New Secure calc_determinant_sec time:%lg cpu seconds\n",_securetime); 
 	*/
 	
-	printf("base_pointer:%ld, entire_stack:%ld, last_unused_stack_memory=%ld\n",(long)base_pointer_for_stack,(long)entire_stack_memory_chunk,(long)last_unused_stack_memory);
+	printf("base_pointer:%ld, entire_stack:%ld, last_unused_stack_memory=%ld\n",(long)base_pointer_for_stack,(long)GET_GLOBAL_PTR(globals.entire_stack_memory_chunk),(long)last_unused_stack_memory);
 
 
 	/**********************************************************************************/

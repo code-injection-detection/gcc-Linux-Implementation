@@ -246,6 +246,30 @@ if [ "$INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS" == "1" ]; then
 fi
 echo "Changed defines."
 
+
+if [ "$SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS" != "0" ]; then
+	echo "Inserting keys among global variables and copying some templates...."
+	#this secures the data segment
+	./insert_keys_and_macs_among_globals.py $NUM_OF_INTERLEAVED_KEYS $DECLARE_GLOBAL_KEYS_AS_AN_ARRAY $NUM_OF_GLOBAL_USEFUL_BYTES $NUM_OF_MAC_BYTES $SQEEZE_KEYS_WHEN_MACING
+	echo "Inserted keys among global variables and copied some templates."
+else
+	echo "Copying templates to target files"
+	#copying the rest of the templates
+	#headers_needed and general_tests are missing, they are taken care of the first python script
+	cp ./template_files/memory_manager_template.c memory_manager.c
+	cp ./template_files/verification_procedure_template.c verification_procedure.c
+	cp ./template_files/stack_manager_template.c stack_manager.c
+	cp ./template_files/functions_needed_header_template.c functions_needed_header.c
+	cp ./template_files/functions_needed_footer_template.c functions_needed_footer.c
+	cp ./template_files/main_program_template.c main_program.c
+	cp ./template_files/memory_manager_test_suite_template.c memory_manager_test_suite.c
+	cp ./template_files/stack_manager_test_suite_template.c stack_manager_test_suite.c
+	cp ./template_files/mac_handling_functions_template.c mac_handling_functions.c
+	echo "Copied templates"
+fi
+
+
+
 echo "Copying header files, secure getters/setters, crypto functions and initializer..."
 	#copying some template files (that do not have to be changed).
 	cp ./template_files/crypto_functions_template.h crypto_functions.h
@@ -290,28 +314,6 @@ echo "Compiling hash and encryption calculators, as well as the crypto initializ
 	 gcc -O3 initializer.c -c -mno-red-zone #this one runs 
 	 )
 echo "Compiled hash and encryption calculators, and the crypto initializer."
-
-
-if [ "$SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS" != "0" ]; then
-	echo "Inserting keys among global variables and copying templates...."
-	#this secures the data segment
-	./insert_keys_and_macs_among_globals.py $NUM_OF_INTERLEAVED_KEYS $DECLARE_GLOBAL_KEYS_AS_AN_ARRAY $NUM_OF_GLOBAL_USEFUL_BYTES $NUM_OF_MAC_BYTES $SQEEZE_KEYS_WHEN_MACING
-	echo "Inserted keys among global variables and copied templates."
-else
-	echo "Copying templates to target files"
-	#copying the rest of the templates
-	#headers_needed and general_tests are missing, they are taken care of the first python script
-	cp ./template_files/memory_manager_template.c memory_manager.c
-	cp ./template_files/verification_procedure_template.c verification_procedure.c
-	cp ./template_files/stack_manager_template.c stack_manager.c
-	cp ./template_files/functions_needed_header_template.c functions_needed_header.c
-	cp ./template_files/functions_needed_footer_template.c functions_needed_footer.c
-	cp ./template_files/main_program_template.c main_program.c
-	cp ./template_files/memory_manager_test_suite_template.c memory_manager_test_suite.c
-	cp ./template_files/stack_manager_test_suite_template.c stack_manager_test_suite.c
-	cp ./template_files/mac_handling_functions_template.c mac_handling_functions.c
-	echo "Copied templates"
-fi
 
 
 echo "Compiling secure getters and setters..."

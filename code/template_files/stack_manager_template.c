@@ -9,7 +9,7 @@ Allocation is done as allocation of a whole number of useful chunks. A chunk is 
 */
 
 long total_stack_bytes_allocated; /*total bytes allocated for the secure stack (perhaps different than the amount asked)*/
-unsigned char * entire_stack_memory_chunk; /*points to the start of the secure stack*/
+//unsigned char * entire_stack_memory_chunk; /*points to the start of the secure stack*/ /*Now in the secure gloals struct*/
 unsigned char* last_unused_stack_memory; /*practically the stack pointer*/
 unsigned char * base_pointer_for_stack=0;
 unsigned char * temp_base_pointer=0;
@@ -117,7 +117,7 @@ unsigned char * init_stack_mem()
   }
   insert_keys_into_stack_mem(stack_mem);
 
-  entire_stack_memory_chunk=stack_mem;
+  UPDATE_GLOBAL_VAR(globals.entire_stack_memory_chunk,stack_mem);
   last_unused_stack_memory=stack_mem;
   fclose(stack_keyshare_input_file);
    

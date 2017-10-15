@@ -39,14 +39,14 @@ void check_heap_macs()
 
 void check_stack_macs()
 {
-	unsigned char *p=entire_stack_memory_chunk;
+	unsigned char *p=GET_GLOBAL_PTR(globals.entire_stack_memory_chunk);
 	int error=0;
 	
-	while (p<entire_stack_memory_chunk+total_stack_bytes_allocated)
+	while (p<(unsigned char*)GET_GLOBAL_PTR(globals.entire_stack_memory_chunk)+total_stack_bytes_allocated)
 	{
 		if (!ignore_macs_even_if_there_are_mac_bytes && check_mac_for_error(p,stack_bytes_for_useful_data+stack_bytes_used_for_keyshares,stack_bytes_for_useful_data))
 		{	
-			fprintf(stderr,"Error in stack macs, p=%ld, start of secure stack=%ld\n",(long) p,(long)entire_stack_memory_chunk);
+			fprintf(stderr,"Error in stack macs, p=%ld, start of secure stack=%ld\n",(long) p,(long)GET_GLOBAL_PTR(globals.entire_stack_memory_chunk));
 			error=1;
 		}
 		p+=stack_bytes_for_useful_data+stack_bytes_used_for_keyshares+number_of_mac_bytes;
