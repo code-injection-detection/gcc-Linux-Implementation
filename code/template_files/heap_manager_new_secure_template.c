@@ -162,6 +162,15 @@ int number_of_full_chunks_taken_by_sheap_metadata() //full chunks! important!
 }
 
 
+#ifdef size_in_bytes_for_sheap_metadata
+#undef size_in_bytes_for_sheap_metadata
+#endif
+
+#ifdef size_of_sheap_chunk
+#undef size_of_sheap_chunk
+#endif 
+
+
 #define size_in_bytes_for_sheap_metadata (size_of_sheap_metadata_in_chunks*(bytes_for_useful_data+bytes_used_for_keyshares+number_of_mac_bytes))
 #define size_of_sheap_chunk (bytes_for_useful_data+bytes_used_for_keyshares+number_of_mac_bytes)
 
@@ -176,6 +185,7 @@ void init_sheap_memory_manager()
 	//init metadata of free block
 	meta.size=total_chunks_in_secure_heap-number_of_full_chunks_taken_by_sheap_metadata() -1; //the first chunks is/are taken by metadata , as well as the last one
 	size_of_sheap_metadata_in_chunks=number_of_full_chunks_taken_by_sheap_metadata();
+	UPDATE_GLOBAL_VAR(globals.size_of_sheap_metadata_in_chunks,size_of_sheap_metadata_in_chunks);
 	meta.previous=NULL;
 	meta.next=NULL;
 	meta.in_use=0;
@@ -190,6 +200,11 @@ void init_sheap_memory_manager()
 	salloc_chunks_list=NULL;
 	sfree_chunks_num=1;
 	salloc_chunks_num=0;
+	//let's set the secure vars too, for the secure functions to use them
+	UPDATE_GLOBAL_VAR(globals.sfree_chunks_list,sfree_chunks_list);
+	UPDATE_GLOBAL_VAR(globals.salloc_chunks_list,salloc_chunks_list);
+	UPDATE_GLOBAL_VAR(globals.sfree_chunks_num,sfree_chunks_num);
+	UPDATE_GLOBAL_VAR(globals.salloc_chunks_num,salloc_chunks_num);
 	
 }
 
@@ -271,6 +286,7 @@ unsigned char * init_sheap()
 
 
   secure_heap=mem;
+  UPDATE_GLOBAL_VAR(globals.secure_heap,secure_heap);
   fclose(sheap_keyshare_input_file);
   
   init_sheap_memory_manager();
@@ -285,7 +301,7 @@ unsigned char * init_sheap()
 void free_secure_heap()
 {
   free(secure_heap);
-
+  //free(GET_GLOBAL_PTR(globals.secure_heap));
 }
 
 

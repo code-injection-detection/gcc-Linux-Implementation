@@ -14,12 +14,14 @@ which describe the parameters, local vars, where the function is being called et
 
 #stack frame: args (arg(1), arg(2)...) , return value, return address, base pointer, local vars
 
-tests_src=open('./template_files/tests_with_new_stack_template.c','r')
-tests_dst=open('tests_with_new_stack.c','w')
+tests_src=open('tests_with_new_stack.c','r')
 
 src_lines= tests_src.readlines()
 src_lines = [x for x in src_lines if not "PYTHON IGNORE" in x]
 dst_lines=[]
+
+tests_src.close()
+tests_dst=open('tests_with_new_stack.c','w')
 
 number_of_stack_key_bytes=int(sys.argv[1])
 number_of_stack_useful_data_bytes=int(sys.argv[2])
@@ -99,10 +101,11 @@ def process_params_locals(type_of_vars):
 				function_dict[type_of_vars][name_of_type]['names'].append(x.strip())
 				
 			if ((type_of_var_in_declaration(i)=='ptr') or (type_of_var_in_declaration(i)=='arb_ptr')):
-				sizes=parts_of_line[2].split(':')[1].strip().split(',')
-				function_dict[type_of_vars][name_of_type]['sizes']=[]
-				for x in sizes:
-					function_dict[type_of_vars][name_of_type]['sizes'].append(x.strip())
+				if (len(parts_of_line)>2 or (type_of_var_in_declaration(i)!='ptr')): #having a size for pointers should not be necessary
+					sizes=parts_of_line[2].split(':')[1].strip().split(',')
+					function_dict[type_of_vars][name_of_type]['sizes']=[]
+					for x in sizes:
+						function_dict[type_of_vars][name_of_type]['sizes'].append(x.strip())
 
 		
 		
@@ -230,6 +233,7 @@ def add_code_for_function_calling(fun_name,write_to,params,use_secure_stack_sett
 	params_cnt=0
 	offset_for_params_in_chunks=0
 	
+
 	lines_to_append=[]
 	#allocate mem in secure stack
 	lines_to_append.append('returned_addr_after_allocating=allocate_mem_into_secure_stack_in_chunks('+fun_dict['chunks_in_stack']+');\n')
@@ -364,7 +368,7 @@ def add_the_function_footer(bool_for_undef):
 		dst_lines.append(line)
 		
 
-str_for_new_ret_exp="PYTHON PLEASE USE THIS RETURN EXPRESSION"	
+str_for_new_ret_exp="PYTHON PLEASE USE THIS RETURN EXPRESSION:"	
 		
 #set the return value
 def copy_result_to_return_space(line_of_return):
@@ -499,6 +503,8 @@ for line in src_lines:
 			if (parameters_for_calling_str in line):
 				list_of_params_currently_called=line.split('|')[1].strip().split(':')[1].strip().split(',')
 		dst_lines.append(line)
+		#@'s are used in place of commas
+		list_of_params_currently_called=[x.replace('@',',') for x in list_of_params_currently_called]
 		add_code_for_function_calling(function_name,write_result_to_currently_called,list_of_params_currently_called,put_result_var_in_secure_stack,given_setter_to_use_to_write_retval)
 		if (function_name==function_dict['name']):
 			function_dict['num_of_times_called_in_code']=str(int(function_dict['num_of_times_called_in_code'])+1)
@@ -516,9 +522,6 @@ for line in src_lines:
 
 
 #print(all_functions_dict)
-
 for line in dst_lines:
 	tests_dst.write(line)
-
-tests_src.close()
 tests_dst.close()

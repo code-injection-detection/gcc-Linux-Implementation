@@ -236,6 +236,16 @@ START_TIME_FIRST_PART=$(date +%s.%N)
 echo "Changing defines according to input..."
 #this script changes the defines according to user input, so that se secure program knows the constants as headers.
 python3 set_correct_defines.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_TOTAL_STACK_BYTES_ALLOC $NUM_OF_GLOBAL_USEFUL_BYTES $NUM_OF_MAC_BYTES $INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS $USE_FIXED_SIZE_CHUNKS_OF_CODE $NUM_OF_BYTES_IN_CODE_CHUNK $DO_NOT_MAC_WHAT_WHE_ADD_IN_CODE $ADD_CODE_ON_THE_FLY_VERIFICATION $USE_INLINE_CODE_FOR_DELAYS $NUM_OF_CACHED_BLOCKS_OF_CODE $NUM_OF_CACHED_BLOCKS_OF_DATA $IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES $CODE_CACHE_TYPE $DATA_CACHE_TYPE $CODE_CACHE_SET_ASSOSIATIVE_SIZE $DATA_CACHE_SET_ASSOSIATIVE_SIZE $IGNORE_MACS_LAST_MOMENT_EVEN_IF_THERE_ARE_MAC_BYTES $TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES $SQEEZE_KEYS_WHEN_MACING $COUNT_MAC_INVOCATIONS $ADD_THE_PADDED_NOPS_IN_THE_MAC_IN_FIXED_SIZE $FORCE_CODE_BLOCK_SPLIT_ON_LABELS_AND_CALLS $USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS $SET_AS_GIVEN_THAT_EVERYTHING_MACED_WILL_BE_FIXED_AND_MULTIPLE_OF_16 $WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL $SIZE_OF_JMP_COMMAND $OVERHEAD_OF_VERIFICATION $USING_LARGE_JMPS_AND_CODE_BLOCKS_WITH_3_WORLDS $BYTES_FOR_INSTR_LEN $VERIFY_EVERYTHING $USE_NEW_SECURE_HEAP
+
+echo "Inserting secure heap manager + more tests into the great function that contains the secure functions..."
+	cp ./template_files/heap_manager_functions_that_use_secure_stack_template.c heap_manager_functions_that_use_secure_stack.c
+	cp ./template_files/tests_with_new_stack_template.c tests_with_new_stack.c
+	cp ./template_files/more_tests_that_use_new_stack_template.c more_tests_that_use_new_stack.c
+	#now put all the things from heap_manager_functions_that_use_secure_stack.c inside tests_with_new_stack.c where it says "BASH PLEASE PLACE THE HEAP MANAGER FUNCTIONS HERE"
+	sed -i -e '/BASH PLEASE PLACE THE HEAP MANAGER FUNCTIONS HERE/r./heap_manager_functions_that_use_secure_stack.c' tests_with_new_stack.c 
+	sed -i -e '/BASH PLEASE PLACE MORE_TESTS_THAT_USE_NEW_STACK.c HERE/r./more_tests_that_use_new_stack.c' tests_with_new_stack.c 
+echo "Inserted secure heap manager + more tests into the great function that contains the secure functions."
+
 if [ "$INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS" == "0" ]; then
 	#we now insert the code that manipulates the secure stack
 	python3 insert_new_stack_commands.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_MAC_BYTES

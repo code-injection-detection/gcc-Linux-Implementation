@@ -18,6 +18,8 @@ memory_manager.c
 stack_manager.c
 heap_manager_new_unsafe.c
 heap_manager_new_secure.c
+heap_manager_functions_that_use_secure_stack.c
+more_tests_that_use_new_stack.c
 functions_needed_header.c
 functions_needed_footer.c
 mac_handling_functions.c

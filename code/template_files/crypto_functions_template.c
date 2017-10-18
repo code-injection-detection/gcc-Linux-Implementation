@@ -38,7 +38,7 @@ unsigned char macs_in_data_cache[num_of_cached_blocks_of_data*number_of_mac_byte
 unsigned char data_cache_dirty_bits[num_of_cached_blocks_of_data];
 int data_cache_slot_indexes_for_set_assosiative[(num_of_cached_blocks_of_data/data_cache_set_assosiative_size)];
 int data_cache_latest_index; //for fully assosiateve data cache
-unsigned char keys_temp_space[1024];
+unsigned char keys_temp_space[safe_length_for_buffer_storage];
 char count_mac_invocations_in_this_code_part=0;
 long long mac_size_invocation_counters[17000];
 
@@ -1207,6 +1207,7 @@ void flush_data_cache_into_mem()
 		{
 			//calculate the proper mac and set it
 			calc_and_set_mac_of_data((unsigned char*)data_cache[i],bytes_for_useful_data+number_of_interleaved_keys,bytes_for_useful_data,(unsigned char*)data_cache[i]+bytes_for_useful_data+number_of_interleaved_keys); 
+			data_cache_dirty_bits[i]=0;
 		}
 	}
 }
@@ -1267,6 +1268,7 @@ void flush_data_cache_into_mem()
 		{
 			//calculate the proper mac and set it
 			calc_and_set_mac_of_data((unsigned char*)data_cache[i],bytes_for_useful_data+number_of_interleaved_keys,bytes_for_useful_data,(unsigned char*)data_cache[i]+bytes_for_useful_data+number_of_interleaved_keys); 
+			data_cache_dirty_bits[i]=0;
 		}
 	}
 }
@@ -1335,10 +1337,17 @@ void flush_data_cache_into_mem()
 	int i;
 	for (i=0;i<num_of_cached_blocks_of_data;i++)
 	{
+		/*
+		if (data_cache[i]!=0)
+		{
+			printf("found one: i=%d, data_cache[i]=%ld, dirty=%d\n",i,data_cache[i],data_cache_dirty_bits[i]);
+		}
+		*/
 		if (data_cache[i]!=0 && data_cache_dirty_bits[i]==1) //there is already an address there and it's dirty
 		{
 			//calculate the proper mac and set it
 			calc_and_set_mac_of_data((unsigned char*)data_cache[i],bytes_for_useful_data+number_of_interleaved_keys,bytes_for_useful_data,(unsigned char*)data_cache[i]+bytes_for_useful_data+number_of_interleaved_keys); 
+			data_cache_dirty_bits[i]=0;
 		}
 	}
 }

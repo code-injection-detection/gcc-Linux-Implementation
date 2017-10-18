@@ -191,7 +191,7 @@ void * get_global_ptr(void** global_var);
 #define GET_GLOBAL_LONG(global_var) get_global_long_int(&(global_var))
 #define GET_GLOBAL_FLOAT(global_var) get_global_float(&(global_var))
 #define GET_GLOBAL_DOUBLE(global_var) get_global_double(&(global_var))
-#define GET_GLOBAL_PTR(global_var) get_global_ptr(&(global_var))
+#define GET_GLOBAL_PTR(global_var) get_global_ptr((void**)(&(global_var)))
 
 
 

@@ -130,6 +130,7 @@ void init_heap_and_stack_mem()
 
     printf("Init_mem, alloc+key insertion\n");
 	init_mem();
+	init_sheap();
 	printf("If successful, total bytes allocated:%ld\n",total_bytes_allocated);
 	
 	printf("Initializing stack memory\n");
@@ -144,7 +145,8 @@ void init_heap_and_stack_mem()
 
 void free_heap_and_stack_memory()
 {
-	free_secure_mem(entire_memory_chunk);	
+	free_secure_mem(entire_memory_chunk);
+	free_secure_heap();
 	free_secure_stack_mem((unsigned char*)GET_GLOBAL_PTR(globals.entire_stack_memory_chunk));
 }
 

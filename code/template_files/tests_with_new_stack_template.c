@@ -20,8 +20,8 @@ void great_function_that_wraps_the_tests()
 	/**********************************************************************************/
 	
 	
-	//PYTHON PLEASE PLACE THE HEAP MANAGER FUNCTIONS HERE
-	
+	//BASH PLEASE PLACE THE HEAP MANAGER FUNCTIONS HERE
+
 	
 	/****************************test_custom_function_sum*****************************/
 	
@@ -642,7 +642,10 @@ void great_function_that_wraps_the_tests()
 	*/
 	
 	printf("base_pointer:%ld, entire_stack:%ld, last_unused_stack_memory=%ld\n",(long)base_pointer_for_stack,(long)GET_GLOBAL_PTR(globals.entire_stack_memory_chunk),(long)last_unused_stack_memory);
-
+	
+	#if 0
+	//BASH PLEASE PLACE MORE_TESTS_THAT_USE_NEW_STACK.c HERE
+	#endif
 
 	/**********************************************************************************/
 	/*************************END OF THE REST OF CODE**********************************/

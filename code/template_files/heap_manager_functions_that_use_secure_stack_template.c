@@ -16,6 +16,18 @@ int number_of_full_chunks_taken_by_sheap_metadata() //full chunks! important!
 }
 */
 
+
+#ifdef size_in_bytes_for_sheap_metadata
+#undef size_in_bytes_for_sheap_metadata
+#endif
+
+#ifdef size_of_sheap_chunk
+#undef size_of_sheap_chunk
+#endif 
+
+#define size_in_bytes_for_sheap_metadata (GET_GLOBAL_INT(globals.size_of_sheap_metadata_in_chunks)*(bytes_for_useful_data+bytes_used_for_keyshares+number_of_mac_bytes))
+#define size_of_sheap_chunk (bytes_for_useful_data+bytes_used_for_keyshares+number_of_mac_bytes)
+
 //PLEASE PYTHON INIT A FUNCTION HERE
 	NAME_OF_FUNCTION: number_of_full_chunks_taken_by_sheap_metadata
 	RETURN_VALUE_SIZE: int
@@ -42,12 +54,12 @@ int number_of_full_chunks_taken_by_sheap_metadata() //full chunks! important!
 	START_OF_FUNCTION : number_of_full_chunks_taken_by_sheap_metadata
 	
 	
-			if (bytes_for_useful_data<sizeof(sheap_metadata))
+			if (bytes_for_useful_data<size_in_bytes_for_sheap_metadata)
 			{
-				if (sizeof(sheap_metadata)%bytes_for_useful_data==0)
-					SET_STACK_INT(retval,(sizeof(sheap_metadata)/bytes_for_useful_data));
+				if (size_in_bytes_for_sheap_metadata%bytes_for_useful_data==0)
+					SET_STACK_INT(retval,(size_in_bytes_for_sheap_metadata/bytes_for_useful_data));
 				else
-					SET_STACK_INT(retval,(sizeof(sheap_metadata)/bytes_for_useful_data + 1));
+					SET_STACK_INT(retval,(size_in_bytes_for_sheap_metadata/bytes_for_useful_data + 1));
 			}
 			else
 				SET_STACK_INT(retval,1);
@@ -56,8 +68,6 @@ int number_of_full_chunks_taken_by_sheap_metadata() //full chunks! important!
 	END_OF_FUNCTION: number_of_full_chunks_taken_by_sheap_metadata
 
 
-#define size_in_bytes_for_sheap_metadata (GET_GLOBAL_INT(globals.size_of_sheap_metadata_in_chunks)*(bytes_for_useful_data+bytes_used_for_keyshares+number_of_mac_bytes))
-#define size_of_sheap_chunk (bytes_for_useful_data+bytes_used_for_keyshares+number_of_mac_bytes)
 
 
 /*
@@ -120,14 +130,14 @@ void init_sheap_memory_manager()
 	
 	//HEY PYTHON CALLING FUNCTION : number_of_full_chunks_taken_by_sheap_metadata | WRITE RESULT TO: globals.size_of_sheap_metadata_in_chunks__securevar_UPDATE_GLOBAL_VAR
 	set_stack_long_int_array_element(meta,0,total_chunks_in_secure_heap -1 - GET_GLOBAL_INT(globals.size_of_sheap_metadata_in_chunks));
-	set_stack_long_int_array_element(meta,1,NULL);
-	set_stack_long_int_array_element(meta,2,NULL);
+	set_stack_pointer_array_element(meta,1,NULL);
+	set_stack_pointer_array_element(meta,2,NULL);
 	set_stack_long_int_array_element(meta,3,0);
 	
 	set_sheap_meta_size((sheap_metadata*)GET_GLOBAL_PTR(globals.secure_heap),get_stack_long_int_array_element(meta,0));
 	set_sheap_meta_in_use((sheap_metadata*)GET_GLOBAL_PTR(globals.secure_heap),get_stack_long_int_array_element(meta,3));
-	set_sheap_meta_previous((sheap_metadata*)GET_GLOBAL_PTR(globals.secure_heap),get_stack_long_int_array_element(meta,1));
-	set_sheap_meta_next((sheap_metadata*)GET_GLOBAL_PTR(globals.secure_heap),get_stack_long_int_array_element(meta,2));
+	set_sheap_meta_previous((sheap_metadata*)GET_GLOBAL_PTR(globals.secure_heap),get_stack_pointer_array_element(meta,1));
+	set_sheap_meta_next((sheap_metadata*)GET_GLOBAL_PTR(globals.secure_heap),get_stack_pointer_array_element(meta,2));
 	//set the long of the size in the end, securely
 	set_long_int(((unsigned char*) GET_GLOBAL_PTR(globals.secure_heap) + (GET_GLOBAL_INT(globals.size_of_sheap_metadata_in_chunks) + get_stack_long_int_array_element(meta,0))*(bytes_for_useful_data+bytes_used_for_keyshares+number_of_mac_bytes) ),get_stack_long_int_array_element(meta,0) );
 	//init the pointers and numbers
@@ -225,25 +235,25 @@ sheap_metadata * sfind_large_enough_free_group(long bytes_needed)
 		pointers: 0
 		arb_pointers: 0
 	END_OF_PARAMETERS
-	NUM_OF_LOCAL_VARIABLES: 2
+	NUM_OF_LOCAL_VARIABLES: 1
 		chars: 0 
 		ints: 0
 		longs: 0
 		floats: 0
 		doubles: 0
-		pointers: 2 | names: temp
+		pointers: 1 | names: temp
 		arb_pointers: 0
 	END_OF_LOCAL_VARIABLES
-	RETURN_EXPRESSION: GET_STACK_INT(temp)
+	RETURN_EXPRESSION: GET_STACK_PTR(temp)
 	START_OF_FUNCTION : sfind_large_enough_free_group
 	
-	if (GET_STACK_PTR(globals.free_chunks_list)==NULL)
+	if (GET_GLOBAL_PTR(globals.sfree_chunks_list)==NULL)
 	{
 		SET_STACK_PTR(temp,NULL);
 		RETURN_POINT_OF_FUNCTION: sfind_large_enough_free_group	
 	}
 
-	for(SET_STACK_PTR(temp,GET_STACK_PTR(globals.free_chunks_list));
+	for(SET_STACK_PTR(temp,GET_GLOBAL_PTR(globals.sfree_chunks_list));
 		GET_STACK_PTR(temp)!=NULL;
 		SET_STACK_PTR(temp,get_sheap_meta_next(GET_STACK_PTR(temp)))
 		)
@@ -263,7 +273,7 @@ sheap_metadata * sfind_large_enough_free_group(long bytes_needed)
 
 
 
-#if 0
+#if 0==1
 //safe malloc
 unsigned char * smalloc(long bytes_asked_to_allocate)
 {
@@ -271,7 +281,7 @@ unsigned char * smalloc(long bytes_asked_to_allocate)
 	sheap_metadata * prev_free;
 	sheap_metadata * next_free;
 	sheap_metadata * new_meta;
-	long bytes_to_allocate;
+	long bytes_to_allocate_by_smalloc;
 	char give_entire_chunk;
 	long chunks_to_allocate;
 	
@@ -280,14 +290,14 @@ unsigned char * smalloc(long bytes_asked_to_allocate)
 	
 	//optional. Should we?
 	if (bytes_asked_to_allocate%bytes_for_useful_data==0)
-		bytes_to_allocate= bytes_asked_to_allocate;
+		bytes_to_allocate_by_smalloc= bytes_asked_to_allocate;
 	else
-		bytes_to_allocate= bytes_asked_to_allocate+(bytes_for_useful_data-bytes_asked_to_allocate%bytes_for_useful_data); //let's make it a multiple of bytes_for_useful_data
+		bytes_to_allocate_by_smalloc= bytes_asked_to_allocate+(bytes_for_useful_data-bytes_asked_to_allocate%bytes_for_useful_data); //let's make it a multiple of bytes_for_useful_data
 	
-	chunks_to_allocate=bytes_to_allocate/bytes_for_useful_data;
+	chunks_to_allocate=bytes_to_allocate_by_smalloc/bytes_for_useful_data;
 	
 	//find, using linear search, the group that can hold the needed bytes
-	chunk_found=sfind_large_enough_free_group(bytes_to_allocate);
+	chunk_found=sfind_large_enough_free_group(bytes_to_allocate_by_smalloc);
 	
 	if (chunk_found==NULL)
 		return NULL;
@@ -343,7 +353,7 @@ unsigned char * smalloc(long bytes_asked_to_allocate)
 		next_free=get_sheap_meta_next(chunk_found);
 		
 		//set the new metadata in the newly created chunk
-		//new_meta=(sheap_metadata*) ((unsigned char*) chunk_found + sizeof(sheap_metadata) + bytes_to_allocate + sizeof(long));
+		//new_meta=(sheap_metadata*) ((unsigned char*) chunk_found + sizeof(sheap_metadata) + bytes_to_allocate_by_smalloc + sizeof(long));
 		new_meta=(sheap_metadata*)  ((unsigned char*) chunk_found + (size_of_sheap_metadata_in_chunks + chunks_to_allocate + 1)*size_of_sheap_chunk);
 		//new_meta->in_use=0;
 		set_sheap_meta_in_use(new_meta,0);
@@ -351,7 +361,7 @@ unsigned char * smalloc(long bytes_asked_to_allocate)
 		set_sheap_meta_previous(new_meta,prev_free);
 		//new_meta->next=next_free;
 		set_sheap_meta_next(new_meta,next_free);
-		//new_meta->size=chunk_found->size - (bytes_to_allocate+sizeof(long)+sizeof(uheap_metadata));
+		//new_meta->size=chunk_found->size - (bytes_to_allocate_by_smalloc+sizeof(long)+sizeof(uheap_metadata));
 		set_sheap_meta_size(new_meta, get_sheap_meta_size(chunk_found)-(chunks_to_allocate+1+size_of_sheap_metadata_in_chunks) );
 		//*((long*)((unsigned char*)new_meta + sizeof(uheap_metadata) + new_meta->size)) = new_meta->size;		
 		set_long_int((unsigned char*) new_meta + size_in_bytes_for_sheap_metadata+get_sheap_meta_size(new_meta)*size_of_sheap_chunk,get_sheap_meta_size(new_meta));
@@ -375,9 +385,9 @@ unsigned char * smalloc(long bytes_asked_to_allocate)
 		//set the metadata in the chunk found
 		//chunk_found->in_use=1;
 		set_sheap_meta_in_use(chunk_found,1);
-		//*((long*)((unsigned char*)new_meta -sizeof(long)))=bytes_to_allocate; //write the new size
+		//*((long*)((unsigned char*)new_meta -sizeof(long)))=bytes_to_allocate_by_smalloc; //write the new size
 		set_long_int((unsigned char*) new_meta -1*size_of_sheap_chunk,chunks_to_allocate);
-		//chunk_found->size=bytes_to_allocate;
+		//chunk_found->size=bytes_to_allocate_by_smalloc;
 		set_sheap_meta_size(chunk_found,chunks_to_allocate);
 		//will set the pointers in the end
 					
@@ -435,7 +445,7 @@ unsigned char * smalloc(long bytes_asked_to_allocate)
 	NUM_OF_LOCAL_VARIABLES: 7
 		chars: 1  | names: give_entire_chunk
 		ints: 0
-		longs: 2 | names: bytes_to_allocate,chunks_to_allocate
+		longs: 2 | names: bytes_to_allocate_by_smalloc,chunks_to_allocate
 		floats: 0
 		doubles: 0
 		pointers: 4 | names: chunk_found,prev_free,next_free,new_meta
@@ -445,19 +455,21 @@ unsigned char * smalloc(long bytes_asked_to_allocate)
 	START_OF_FUNCTION : smalloc
 	
 	if (GET_STACK_LONG(bytes_asked_to_allocate)==0)
-		return NULL;
+	{
+		RETURN_POINT_OF_FUNCTION: smalloc | PYTHON PLEASE USE THIS RETURN EXPRESSION: NULL
+	}
 	
 	//optional. Should we?
 	if (GET_STACK_LONG(bytes_asked_to_allocate)%bytes_for_useful_data==0)
-		SET_STACK_LONG(bytes_to_allocate,GET_STACK_LONG(bytes_asked_to_allocate));
+		SET_STACK_LONG(bytes_to_allocate_by_smalloc,GET_STACK_LONG(bytes_asked_to_allocate));
 	else
-		SET_STACK_LONG(bytes_to_allocate,GET_STACK_LONG(bytes_asked_to_allocate)+(bytes_for_useful_data-GET_STACK_LONG(bytes_asked_to_allocate)%bytes_for_useful_data)); //let's make it a multiple of bytes_for_useful_data
+		SET_STACK_LONG(bytes_to_allocate_by_smalloc,GET_STACK_LONG(bytes_asked_to_allocate)+(bytes_for_useful_data-GET_STACK_LONG(bytes_asked_to_allocate)%bytes_for_useful_data)); //let's make it a multiple of bytes_for_useful_data
 	
-	SET_STACK_LONG(chunks_to_allocate,GET_STACK_LONG(bytes_to_allocate)/bytes_for_useful_data);
+	SET_STACK_LONG(chunks_to_allocate,GET_STACK_LONG(bytes_to_allocate_by_smalloc)/bytes_for_useful_data);
 	
 	//find, using linear search, the group that can hold the needed bytes
-	//chunk_found=sfind_large_enough_free_group(bytes_to_allocate);
-	//HEY PYTHON CALLING FUNCTION : sfind_large_enough_free_group | WRITE RESULT TO: chunk_found__securevar_SET_STACK_PTR | PARAMETERS TO CALL WITH: GET_STACK_LONG(bytes_to_allocate)
+	//chunk_found=sfind_large_enough_free_group(bytes_to_allocate_by_smalloc);
+	//HEY PYTHON CALLING FUNCTION : sfind_large_enough_free_group | WRITE RESULT TO: chunk_found__securevar_SET_STACK_PTR | PARAMETERS TO CALL WITH: GET_STACK_LONG(bytes_to_allocate_by_smalloc)
 	
 	if (GET_STACK_PTR(chunk_found)==NULL)
 	{
@@ -476,9 +488,9 @@ unsigned char * smalloc(long bytes_asked_to_allocate)
 		//chunk_found->in_use=1; //that's only what should change in the chunk in this case
 		set_sheap_meta_in_use(GET_STACK_PTR(chunk_found),1);
 		UPDATE_GLOBAL_VAR(globals.sfree_chunks_num,GET_GLOBAL_LONG(globals.sfree_chunks_num)-1);
-		//prev_free=GET_STACK_PTR(chunk_found)->previous;
+		//prev_free=chunk_found->previous;
 		SET_STACK_PTR(prev_free,get_sheap_meta_previous(GET_STACK_PTR(chunk_found)));
-		//next_free=GET_STACK_PTR(chunk_found)->next;
+		//next_free=chunk_found->next;
 		SET_STACK_PTR(next_free,get_sheap_meta_next(GET_STACK_PTR(chunk_found)));
 		
 		if (GET_STACK_PTR(prev_free)==NULL && GET_STACK_PTR(next_free)==NULL)
@@ -516,7 +528,7 @@ unsigned char * smalloc(long bytes_asked_to_allocate)
 		SET_STACK_PTR(next_free,get_sheap_meta_next(GET_STACK_PTR(chunk_found)));
 		
 		//set the new metadata in the newly created chunk
-		//new_meta=(sheap_metadata*) ((unsigned char*) chunk_found + sizeof(sheap_metadata) + bytes_to_allocate + sizeof(long));
+		//new_meta=(sheap_metadata*) ((unsigned char*) chunk_found + sizeof(sheap_metadata) + bytes_to_allocate_by_smalloc + sizeof(long));
 		SET_STACK_PTR(new_meta,(sheap_metadata*)  ((unsigned char*) GET_STACK_PTR(chunk_found) + (GET_GLOBAL_INT(globals.size_of_sheap_metadata_in_chunks) + GET_STACK_LONG(chunks_to_allocate) + 1)*size_of_sheap_chunk));
 		//new_meta->in_use=0;
 		set_sheap_meta_in_use(GET_STACK_PTR(new_meta),0);
@@ -524,7 +536,7 @@ unsigned char * smalloc(long bytes_asked_to_allocate)
 		set_sheap_meta_previous(GET_STACK_PTR(new_meta),GET_STACK_PTR(prev_free));
 		//new_meta->next=next_free;
 		set_sheap_meta_next(GET_STACK_PTR(new_meta),GET_STACK_PTR(next_free));
-		//new_meta->size=chunk_found->size - (bytes_to_allocate+sizeof(long)+sizeof(uheap_metadata));
+		//new_meta->size=chunk_found->size - (bytes_to_allocate_by_smalloc+sizeof(long)+sizeof(uheap_metadata));
 		set_sheap_meta_size(GET_STACK_PTR(new_meta), get_sheap_meta_size(GET_STACK_PTR(chunk_found))-(GET_STACK_LONG(chunks_to_allocate)+1+GET_GLOBAL_INT(globals.size_of_sheap_metadata_in_chunks)) );
 		//*((long*)((unsigned char*)new_meta + sizeof(uheap_metadata) + new_meta->size)) = new_meta->size;		
 		set_long_int((unsigned char*) GET_STACK_PTR(new_meta) + size_in_bytes_for_sheap_metadata+get_sheap_meta_size(GET_STACK_PTR(new_meta))*size_of_sheap_chunk,get_sheap_meta_size(GET_STACK_PTR(new_meta)));
@@ -548,9 +560,9 @@ unsigned char * smalloc(long bytes_asked_to_allocate)
 		//set the metadata in the chunk found
 		//chunk_found->in_use=1;
 		set_sheap_meta_in_use(GET_STACK_PTR(chunk_found),1);
-		//*((long*)((unsigned char*)new_meta -sizeof(long)))=bytes_to_allocate; //write the new size
+		//*((long*)((unsigned char*)new_meta -sizeof(long)))=bytes_to_allocate_by_smalloc; //write the new size
 		set_long_int((unsigned char*) GET_STACK_PTR(new_meta) -1*size_of_sheap_chunk,GET_STACK_LONG(chunks_to_allocate));
-		//chunk_found->size=bytes_to_allocate;
+		//chunk_found->size=bytes_to_allocate_by_smalloc;
 		set_sheap_meta_size(GET_STACK_PTR(chunk_found),GET_STACK_LONG(chunks_to_allocate));
 		//will set the pointers in the end
 					
@@ -567,11 +579,11 @@ unsigned char * smalloc(long bytes_asked_to_allocate)
 	}
 	//chunk_found->next=salloc_chunks_list;
 	set_sheap_meta_next(GET_STACK_PTR(chunk_found),GET_GLOBAL_PTR(globals.salloc_chunks_list));
-	UPDATE_GLOBAL_VAR(globals.salloc_chunks_list,GET_GLOBAL_PTR(chunk_found));
+	UPDATE_GLOBAL_VAR(globals.salloc_chunks_list,GET_STACK_PTR(chunk_found));
 	//chunk_found->previous=NULL;
 	set_sheap_meta_previous(GET_STACK_PTR(chunk_found),NULL);
 	
-	/*
+	
 	//checking calls
 	//before that, let's set the unsecure globals with the secure values since the checking functions work with them
 	
@@ -579,6 +591,7 @@ unsigned char * smalloc(long bytes_asked_to_allocate)
 	salloc_chunks_list=GET_GLOBAL_PTR(globals.salloc_chunks_list);
 	sfree_chunks_num=GET_GLOBAL_LONG(globals.sfree_chunks_num);
 	salloc_chunks_num=GET_GLOBAL_LONG(globals.salloc_chunks_num);
+	/*
 	if (GET_STACK_CHAR(give_entire_chunk)==0)
 	{
 		printf("Checking chunk..\n");
@@ -589,8 +602,8 @@ unsigned char * smalloc(long bytes_asked_to_allocate)
 	sprint_chunk(GET_STACK_PTR(chunk_found));
 	scheck_chunk(GET_STACK_PTR(chunk_found),2);
 	*/
-	//scheck_free_list_consistency(2);
-	//scheck_alloc_list_consistency(2);
+	scheck_free_list_consistency(2);
+	scheck_alloc_list_consistency(2);
 	
 	//return the start of the useful data
 	//return ((unsigned char*) chunk_found + size_in_bytes_for_sheap_metadata);
@@ -623,13 +636,13 @@ void * error_checking_smalloc_memory(long bytes_for_allocation,const char * fun_
 	NAME_OF_FUNCTION: error_checking_smalloc_memory
 	RETURN_VALUE_SIZE: ptr
 	//^FOR THE ABOVE: none/int/char etc
-	NUM_OF_PARAMETERS: 3
+	NUM_OF_PARAMETERS: 1
 		chars: 0 
-		ints: 1 | names: line
+		ints: 0
 		longs: 1 | names: bytes_for_allocation
 		floats: 0
 		doubles: 0
-		pointers: 1 | names: fun_name
+		pointers: 0
 		arb_pointers: 0
 	END_OF_PARAMETERS
 	NUM_OF_LOCAL_VARIABLES: 1
@@ -650,10 +663,10 @@ void * error_checking_smalloc_memory(long bytes_for_allocation,const char * fun_
 	}
 	
 	//ret=smalloc(bytes_for_allocation);
-	//HEY PYTHON CALLING FUNCTION: smalloc | WRITE_RESULT_TO: ret__securevar_SET_STACK_PTR | PARAMETERS_TO_CALL_WITH: GET_STACK_LONG(bytes_for_allocation)
+	//HEY PYTHON CALLING FUNCTION: smalloc | WRITE RESULT TO: ret__securevar_SET_STACK_PTR | PARAMETERS TO CALL WITH: GET_STACK_LONG(bytes_for_allocation)
 	if (GET_STACK_PTR(ret)==NULL)
 	{
-		fprintf(stderr,"Smalloc() in function %s, line %d. Requested %ld bytes. Perhaps not enough memory?\n",GET_STACK_PTR(fun_name),GET_STACK_INT(line),GET_STACK_LONG(bytes_for_allocation));
+		fprintf(stderr,"Smalloc() , Requested %ld bytes. Perhaps not enough memory?\n",GET_STACK_LONG(bytes_for_allocation));
 		exit(52);
 	}
 
@@ -881,8 +894,8 @@ void sfree_memory(void * ptr)
 	}
 	*/
 	//printf("merge next=%d,merge prev=%d\n",merge_next,merge_prev);
-	scheck_free_list_consistency(1);
-	scheck_alloc_list_consistency(1);
+	//scheck_free_list_consistency(1);
+	//scheck_alloc_list_consistency(1);
 	
 } //end of sfree_memory()
 
@@ -977,7 +990,7 @@ void sfree_memory(void * ptr)
 	
 	
 	//should we merge the next one?
-	//HEY PYTHON CALLING FUNCTION: sout_of_bounds_ptr | WRITE_RESULT_TO: temp_retval__securevar_SET_STACK_INT | PARAMETERS_TO_CALL_WITH: GET_STACK_PTR(next_in_heap)
+	//HEY PYTHON CALLING FUNCTION: sout_of_bounds_ptr | WRITE RESULT TO: temp_retval__securevar_SET_STACK_INT | PARAMETERS TO CALL WITH: GET_STACK_PTR(next_in_heap)
 	if (!GET_STACK_INT(temp_retval))
 	{
 		if (get_sheap_meta_in_use(GET_STACK_PTR(next_in_heap))==0)
@@ -987,7 +1000,7 @@ void sfree_memory(void * ptr)
 	}
 	
 	//should we merge the previous one?
-	//HEY PYTHON CALLING FUNCTION: sout_of_bounds_ptr | WRITE_RESULT_TO: temp_retval__securevar_SET_STACK_INT | PARAMETERS_TO_CALL_WITH: GET_STACK_PTR(prev_in_heap)
+	//HEY PYTHON CALLING FUNCTION: sout_of_bounds_ptr | WRITE RESULT TO: temp_retval__securevar_SET_STACK_INT | PARAMETERS TO CALL WITH: GET_STACK_PTR(prev_in_heap)
 	if (!GET_STACK_INT(temp_retval))
 	{
 		if (get_sheap_meta_in_use(GET_STACK_PTR(prev_in_heap))==0)
@@ -1018,7 +1031,7 @@ void sfree_memory(void * ptr)
 			if(get_sheap_meta_next(GET_STACK_PTR(next_in_heap))==GET_STACK_PTR(prev_in_heap))
 			{
 				; //prefect, everything is set, just:
-				UPDATE_GLOBAL_VAR(globals.sfree_chunks_list)=GET_STACK_PTR(prev_in_heap);
+				UPDATE_GLOBAL_VAR(globals.sfree_chunks_list,GET_STACK_PTR(prev_in_heap));
 				//prev_in_heap->previous=NULL;
 				set_sheap_meta_previous(GET_STACK_PTR(prev_in_heap),NULL);
 			}	
@@ -1117,7 +1130,7 @@ void sfree_memory(void * ptr)
 		}
 	}
 	
-	/*
+	
 	//checking calls
 	//before that, let's set the unsecure globals with the secure values since the checking functions work with them
 	
@@ -1125,6 +1138,7 @@ void sfree_memory(void * ptr)
 	salloc_chunks_list=GET_GLOBAL_PTR(globals.salloc_chunks_list);
 	sfree_chunks_num=GET_GLOBAL_LONG(globals.sfree_chunks_num);
 	salloc_chunks_num=GET_GLOBAL_LONG(globals.salloc_chunks_num);
+	/*
 	if (GET_STACK_CHAR(merge_next) && !GET_STACK_CHAR(merge_prev))
 	{
 	printf("Checking chunk..\n");
@@ -1134,10 +1148,12 @@ void sfree_memory(void * ptr)
 	}
 	*/
 	//printf("merge next=%d,merge prev=%d\n",GET_STACK_CHAR(merge_next),GET_STACK_CHAR(merge_prev));
-	//scheck_free_list_consistency(1);
-	//scheck_alloc_list_consistency(1);
+	scheck_free_list_consistency(1);
+	scheck_alloc_list_consistency(1);
 	
 	END_OF_FUNCTION: sfree_memory
+
+
 
 
 
