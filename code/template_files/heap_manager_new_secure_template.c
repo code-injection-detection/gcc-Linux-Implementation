@@ -74,7 +74,7 @@ FILE *sheap_keyshare_input_file;
 
 /*Returns the number of the useful chunks in memory*/
 /*This number (let it be "n") satisfies the equation <useful_bytes_chunk_length>*(n) + <keyshare_bytes_chunk_length>*(n) + <mac_bytes_chunk_length)*(n)= total_allocated_bytes */
-/*This function has to be secured?? If not , optimize with gcc!*/
+/*This function has to be secured?? (Probably not, as we only called it with a fixed size). If not , optimize with gcc!*/
 long sfind_number_of_useful_chunks(long allocated_bytes) 
 {
   long a=allocated_bytes;
@@ -521,7 +521,7 @@ void sfree_memory(void * ptr)
 		
 		//prev_in_heap->size= prev_in_heap->size+ sizeof(long) + sizeof(sheap_metadata) + chunk_meta->size+sizeof(long) + sizeof(sheap_metadata) + next_in_heap->size;
 		//be careful! in chunks!
-		set_sheap_meta_size(prev_in_heap,get_sheap_meta_size(prev_in_heap) + 1 + size_of_sheap_metadata_in_chunks + get_sheap_meta_size(chunk_meta) + 1 + size_of_sheap_metadata_in_chunks + get_sheap_meta_size(next_in_heap) );
+		set_sheap_meta_size(prev_in_heap,get_sheap_meta_size(prev_in_heap) + 1 + 2*size_of_sheap_metadata_in_chunks + get_sheap_meta_size(chunk_meta) + 1  + get_sheap_meta_size(next_in_heap) );
 		//*((long*)((unsigned char*) next_in_heap + sizeof(uheap_metadata) + next_in_heap->size))=prev_in_heap->size;
 		set_long_int((unsigned char*) next_in_heap+size_in_bytes_for_sheap_metadata + get_sheap_meta_size(next_in_heap)*size_of_sheap_chunk, get_sheap_meta_size(prev_in_heap) );
 		sfree_chunks_num--;

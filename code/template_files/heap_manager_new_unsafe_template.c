@@ -271,7 +271,7 @@ void ufree_memory(void * ptr)
 		}
 		
 		
-		prev_in_heap->size= prev_in_heap->size+ sizeof(long) + sizeof(uheap_metadata) + chunk_meta->size+sizeof(long) + sizeof(uheap_metadata) + next_in_heap->size;
+		prev_in_heap->size= prev_in_heap->size+ sizeof(long) + 2*sizeof(uheap_metadata) + chunk_meta->size+sizeof(long)  + next_in_heap->size;
 		*((long*)((unsigned char*) next_in_heap + sizeof(uheap_metadata) + next_in_heap->size))=prev_in_heap->size;
 		ufree_chunks_num--;
 	}

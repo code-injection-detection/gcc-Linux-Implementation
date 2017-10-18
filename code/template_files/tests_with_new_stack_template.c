@@ -20,6 +20,9 @@ void great_function_that_wraps_the_tests()
 	/**********************************************************************************/
 	
 	
+	//PYTHON PLEASE PLACE THE HEAP MANAGER FUNCTIONS HERE
+	
+	
 	/****************************test_custom_function_sum*****************************/
 	
 	//PLEASE PYTHON INIT A FUNCTION HERE
@@ -523,9 +526,8 @@ void great_function_that_wraps_the_tests()
 			{
 				 SET_STACK_INT(ISMINUS,(-1)*GET_STACK_INT(ISMINUS)); 
 			}
-			 long determinant_result;
-			 //HEY PYTHON CALLING FUNCTION : calc_determinant_sec | WRITE RESULT TO: determinant_result |PARAMETERS TO CALL WITH: GET_STACK_INT(DIM)-1,SUBMATRIX
-			 SET_STACK_LONG(DET_RESULT,determinant_result);
+			//securevar means when writing result back, use custom setter. And after that, the name of the setter follows
+			 //HEY PYTHON CALLING FUNCTION : calc_determinant_sec | WRITE RESULT TO: DET_RESULT__securevar_SET_STACK_LONG |PARAMETERS TO CALL WITH: GET_STACK_INT(DIM)-1,SUBMATRIX
 			 set_stack_long_int_array_element(SUBDETS,GET_STACK_INT(J),GET_STACK_INT(ISMINUS)*GET_STACK_LONG(DET_RESULT));
 		}
 		SET_STACK_LONG(D,0);
@@ -539,8 +541,6 @@ void great_function_that_wraps_the_tests()
 	}
 			
 	END_OF_FUNCTION: calc_determinant_sec
-	
-	
 	
 	
 	

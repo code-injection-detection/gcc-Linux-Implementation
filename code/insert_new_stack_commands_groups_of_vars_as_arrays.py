@@ -161,6 +161,23 @@ def find_name_of_setter(type_of_var,use_array=1):
 		name_of_setter+='_array_element'
 	return name_of_setter
 	
+def find_name_of_stack_setter_in_caps(type_of_var):
+	name_of_setter='SET_STACK_'
+	if( type_of_var=='long' or type_of_var=='long int'):
+		name_of_setter+='LONG'
+	if ( type_of_var=='pointer' or type_of_var=='ptr'):
+		name_of_setter+='PTR'
+	if ( type_of_var=='int'):
+		name_of_setter+='INT'
+	if ( type_of_var=='float'):
+		name_of_setter+='FLOAT'
+	if ( type_of_var=='double'):
+		name_of_setter+='DOUBLE'
+	if ( type_of_var=='char'):
+		name_of_setter+='CHAR'
+	return name_of_setter
+
+
 
 def find_type_of_var_in_C(type_of_var):
 	name_of_var_in_c=type_of_var
@@ -199,7 +216,7 @@ def calc_size_of_fun_in_stack():
 	
 	
 	
-def add_code_for_function_calling(fun_name,write_to,params):
+def add_code_for_function_calling(fun_name,write_to,params,use_secure_stack_setter_for_result,given_setter_to_use_to_write_retval):
 	global all_functions_dict
 	
 	fun_dict=all_functions_dict[fun_name]
@@ -255,8 +272,12 @@ def add_code_for_function_calling(fun_name,write_to,params):
 	#write result to
 	if (fun_dict['return_value_type']!='' and fun_dict['return_value_type'].lower()!='none' and fun_dict['return_value_type'].lower!='null'):
 		name_of_getter=find_name_of_getter(fun_dict['return_value_type'],0)
-		#now using last_unused_stack_memory (the stack pointer), and not returned_addr_after_allocating, since it might have changed after the call
-		lines_to_append.append(write_to+'='+name_of_getter+'(last_unused_stack_memory+('+chunks_for_params+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
+		if (use_secure_stack_setter_for_result):
+			name_of_setter=given_setter_to_use_to_write_retval
+			lines_to_append.append(name_of_setter+'('+write_to+','+name_of_getter+'(last_unused_stack_memory+('+chunks_for_params+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)));\n')
+		else:	
+			#now using last_unused_stack_memory (the stack pointer), and not returned_addr_after_allocating, since it might have changed after the call
+			lines_to_append.append(write_to+'='+name_of_getter+'(last_unused_stack_memory+('+chunks_for_params+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
 	for line in lines_to_append:
 		dst_lines.append(line)
 	
@@ -342,9 +363,11 @@ def add_the_function_footer(bool_for_undef):
 	for line in lines_to_append:
 		dst_lines.append(line)
 		
+
+str_for_new_ret_exp="PYTHON PLEASE USE THIS RETURN EXPRESSION"	
 		
 #set the return value
-def copy_result_to_return_space():
+def copy_result_to_return_space(line_of_return):
 	global function_dict
 	
 	chunks_for_params=function_dict['chunks_for_params']
@@ -357,7 +380,11 @@ def copy_result_to_return_space():
 	start_of_return_place='base_pointer_for_stack-('+str(int(chunks_for_return_address)+int(chunks_for_return_value))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
 	if (function_dict['return_value_type']!='' and function_dict['return_value_type'].lower()!='none' and function_dict['return_value_type'].lower!='null'):
 		setter_name=find_name_of_setter(function_dict['return_value_type'],0)
-		lines_to_append.append(setter_name+'(('+start_of_return_place+'),'+function_dict['return_expression']+');\n')
+		if (str_for_new_ret_exp in line_of_return):
+			new_return_expression=line_of_return.split('|')[1].strip().split(str_for_new_ret_exp)[1].strip()
+			lines_to_append.append(setter_name+'(('+start_of_return_place+'),'+new_return_expression+');\n')
+		else:	
+			lines_to_append.append(setter_name+'(('+start_of_return_place+'),'+function_dict['return_expression']+');\n')
 	for line in lines_to_append:
 		dst_lines.append(line)
 
@@ -458,15 +485,21 @@ for line in src_lines:
 	if (call_of_function_str) in line:
 		function_name=line.split('|')[0].strip().split(':')[1].strip()
 		num_of_params=int(all_functions_dict[function_name]['num_of_parameters'])
+		put_result_var_in_secure_stack=0
+		given_setter_to_use_to_write_retval=''
 		if (write_result_to_str in line):
 			write_result_to_currently_called=line.split('|')[1].strip().split(':')[1].strip()
+			if ('__securevar_' in write_result_to_currently_called):
+				put_result_var_in_secure_stack=1
+				given_setter_to_use_to_write_retval=write_result_to_currently_called.split('__securevar_')[1].strip()
+				write_result_to_currently_called=write_result_to_currently_called.split('__securevar_')[0].strip()
 			if (parameters_for_calling_str in line):
 				list_of_params_currently_called=line.split('|')[2].strip().split(':')[1].strip().split(',')
 		else:
 			if (parameters_for_calling_str in line):
 				list_of_params_currently_called=line.split('|')[1].strip().split(':')[1].strip().split(',')
 		dst_lines.append(line)
-		add_code_for_function_calling(function_name,write_result_to_currently_called,list_of_params_currently_called)
+		add_code_for_function_calling(function_name,write_result_to_currently_called,list_of_params_currently_called,put_result_var_in_secure_stack,given_setter_to_use_to_write_retval)
 		if (function_name==function_dict['name']):
 			function_dict['num_of_times_called_in_code']=str(int(function_dict['num_of_times_called_in_code'])+1)
 		else:
@@ -474,7 +507,7 @@ for line in src_lines:
 		continue
 	
 	if (return_point_of_function_str in line) and (in_function_code==1):
-		copy_result_to_return_space()
+		copy_result_to_return_space(line)
 		add_the_function_footer(0) #don't undef!
 		continue
 		
