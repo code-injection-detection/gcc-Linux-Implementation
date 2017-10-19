@@ -271,7 +271,8 @@ echo "Copying header files, secure getters/setters, crypto functions and initial
 echo "Copied these files."
 
 echo "Creating headers.h for compilation of encryption calculators, as well as the crypto initializer... "
-	./insert_keys_and_macs_among_globals.py $NUM_OF_INTERLEAVED_KEYS $DECLARE_GLOBAL_KEYS_AS_AN_ARRAY $NUM_OF_GLOBAL_USEFUL_BYTES $NUM_OF_MAC_BYTES $SQEEZE_KEYS_WHEN_MACING 1 #use only for headers_needed.h
+	DO_STUFF_FOR_HEADERS_NEEDED_ONLY=1
+	./insert_keys_and_macs_among_globals.py $NUM_OF_INTERLEAVED_KEYS $DECLARE_GLOBAL_KEYS_AS_AN_ARRAY $NUM_OF_GLOBAL_USEFUL_BYTES $NUM_OF_MAC_BYTES $SQEEZE_KEYS_WHEN_MACING $DO_STUFF_FOR_HEADERS_NEEDED_ONLY #use only for headers_needed.h
 echo "Created headers.h for compilation of encryption calculators, as well as the crypto initializer."
 
 
@@ -311,10 +312,11 @@ echo "Compiled hash and encryption calculators, and the crypto initializer."
 
 if [ "$SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS" != "0" ]; then
 	echo "Inserting keys among global variables and copying some templates...."
-	#first we recreate headers_needed.h from it template. We do that because if we try to find globals in "headers_needed.h" twice, the second time there are no annotations fot the globals.
+	#first we recreate headers_needed.h from its template. We do that because if we try to find globals in "headers_needed.h" twice, the second time there are no annotations for the globals.
 	eval $SET_PROPER_DEFINES
 	#this secures the data segment
-	./insert_keys_and_macs_among_globals.py $NUM_OF_INTERLEAVED_KEYS $DECLARE_GLOBAL_KEYS_AS_AN_ARRAY $NUM_OF_GLOBAL_USEFUL_BYTES $NUM_OF_MAC_BYTES $SQEEZE_KEYS_WHEN_MACING 0 
+	DO_STUFF_FOR_HEADERS_NEEDED_ONLY=0
+	./insert_keys_and_macs_among_globals.py $NUM_OF_INTERLEAVED_KEYS $DECLARE_GLOBAL_KEYS_AS_AN_ARRAY $NUM_OF_GLOBAL_USEFUL_BYTES $NUM_OF_MAC_BYTES $SQEEZE_KEYS_WHEN_MACING $DO_STUFF_FOR_HEADERS_NEEDED_ONLY # 0 means: do
 	echo "Inserted keys among global variables and copied some templates."
 else
 	echo "Copying templates to target files"
