@@ -76,14 +76,10 @@ bytes_to_be_maced=[]
 value_of_useless_bytes=1
 global_variable_values=[]
 squeeze_keys_when_macing=0
+do_stuff_for_headers_needed_only=0 # should we only create the header file (headers_needed.h) or do the job for every file?
 
-if (len(sys.argv)!=6):
+if (len(sys.argv)!=7):
 	print("insert_keys_among_globals:Wrong number of arguments.")
-	print("Usage:"+str(sys.argv[0])+ "<a> <b> <c> <d>")
-	print("Where a=number of interleaved keys")
-	print("b=Whether (1) or not (0) to insert the keys in one line as an array")
-	print("c=The size of the useful bytes that are left between keyshares")
-	print("d=The number of the mac bytes to insert after the keyshares")
 	sys.exit(1)
 else:
 	number_of_keys=int(sys.argv[1])
@@ -91,6 +87,7 @@ else:
 	useful_bytes_size=int(sys.argv[3])
 	num_of_mac_bytes=int(sys.argv[4])
 	squeeze_keys_when_macing=int(sys.argv[5])
+	do_stuff_for_headers_needed_only=int(sys.argv[6])
 	
 	
 #functionality for some var types. For example const. Use with caution, not guaranteed to work.
@@ -139,15 +136,18 @@ def enlarge_mac_if_needed(MAC):
 def get_mac_from_c_code(MAC):
 	global bytes_to_be_maced
 	
-	program='./calc_mac_for_external_programs'
-	mac_as_str=[str(i) for i in bytes_to_be_maced]
-	args=[program,str(len(bytes_to_be_maced)),str(useful_bytes_size)]
-	for i in mac_as_str:
-		args.append(i)
-	process = Popen(args, stdout=PIPE, stderr=PIPE)
-	mac_out=process.stdout.read()
-	for i in list(mac_out.split()):
-		MAC.append(int(i.decode('ascii')))
+	if (do_stuff_for_headers_needed_only==1): #no mac calulation here, the program does not even exist
+		MAC=[0]*num_of_mac_bytes
+	else:
+		program='./calc_mac_for_external_programs'
+		mac_as_str=[str(i) for i in bytes_to_be_maced]
+		args=[program,str(len(bytes_to_be_maced)),str(useful_bytes_size)]
+		for i in mac_as_str:
+			args.append(i)
+		process = Popen(args, stdout=PIPE, stderr=PIPE)
+		mac_out=process.stdout.read()
+		for i in list(mac_out.split()):
+			MAC.append(int(i.decode('ascii')))
 
 #for one chunk of useful bytes, adds the keys and the macs (uninitialized)
 def add_keys_and_macs(var_type):
@@ -317,6 +317,8 @@ var_size=1
 
 #insert keys among the global variables in the code, by searching for canary strings
 for fileindex,filein in enumerate(inputfiles):
+	if (do_stuff_for_headers_needed_only==1 and filein!="headers_needed.h"):
+		continue
 	#read lines
 	filehandler=open(filein,'r')
 	filelines_in = filehandler.readlines()
