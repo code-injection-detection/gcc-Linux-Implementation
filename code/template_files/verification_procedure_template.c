@@ -94,6 +94,8 @@ void find_keyshares(int choice)
 	char keyout_buffer[KEYOUT_BUFFER_SIZE];
 	long place_in_keyout_buf=0;
 	long code_key_groups_found=0;
+	unsigned char * start_of_heap=entire_memory_chunk;
+	long size_of_heap=total_bytes_allocated;
 
 	unsigned char* start_of_text=(unsigned char*)&__executable_start;  //we get the limits of .text section
 	unsigned char* end_of_text=(unsigned char*)&__etext;
@@ -137,9 +139,15 @@ void find_keyshares(int choice)
 	}
 	printf("Total key groups found in code:%ld\n",code_key_groups_found);
 
+	if (use_new_secure_heap)
+	{
+		start_of_heap=(unsigned char*)GET_GLOBAL_PTR(globals.secure_heap);
+		size_of_heap=total_sheap_bytes_allocated;
+	}
+
 	//taking into account the heap keys
 	type_of_bytes=0;
-	for (p=entire_memory_chunk,heap_cnt=0;heap_cnt<total_bytes_allocated;)
+	for (p=start_of_heap,heap_cnt=0;heap_cnt<size_of_heap;)
 	{
 
 		if (type_of_bytes==0) //useful

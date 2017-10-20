@@ -6,14 +6,24 @@
 
 void check_heap_macs()
 {
-	unsigned char *p=entire_memory_chunk;
+	unsigned char *p;
 	int error=0;
 	
-	while (p<entire_memory_chunk+total_bytes_allocated)
+	unsigned char *start_of_heap=entire_memory_chunk;
+	long size_of_heap=total_bytes_allocated;
+	
+	if (use_new_secure_heap)
+	{
+		start_of_heap=GET_GLOBAL_PTR(globals.secure_heap);
+		size_of_heap=total_sheap_bytes_allocated;
+	}
+	p=start_of_heap;
+		
+	while (p<start_of_heap+size_of_heap)
 	{
 		if(!ignore_macs_even_if_there_are_mac_bytes && check_mac_for_error(p,bytes_for_useful_data+bytes_used_for_keyshares,bytes_for_useful_data))
 		{	
-			fprintf(stderr,"Error in heap macs, p=%ld, start of secure heap=%ld\n",(long) p,(long)entire_memory_chunk);
+			fprintf(stderr,"Error in heap macs, p=%ld, start of secure heap=%ld\n",(long) p,(long)start_of_heap);
 			error=1;
 		}
 		p+=bytes_for_useful_data+bytes_used_for_keyshares+number_of_mac_bytes;
