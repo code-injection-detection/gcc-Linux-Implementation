@@ -7,6 +7,36 @@ long global_variable_for_what_is_under_rsp;
 long temp_stack_for_verification[1000];
 
 
+void first_function_in_secure_program()
+{
+	//we need to make this function large enough that it covers more than one block, when the minimum amount of splits is done
+	int x;
+	#define cmd x=1
+
+	#define ten(a)     a;a;a;a;a;a;a;a;a;a;
+	#define hundred(a) ten(ten(a))
+	#define thousand(a) ten(hundred(a))
+	
+	#if num_of_bytes_in_code_chunk<100
+		hundred(cmd);
+		hundred(cmd);
+	#elif num_of_bytes_in_code_chunk<1000
+		thousand(cmd);
+		thousand(cmd);
+	#elif num_of_bytes_in_code_chunk<10000
+		ten(thousand(cmd));
+		ten(thousand(cmd));
+	#else
+		hundred(thousand(cmd));
+	#endif
+	
+	#undef cmd
+	#undef ten
+	#undef hundred
+	#undef thousand
+}
+
+
 void * error_checking_malloc(long size_in_bytes, const char * fun_name,int line)
 {
 	void * ret;
