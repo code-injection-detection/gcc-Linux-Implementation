@@ -5,6 +5,7 @@ import json
 import sys
 import re
 import platform
+import copy
 
 from pycparser import parse_file, c_ast, c_parser
 from pycparser.plyparser import Coord
@@ -116,6 +117,8 @@ def identify_type(type_of_param):
 		return 'char'
 	if 'void' in type_of_param:
 		return 'none'
+	if 'ptr' in type_of_param:
+		return 'ptr'
 	
 
 
@@ -158,14 +161,20 @@ with open('ast', 'rb') as f:
 where_functions_start=ast_dict["ext"]
 
 for item in where_functions_start:
+	
 	if item["_nodetype"]=="FuncDef":
 		#we have a function definition!
+		if current_function_dict!={}:
+			all_functions_dict[current_function_dict["name"]]=copy.deepcopy(current_function_dict)
 		current_function_dict={}
 		fun_metadata=item["decl"]
 		
 		#name + return type
 		current_function_dict["name"]=fun_metadata["name"]
-		return_type=fun_metadata["type"]["type"]["type"]["names"][0]
+		if fun_metadata["type"]["type"]["_nodetype"]=="PtrDecl":
+			return_type='ptr'
+		else:	
+			return_type=fun_metadata["type"]["type"]["type"]["names"][0]
 		current_function_dict["return_type"]=identify_type(return_type)
 		
 		#names, numbers of params
@@ -177,7 +186,7 @@ for item in where_functions_start:
 			current_function_dict["params"][type_of_var]["number"]=0
 			if type_of_var=='ptr':
 				current_function_dict["params"][type_of_var]["size_of_pointed_elements"]=[]
-		if fun_metadata["type"]["args"]!="null":
+		if fun_metadata["type"]["args"]!=None:
 			fun_params=fun_metadata["type"]["args"]["params"]
 			for param in fun_params:
 				name_of_param=param["name"]
@@ -196,10 +205,48 @@ for item in where_functions_start:
 					elif (param["type"]["type"]["_nodetype"]=="TypeDecl"):
 						size_of_pointed_elem=process_var_size(param["type"]["type"]["type"]["names"][0])
 					else:
-						sys.stderr.write("ERROR in finding the parameter size.\n")
+						sys.stderr.write("ERROR in finding the parameter size for parameters.\n")
 						exit(-1)
 					current_function_dict["params"][our_type_of_param]["size_of_pointed_elements"].append(size_of_pointed_elem)
 					
+					
+		#local vars
+		fun_body=item["body"]["block_items"]
+		fun_locals=[]
+		current_function_dict["locals"]={}
+		for type_of_var in ['char','int','long','float','double','ptr','arb_ptr']:
+			current_function_dict["locals"][type_of_var]={}
+			current_function_dict["locals"][type_of_var]["names"]=[]
+			current_function_dict["locals"][type_of_var]["number"]=0
+			if type_of_var=='ptr':
+				current_function_dict["locals"][type_of_var]["size_of_pointed_elements"]=[]
+				
+		for possible_decl in fun_body:
+			if (possible_decl["_nodetype"]=="Decl"):
+				name_of_local_var=possible_decl["name"]
+				if "names" in  possible_decl["type"]["type"]: #see if it's a simple variable
+					type_of_local_var=possible_decl["type"]["type"]["names"]
+					our_type_of_possible_decl=identify_type(type_of_local_var)
+				elif possible_decl["type"]["_nodetype"]=="PtrDecl": #it's probably a pointer to something
+					our_type_of_possible_decl ='ptr'
+				current_function_dict["locals"][our_type_of_possible_decl]["number"]+=1
+				current_function_dict["locals"][our_type_of_possible_decl]["names"].append(name_of_local_var)
+				if our_type_of_possible_decl=='ptr':
+					#DEFINITELY make a case for arb_ptr in the future
+					#see the size of the pointed element
+					if (possible_decl["type"]["type"]["_nodetype"]=="PtrDecl"):
+						size_of_pointed_elem=8
+					elif (possible_decl["type"]["type"]["_nodetype"]=="TypeDecl"):
+						size_of_pointed_elem=process_var_size(possible_decl["type"]["type"]["type"]["names"][0])
+					else:
+						sys.stderr.write("ERROR in finding the parameter size for locals.\n")
+						exit(-1)
+					current_function_dict["locals"][our_type_of_possible_decl]["size_of_pointed_elements"].append(size_of_pointed_elem)
+	
+
+if current_function_dict!={}:
+	all_functions_dict[current_function_dict["name"]]=copy.deepcopy(current_function_dict)
+	current_function_dict={}
 			
-print(current_function_dict)
+print(all_functions_dict)
 		
