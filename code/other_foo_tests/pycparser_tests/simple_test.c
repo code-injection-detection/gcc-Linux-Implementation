@@ -19,11 +19,19 @@ char another_function(int a, char b, float * c, char** d)
 }
 */
 
-void another_function(float e)
+void another_function()
 {
 	
-	int *a;
-	char * b;
-	long c,k,l,m;
-	int d;
+	int a;
+	//char * b;
+	//long c,k,l,m;
+	//int d;
+	a=1;
 }
+
+/*int hm_fun( char m)
+{
+	int f;
+	return 1;
+}
+*/
