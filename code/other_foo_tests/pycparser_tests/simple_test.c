@@ -22,11 +22,16 @@ char another_function(int a, char b, float * c, char** d)
 void another_function()
 {
 	
-	int a;
+	int a,b;
 	//char * b;
 	//long c,k,l,m;
 	//int d;
 	a=1;
+	b=a;
+	if (b==a)
+	{
+		a=2;
+	}
 }
 
 /*int hm_fun( char m)
