@@ -1,4 +1,4 @@
-
+/*
 int a_function(int x, int y)
 {
     long sum;
@@ -12,7 +12,7 @@ int a_function(int x, int y)
 
     //return ((int)sum);
 }
-
+*/
 
 /*
 char another_function(int a, char b, float * c, char** d)
@@ -37,7 +37,7 @@ void another_function()
 	}
 }*/
 
-int global_a;
+int global_a,global_m;
 char global_b;
 char * global_c;
 char ** global_d;

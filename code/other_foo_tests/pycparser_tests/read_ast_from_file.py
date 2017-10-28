@@ -6,8 +6,9 @@ import sys
 import re
 import platform
 import copy
+import gc
 
-from pycparser import parse_file, c_ast, c_parser
+from pycparser import parse_file, c_ast, c_parser,c_generator
 from pycparser.plyparser import Coord
 
 RE_CHILD_ARRAY = re.compile(r'(.*)\[(.*)\]')
@@ -42,7 +43,6 @@ def child_attrs_of(klass):
 	non_child_attrs = set(klass.attr_names)
 	all_attrs = set([i for i in klass.__slots__ if not RE_INTERNAL_ATTR.match(i)])
 	return all_attrs - non_child_attrs
-
 
 
 def to_dict(node):
@@ -88,6 +88,55 @@ def to_dict(node):
 
 	return result
 
+def _parse_coord(coord_str):
+    """ Parse coord string (file:line[:column]) into Coord object. """
+    if coord_str is None:
+        return None
+
+    vals = coord_str.split(':')
+    vals.extend([None] * 3)
+    filename, line, column = vals[:3]
+    return Coord(filename, line, column)
+
+
+def _convert_to_obj(value):
+    """
+    Convert an object in the dict representation into an object.
+    Note: Mutually recursive with from_dict.
+
+    """
+    value_type = type(value)
+    if value_type == dict:
+        return from_dict(value)
+    elif value_type == list:
+        return [_convert_to_obj(item) for item in value]
+    else:
+        # String
+        return value
+
+
+def from_dict(node_dict):
+    """ Recursively build an ast from dict representation """
+    class_name = node_dict.pop('_nodetype')
+
+    klass = getattr(c_ast, class_name)
+
+    # Create a new dict containing the key-value pairs which we can pass
+    # to node constructors.
+    objs = {}
+    for key, value in node_dict.items():
+        if key == 'coord':
+            objs[key] = _parse_coord(value)
+        else:
+            objs[key] = _convert_to_obj(value)
+
+    # Use keyword parameters, which works thanks to beautifully consistent
+    # ast Node initializers.
+    return klass(**objs)
+
+def from_json(ast_json):
+    """ Build an ast from json string representation """
+    return from_dict(json.loads(ast_json))
 
 
 #------------------------------------------------------------------------------
@@ -538,6 +587,19 @@ class CGenerator(object):
 
 
 
+def get_original_lines_in_C_of_ext_object(name_of_object):
+	#isolates this 'ext' item in the json, recreates the ast and convers back to C
+	new_ast_dict=copy.deepcopy(ast_dict)
+	#delete all stuff before object
+	while(name_of_object not in new_ast_dict['ext'][0]['name']):
+		del new_ast_dict['ext'][0]
+	#delete all stuff after object
+	while(len(new_ast_dict['ext'])>1 and name_of_object not in new_ast_dict['ext'][1]['name']):
+		del new_ast_dict['ext'][1]
+	new_ast = from_dict(new_ast_dict)
+	generator = c_generator.CGenerator()
+	original_c_lines=generator.visit(new_ast)
+	return (original_c_lines)
 
 
 def identify_type(type_of_param):
@@ -674,10 +736,29 @@ def find_total_number_of_locals(func_dict):
 def give_name_for_func_declaration_of_type(type_of_var):
 	if (type_of_var=='ptr'):
 		return 'pointers'
-	if (type_of_var=='arb_ptr'):
+	elif (type_of_var=='arb_ptr'):
 		return 'arb_pointers'
 	else:
 		return (type_of_var+'s')
+
+
+def give_global_definition():
+	global_def=''
+	for type_of_var in ['char','int','long','float','double','ptr','arb_ptr']:
+		for i,name_of_global_var in enumerate(globals_dict[type_of_var]["names"]):
+			s=''
+			s+='//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:'
+			if (type_of_var=='ptr'):
+				s+='pointer'
+			elif (type_of_var=='arb_ptr'):
+				s+='arb_pointer'
+			else:
+				s+=type_of_var
+			s+='\n'
+			s+=globals_dict[type_of_var]["original_c_decl"][i]+"\n"
+			global_def+=s
+	return (global_def)
+			
 
 def create_secure_function_decl(name_of_fun):
 	func_dict=all_functions_dict[name_of_fun]
@@ -758,6 +839,7 @@ with open('ast', 'rb') as f:
 for type_of_var in ['char','int','long','float','double','ptr','arb_ptr']:
 	globals_dict[type_of_var]={}
 	globals_dict[type_of_var]["names"]=[]
+	globals_dict[type_of_var]["original_c_decl"]=[]
 	globals_dict[type_of_var]["number"]=0
 	if type_of_var=='ptr':
 		globals_dict[type_of_var]["size_of_pointed_elements"]=[]
@@ -802,7 +884,7 @@ for item in where_functions_start:
 				current_function_dict["params"][our_type_of_param]["number"]+=1
 				current_function_dict["params"][our_type_of_param]["names"].append(name_of_param)
 				if our_type_of_param=='ptr':
-					#DEFINITELY make a case for arb_ptr in the future
+					#DEFINITELY make a case for arb_ptr in the future !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 					#see the size of the pointed element
 					if (param["type"]["type"]["_nodetype"]=="PtrDecl"):
 						size_of_pointed_elem=8
@@ -836,7 +918,7 @@ for item in where_functions_start:
 				current_function_dict["locals"][our_type_of_possible_decl]["number"]+=1
 				current_function_dict["locals"][our_type_of_possible_decl]["names"].append(name_of_local_var)
 				if our_type_of_possible_decl=='ptr':
-					#DEFINITELY make a case for arb_ptr in the future
+					#DEFINITELY make a case for arb_ptr in the future !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 					#see the size of the pointed element
 					if (possible_decl["type"]["type"]["_nodetype"]=="PtrDecl"):
 						size_of_pointed_elem=8
@@ -850,14 +932,19 @@ for item in where_functions_start:
 	if item["_nodetype"]=="Decl":
 		#global declaration
 		name_of_global=item["name"]
+		original_c_lines_for_global=get_original_lines_in_C_of_ext_object(name_of_global)
+		gc.collect()
+		print(original_c_lines_for_global)
 		type_of_global=''
 		if item["type"]["_nodetype"]=='TypeDecl':
 			type_of_global=item["type"]["type"]["names"][0]
 			globals_dict[identify_type(type_of_global)]["names"].append(name_of_global)
+			globals_dict[identify_type(type_of_global)]["original_c_decl"].append(original_c_lines_for_global)
 			globals_dict[identify_type(type_of_global)]["number"]+=1
 		elif item["type"]["_nodetype"]=='PtrDecl':
 			type_of_global='ptr'
 			globals_dict[identify_type(type_of_global)]["names"].append(name_of_global)
+			globals_dict[identify_type(type_of_global)]["original_c_decl"].append(original_c_lines_for_global)
 			globals_dict[identify_type(type_of_global)]["number"]+=1
 			if (item["type"]["type"]["_nodetype"]=="PtrDecl"):
 				size_of_pointed_elem=8
@@ -883,6 +970,7 @@ for i,fun in enumerate(all_functions_dict):
 print("")
 print("globals:")
 print(globals_dict)
+print(give_global_definition())
 
 generator = CGenerator()
 print(generator.visit(ast))
