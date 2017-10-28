@@ -1,7 +1,10 @@
-/*
+
 int a_function(int x, int y)
 {
     long sum;
+	char d;
+	char *m;
+	float mm;
 
     //sum=x+y;
     //if (sum==100)
@@ -9,7 +12,7 @@ int a_function(int x, int y)
 
     //return ((int)sum);
 }
-*/
+
 
 /*
 char another_function(int a, char b, float * c, char** d)
@@ -41,12 +44,12 @@ char ** global_d;
 void * global_e;
 
 
-
+/*
 void * hm_fun( char m)
 {
 	void * f;
 	global_b=1;
-	global_c=*global_d+1;
+	global_c=(unsigned char*)(*global_d)+1;
 	return 1;
 }
-
+*/

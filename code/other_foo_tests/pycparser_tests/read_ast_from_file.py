@@ -659,6 +659,85 @@ def find_name_of_stack_setter_in_caps(type_of_var):
 	return name_of_setter
 
 
+def find_total_number_of_parameters(func_dict):
+	num=0
+	for type_of_var in ['char','int','long','float','double','ptr','arb_ptr']:
+		num+=func_dict['params'][type_of_var]["number"]
+	return num
+
+def find_total_number_of_locals(func_dict):
+	num=0
+	for type_of_var in ['char','int','long','float','double','ptr','arb_ptr']:
+		num+=func_dict['locals'][type_of_var]["number"]
+	return num
+
+def give_name_for_func_declaration_of_type(type_of_var):
+	if (type_of_var=='ptr'):
+		return 'pointers'
+	if (type_of_var=='arb_ptr'):
+		return 'arb_pointers'
+	else:
+		return (type_of_var+'s')
+
+def create_secure_function_decl(name_of_fun):
+	func_dict=all_functions_dict[name_of_fun]
+	secure_fun_name=name_of_fun+"_sec"
+	func_decl=""
+	func_decl+="/************* "+secure_fun_name+" ********************/\n"
+	func_decl+="//HEY PYTHON PLEASE INIT A FUNCTION HERE\n"
+	func_decl+="NAME_OF_FUNCTION:"+ secure_fun_name+"\n"
+	func_decl+="RETURN_VALUE_SIZE:"+ func_dict["return_type"]+"\n"
+	func_decl+="//^FOR THE ABOVE: none/int/char etc\n"
+	func_decl+="NUM_OF_PARAMETERS:"+ str(find_total_number_of_parameters(func_dict))+"\n"
+	#now do all the parameters
+	for type_of_var in ['char','int','long','float','double','ptr','arb_ptr']:
+		s=''
+		num_of_type=func_dict['params'][type_of_var]['number']
+		if num_of_type==0:
+			s+=give_name_for_func_declaration_of_type(type_of_var)+': 0'
+		else:
+			s+=give_name_for_func_declaration_of_type(type_of_var)+': ' + str(num_of_type) +' | names:'
+			for i in range(num_of_type-1):
+				s+=func_dict['params'][type_of_var]['names'][i] +","
+			s+=func_dict['params'][type_of_var]['names'][num_of_type-1]
+			if (type_of_var=='ptr'):
+				#!!!!!!!!!!!!!!! what about arb_ptr?
+				s+='| size_of_pointed_elements: '
+				for i in range(num_of_type-1):
+					s+=str(func_dict['params'][type_of_var]['size_of_pointed_elements'][i]) +","
+				s+=str(func_dict['params'][type_of_var]['size_of_pointed_elements'][num_of_type-1])
+				#SOS arb_ptr with size_of_objects!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		s+='\n'
+		func_decl+=s
+	func_decl+="END_OF_PARAMETERS\n"
+
+	func_decl+="NUM_OF_LOCAL_VARIABLES:"+ str(find_total_number_of_locals(func_dict))+"\n"
+	#now do all the parameters
+	for type_of_var in ['char','int','long','float','double','ptr','arb_ptr']:
+		s=''
+		num_of_type=func_dict['locals'][type_of_var]['number']
+		if num_of_type==0:
+			s+=give_name_for_func_declaration_of_type(type_of_var)+': 0'
+		else:
+			s+=give_name_for_func_declaration_of_type(type_of_var)+': ' + str(num_of_type) +' | names:'
+			for i in range(num_of_type-1):
+				s+=func_dict['locals'][type_of_var]['names'][i] +","
+			s+=func_dict['locals'][type_of_var]['names'][num_of_type-1]
+			if (type_of_var=='ptr'):
+				#!!!!!!!!!!!!!!! what about arb_ptr?
+				s+='| size_of_pointed_elements: '
+				for i in range(num_of_type-1):
+					s+=str(func_dict['locals'][type_of_var]['size_of_pointed_elements'][i]) +","
+				s+=str(func_dict['locals'][type_of_var]['size_of_pointed_elements'][num_of_type-1])
+				#SOS arb_ptr with size_of_objects!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		s+='\n'
+		func_decl+=s
+	func_decl+="END_OF_LOCAL_VARIABLES\n"
+	#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! FIX RETURN EXPRESSION!
+	func_decl+="RETURN_EXPRESSION:" +"\n"
+	func_decl+="START_OF_FUNCTION :"+secure_fun_name+'\n'
+	
+	return func_decl
 
 
 
@@ -799,6 +878,7 @@ print("All functions:")
 for i,fun in enumerate(all_functions_dict):
 	print("function "+str(i)+", name: "+ str(fun)+":")
 	print(all_functions_dict[fun])
+	#print(create_secure_function_decl(str(fun)))
 
 print("")
 print("globals:")
