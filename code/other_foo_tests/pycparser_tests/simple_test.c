@@ -18,7 +18,7 @@ char another_function(int a, char b, float * c, char** d)
 	
 }
 */
-
+/*
 void another_function()
 {
 	
@@ -32,11 +32,19 @@ void another_function()
 	{
 		a=2;
 	}
-}
+}*/
 
-/*int hm_fun( char m)
+int global_a;
+char global_b;
+char * global_c;
+char ** global_d;
+void * global_e;
+
+
+/*
+void * hm_fun( char m)
 {
-	int f;
+	void * f;
 	return 1;
 }
 */

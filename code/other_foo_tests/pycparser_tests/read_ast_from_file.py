@@ -563,7 +563,7 @@ def process_var_size(var_size): #This has to be improved in the future
 		return 8
 	if var_size=='float':
 		return 4
-	if var_size.lower()=='none' or var_size.lower()=='null':
+	if var_size.lower()=='none' or var_size.lower()=='null':  #be careful here
 		return 0
 	else:
 		print("UNKNOWN VARIABLE SIZE:",var_size)
@@ -625,6 +625,7 @@ def find_name_of_stack_setter_in_caps(type_of_var):
 
 all_functions_dict={}
 current_function_dict={}
+globals_dict={}
 
 
 
@@ -633,6 +634,15 @@ with open('ast', 'rb') as f:
 	ast = pickle.load(f)
 	ast_dict=to_dict(ast)
 	#print(ast_dict)
+	
+	
+#init globals dict
+for type_of_var in ['char','int','long','float','double','ptr','arb_ptr']:
+	globals_dict[type_of_var]={}
+	globals_dict[type_of_var]["names"]=[]
+	globals_dict[type_of_var]["number"]=0
+	if type_of_var=='ptr':
+		globals_dict[type_of_var]["size_of_pointed_elements"]=[]
 	
 where_functions_start=ast_dict["ext"]
 
@@ -679,7 +689,7 @@ for item in where_functions_start:
 					if (param["type"]["type"]["_nodetype"]=="PtrDecl"):
 						size_of_pointed_elem=8
 					elif (param["type"]["type"]["_nodetype"]=="TypeDecl"):
-						size_of_pointed_elem=process_var_size(param["type"]["type"]["type"]["names"][0])
+						size_of_pointed_elem=process_var_size(identify_type(param["type"]["type"]["type"]["names"][0]))
 					else:
 						sys.stderr.write("ERROR in finding the parameter size for parameters.\n")
 						exit(-1)
@@ -713,13 +723,35 @@ for item in where_functions_start:
 					if (possible_decl["type"]["type"]["_nodetype"]=="PtrDecl"):
 						size_of_pointed_elem=8
 					elif (possible_decl["type"]["type"]["_nodetype"]=="TypeDecl"):
-						size_of_pointed_elem=process_var_size(possible_decl["type"]["type"]["type"]["names"][0])
+						size_of_pointed_elem=process_var_size(identify_type(possible_decl["type"]["type"]["type"]["names"][0]))
 					else:
 						sys.stderr.write("ERROR in finding the parameter size for locals.\n")
 						exit(-1)
 					current_function_dict["locals"][our_type_of_possible_decl]["size_of_pointed_elements"].append(size_of_pointed_elem)
 	
-
+	if item["_nodetype"]=="Decl":
+		#global declaration
+		name_of_global=item["name"]
+		type_of_global=''
+		if item["type"]["_nodetype"]=='TypeDecl':
+			type_of_global=item["type"]["type"]["names"][0]
+			globals_dict[identify_type(type_of_global)]["names"].append(name_of_global)
+			globals_dict[identify_type(type_of_global)]["number"]+=1
+		elif item["type"]["_nodetype"]=='PtrDecl':
+			type_of_global='ptr'
+			globals_dict[identify_type(type_of_global)]["names"].append(name_of_global)
+			globals_dict[identify_type(type_of_global)]["number"]+=1
+			if (item["type"]["type"]["_nodetype"]=="PtrDecl"):
+				size_of_pointed_elem=8
+			elif (item["type"]["type"]["_nodetype"]=="TypeDecl"):
+				size_of_pointed_elem=process_var_size(identify_type(item["type"]["type"]["type"]["names"][0]))
+			else:
+				sys.stderr.write("ERROR in finding the size of pointer elements for globals.\n")
+				exit(-1)
+			globals_dict[identify_type(type_of_global)]["size_of_pointed_elements"].append(size_of_pointed_elem)
+		else:
+			print("unknown variable type parsing for globals")
+	
 if current_function_dict!={}:
 	all_functions_dict[current_function_dict["name"]]=copy.deepcopy(current_function_dict)
 	current_function_dict={}
@@ -728,6 +760,10 @@ print("All functions:")
 for i,fun in enumerate(all_functions_dict):
 	print("function "+str(i)+", name: "+ str(fun)+":")
 	print(all_functions_dict[fun])
+
+print("")
+print("globals:")
+print(globals_dict)
 
 generator = CGenerator()
 print(generator.visit(ast))
