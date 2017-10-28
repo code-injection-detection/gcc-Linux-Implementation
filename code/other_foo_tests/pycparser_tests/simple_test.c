@@ -41,10 +41,12 @@ char ** global_d;
 void * global_e;
 
 
-/*
+
 void * hm_fun( char m)
 {
 	void * f;
+	global_b=1;
+	global_c=*global_d+1;
 	return 1;
 }
-*/
+

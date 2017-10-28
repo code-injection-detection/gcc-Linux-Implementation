@@ -135,14 +135,30 @@ class CGenerator(object):
 		return n.value
 
 	def visit_ID(self, n,use_setter=False):
+		is_global=0
 		type_of_var=identify_type_of_var(all_functions_dict[self.name_of_fun_in_parsing],n.name)
+		if (type_of_var=="unknown_type"):
+			#search in globals
+			type_of_var=identify_type_of_var_in_globals(n.name)
+			is_global=1
+			if (type_of_var=="unknown_type"):
+				sys.stderr.write("can't find type of var in visit_ID!\n")
+				exit(-1)
+
 		if (use_setter):
-			setter=find_name_of_stack_setter_in_caps(type_of_var)
-			#pay attention that we need an extra parenthesis
-			return "%s ( %s " % (setter,n.name)
+			if (is_global==0):
+				setter=find_name_of_stack_setter_in_caps(type_of_var)
+				#pay attention that we need an extra parenthesis
+				return "%s ( %s " % (setter,n.name)
+			else:
+				#pay attention that we need an extra parenthesis
+				return "%s ( globals.%s " % ("UPDATE_GLOBAL_VAR",n.name)
+			
 		else:
 			getter=find_name_of_stack_getter_in_caps(type_of_var)
-			return "%s ( %s )" % (getter,n.name)
+			if (is_global):
+				getter=find_name_of_global_getter(type_of_var)
+			return "%s ( globals.%s )" % (getter,n.name)
 	
 	def visit_Pragma(self, n):
 		ret = '#pragma'
@@ -583,7 +599,14 @@ def identify_type_of_var(fun_dict,var_name):
 				return type_of_var
 	return "unknown_type"
 				
-	
+
+def identify_type_of_var_in_globals(var_name):
+	#check the globals too
+	for type_of_var in ['char','int','long','float','double','ptr','arb_ptr']:
+		for name in globals_dict[type_of_var]["names"]:
+			if var_name==name:
+				return type_of_var
+	return "unknown_type"
 	
 
 def find_name_of_stack_getter_in_caps(type_of_var):
@@ -602,6 +625,22 @@ def find_name_of_stack_getter_in_caps(type_of_var):
 		name_of_setter+='CHAR'
 	return name_of_setter
 
+
+def find_name_of_global_getter(type_of_var):
+	name_of_setter='get_global_'
+	if( type_of_var=='long' or type_of_var=='long int'):
+		name_of_setter+='long_int'
+	if ( type_of_var=='pointer' or type_of_var=='ptr'):
+		name_of_setter+='ptr'
+	if ( type_of_var=='int'):
+		name_of_setter+='int'
+	if ( type_of_var=='float'):
+		name_of_setter+='float'
+	if ( type_of_var=='double'):
+		name_of_setter+='double'
+	if ( type_of_var=='char'):
+		name_of_setter+='ptr'
+	return name_of_setter
 
 def find_name_of_stack_setter_in_caps(type_of_var):
 	name_of_setter='SET_STACK_'
