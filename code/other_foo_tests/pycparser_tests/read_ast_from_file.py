@@ -234,11 +234,11 @@ class CGenerator(object):
 		if n.op == 'p++' or n.op=="++":
 			#return '%s++' % operand
 			new_operand=self._parenthesize_unless_simple(n.expr,True)
-			return '%s,%s+1' % (new_operand,operand)
+			return '%s,%s+1)' % (new_operand,operand)
 		elif n.op == 'p--' or n.op=="--":
 			#return '%s--' % operand
 			new_operand=self._parenthesize_unless_simple(n.expr,True)
-			return '%s,%s-1' % (new_operand,operand)
+			return '%s,%s-1)' % (new_operand,operand)
 		elif n.op == 'sizeof':
 			# Always parenthesize the argument of sizeof since it can be
 			# a name.
@@ -272,20 +272,11 @@ class CGenerator(object):
 
 	def _visit_expr(self, n, use_setter=False):
 		if isinstance(n, c_ast.InitList):
-			if (use_setter==True):
-				return '{' + self.visit(n,use_setter) + '}'
-			else:
-				return '{' + self.visit(n) + '}'
+			return '{' + self.visit(n,use_setter) + '}'
 		elif isinstance(n, c_ast.ExprList):
-			if (use_setter==True):
-				return '(' + self.visit(n,use_setter) + ')'
-			else:
-				return '(' + self.visit(n) + ')'
+			return '(' + self.visit(n,use_setter) + ')'
 		else:
-			if (use_setter==True):
-				return self.visit(n,use_setter)
-			else:
-				return self.visit(n)
+			return self.visit(n,use_setter)
 
 	def visit_Decl(self, n, no_type=False):
 		# no_type is used when a Decl is part of a DeclList, where the type is
