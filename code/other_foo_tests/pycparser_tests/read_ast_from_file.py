@@ -165,22 +165,14 @@ class CGenerator(object):
 
 	def visit(self, node, **kwargs):
 		method = 'visit_' + node.__class__.__name__
-		use_setter=kwargs.get("use_setter_param",False)
-		if (use_setter):
-			return getattr(self, method, self.generic_visit)(node,use_setter_param=use_setter)
-		else:
-			return getattr(self, method, self.generic_visit)(node)
+		return getattr(self, method, self.generic_visit)(node,**kwargs)
 
 	def generic_visit(self, node,**kwargs):
 		#~ print('generic:', type(node))
-		use_setter=kwargs.get("use_setter_param",False)
 		if node is None:
 			return ''
 		else:
-			if (use_setter):
-				return ''.join(self.visit(c,use_setter_param=use_setter) for c_name, c in node.children())
-			else:
-				return ''.join(self.visit(c) for c_name, c in node.children())
+			return ''.join(self.visit(c,**kwargs) for c_name, c in node.children())
 
 	def visit_Constant(self, n):
 		return n.value
@@ -232,20 +224,22 @@ class CGenerator(object):
 		fref = self._parenthesize_unless_simple(n.name)
 		return fref + '(' + self.visit(n.args) + ')'
 
-	def visit_UnaryOp(self, n):
+	def visit_UnaryOp(self, n,**kwargs):
 		operand = self._parenthesize_unless_simple(n.expr)
 		if n.op == 'p++' or n.op=="++":
 			#return '%s++' % operand
-			new_operand=self._parenthesize_unless_simple(n.expr,use_setter_param=True)
+			kwargs["use_setter_param"]=True
+			new_operand=self._parenthesize_unless_simple(n.expr,**kwargs)
 			return '%s,%s+1)' % (new_operand,operand)
 		elif n.op == 'p--' or n.op=="--":
 			#return '%s--' % operand
-			new_operand=self._parenthesize_unless_simple(n.expr,use_setter_param=True)
+			kwargs["use_setter_param"]=True
+			new_operand=self._parenthesize_unless_simple(n.expr,**kwargs)
 			return '%s,%s-1)' % (new_operand,operand)
 		elif n.op == 'sizeof':
 			# Always parenthesize the argument of sizeof since it can be
 			# a name.
-			return 'sizeof(%s)' % self.visit(n.expr)
+			return 'sizeof(%s)' % self.visit(n.expr,**kwargs)
 		else:
 			return '%s%s' % (n.op, operand)
 
@@ -256,15 +250,21 @@ class CGenerator(object):
 							lambda d: not self._is_simple_node(d))
 		return '%s %s %s' % (lval_str, n.op, rval_str)
 
-	def visit_Assignment(self, n):
+	def visit_Assignment(self, n,**kwargs):
 		rval_str = self._parenthesize_if(
 							n.rvalue,
-							lambda n: isinstance(n, c_ast.Assignment))
+							lambda n: isinstance(n, c_ast.Assignment),**kwargs)
 		#return '%s %s %s' % (self.visit(n.lvalue), n.op, rval_str)
 		if n.op=="=":
-			return '%s, %s)' % (self.visit(n.lvalue,use_setter_param=True), rval_str)
+			kwargs["use_setter_param"]=True
+			return '%s, %s)' % (self.visit(n.lvalue,**kwargs), rval_str)
 		elif (len(n.op)==2 and n.op[1]=="="): #+= , -= etc
-			return '%s, %s %s %s)' % (self.visit(n.lvalue,use_setter_param=True), self.visit(n.lvalue,use_setter_param=False),str(n.op[0]), rval_str)
+			kwargs_1=copy.deepcopy(kwargs)
+			kwargs_2=copy.deepcopy(kwargs)
+			kwargs_1["use_setter_param"]=True
+			kwargs_2["use_setter_param"]=False
+			gc.collect()
+			return '%s, %s %s %s)' % (self.visit(n.lvalue,**kwargs_1), self.visit(n.lvalue,**kwargs_2),str(n.op[0]), rval_str)
 		else:
 			sys.stderr.write("what kind of an op is that?\n")
 			sys.stderr.write(n.op)
@@ -274,13 +274,12 @@ class CGenerator(object):
 		return ' '.join(n.names)
 
 	def _visit_expr(self, n, **kwargs):
-		use_setter=kwargs.get("use_setter_param",False)
 		if isinstance(n, c_ast.InitList):
-			return '{' + self.visit(n,use_setter_param=use_setter) + '}'
+			return '{' + self.visit(n,**kwargs) + '}'
 		elif isinstance(n, c_ast.ExprList):
-			return '(' + self.visit(n,use_setter_param=use_setter) + ')'
+			return '(' + self.visit(n,**kwargs) + ')'
 		else:
-			return self.visit(n,use_setter_param=use_setter)
+			return self.visit(n,**kwargs)
 
 	def visit_Decl(self, n, no_type=False):
 		# no_type is used when a Decl is part of a DeclList, where the type is
@@ -580,8 +579,7 @@ class CGenerator(object):
 		""" Visits 'n' and returns its string representation, parenthesized
 			if the condition function applied to the node returns True.
 		"""
-		use_setter=kwargs.get("use_setter_param",False)
-		s = self._visit_expr(n,use_setter_param=use_setter)
+		s = self._visit_expr(n,**kwargs)
 		if condition(n):
 			return '(' + s + ')'
 		else:
@@ -590,8 +588,7 @@ class CGenerator(object):
 	def _parenthesize_unless_simple(self, n,**kwargs):
 		""" Common use case for _parenthesize_if
 		"""
-		use_setter=kwargs.get("use_setter_param",False)
-		return self._parenthesize_if(n, lambda d: not self._is_simple_node(d),use_setter_param=use_setter)
+		return self._parenthesize_if(n, lambda d: not self._is_simple_node(d),**kwargs)
 
 	def _is_simple_node(self, n):
 		""" Returns True for nodes that are "simple" - i.e. nodes that always
