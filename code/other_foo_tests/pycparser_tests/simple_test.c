@@ -65,14 +65,12 @@ void global_sum_calculator(int times,int maxval)
 	
 	for (k=0;k<times;++k)
 	{
-	}
-	/*
-		secured_sum=0;
+			secured_sum=0;
 		for (secured_i=0;secured_i<maxval;secured_i++)
 		{
 			secured_sum+=secured_i;
 		}
 	}
 	printf("secured sum:%ld\n",secured_sum);
-	*/
+	
 }
