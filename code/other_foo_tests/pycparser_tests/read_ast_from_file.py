@@ -174,11 +174,12 @@ class CGenerator(object):
 		else:
 			return ''.join(self.visit(c,**kwargs) for c_name, c in node.children())
 
-	def visit_Constant(self, n):
+	def visit_Constant(self, n,**kwargs):
 		return n.value
 
 	def visit_ID(self, n,**kwargs):
 		use_setter=kwargs.get("use_setter_param",False)
+		coming_from_for_loop=kwargs.get("coming_from_for_loop",False)
 		is_global=0
 		type_of_var=identify_type_of_var(all_functions_dict[self.name_of_fun_in_parsing],n.name)
 		if (type_of_var=="unknown_type"):
@@ -196,7 +197,10 @@ class CGenerator(object):
 				return "%s ( %s " % (setter,n.name)
 			else:
 				#pay attention that we need an extra parenthesis
-				return "%s ( globals.%s " % ("UPDATE_GLOBAL_VAR",n.name)
+				if (coming_from_for_loop==False):
+					return "%s ( globals.%s " % ("UPDATE_GLOBAL_VAR",n.name)
+				else:
+					return "%s ( globals.%s " % ("UPDATE_GLOBAL_VAR_FOR_LOOPS",n.name)
 			
 		else:
 			getter=find_name_of_stack_getter_in_caps(type_of_var)
@@ -404,11 +408,11 @@ class CGenerator(object):
 
 	def visit_For(self, n):
 		s = 'for ('
-		if n.init: s += self.visit(n.init)
+		if n.init: s += self.visit(n.init,coming_from_for_loop=True)
 		s += ';'
 		if n.cond: s += ' ' + self.visit(n.cond)
 		s += ';'
-		if n.next: s += ' ' + self.visit(n.next)
+		if n.next: s += ' ' + self.visit(n.next,coming_from_for_loop=True)
 		s += ')\n'
 		s += self._generate_stmt(n.stmt, add_indent=True)
 		return s
