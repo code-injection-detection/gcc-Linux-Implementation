@@ -191,8 +191,8 @@ class CGenerator(object):
 			type_of_var=identify_type_of_var_in_globals(n.name)
 			is_global=1
 			if (type_of_var=="unknown_type"):
-				sys.stderr.write("can't find type of var in visit_ID!\n")
-				exit(-1)
+				#"printf" is an ID too. So, it might not be one of the secured variables
+				return n.name
 
 		if (use_setter):
 			if (is_global==0):
@@ -205,9 +205,11 @@ class CGenerator(object):
 			
 		else:
 			getter=find_name_of_stack_getter_in_caps(type_of_var)
-			if (is_global):
+			if (is_global==1):
 				getter=find_name_of_global_getter(type_of_var)
-			return "%s ( globals.%s )" % (getter,n.name)
+				return "%s ( globals.%s )" % (getter,n.name)
+			else:
+				return "%s ( %s )" % (getter,n.name)
 	
 	def visit_Pragma(self, n):
 		ret = '#pragma'
@@ -252,7 +254,14 @@ class CGenerator(object):
 							n.rvalue,
 							lambda n: isinstance(n, c_ast.Assignment))
 		#return '%s %s %s' % (self.visit(n.lvalue), n.op, rval_str)
-		return '%s, %s)' % (self.visit(n.lvalue,True), rval_str)
+		if n.op=="=":
+			return '%s, %s)' % (self.visit(n.lvalue,True), rval_str)
+		elif (len(n.op)==2 and n.op[1]=="="): #+= , -= etc
+			return '%s, %s %s %s)' % (self.visit(n.lvalue,True), self.visit(n.lvalue,False),str(n.op[0]), rval_str)
+		else:
+			sys.stderr.write("what kind of an op is that?\n")
+			sys.stderr.write(n.op)
+			exit(-1)
 
 	def visit_IdentifierType(self, n):
 		return ' '.join(n.names)
@@ -585,16 +594,31 @@ class CGenerator(object):
 
 #help functions for parsing end
 
+def condition_for_each_object_for_get_original_lines(type_of_obj,new_ast_dict,name_of_object,index):
+	#type_of_obj=
+	#1->global
+	#2->function definition
+	if (type_of_obj==1):
+		if (new_ast_dict['ext'][index]["_nodetype"]!="Decl" or (name_of_object.strip() != new_ast_dict['ext'][index]['name'].strip())):
+			return True
+		else:
+			return False
+	if (type_of_obj==2):
+		if (new_ast_dict['ext'][index]["_nodetype"]!="FuncDef" or (name_of_object.strip() != new_ast_dict['ext'][index]['decl']['name'].strip())):
+			return True
+		else:
+			return False
 
 
-def get_original_lines_in_C_of_ext_object(name_of_object):
+
+def get_original_lines_in_C_of_ext_object(name_of_object,type_of_obj):
 	#isolates this 'ext' item in the json, recreates the ast and convers back to C
 	new_ast_dict=copy.deepcopy(ast_dict)
 	#delete all stuff before object
-	while(name_of_object not in new_ast_dict['ext'][0]['name']):
+	while(condition_for_each_object_for_get_original_lines(type_of_obj,new_ast_dict,name_of_object,0)):
 		del new_ast_dict['ext'][0]
 	#delete all stuff after object
-	while(len(new_ast_dict['ext'])>1 and name_of_object not in new_ast_dict['ext'][1]['name']):
+	while(len(new_ast_dict['ext'])>1 and (condition_for_each_object_for_get_original_lines(type_of_obj,new_ast_dict,name_of_object,1))):
 		del new_ast_dict['ext'][1]
 	new_ast = from_dict(new_ast_dict)
 	generator = c_generator.CGenerator()
@@ -932,7 +956,7 @@ for item in where_functions_start:
 	if item["_nodetype"]=="Decl":
 		#global declaration
 		name_of_global=item["name"]
-		original_c_lines_for_global=get_original_lines_in_C_of_ext_object(name_of_global)
+		original_c_lines_for_global=get_original_lines_in_C_of_ext_object(name_of_global,1)
 		gc.collect()
 		print(original_c_lines_for_global)
 		type_of_global=''
