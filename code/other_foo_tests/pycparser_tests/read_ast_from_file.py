@@ -231,10 +231,14 @@ class CGenerator(object):
 
 	def visit_UnaryOp(self, n):
 		operand = self._parenthesize_unless_simple(n.expr)
-		if n.op == 'p++':
-			return '%s++' % operand
-		elif n.op == 'p--':
-			return '%s--' % operand
+		if n.op == 'p++' or n.op=="++":
+			#return '%s++' % operand
+			new_operand=self._parenthesize_unless_simple(n.expr,True)
+			return '%s,%s+1' % (new_operand,operand)
+		elif n.op == 'p--' or n.op=="--":
+			#return '%s--' % operand
+			new_operand=self._parenthesize_unless_simple(n.expr,True)
+			return '%s,%s-1' % (new_operand,operand)
 		elif n.op == 'sizeof':
 			# Always parenthesize the argument of sizeof since it can be
 			# a name.
@@ -266,13 +270,22 @@ class CGenerator(object):
 	def visit_IdentifierType(self, n):
 		return ' '.join(n.names)
 
-	def _visit_expr(self, n):
+	def _visit_expr(self, n, use_setter=False):
 		if isinstance(n, c_ast.InitList):
-			return '{' + self.visit(n) + '}'
+			if (use_setter==True):
+				return '{' + self.visit(n,use_setter) + '}'
+			else:
+				return '{' + self.visit(n) + '}'
 		elif isinstance(n, c_ast.ExprList):
-			return '(' + self.visit(n) + ')'
+			if (use_setter==True):
+				return '(' + self.visit(n,use_setter) + ')'
+			else:
+				return '(' + self.visit(n) + ')'
 		else:
-			return self.visit(n)
+			if (use_setter==True):
+				return self.visit(n,use_setter)
+			else:
+				return self.visit(n)
 
 	def visit_Decl(self, n, no_type=False):
 		# no_type is used when a Decl is part of a DeclList, where the type is
@@ -568,20 +581,20 @@ class CGenerator(object):
 		else:
 			return self.visit(n)
 
-	def _parenthesize_if(self, n, condition):
+	def _parenthesize_if(self, n, condition,use_setter=False):
 		""" Visits 'n' and returns its string representation, parenthesized
 			if the condition function applied to the node returns True.
 		"""
-		s = self._visit_expr(n)
+		s = self._visit_expr(n,use_setter)
 		if condition(n):
 			return '(' + s + ')'
 		else:
 			return s
 
-	def _parenthesize_unless_simple(self, n):
+	def _parenthesize_unless_simple(self, n,use_setter=False):
 		""" Common use case for _parenthesize_if
 		"""
-		return self._parenthesize_if(n, lambda d: not self._is_simple_node(d))
+		return self._parenthesize_if(n, lambda d: not self._is_simple_node(d),use_setter)
 
 	def _is_simple_node(self, n):
 		""" Returns True for nodes that are "simple" - i.e. nodes that always

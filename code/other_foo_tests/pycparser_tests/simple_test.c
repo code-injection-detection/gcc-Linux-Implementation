@@ -61,10 +61,12 @@ void global_sum_calculator(int times,int maxval)
 	int k;
 	int m;
 	m=2;
-	m+=4;
-	/*
-	for (k=0;k<times;k++)
+	m/=4;
+	
+	for (k=0;k<times;++k)
 	{
+	}
+	/*
 		secured_sum=0;
 		for (secured_i=0;secured_i<maxval;secured_i++)
 		{
