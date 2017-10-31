@@ -408,6 +408,7 @@ class CGenerator(object):
 	def visit_Compound(self, n,**kwargs):
 		s = self._make_indent() + '{\n'
 		am_body=kwargs.get("you_are_body",False)
+		kwargs["you_are_body"]=False #revert to old value
 		self.indent_level += 2
 		if (am_body):
 			init_fun_params=self.add_function_locals_initialization() #initialize locals
@@ -688,7 +689,7 @@ def get_original_lines_in_C_of_ext_object(name_of_object,type_of_obj):
 	while(len(new_ast_dict['ext'])>1 and (condition_for_each_object_for_get_original_lines(type_of_obj,new_ast_dict,name_of_object,1))):
 		del new_ast_dict['ext'][1]
 	new_ast = from_dict(new_ast_dict)
-	generator = c_generator.CGenerator()
+	generator = c_generator.CGenerator() #that's the proper generator, not our custom
 	original_c_lines=generator.visit(new_ast)
 	return (original_c_lines)
 
@@ -1040,7 +1041,6 @@ for item in where_functions_start:
 		name_of_global=item["name"]
 		original_c_lines_for_global=get_original_lines_in_C_of_ext_object(name_of_global,1)
 		gc.collect()
-		print(original_c_lines_for_global)
 		type_of_global=''
 		if item["type"]["_nodetype"]=='TypeDecl':
 			type_of_global=item["type"]["type"]["names"][0]
@@ -1085,6 +1085,7 @@ for i,fun in enumerate(all_functions_dict):
 print("")
 print("globals:")
 print(globals_dict)
+print("")
 print(give_global_definition())
 
 generator = CGenerator()
