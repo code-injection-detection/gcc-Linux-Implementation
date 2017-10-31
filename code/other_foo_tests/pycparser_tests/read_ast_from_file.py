@@ -380,9 +380,16 @@ class CGenerator(object):
 		return ', '.join(self.visit(param) for param in n.params)
 
 	def visit_Return(self, n):
-		s = 'return'
-		if n.expr: s += ' ' + self.visit(n.expr)
-		return s + ';'
+		#s = 'return'
+		#if n.expr: s += ' (' + self.visit(n.expr)
+		#return s + ');'
+		s=''
+		s+='RETURN_POINT_OF_FUNCTION: '+self.name_of_fun_in_parsing
+		if n.expr:
+			s+= ' | PYTHON PLEASE USE THIS RETURN EXPRESSION:'+' (' + self.visit(n.expr) +')\n'
+		else:
+			s+='\n'
+		return s
 
 	def visit_Break(self, n):
 		return 'break;'
@@ -849,7 +856,8 @@ def create_secure_function_decl(name_of_fun):
 		s+='\n'
 		func_decl+=s
 	func_decl+="END_OF_LOCAL_VARIABLES\n"
-	#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! FIX RETURN EXPRESSION!
+	func_decl+="RETURN_EXPRESSION: NULL\n" #add a dummy return expression, it will be filled on the fly every time "return" is seen
+	func_decl+="//PYTHON IGNORE: ^ dummy value, will be filled on the fly every time \"return\" is seen \n"
 	func_decl+="RETURN_EXPRESSION:" +"\n"
 	func_decl+="START_OF_FUNCTION :"+secure_fun_name+'\n'
 	

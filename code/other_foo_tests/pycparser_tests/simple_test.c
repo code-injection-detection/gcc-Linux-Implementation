@@ -5,12 +5,13 @@ int a_function(int x, int y)
 	char d;
 	char *m;
 	float mm;
+	int arr[10];
 
-    //sum=x+y;
-    //if (sum==100)
-    //    printf("tralala\n");
+    sum=x+y;
+    if (sum==100)
+        printf("tralala\n");
 
-    //return ((int)sum);
+    return ((int)sum);
 }
 */
 
@@ -37,13 +38,14 @@ void another_function()
 	}
 }*/
 
+/*
 int global_a,global_m,secured_i;
 char global_b;
 char * global_c;
 char ** global_d;
 void * global_e;
 long secured_sum;
-
+*/
 
 /*
 void * hm_fun( char m)
@@ -55,7 +57,7 @@ void * hm_fun( char m)
 }
 */
 
-
+/*
 void global_sum_calculator(int times,int maxval)
 {
 	int k;
@@ -74,3 +76,20 @@ void global_sum_calculator(int times,int maxval)
 	printf("secured sum:%ld\n",secured_sum);
 	
 }
+*/
+/*
+void arr_test()
+{
+	int arr[5];
+	int arr2[n];
+	int bob;
+
+}
+*/
+
+int return_value_test()
+{
+	int n;
+	return;
+}
+
