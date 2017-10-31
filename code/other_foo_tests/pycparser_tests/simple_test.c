@@ -1,4 +1,31 @@
 /*
+void print_primes_up_to_n(int n)
+{
+	int i,j;
+	char isprime=0;
+
+	printf("2\n");
+	for (i=3;i<=n;i+=2)
+	{
+		isprime=1;
+		for (j=2;j<i/2+1;j++)
+		{
+			if(i%j==0)
+				isprime=0;
+		}
+		if (isprime)
+		{
+			printf("%d,\n",i);
+		}
+
+	}
+
+}
+*/
+
+
+
+/*
 int a_function(int x, int y)
 {
     long sum;
@@ -86,10 +113,34 @@ void arr_test()
 
 }
 */
-
+/*
 int return_value_test()
 {
 	int n;
 	return;
+}
+*/
+/*
+void foo_fun()
+{
+}
+
+void function_call_test()
+{
+	printf("a\n");
+	foo_fun();
+}
+*/
+
+//int global_init=0;
+
+int global_g;
+
+void fun_var_init()
+{
+	int a=global_g+1;
+	int b=a+4+1;
+	b=1;
+	a=b=2;
 }
 

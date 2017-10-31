@@ -23,6 +23,10 @@ RE_INTERNAL_ATTR = re.compile('__.*__')
 class CJsonError(Exception):
 	pass
 
+def to_json(node, **kwargs):
+    """ Convert ast node to json string """
+    return json.dumps(to_dict(node), **kwargs)
+
 
 def memodict(fn):
 	""" Fast memoization decorator for a function taking a single argument """
@@ -337,17 +341,58 @@ class CGenerator(object):
 					s += ', '
 			s += '}'
 		return s
+		
+	def add_function_locals_initialization(self):
+		fun_dict=all_functions_dict[self.name_of_fun_in_parsing]
+		#create an "Assignment" structure 
+		'''
+		 "_nodetype": "Assignment",
+		 "coord": "simple_test.c:142:2",
+
+		 "lvalue": {
+			"_nodetype": "ID",
+			"coord": "simple_test.c:142:2",
+			"name": "b"
+		 },
+		 "op": "=",
+		 "rvalue": {
+			"_nodetype": "Constant",
+			"coord": "simple_test.c:142:4",
+			"type": "int",
+			"value": "1"
+		 }
+		'''
+		s="//secure parameter initializations, if any\n"
+		for type_of_var in ['char','int','long','float','double','ptr','arb_ptr']:
+			for i,init_val in enumerate(fun_dict["locals"][type_of_var]["init"]):
+				if (init_val!=None):
+					new_ast_dict={}
+					new_ast_dict["_nodetype"]="Assignment"
+					#no coord
+					new_ast_dict["lvalue"]={}
+					new_ast_dict["lvalue"]["_nodetype"]="ID"
+					new_ast_dict["lvalue"]["name"]=fun_dict["locals"][type_of_var]["names"][i]
+					new_ast_dict["op"]="="
+					new_ast_dict["rvalue"]=to_dict(init_val) #rvalue is the expression takes from the first parsing
+					s+= (self.visit(from_dict(new_ast_dict))+';\n')
+				else:
+					s+= ''
+		return (s+"\n")
+
 
 	def visit_FuncDef(self, n):
 		self.name_of_fun_in_parsing=n.decl.name
-		decl = self.visit(n.decl)
+		#decl = self.visit(n.decl)
+		decl=create_secure_function_decl(self.name_of_fun_in_parsing)
 		self.indent_level = 0
-		body = self.visit(n.body)
+		body = self.visit(n.body,you_are_body=True)
+		end_point_str="END_OF_FUNCTION:" + self.name_of_fun_in_parsing+"_sec"
 		if n.param_decls:
+			#does not happen since we have erased the parameter declarations
 			knrdecls = ';\n'.join(self.visit(p) for p in n.param_decls)
-			return decl + '\n' + knrdecls + ';\n' + body + '\n'
+			return decl + '\n' + knrdecls + ';\n' + body + '\n' + end_point_str+"\n"
 		else:
-			return decl + '\n' + body + '\n'
+			return decl + '\n' + body + '\n' + end_point_str +"\n"
 
 	def visit_FileAST(self, n):
 		s = ''
@@ -360,9 +405,13 @@ class CGenerator(object):
 				s += self.visit(ext) + ';\n'
 		return s
 
-	def visit_Compound(self, n):
+	def visit_Compound(self, n,**kwargs):
 		s = self._make_indent() + '{\n'
+		am_body=kwargs.get("you_are_body",False)
 		self.indent_level += 2
+		if (am_body):
+			init_fun_params=self.add_function_locals_initialization() #initialize locals
+			s+=init_fun_params+'\n'
 		if n.block_items:
 			s += ''.join(self._generate_stmt(stmt) for stmt in n.block_items)
 		self.indent_level -= 2
@@ -630,7 +679,7 @@ def condition_for_each_object_for_get_original_lines(type_of_obj,new_ast_dict,na
 
 
 def get_original_lines_in_C_of_ext_object(name_of_object,type_of_obj):
-	#isolates this 'ext' item in the json, recreates the ast and convers back to C
+	#isolates this 'ext' item in the json, recreates the ast and converts back to C
 	new_ast_dict=copy.deepcopy(ast_dict)
 	#delete all stuff before object
 	while(condition_for_each_object_for_get_original_lines(type_of_obj,new_ast_dict,name_of_object,0)):
@@ -858,8 +907,8 @@ def create_secure_function_decl(name_of_fun):
 	func_decl+="END_OF_LOCAL_VARIABLES\n"
 	func_decl+="RETURN_EXPRESSION: NULL\n" #add a dummy return expression, it will be filled on the fly every time "return" is seen
 	func_decl+="//PYTHON IGNORE: ^ dummy value, will be filled on the fly every time \"return\" is seen \n"
-	func_decl+="RETURN_EXPRESSION:" +"\n"
 	func_decl+="START_OF_FUNCTION :"+secure_fun_name+'\n'
+	#!!!!!!!!!!!!!!!!!!!!!!!!!!!!! don't forget the end of function!
 	
 	return func_decl
 
@@ -947,12 +996,14 @@ for item in where_functions_start:
 			current_function_dict["locals"][type_of_var]={}
 			current_function_dict["locals"][type_of_var]["names"]=[]
 			current_function_dict["locals"][type_of_var]["number"]=0
+			current_function_dict["locals"][type_of_var]["init"]=[]
 			if type_of_var=='ptr':
 				current_function_dict["locals"][type_of_var]["size_of_pointed_elements"]=[]
 				
 		for possible_decl in fun_body:
 			if (possible_decl["_nodetype"]=="Decl"):
 				name_of_local_var=possible_decl["name"]
+				init_of_local=possible_decl["init"]
 				if "names" in  possible_decl["type"]["type"]: #see if it's a simple variable
 					type_of_local_var=possible_decl["type"]["type"]["names"]
 					our_type_of_possible_decl=identify_type(type_of_local_var)
@@ -960,6 +1011,10 @@ for item in where_functions_start:
 					our_type_of_possible_decl ='ptr'
 				current_function_dict["locals"][our_type_of_possible_decl]["number"]+=1
 				current_function_dict["locals"][our_type_of_possible_decl]["names"].append(name_of_local_var)
+				if  (init_of_local!=None):
+					current_function_dict["locals"][our_type_of_possible_decl]["init"].append(copy.deepcopy(from_dict(init_of_local)))
+				else:
+					current_function_dict["locals"][our_type_of_possible_decl]["init"].append(None)
 				if our_type_of_possible_decl=='ptr':
 					#DEFINITELY make a case for arb_ptr in the future !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 					#see the size of the pointed element
@@ -971,7 +1026,15 @@ for item in where_functions_start:
 						sys.stderr.write("ERROR in finding the parameter size for locals.\n")
 						exit(-1)
 					current_function_dict["locals"][our_type_of_possible_decl]["size_of_pointed_elements"].append(size_of_pointed_elem)
-	
+		
+		#erase the declarations/initializations of the local variables, sice we will do them manually
+		num_of_nodes_not_deleted=0
+		while (len(fun_body)>num_of_nodes_not_deleted):
+			if (fun_body[num_of_nodes_not_deleted]["_nodetype"]=="Decl"):
+				del(fun_body[num_of_nodes_not_deleted])
+			else:
+				num_of_nodes_not_deleted+=1
+				
 	if item["_nodetype"]=="Decl":
 		#global declaration
 		name_of_global=item["name"]
@@ -999,6 +1062,15 @@ for item in where_functions_start:
 			globals_dict[identify_type(type_of_global)]["size_of_pointed_elements"].append(size_of_pointed_elem)
 		else:
 			print("unknown variable type parsing for globals")
+			
+#erase the declarations/initializations of the global variables, sice we will do them manually
+#!!!!!!!!!!!!!!!!! TODO: init them!
+num_of_nodes_not_deleted=0
+while (len(where_functions_start)>num_of_nodes_not_deleted):
+	if (where_functions_start[num_of_nodes_not_deleted]["_nodetype"]=="Decl"):
+		del(where_functions_start[num_of_nodes_not_deleted])
+	else:
+		num_of_nodes_not_deleted+=1
 	
 if current_function_dict!={}:
 	all_functions_dict[current_function_dict["name"]]=copy.deepcopy(current_function_dict)
@@ -1016,5 +1088,5 @@ print(globals_dict)
 print(give_global_definition())
 
 generator = CGenerator()
-print(generator.visit(ast))
+print(generator.visit(from_dict(ast_dict))) # do not visit the original ast, but the one we have changed (for example there is no variable initialization)
 		
