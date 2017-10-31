@@ -483,91 +483,106 @@ long get_sheap_meta_in_use(void * meta)
 
 /*Sets a securely allocated char. Of course secure_malloc must have been called before*/
 /*The function reads from source */
-void set_char( void * start_of_secure_data,char source)
+char set_char( void * start_of_secure_data,char source)
 {
   insert_data_into_mem(sizeof(char),(unsigned char *)&source,(unsigned char *)start_of_secure_data);
+  return source;
 }
 
-void set_int( void * start_of_secure_data,int source)
+int set_int( void * start_of_secure_data,int source)
 {
   insert_data_into_mem(sizeof(int),(unsigned char *)&source,(unsigned char *)start_of_secure_data);
+  return source;
 }
 
-void set_long_int( void * start_of_secure_data,long int source)
+long set_long_int( void * start_of_secure_data,long int source)
 {
   insert_data_into_mem(sizeof(long int),(unsigned char *)&source,(unsigned char *)start_of_secure_data);
+  return source;
 }
 
 //pay attention to the type of the pointer when calling
-void set_pointer( void * start_of_secure_data,void * source)
+void* set_pointer( void * start_of_secure_data,void * source)
 {
   insert_data_into_mem(sizeof(void *),(unsigned char *)&source,(unsigned char *)start_of_secure_data);
+  return source;
 }
 
-void set_float( void * start_of_secure_data,float source)
+float set_float( void * start_of_secure_data,float source)
 {
   insert_data_into_mem(sizeof(float),(unsigned char *)&source,(unsigned char *)start_of_secure_data);
+  return source;
 }
 
-void set_double( void * start_of_secure_data,double source)
+double set_double( void * start_of_secure_data,double source)
 {
   insert_data_into_mem(sizeof(double),(unsigned char *)&source,(unsigned char *)start_of_secure_data);
+  return source;
 }
 
 /*Generic set_array_element.Reads data from *source*/
-void set_array_element(long data_size, void * start_of_array, long index, void * source)
+void* set_array_element(long data_size, void * start_of_array, long index, void * source)
 {
 	set_secure_data(source,data_size,start_of_array,1,index);
+    return source;
 }
 
-void set_char_array_element(void * start_of_array, long index, char source)
+char set_char_array_element(void * start_of_array, long index, char source)
 {
 	char src=source;
 	set_secure_data(&src,sizeof(char),start_of_array,1,index);
+    return source;
 }
 
-void set_int_array_element(void * start_of_array, long index, int source)
+int set_int_array_element(void * start_of_array, long index, int source)
 {
 	int src=source;
 	set_secure_data(&src,sizeof(int),start_of_array,1,index);
+    return source;
 }
 
-void set_long_int_array_element(void * start_of_array, long index, long int source)
+long set_long_int_array_element(void * start_of_array, long index, long int source)
 {
 	long int src=source;
 	set_secure_data(&src,sizeof(long int),start_of_array,1,index);
+    return source;
 }
 
 //pay attention to the type of the pointer when calling
-void set_pointer_array_element(void * start_of_array, long index, void * source)
+void* set_pointer_array_element(void * start_of_array, long index, void * source)
 {
 	unsigned char * src=source;
 	set_secure_data(&src,sizeof(void *),start_of_array,1,index);
+    return source;
 }
 
 
-void set_float_array_element(void * start_of_array, long index, float source)
+float set_float_array_element(void * start_of_array, long index, float source)
 {
 	float src=source;
 	set_secure_data(&src,sizeof(float),start_of_array,1,index);
+    return source;
 }
 
-void set_double_array_element(void * start_of_array, long index, double source)
+double set_double_array_element(void * start_of_array, long index, double source)
 {
 	double src=source;
 	set_secure_data(&src,sizeof(double),start_of_array,1,index);
+    return source;
 }
 
 //sets a block of data to the secure heap. reads from *src, which must have been preallocated
-void set_arbitrary_block_in_heap(long data_size,void * start_of_block,void * src)
+void* set_arbitrary_block_in_heap(long data_size,void * start_of_block,void * src)
 {
 	set_secure_data(src,data_size, start_of_block,0,0);
+    return src;
 }
 
 //sets a block of data to the secure heap,using offset bytes. reads from *src, which must have been preallocated
-void set_arbitrary_block_in_heap_with_offset(long data_size,void * start,long offset,void * src)
+void* set_arbitrary_block_in_heap_with_offset(long data_size,void * start,long offset,void * src)
 {
 	set_secure_data(src,data_size, start,2,offset);
+    return src;
 }
 
 
@@ -1052,93 +1067,108 @@ void get_arbitrary_block_in_stack_with_offset(long data_size,void * start,long o
 
 /*Sets a securely allocated char. Of course secure_malloc must have been called before*/
 /*The function reads from source */
-void set_stack_char( void * start_of_secure_data,char source)
+char set_stack_char( void * start_of_secure_data,char source)
 {
   insert_data_into_stack_mem(sizeof(char),(unsigned char *)&source,(unsigned char *)start_of_secure_data);
+  return source;
 }
 
-void set_stack_int( void * start_of_secure_data,int source)
+int set_stack_int( void * start_of_secure_data,int source)
 {
   insert_data_into_stack_mem(sizeof(int),(unsigned char *)&source,(unsigned char *)start_of_secure_data);
+  return source;
 }
 
-void set_stack_long_int( void * start_of_secure_data,long int source)
+long set_stack_long_int( void * start_of_secure_data,long int source)
 {
   insert_data_into_stack_mem(sizeof(long int),(unsigned char *)&source,(unsigned char *)start_of_secure_data);
+  return source;
 }
 
 //pay attention to the type of the pointer when calling
 //Attention! We set the value of a pointer allocated in the secure stack here!
 //We do not change the pointer which points to the top of the stack (stack pointer)! 
-void set_stack_pointer( void * start_of_secure_data,void * source)
+void* set_stack_pointer( void * start_of_secure_data,void * source)
 {
   insert_data_into_stack_mem(sizeof(void *),(unsigned char *)&source,(unsigned char *)start_of_secure_data);
+  return source;
 }
 
-void set_stack_float( void * start_of_secure_data,float source)
+float set_stack_float( void * start_of_secure_data,float source)
 {
   insert_data_into_stack_mem(sizeof(float),(unsigned char *)&source,(unsigned char *)start_of_secure_data);
+  return source;
 }
 
-void set_stack_double( void * start_of_secure_data,double source)
+double set_stack_double( void * start_of_secure_data,double source)
 {
   insert_data_into_stack_mem(sizeof(double),(unsigned char *)&source,(unsigned char *)start_of_secure_data);
+  return source;
 }
 
 /*Generic set_array_element.Reads data from *source*/
-void set_stack_array_element(long data_size, void * start_of_array, long index, void * source)
+void* set_stack_array_element(long data_size, void * start_of_array, long index, void * source)
 {
 	set_secure_stack_data(source,data_size,start_of_array,1,index);
+    return source;
 }
 
-void set_stack_char_array_element(void * start_of_array, long index, char source)
+char set_stack_char_array_element(void * start_of_array, long index, char source)
 {
 	char src=source;
 	set_secure_stack_data(&src,sizeof(char),start_of_array,1,index);
+    return source;
 }
 
-void set_stack_int_array_element(void * start_of_array, long index, int source)
+int set_stack_int_array_element(void * start_of_array, long index, int source)
 {
 	int src=source;
 	set_secure_stack_data(&src,sizeof(int),start_of_array,1,index);
+    return source;
 }
 
-void set_stack_long_int_array_element(void * start_of_array, long index, long int source)
+long set_stack_long_int_array_element(void * start_of_array, long index, long int source)
 {
 	long int src=source;
 	set_secure_stack_data(&src,sizeof(long int),start_of_array,1,index);
+    return source;
 }
 
 //pay attention to the type of the pointer when calling
-void set_stack_pointer_array_element(void * start_of_array, long index, void * source)
+void* set_stack_pointer_array_element(void * start_of_array, long index, void * source)
 {
 	unsigned char * src=source;
 	set_secure_stack_data(&src,sizeof(void *),start_of_array,1,index);
+    return source;
 }
 
 
-void set_stack_float_array_element(void * start_of_array, long index, float source)
+float set_stack_float_array_element(void * start_of_array, long index, float source)
 {
 	float src=source;
 	set_secure_stack_data(&src,sizeof(float),start_of_array,1,index);
+    return source;
 }
 
-void set_stack_double_array_element(void * start_of_array, long index, double source)
+double set_stack_double_array_element(void * start_of_array, long index, double source)
 {
 	double src=source;
 	set_secure_stack_data(&src,sizeof(double),start_of_array,1,index);
+    return source;
 }
 
 //sets a block of data to the secure stack. reads from *src, which must have been preallocated
-void set_arbitrary_block_in_stack(long data_size,void * start_of_block,void * src)
+void* set_arbitrary_block_in_stack(long data_size,void * start_of_block,void * src)
 {
 	set_secure_stack_data(src,data_size, start_of_block,0,0);
+    return src;
 }
 
 //sets a block of data to the secure stack,using offset bytes. reads from *src, which must have been preallocated
-void set_arbitrary_block_in_stack_with_offset(long data_size,void * start,long offset,void * src)
+void* set_arbitrary_block_in_stack_with_offset(long data_size,void * start,long offset,void * src)
 {
 	set_secure_stack_data(src,data_size, start,2,offset);
+    return src;
 }
 
 

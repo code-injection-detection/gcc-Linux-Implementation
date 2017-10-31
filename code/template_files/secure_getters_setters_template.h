@@ -25,21 +25,21 @@ double get_double_array_element(void * start_of_array, long index);
 void get_arbitrary_block_in_heap(long data_size,void * start_of_block,void * res);
 void get_arbitrary_block_in_heap_with_offset(long data_size,void * start,long offset,void * res);
 
-void set_char( void * start_of_secure_data,char source);
-void set_int( void * start_of_secure_data,int source);
-void set_long_int( void * start_of_secure_data,long int source);
-void set_pointer( void * start_of_secure_data,void * source);
-void set_float( void * start_of_secure_data,float source);
-void set_double( void * start_of_secure_data,double source);
-void set_array_element(long data_size, void * start_of_array, long index, void * source);
-void set_char_array_element(void * start_of_array, long index, char source);
-void set_int_array_element(void * start_of_array, long index, int source);
-void set_long_int_array_element(void * start_of_array, long index, long int source);
-void set_pointer_array_element(void * start_of_array, long index, void * source);
-void set_float_array_element(void * start_of_array, long index, float source);
-void set_double_array_element(void * start_of_array, long index, double source);
-void set_arbitrary_block_in_heap(long data_size,void * start_of_block,void * src);
-void set_arbitrary_block_in_heap_with_offset(long data_size,void * start,long offset,void * src);
+char set_char( void * start_of_secure_data,char source);
+int set_int( void * start_of_secure_data,int source);
+long set_long_int( void * start_of_secure_data,long int source);
+void* set_pointer( void * start_of_secure_data,void * source);
+float set_float( void * start_of_secure_data,float source);
+double set_double( void * start_of_secure_data,double source);
+void * set_array_element(long data_size, void * start_of_array, long index, void * source);
+char set_char_array_element(void * start_of_array, long index, char source);
+int set_int_array_element(void * start_of_array, long index, int source);
+long set_long_int_array_element(void * start_of_array, long index, long int source);
+void* set_pointer_array_element(void * start_of_array, long index, void * source);
+float set_float_array_element(void * start_of_array, long index, float source);
+double set_double_array_element(void * start_of_array, long index, double source);
+void * set_arbitrary_block_in_heap(long data_size,void * start_of_block,void * src);
+void * set_arbitrary_block_in_heap_with_offset(long data_size,void * start,long offset,void * src);
 
 
 
@@ -67,21 +67,21 @@ double get_stack_double_array_element(void * start_of_array, long index);
 void get_arbitrary_block_in_stack(long data_size,void * start_of_block,void * res);
 void get_arbitrary_block_in_stack_with_offset(long data_size,void * start,long offset,void * res);
 
-void set_stack_char( void * start_of_secure_data,char source);
-void set_stack_int( void * start_of_secure_data,int source);
-void set_stack_long_int( void * start_of_secure_data,long int source);
-void set_stack_pointer( void * start_of_secure_data,void * source);
-void set_stack_float( void * start_of_secure_data,float source);
-void set_stack_double( void * start_of_secure_data,double source);
-void set_stack_array_element(long data_size, void * start_of_array, long index, void * source);
-void set_stack_char_array_element(void * start_of_array, long index, char source);
-void set_stack_int_array_element(void * start_of_array, long index, int source);
-void set_stack_long_int_array_element(void * start_of_array, long index, long int source);
-void set_stack_pointer_array_element(void * start_of_array, long index, void * source);
-void set_stack_float_array_element(void * start_of_array, long index, float source);
-void set_stack_double_array_element(void * start_of_array, long index, double source);
-void set_arbitrary_block_in_stack(long data_size,void * start_of_block,void * src);
-void set_arbitrary_block_in_stack_with_offset(long data_size,void * start,long offset,void * src);
+char set_stack_char( void * start_of_secure_data,char source);
+int set_stack_int( void * start_of_secure_data,int source);
+long set_stack_long_int( void * start_of_secure_data,long int source);
+void* set_stack_pointer( void * start_of_secure_data,void * source);
+float set_stack_float( void * start_of_secure_data,float source);
+double set_stack_double( void * start_of_secure_data,double source);
+void* set_stack_array_element(long data_size, void * start_of_array, long index, void * source);
+char set_stack_char_array_element(void * start_of_array, long index, char source);
+int set_stack_int_array_element(void * start_of_array, long index, int source);
+long set_stack_long_int_array_element(void * start_of_array, long index, long int source);
+void* set_stack_pointer_array_element(void * start_of_array, long index, void * source);
+float set_stack_float_array_element(void * start_of_array, long index, float source);
+double set_stack_double_array_element(void * start_of_array, long index, double source);
+void* set_arbitrary_block_in_stack(long data_size,void * start_of_block,void * src);
+void* set_arbitrary_block_in_stack_with_offset(long data_size,void * start,long offset,void * src);
 
 
 
@@ -177,13 +177,14 @@ void * get_global_ptr(void** global_var);
 							if (!ignore_macs_even_if_there_are_mac_bytes) \
 							{ \
 							update_mac_when_setting_data((unsigned char *)&(global_var),number_of_global_useful_bytes+bytes_used_for_keyshares,number_of_global_useful_bytes,((unsigned char*) &(global_var))+(number_of_global_useful_bytes+bytes_used_for_keyshares)) ;\
-							} \
+                            new_value; \
+                            } \
 						}
 						
 //use this when in for loops
 #define UPDATE_GLOBAL_VAR_FOR_LOOPS(global_var,new_value) global_var=(new_value), \
 							(!ignore_macs_even_if_there_are_mac_bytes)?\
-							update_mac_when_setting_data((unsigned char *)&(global_var),number_of_global_useful_bytes+bytes_used_for_keyshares,number_of_global_useful_bytes,((unsigned char*) &(global_var))+(number_of_global_useful_bytes+bytes_used_for_keyshares)):1
+							update_mac_when_setting_data((unsigned char *)&(global_var),number_of_global_useful_bytes+bytes_used_for_keyshares,number_of_global_useful_bytes,((unsigned char*) &(global_var))+(number_of_global_useful_bytes+bytes_used_for_keyshares)):1,new_value
 
 
 #define GET_GLOBAL_CHAR(global_var) get_global_char(&(global_var))

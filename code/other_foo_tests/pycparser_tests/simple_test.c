@@ -141,6 +141,6 @@ void fun_var_init()
 	int a=global_g+1;
 	int b=a+4+1;
 	b=1;
-	a=b=2;
+	a=b=2; 
 }
 
