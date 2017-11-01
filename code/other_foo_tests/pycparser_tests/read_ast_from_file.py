@@ -228,10 +228,36 @@ class CGenerator(object):
 		sref = self._parenthesize_unless_simple(n.name)
 		return sref + n.type + self.visit(n.field)
 
+	def put_parameters_in_secure_order(self, name_of_fun, args_list):
+		#We change the order of parameters, to be per type
+		new_list_of_args=[]
+		for type_of_var in ['char','int','long','float','double','ptr','arb_ptr']:
+			#for every type, the param number is searched and put in the list
+			for j,order_of_call in enumerate(all_functions_dict[name_of_fun]["params"][type_of_var]["order_in_calling"]):
+				new_list_of_args.append(args_list[order_of_call-1])
+		return new_list_of_args
+		
+
 	def visit_FuncCall(self, n):
 		fref = self._parenthesize_unless_simple(n.name)
-		return fref + '(' + self.visit(n.args) + ')'
-
+		if (fref not in all_functions_dict):
+			#our function is not one of the defined ones. It might be printf() or something else
+			return fref + '(' + self.visit(n.args) + ')'
+		else:
+			s=''
+			s+='//HEY PYTHON CALLING FUNCTION :' + str(fref)
+			s+=' | WRITE RESULT TO:'+ 'aaa' #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! fix that
+			args_as_dict=to_dict(n.args)
+			params_as_list=args_as_dict["exprs"]
+			new_params_as_list=self.put_parameters_in_secure_order(fref,params_as_list)
+			args_as_dict["exprs"]=new_params_as_list #change the list of params
+			n.args=from_dict(args_as_dict) #update the ast
+			s+=' | PARAMETERS TO CALL WITH: ' + self.visit(n.args) +'\n'
+			#//HEY PYTHON CALLING FUNCTION : sfind_large_enough_free_group | WRITE RESULT TO: chunk_found__securevar_SET_STACK_PTR | PARAMETERS TO CALL WITH: GET_STACK_LONG
+			return s
+			
+			
+			
 	def visit_UnaryOp(self, n,**kwargs):
 		operand = self._parenthesize_unless_simple(n.expr)
 		if n.op == 'p++' or n.op=="++":
@@ -259,6 +285,10 @@ class CGenerator(object):
 		return '%s %s %s' % (lval_str, n.op, rval_str)
 
 	def visit_Assignment(self, n,**kwargs):
+		dict_of_rvalue=to_dict(n.rvalue)
+		if (dict_of_rvalue["_nodetype"]=="FuncCall"):
+			#use our implementation. But take care of the +=, -= etc !!!!!!!!!!!!!!!
+			pass
 		rval_str = self._parenthesize_if(
 							n.rvalue,
 							lambda n: isinstance(n, c_ast.Assignment),**kwargs)
@@ -958,11 +988,13 @@ for item in where_functions_start:
 		
 		#names, numbers of params
 		fun_params=[]
+		order_of_param_call=1
 		current_function_dict["params"]={}
 		for type_of_var in ['char','int','long','float','double','ptr','arb_ptr']:
 			current_function_dict["params"][type_of_var]={}
 			current_function_dict["params"][type_of_var]["names"]=[]
 			current_function_dict["params"][type_of_var]["number"]=0
+			current_function_dict["params"][type_of_var]["order_in_calling"]=[]
 			if type_of_var=='ptr':
 				current_function_dict["params"][type_of_var]["size_of_pointed_elements"]=[]
 		if fun_metadata["type"]["args"]!=None:
@@ -976,6 +1008,8 @@ for item in where_functions_start:
 					our_type_of_param ='ptr'
 				current_function_dict["params"][our_type_of_param]["number"]+=1
 				current_function_dict["params"][our_type_of_param]["names"].append(name_of_param)
+				current_function_dict["params"][our_type_of_param]["order_in_calling"].append(order_of_param_call)
+				order_of_param_call+=1
 				if our_type_of_param=='ptr':
 					#DEFINITELY make a case for arb_ptr in the future !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 					#see the size of the pointed element
@@ -1001,6 +1035,8 @@ for item in where_functions_start:
 			if type_of_var=='ptr':
 				current_function_dict["locals"][type_of_var]["size_of_pointed_elements"]=[]
 				
+		if (fun_body==None):
+			continue
 		for possible_decl in fun_body:
 			if (possible_decl["_nodetype"]=="Decl"):
 				name_of_local_var=possible_decl["name"]

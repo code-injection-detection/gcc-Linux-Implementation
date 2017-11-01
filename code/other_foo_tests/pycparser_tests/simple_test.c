@@ -120,20 +120,24 @@ int return_value_test()
 	return;
 }
 */
-/*
-void foo_fun()
+
+int  foo_fun(int a, char b, float c)
 {
 }
 
 void function_call_test()
 {
+	float c=3.4;
+	int x;	
 	printf("a\n");
-	foo_fun();
+	//x=foo_fun(1,'b',c);
+	foo_fun(1,'b',c);
 }
-*/
+
 
 //int global_init=0;
 
+/*
 int global_g;
 
 void fun_var_init()
@@ -143,4 +147,4 @@ void fun_var_init()
 	b=1;
 	a=b=2; 
 }
-
+*/
