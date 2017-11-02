@@ -132,6 +132,7 @@ void function_call_test()
 	printf("a\n");
 	//x=foo_fun(1,'b',c);
 	foo_fun(1,'b',c);
+	x=foo_fun(foo_fun(2,'a',3.14),'m',5+4.0);
 }
 
 

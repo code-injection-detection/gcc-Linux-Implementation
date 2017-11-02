@@ -245,15 +245,15 @@ class CGenerator(object):
 			return fref + '(' + self.visit(n.args) + ')'
 		else:
 			s=''
-			s+='//HEY PYTHON CALLING FUNCTION :' + str(fref)
-			s+=' | WRITE RESULT TO:'+ 'aaa' #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! fix that
+			s+='{{{ HEY PYTHON CALL FUNCTION WITH NEW TEMPLATE:' + str(fref)
+			s+=' | HELPING ARGS FOR FUN CALL:' #+ nothing
 			args_as_dict=to_dict(n.args)
 			params_as_list=args_as_dict["exprs"]
 			new_params_as_list=self.put_parameters_in_secure_order(fref,params_as_list)
 			args_as_dict["exprs"]=new_params_as_list #change the list of params
 			n.args=from_dict(args_as_dict) #update the ast
-			s+=' | PARAMETERS TO CALL WITH: ' + self.visit(n.args) +'\n'
-			#//HEY PYTHON CALLING FUNCTION : sfind_large_enough_free_group | WRITE RESULT TO: chunk_found__securevar_SET_STACK_PTR | PARAMETERS TO CALL WITH: GET_STACK_LONG
+			s+=' | PARAMETERS TO CALL WITH: ' + self.visit(n.args) +' }}}' # no newline
+			#{{{HEY PYTHON CALL FUNCTION WITH NEW TEMPLATE: <name_of_fun> | HELPING ARGS FOR FUN CALL: arg1="value1",arg2="value2",.. |PARAMETERS TO CALL WITH : param1,param2 ... }}}
 			return s
 			
 			
