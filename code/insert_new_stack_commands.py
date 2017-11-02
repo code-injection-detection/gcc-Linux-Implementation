@@ -284,6 +284,9 @@ def add_code_for_function_calling(fun_name,write_to,params,use_secure_stack_sett
 	
 def add_code_for_function_calling_new_template(function_name,helping_args_for_fun_call_dict,params):
 	global all_functions_dict
+	global return_addr_for_allocation_ctr
+	global sz_of_array_fun_params_ctr
+	global array_of_params_ctr
 	
 	fun_dict=all_functions_dict[fun_name]
 	chunks_for_params=fun_dict['chunks_for_params']
@@ -296,15 +299,20 @@ def add_code_for_function_calling_new_template(function_name,helping_args_for_fu
 	params_cnt=0
 	offset_for_params_in_chunks=0
 	
+	#every variable must be different, since we might nest function calls
+	return_addr_for_allocation_ctr+=1
+	ret_addr_alloc='returned_addr_after_allocating_'+str(return_addr_for_allocation_ctr)
+
+	
 	lines_to_append=[]
 	#allocate mem in secure stack
-	lines_to_append.append('({returned_addr_after_allocating=allocate_mem_into_secure_stack_in_chunks('+fun_dict['chunks_in_stack']+');\n')
-	lines_to_append.append('if (returned_addr_after_allocating==NULL) {printf("ERROR! no stack mem left -> line %d\\n",__LINE__);exit(8);}\n')
+	lines_to_append.append('({ void*'+ret_addr_alloc+'=allocate_mem_into_secure_stack_in_chunks('+fun_dict['chunks_in_stack']+');\n')
+	lines_to_append.append('if ('+ret_addr_alloc+'==NULL) {printf("ERROR! no stack mem left -> line %d\\n",__LINE__);exit(8);}\n')
 	
 	#initialize parameters
 	lines_to_append.append(' \n')
 	#return address
-	lines_to_append.append('set_stack_pointer(returned_addr_after_allocating+('+chunks_for_params+'+'+chunks_for_return_value+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data), &&return_label_'+fun_name+'_no_'+num_of_times_called_in_code+');\n')
+	lines_to_append.append('set_stack_pointer('+ret_addr_alloc+'+('+chunks_for_params+'+'+chunks_for_return_value+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data), &&return_label_'+fun_name+'_no_'+num_of_times_called_in_code+');\n')
 	#set value to the parameters
 	for type_of_var in ['char','int','long','float','double','ptr']: #in that order!
 		num_of_var=int(fun_dict['params'][type_of_var]['number'])
@@ -315,19 +323,19 @@ def add_code_for_function_calling_new_template(function_name,helping_args_for_fu
 			if(value_of_var.lower()=='null'):
 				value_of_var='0'
 			name_of_setter=find_name_of_setter(type_of_var)
-			lines_to_append.append(name_of_setter+'(returned_addr_after_allocating+('+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data),'+value_of_var+');\n')
+			lines_to_append.append(name_of_setter+'('+ret_addr_alloc+'+('+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data),'+value_of_var+');\n')
 			offset_for_params_in_chunks+=calculate_chunks_needed_for_a_size(process_var_size(type_of_var)) #add value to the offset
 	#same for the arbitrary pointers
 	num_of_var=int(fun_dict['params']['arb_ptr']['number'])
 	for i in range(num_of_var):
 		size_of_arb_ptr_data=fun_dict['params']['arb_ptr']['sizes'][i] #has to be an int, python doesn't know "sizeof()"
 		if (params[params_cnt]!='NULL' and params[params_cnt]!='0'):
-			lines_to_append.append('insert_data_into_stack_mem('+size_of_arb_ptr_data+','+params[params_cnt]+',returned_addr_after_allocating+('+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
+			lines_to_append.append('insert_data_into_stack_mem('+size_of_arb_ptr_data+','+params[params_cnt]+','+ret_addr_alloc+'+('+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
 		params_cnt+=1
 		offset_for_params_in_chunks+=calculate_chunks_needed_for_a_size(int(size_of_arb_ptr_data))
 	#base pointer
-	lines_to_append.append('set_stack_pointer(returned_addr_after_allocating+('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_return_address+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data),base_pointer_for_stack);\n')
-	lines_to_append.append('base_pointer_for_stack=returned_addr_after_allocating+('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_return_address+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data);\n')
+	lines_to_append.append('set_stack_pointer('+ret_addr_alloc+'+('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_return_address+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data),base_pointer_for_stack);\n')
+	lines_to_append.append('base_pointer_for_stack='+ret_addr_alloc+'+('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_return_address+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data);\n')
 	
 	#add goto to the function code
 	lines_to_append.append('goto '+fun_name+'_start_label;\n')
@@ -511,7 +519,13 @@ cnt_params_locals_lines=0
 in_function_code=0
 list_of_params_currently_called=[]
 write_result_to_currently_called=''
+#variables to distinguish between different calls to a function. 
+#We use a different one every time, since we might have nested calls (fun1(fun2(a)))
+#and if we use the same ones, they get clobbered
 return_addr_for_allocation_ctr=0
+sz_of_array_fun_params_ctr=0
+array_of_params_ctr=0;
+
 
 for line in src_lines:
 	
