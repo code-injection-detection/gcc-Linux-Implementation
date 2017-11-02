@@ -647,6 +647,10 @@ void great_function_that_wraps_the_tests()
 	//BASH PLEASE PLACE MORE_TESTS_THAT_USE_NEW_STACK.c HERE
 	#endif
 
+
+	//long result_of_two_dets={{{HEY PYTHON CALL FUNCTION WITH NEW TEMPLATE: calc_determinant_sec | HELPING ARGS FOR FUN CALL: aaa="ooo" |PARAMETERS TO CALL WITH : size_of_matrix_for_det,matrix_for_det_secure }}} + {{{HEY PYTHON CALL FUNCTION WITH NEW TEMPLATE: calc_determinant_sec | HELPING ARGS FOR FUN CALL: aaa="ooo" |PARAMETERS TO CALL WITH : size_of_matrix_for_det,matrix_for_det_secure }}};
+	//printf("result of two dets:%ld\n",result_of_two_dets);
+	
 	/**********************************************************************************/
 	/*************************END OF THE REST OF CODE**********************************/
 	/**********************************************************************************/

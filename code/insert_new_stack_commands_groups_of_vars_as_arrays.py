@@ -4,6 +4,7 @@ import sys
 import copy
 import platform
 import gc
+import re
 
 '''
 This script inserts the commands that implement the secure stack.
@@ -284,6 +285,73 @@ def add_code_for_function_calling(fun_name,write_to,params,use_secure_stack_sett
 			lines_to_append.append(write_to+'='+name_of_getter+'(last_unused_stack_memory+('+chunks_for_params+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
 	for line in lines_to_append:
 		dst_lines.append(line)
+
+
+
+def add_code_for_function_calling_new_template(function_name,helping_args_for_fun_call_dict,params):
+	global all_functions_dict
+	
+	fun_dict=all_functions_dict[fun_name]
+	chunks_for_params=fun_dict['chunks_for_params']
+	chunks_for_local_vars=fun_dict['chunks_for_local_vars']
+	chunks_for_return_value=fun_dict['chunks_for_return_value']
+	chunks_for_base_pointer=fun_dict['chunks_for_base_pointer']
+	chunks_for_return_address=fun_dict['chunks_for_return_address']
+	fun_dict['num_of_times_called_in_code']=str(int(fun_dict['num_of_times_called_in_code'])+1)
+	num_of_times_called_in_code=fun_dict['num_of_times_called_in_code']
+	params_cnt=0
+	offset_for_params_in_chunks=0
+	
+
+	lines_to_append=[]
+	#allocate mem in secure stack
+	lines_to_append.append('({returned_addr_after_allocating=allocate_mem_into_secure_stack_in_chunks('+fun_dict['chunks_in_stack']+');\n')
+	lines_to_append.append('if (returned_addr_after_allocating==NULL) {printf("ERROR,no stack mem left, line %d\\n",__LINE__);exit(8);}\n')
+	
+	#initialize parameters
+	lines_to_append.append(' \n')
+	#return address
+	lines_to_append.append('set_stack_pointer(returned_addr_after_allocating+('+chunks_for_params+'+'+chunks_for_return_value+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data), &&return_label_'+fun_name+'_no_'+num_of_times_called_in_code+');\n')
+	#set value to the parameters
+	for type_of_var in ['char','int','long','float','double','ptr']: #in that order!
+		num_of_var=int(fun_dict['params'][type_of_var]['number'])
+		if (num_of_var>0):
+			lines_to_append.append('size_of_array_for_array_fun_parameters='+str(num_of_var)+'*'+str(process_var_size(type_of_var))+';\n')
+			for i in range(num_of_var):
+				value_of_var=params[params_cnt]
+				params_cnt+=1
+				if(value_of_var.lower()=='null'):
+					value_of_var='0'
+				lines_to_append.append('array_for_'+type_of_var+'_fun_'+fun_name+'_params['+str(i)+']='+value_of_var+';\n')
+			lines_to_append.append('insert_data_into_stack_mem(size_of_array_for_array_fun_parameters,(unsigned char*)array_for_'+type_of_var+'_fun_'+fun_name+'_params,(unsigned char*)returned_addr_after_allocating+('+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
+		offset_for_params_in_chunks+=int(fun_dict['chunks_for_'+type_of_var+'_params'])
+
+	#same for the arbitrary pointers
+	num_of_var=int(fun_dict['params']['arb_ptr']['number'])
+	for i in range(num_of_var):
+		size_of_arb_ptr_data=fun_dict['params']['arb_ptr']['sizes'][i] #has to be an int, python doesn't know "sizeof()"
+		if (params[params_cnt]!='NULL' and params[params_cnt]!='0'):
+			lines_to_append.append('insert_data_into_stack_mem('+size_of_arb_ptr_data+','+params[params_cnt]+',returned_addr_after_allocating+('+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
+		params_cnt+=1
+		offset_for_params_in_chunks+=calculate_chunks_needed_for_a_size(int(size_of_arb_ptr_data))
+	#base pointer
+	lines_to_append.append('set_stack_pointer(returned_addr_after_allocating+('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_return_address+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data),base_pointer_for_stack);\n')
+	lines_to_append.append('base_pointer_for_stack=returned_addr_after_allocating+('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_return_address+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data);\n')
+	
+	#add goto to the function code
+	lines_to_append.append('goto '+fun_name+'_start_label;\n')
+	#add return label
+	lines_to_append.append('return_label_'+fun_name+'_no_'+num_of_times_called_in_code+':\n ;')
+	#return value
+	start_of_return_place='last_unused_stack_memory+('+chunks_for_params+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
+	if (fun_dict['return_value_type']!='' and fun_dict['return_value_type'].lower()!='none' and fun_dict['return_value_type'].lower!='null'):
+		getter_name=find_name_of_getter(fun_dict['return_value_type'],0)
+		lines_to_append.append(getter_name+'(('+start_of_return_place+'));\n')
+	lines_to_append.append('})')
+	ret_str=''
+	for line in lines_to_append:
+		ret_str+=line
+	return ret_str
 	
 	
 #these are the lines that are put at the start of each function (eg definitions of local var and param macros, setting of base pointer etc)
@@ -397,6 +465,7 @@ def copy_result_to_return_space(line_of_return):
 
 new_function_str='PLEASE PYTHON INIT A FUNCTION HERE'
 call_of_function_str='HEY PYTHON CALLING FUNCTION'
+call_of_function_new_str='HEY PYTHON CALL FUNCTION WITH NEW TEMPLATE'
 start_of_function_str='START_OF_FUNCTION'
 end_of_function_str='END_OF_FUNCTION'
 return_point_of_function_str='RETURN_POINT_OF_FUNCTION'
@@ -409,6 +478,7 @@ end_of_local_variables_str='END_OF_LOCAL_VARIABLES'
 return_expression_str='RETURN_EXPRESSION'
 write_result_to_str='WRITE RESULT TO'
 parameters_for_calling_str='PARAMETERS TO CALL WITH'
+helping_args_for_fun_call_str='HELPING ARGS FOR FUN CALL'
 
 all_functions_dict={}
 function_dict={}
@@ -510,6 +580,36 @@ for line in src_lines:
 			function_dict['num_of_times_called_in_code']=str(int(function_dict['num_of_times_called_in_code'])+1)
 		else:
 			all_functions_dict[function_name]['num_of_times_called_in_code']=str(int(all_functions_dict[function_name]['num_of_times_called_in_code'])+1)
+		continue
+		
+	#for calling a function using the new template
+	#{{{HEY PYTHON CALL FUNCTION WITH NEW TEMPLATE: <name_of_fun> | HELPING ARGS FOR FUN CALL: arg1="value1",arg2="value2",.. |PARAMETERS TO CALL WITH : param1,param2 ... }}}
+	line_temp=line
+	got_into_while=0
+	while (call_of_function_new_str) in line_temp:
+		got_into_while=1
+		substring_for_fun_call= re.findall(r"\{\{\{.*?\}\}\}", line_temp,re.S)[0]
+		code_for_fun=substring_for_fun_call
+		substring_for_fun_call=substring_for_fun_call[3:-3] #remove {{{ and }}}
+		function_name=substring_for_fun_call.split('|')[0].strip().split(':')[1].strip()
+		num_of_params=int(all_functions_dict[function_name]['num_of_parameters'])
+		helping_args_for_fun_call=substring_for_fun_call.split('|')[1].strip().split(':')[1].strip()
+		helping_args_for_fun_call_dict={}
+		#create the dict
+		for item in helping_args_for_fun_call.split(','):
+			if len(item.split('='))>1:
+				helping_args_for_fun_call_dict[item.split('=')[0].strip()]=item.split('=')[1].strip()
+		if (parameters_for_calling_str in substring_for_fun_call):
+				list_of_params_currently_called=substring_for_fun_call.split('|')[2].strip().split(':')[1].strip().split(',')
+		list_of_params_currently_called=[x.replace('@',',') for x in list_of_params_currently_called]
+		code_for_replacing_fun=add_code_for_function_calling_new_template(function_name,helping_args_for_fun_call_dict,list_of_params_currently_called)
+		if (function_name==function_dict['name']):
+			function_dict['num_of_times_called_in_code']=str(int(function_dict['num_of_times_called_in_code'])+1)
+		else:
+			all_functions_dict[function_name]['num_of_times_called_in_code']=str(int(all_functions_dict[function_name]['num_of_times_called_in_code'])+1)
+		line_temp= line_temp.replace(code_for_fun, code_for_replacing_fun, 1)
+	if(got_into_while):
+		dst_lines.append(line_temp)
 		continue
 	
 	if (return_point_of_function_str in line) and (in_function_code==1):
