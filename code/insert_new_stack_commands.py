@@ -233,7 +233,7 @@ def add_code_for_function_calling(fun_name,write_to,params,use_secure_stack_sett
 	lines_to_append=[]
 	#allocate mem in secure stack
 	lines_to_append.append('returned_addr_after_allocating=allocate_mem_into_secure_stack_in_chunks('+fun_dict['chunks_in_stack']+');\n')
-	lines_to_append.append('if (returned_addr_after_allocating==NULL) {printf("ERROR,no stack mem left, line %d\\n",__LINE__);exit(8);}\n')
+	lines_to_append.append('if (returned_addr_after_allocating==NULL) {printf("ERROR! no stack mem left -> line %d\\n",__LINE__);exit(8);}\n')
 	
 	#initialize parameters
 	lines_to_append.append(' \n')
@@ -297,7 +297,7 @@ def add_code_for_function_calling_new_template(function_name,helping_args_for_fu
 	lines_to_append=[]
 	#allocate mem in secure stack
 	lines_to_append.append('({returned_addr_after_allocating=allocate_mem_into_secure_stack_in_chunks('+fun_dict['chunks_in_stack']+');\n')
-	lines_to_append.append('if (returned_addr_after_allocating==NULL) {printf("ERROR,no stack mem left, line %d\\n",__LINE__);exit(8);}\n')
+	lines_to_append.append('if (returned_addr_after_allocating==NULL) {printf("ERROR! no stack mem left -> line %d\\n",__LINE__);exit(8);}\n')
 	
 	#initialize parameters
 	lines_to_append.append(' \n')
@@ -332,7 +332,8 @@ def add_code_for_function_calling_new_template(function_name,helping_args_for_fu
 	#add return label
 	lines_to_append.append('return_label_'+fun_name+'_no_'+num_of_times_called_in_code+':\n')
 	#return value
-	start_of_return_place='last_unused_stack_memory+('+chunks_for_params+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'	if (fun_dict['return_value_type']!='' and fun_dict['return_value_type'].lower()!='none' and fun_dict['return_value_type'].lower!='null'):
+	start_of_return_place='last_unused_stack_memory+('+chunks_for_params+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'	
+	if (fun_dict['return_value_type']!='' and fun_dict['return_value_type'].lower()!='none' and fun_dict['return_value_type'].lower!='null'):
 		getter_name=find_name_of_getter(fun_dict['return_value_type'],0)
 		lines_to_append.append(getter_name+'(('+start_of_return_place+'));\n')
 			
@@ -449,6 +450,30 @@ def copy_result_to_return_space(line_of_return):
 	for line in lines_to_append:
 		dst_lines.append(line)
 
+
+def custom_split_of_str(string,char_to_split):
+	#makes sure that we split when we are NOT between a ({ and a }) (blocked expression in C)
+	#and NOT between a " and a " (string) <- this might be an argument, that's why
+	ret_list=[]
+	current_part=""
+	num_of_paren_block1=0
+	num_of_paren_block2=0
+	num_of_double_quotes=0
+	for i,char in enumerate(string):
+		if ( string[i]=='(' and len(string)>i-1 and string[i+1]=='{'):
+			num_of_paren_block1+=1
+		if ( string[i]=='}' and len(string)>i-1 and string[i+1]==')'):
+			num_of_paren_block2+=1
+		if (string[i]=="\""):
+			num_of_double_quotes+=1
+		if (string[i]==char_to_split and num_of_paren_block1==num_of_paren_block2 and num_of_double_quotes%2==0):
+			ret_list.append(current_part)
+			current_part=""
+		else:
+			current_part+=string[i]
+	ret_list.append(current_part)
+	return ret_list
+	
 
 
 
@@ -577,19 +602,20 @@ for line in src_lines:
 	got_into_while=0
 	while (call_of_function_new_str) in line_temp:
 		got_into_while=1
-		substring_for_fun_call= re.findall(r"\{\{\{.*?\}\}\}", line_temp,re.S)[0]
+		#matches a string that starts with {{{ , ends with }}}, and does not contain a {{{
+		substring_for_fun_call= re.search(r"\{\{\{((?!\{\{\{).)*?\}\}\}", line_temp,re.S).group()
 		code_for_fun=substring_for_fun_call
 		substring_for_fun_call=substring_for_fun_call[3:-3] #remove {{{ and }}}
-		function_name=substring_for_fun_call.split('|')[0].strip().split(':')[1].strip()
+		function_name=custom_split_of_str(custom_split_of_str(substring_for_fun_call,'|')[0].strip(),':')[1].strip()
 		num_of_params=int(all_functions_dict[function_name]['num_of_parameters'])
-		helping_args_for_fun_call=substring_for_fun_call.split('|')[1].strip().split(':')[1].strip()
+		helping_args_for_fun_call=custom_split_of_str(custom_split_of_str(substring_for_fun_call,'|')[1].strip(),':')[1].strip()
 		helping_args_for_fun_call_dict={}
 		#create the dict
 		for item in helping_args_for_fun_call.split(','):
-			if len(item.split('='))>1:
-				helping_args_for_fun_call_dict[item.split('=')[0].strip()]=item.split('=')[1].strip()
+			if len(custom_split_of_str(item,'='))>1:
+				helping_args_for_fun_call_dict[custom_split_of_str(item,'=')[0].strip()]=custom_split_of_str(item,'=')[1].strip()
 		if (parameters_for_calling_str in substring_for_fun_call):
-				list_of_params_currently_called=substring_for_fun_call.split('|')[2].strip().split(':')[1].strip().split(',')
+			list_of_params_currently_called=custom_split_of_str(custom_split_of_str(custom_split_of_str(substring_for_fun_call,'|')[2].strip(),':')[1].strip(),',')
 		list_of_params_currently_called=[x.replace('@',',') for x in list_of_params_currently_called]
 		code_for_replacing_fun=add_code_for_function_calling_new_template(function_name,helping_args_for_fun_call_dict,list_of_params_currently_called)
 		if (function_name==function_dict['name']):
@@ -597,8 +623,10 @@ for line in src_lines:
 		else:
 			all_functions_dict[function_name]['num_of_times_called_in_code']=str(int(all_functions_dict[function_name]['num_of_times_called_in_code'])+1)
 		line_temp= line_temp.replace(code_for_fun, code_for_replacing_fun, 1)
+		#let's make line_temp to be one line, because multiple invocations of a function may have turned it into multiple lines
+		line_temp=line_temp.replace('\n', ' ').replace('\r', '')
 	if(got_into_while):
-		dst_lines.append(line_temp)
+		dst_lines.append(line_temp+'\n')
 		continue
 	
 	

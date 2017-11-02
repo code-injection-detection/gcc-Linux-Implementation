@@ -537,6 +537,7 @@ void great_function_that_wraps_the_tests()
 		{
 			SET_STACK_LONG(D,GET_STACK_LONG(D)+(get_stack_int_array_element(GET_STACK_PTR(MATRIX),0*25+GET_STACK_INT(J))*get_stack_long_int_array_element(SUBDETS,GET_STACK_INT(J))));
 		}
+
 		RETURN_POINT_OF_FUNCTION: calc_determinant_sec
 	}
 			
@@ -619,8 +620,8 @@ void great_function_that_wraps_the_tests()
 	
 	
 	//determinant calculation
-	/*
-	int size_of_matrix_for_det=11;
+	
+	int size_of_matrix_for_det=7;
 	int *matrix_for_det=init_matrix_for_determinant_calc(size_of_matrix_for_det);
 	int *matrix_for_det_secure;
 	long determinant_end_result;
@@ -639,7 +640,7 @@ void great_function_that_wraps_the_tests()
 	printf("Determinant=%ld\n",determinant_end_result);
 	printf("\n"); 
 	printf("New Secure calc_determinant_sec time:%lg cpu seconds\n",_securetime); 
-	*/
+	
 	
 	printf("base_pointer:%ld, entire_stack:%ld, last_unused_stack_memory=%ld\n",(long)base_pointer_for_stack,(long)GET_GLOBAL_PTR(globals.entire_stack_memory_chunk),(long)last_unused_stack_memory);
 	
@@ -647,9 +648,13 @@ void great_function_that_wraps_the_tests()
 	//BASH PLEASE PLACE MORE_TESTS_THAT_USE_NEW_STACK.c HERE
 	#endif
 
-
-	//long result_of_two_dets={{{HEY PYTHON CALL FUNCTION WITH NEW TEMPLATE: calc_determinant_sec | HELPING ARGS FOR FUN CALL: aaa="ooo" |PARAMETERS TO CALL WITH : size_of_matrix_for_det,matrix_for_det_secure }}} + {{{HEY PYTHON CALL FUNCTION WITH NEW TEMPLATE: calc_determinant_sec | HELPING ARGS FOR FUN CALL: aaa="ooo" |PARAMETERS TO CALL WITH : size_of_matrix_for_det,matrix_for_det_secure }}};
-	//printf("result of two dets:%ld\n",result_of_two_dets);
+	/*
+	long result_of_two_dets={{{HEY PYTHON CALL FUNCTION WITH NEW TEMPLATE: calc_determinant_sec | HELPING ARGS FOR FUN CALL: aaa="ooo" |PARAMETERS TO CALL WITH : 4852788+7- {{{HEY PYTHON CALL FUNCTION WITH NEW TEMPLATE: calc_determinant_sec | HELPING ARGS FOR FUN CALL: aaa="ooo" |PARAMETERS TO CALL WITH : size_of_matrix_for_det,matrix_for_det_secure }}},matrix_for_det_secure }}} + {{{HEY PYTHON CALL FUNCTION WITH NEW TEMPLATE: calc_determinant_sec | HELPING ARGS FOR FUN CALL: aaa="ooo" |PARAMETERS TO CALL WITH : size_of_matrix_for_det,matrix_for_det_secure }}};
+	*/
+	
+	long result_of_two_dets={{{HEY PYTHON CALL FUNCTION WITH NEW TEMPLATE: calc_determinant_sec | HELPING ARGS FOR FUN CALL: aaa="ooo" |PARAMETERS TO CALL WITH : size_of_matrix_for_det-1+1,matrix_for_det_secure }}} + {{{HEY PYTHON CALL FUNCTION WITH NEW TEMPLATE: calc_determinant_sec | HELPING ARGS FOR FUN CALL: aaa="ooo" |PARAMETERS TO CALL WITH : ({ int x=1; x+=6; x;}),matrix_for_det_secure }}};
+	
+	printf("result of two dets:%ld\n",result_of_two_dets);
 	
 	/**********************************************************************************/
 	/*************************END OF THE REST OF CODE**********************************/
