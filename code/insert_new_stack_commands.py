@@ -5,6 +5,8 @@ import copy
 import platform
 import gc
 import re
+import random
+import string
 
 '''
 This script inserts the commands that implement the secure stack.
@@ -475,6 +477,8 @@ def custom_split_of_str(string,char_to_split):
 	return ret_list
 	
 
+def get_random_string(size):
+	return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(size))
 
 
 new_function_str='PLEASE PYTHON INIT A FUNCTION HERE'
@@ -507,6 +511,7 @@ cnt_params_locals_lines=0
 in_function_code=0
 list_of_params_currently_called=[]
 write_result_to_currently_called=''
+return_addr_for_allocation_ctr=0
 
 for line in src_lines:
 	
