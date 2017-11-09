@@ -125,14 +125,16 @@ int  foo_fun(int a, char b, float c)
 {
 }
 
-void function_call_test()
+int function_call_test()
 {
 	float c=3.4;
 	int x;	
-	printf("a\n");
+	printf("a%d\n",(foo_fun(45,'a',5.0)));
 	//x=foo_fun(1,'b',c);
 	foo_fun(1,'b',c);
 	x=foo_fun(foo_fun(2,'a',3.14),'m',5+4.0);
+    
+    return foo_fun(2,'a',3.14);
 }
 
 
@@ -149,3 +151,4 @@ void fun_var_init()
 	a=b=2; 
 }
 */
+

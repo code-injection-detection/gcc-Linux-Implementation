@@ -245,7 +245,7 @@ class CGenerator(object):
 			return fref + '(' + self.visit(n.args) + ')'
 		else:
 			s=''
-			s+='{{{ HEY PYTHON CALL FUNCTION WITH NEW TEMPLATE:' + str(fref)
+			s+='{{{ HEY PYTHON CALL FUNCTION WITH NEW TEMPLATE:' + str(fref)+'_sec'
 			s+=' | HELPING ARGS FOR FUN CALL:' #+ nothing
 			args_as_dict=to_dict(n.args)
 			params_as_list=args_as_dict["exprs"]

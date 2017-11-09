@@ -100,7 +100,8 @@ for line in src_lines:
 		newline='#define verify_everything '+sys.argv[34]+'\n'
 	if '#define use_new_secure_heap' in line:
 		newline='#define use_new_secure_heap '+sys.argv[35]+'\n'
-	
+	if '#define check_for_secure_stack_allocation_overflow' in line:
+		newline='#define check_for_secure_stack_allocation_overflow '+sys.argv[36]+'\n'
 
 	headers_dst.write(newline)
 
