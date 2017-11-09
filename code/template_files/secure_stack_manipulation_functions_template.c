@@ -69,18 +69,20 @@ chunks_and_old_mem allocate_mem_into_secure_stack(long stack_bytes_to_allocate)
 	last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) + (chunks_needed_to_allocate*(c+b+d));
 	
 	
-	//stack overflow check
-	//this way, allocating the last chunk results in the last_unused_stack_memory to reach out of the stack.
-	if ((unsigned char*)last_unused_stack_memory > ((unsigned char*)GET_GLOBAL_PTR(globals.entire_stack_memory_chunk)) + total_stack_bytes_allocated)
-	{
-		//cancel last increase
-		last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_needed_to_allocate*(c+b+d));
-		//return NULL
-		ret.chunks_allocated=0;
-		ret.old_mem=NULL;
-		fprintf(stderr,"Error:Attempted to allocate more memory than the secure stack size.\n");
-		return ret;
-	}
+	#if check_for_secure_stack_allocation_overflow==1
+		//stack overflow check
+		//this way, allocating the last chunk results in the last_unused_stack_memory to reach out of the stack.
+		if ((unsigned char*)last_unused_stack_memory > ((unsigned char*)GET_GLOBAL_PTR(globals.entire_stack_memory_chunk)) + total_stack_bytes_allocated)
+		{
+			//cancel last increase
+			last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_needed_to_allocate*(c+b+d));
+			//return NULL
+			ret.chunks_allocated=0;
+			ret.old_mem=NULL;
+			fprintf(stderr,"Error:Attempted to allocate more memory than the secure stack size.\n");
+			return ret;
+		}
+	#endif
 	
 	return ret;
 }
@@ -105,18 +107,19 @@ unsigned char * allocate_mem_into_secure_stack_in_chunks(long chunks_to_allocate
 	//perform the allocation
 	last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) + (chunks_to_allocate)*(b+c+d);
 	
-	
-	//stack overflow check
-	//this way, allocating the last chunk results in the last_unused_stack_memory to reach out of the stack.
-	if ((unsigned char*)last_unused_stack_memory > ((unsigned char*)GET_GLOBAL_PTR(globals.entire_stack_memory_chunk)) + total_stack_bytes_allocated)
-	{
-		//cancel last increase
-		last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_to_allocate)*(b+c+d);
-		//return NULL
-		old_mem=NULL;
-		fprintf(stderr,"Error:Attempted to allocate more memory than the secure stack size.\n");
-		return old_mem;
-	}
+	#if check_for_secure_stack_allocation_overflow==1
+		//stack overflow check
+		//this way, allocating the last chunk results in the last_unused_stack_memory to reach out of the stack.
+		if ((unsigned char*)last_unused_stack_memory > ((unsigned char*)GET_GLOBAL_PTR(globals.entire_stack_memory_chunk)) + total_stack_bytes_allocated)
+		{
+			//cancel last increase
+			last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_to_allocate)*(b+c+d);
+			//return NULL
+			old_mem=NULL;
+			fprintf(stderr,"Error:Attempted to allocate more memory than the secure stack size.\n");
+			return old_mem;
+		}
+	#endif
 	
 	return old_mem;
 	
