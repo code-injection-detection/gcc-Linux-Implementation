@@ -21,6 +21,7 @@ extern long find_number_of_useful_stack_chunks(long allocated_bytes);
 extern int get_ptr_size();
 extern chunks_and_old_mem allocate_mem_into_secure_stack(long stack_bytes_to_allocate);
 extern unsigned char * allocate_mem_into_secure_stack_in_chunks(long chunks_to_allocate);
+extern unsigned char * allocate_mem_into_secure_stack_return_ptr_only(long stack_bytes_to_allocate);
 extern void free_mem_from_secure_stack_in_chunks(long chunks_to_free);
 extern void free_mem_from_secure_stack(long stack_bytes_to_free);
 extern void free_chunks_from_secure_stack(long chunks_to_free);

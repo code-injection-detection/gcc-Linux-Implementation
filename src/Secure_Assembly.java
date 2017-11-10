@@ -618,6 +618,7 @@ public class Secure_Assembly {
 								 "free_mem_from_secure_stack_in_chunks",
 								 "allocate_mem_into_secure_stack_in_chunks",
 								 "allocate_mem_into_secure_stack",
+                                 "allocate_mem_into_secure_stack_return_ptr_only",
 								 "find_number_of_useful_stack_chunks",
 								 "get_ptr_size",
 								 "update_mac_when_setting_data",

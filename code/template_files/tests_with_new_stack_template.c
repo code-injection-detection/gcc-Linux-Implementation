@@ -38,18 +38,20 @@ void great_function_that_wraps_the_tests()
 		pointers: 1 | names: TEST_PTR | size_of_pointed_elements:10 
 		arb_pointers: 2 | names: STUFF,STUFF2 | size_of_objects:5,7
 	END_OF_PARAMETERS
-	NUM_OF_LOCAL_VARIABLES: 4
+	NUM_OF_LOCAL_VARIABLES: 5
 		chars: 0 
 		ints: 1 | names: I
 		longs: 1 | names: SUM
 		floats: 0
 		doubles: 0
-		pointers: 2 | names: FOO1,FOO2 | size_of_pointed_elements: 1,200
+		pointers: 3 | names: FOO1,FOO2,STATIC_TEST_PTR | size_of_pointed_elements: 1,200,100
 		arb_pointers: 0
 	END_OF_LOCAL_VARIABLES
 	RETURN_EXPRESSION: GET_STACK_LONG(SUM)
 	START_OF_FUNCTION : test_custom_function_sum
-	
+
+
+		//ALLOCATE STACK DATA OF SIZE: 100 | SETTER FOR THEM AND VAR : SET_STACK_PTR(STATIC_TEST_PTR,
 		SET_STACK_LONG(SUM,GET_STACK_INT(X)+GET_STACK_INT(Y));
 		SET_STACK_PTR(FOO1,STUFF); //careful here! not get_stack_pointer(STUFF)!
 		for (SET_STACK_INT(I,0);GET_STACK_INT(I)<5;SET_STACK_INT(I,GET_STACK_INT(I)+1))

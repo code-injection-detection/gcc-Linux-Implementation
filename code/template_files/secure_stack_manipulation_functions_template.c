@@ -87,6 +87,55 @@ chunks_and_old_mem allocate_mem_into_secure_stack(long stack_bytes_to_allocate)
 	return ret;
 }
 
+
+/*Allocates <bytes_to_allocate> bytes into the secure stack. Practically just moves the stack pointer.
+ * Returns the address of the stack pointer, before it was moved.
+ * Allocates whole number of chunks!
+*/
+unsigned char * allocate_mem_into_secure_stack_return_ptr_only(long stack_bytes_to_allocate)
+{
+	
+	long a=stack_bytes_to_allocate;
+	long b=stack_bytes_used_for_keyshares;
+	long c=stack_bytes_for_useful_data;
+	long d=number_of_mac_bytes;
+	long chunks_needed_to_allocate;
+	unsigned char * ret;
+	ret=last_unused_stack_memory;
+	
+	if (stack_bytes_to_allocate==0)
+	{
+		ret=NULL;
+		return ret;
+	}
+	
+	chunks_needed_to_allocate=stack_bytes_to_allocate/c;
+	
+	if (chunks_needed_to_allocate*c<stack_bytes_to_allocate)
+		chunks_needed_to_allocate++;
+	
+	//perform the allocation
+	last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) + (chunks_needed_to_allocate*(c+b+d));
+	
+	
+	#if check_for_secure_stack_allocation_overflow==1
+		//stack overflow check
+		//this way, allocating the last chunk results in the last_unused_stack_memory to reach out of the stack.
+		if ((unsigned char*)last_unused_stack_memory > ((unsigned char*)GET_GLOBAL_PTR(globals.entire_stack_memory_chunk)) + total_stack_bytes_allocated)
+		{
+			//cancel last increase
+			last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_needed_to_allocate*(c+b+d));
+			//return NULL
+			ret=NULL;
+			fprintf(stderr,"Error:Attempted to allocate more memory than the secure stack size.\n");
+			return ret;
+		}
+	#endif
+	
+	return ret;
+}
+
+
 /*Allocates <chunks_to_allocate> chunks into the secure stack. Practically just moves the stack pointer.
  * Returns the address of the stack pointer, before it was moved.
  * Allocates whole number of chunks!

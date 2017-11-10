@@ -416,15 +416,23 @@ def add_the_function_header():
 #the code at the end of each function
 def add_the_function_footer(bool_for_undef):
 	global function_dict
-	
-	chunks_for_return_address=function_dict['chunks_for_return_address']	
+
+	chunks_for_return_address=function_dict['chunks_for_return_address']
+	chunks_for_base_pointer=function_dict['chunks_for_base_pointer']
+	chunks_for_local_vars=function_dict['chunks_for_local_vars']
 
 	lines_to_append=[]
 	#set the former base pointer
 	lines_to_append.append('temp_base_pointer=base_pointer_for_stack;\n')
 	lines_to_append.append('base_pointer_for_stack=get_stack_pointer(base_pointer_for_stack);\n')
 	#pop the stack frame
-	lines_to_append.append('free_mem_from_secure_stack_in_chunks('+function_dict['chunks_in_stack']+');\n')
+	if (function_dict['use_of_explicit_stack_allocation']=='0'):
+		lines_to_append.append('free_mem_from_secure_stack_in_chunks('+function_dict['chunks_in_stack']+');\n')
+	else:
+		#place the stack pointer into its position right after the local vars
+		lines_to_append.append('last_unused_stack_memory=temp_base_pointer+('+str(int(chunks_for_base_pointer)+int(chunks_for_local_vars))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data);\n')
+		lines_to_append.append('free_mem_from_secure_stack_in_chunks('+function_dict['chunks_in_stack']+');\n')
+
 	if(bool_for_undef):
 		#undef
 		for i in function_dict['defines']:
@@ -505,6 +513,7 @@ return_expression_str='RETURN_EXPRESSION'
 write_result_to_str='WRITE RESULT TO'
 parameters_for_calling_str='PARAMETERS TO CALL WITH'
 helping_args_for_fun_call_str='HELPING ARGS FOR FUN CALL'
+allocate_in_secure_stack_a_block_str='ALLOCATE STACK DATA OF SIZE'
 
 all_functions_dict={}
 function_dict={}
@@ -548,6 +557,7 @@ for line in src_lines:
 		calc_size_of_fun_in_stack()
 		function_dict['num_of_times_called_in_code']='0'
 		fun_name=function_dict['name']
+		function_dict['use_of_explicit_stack_allocation']='0'
 		all_functions_dict[fun_name]=copy.deepcopy(function_dict) #we might need it inside the function, so save it
 		dst_lines.append(function_dict['name']+"_start_label:\n")
 		add_the_function_header()
@@ -559,6 +569,13 @@ for line in src_lines:
 		dst_lines.append(function_dict['name']+"_end_label:\n")
 		all_functions_dict[fun_name]=copy.deepcopy(function_dict) #do it a second time to have it as a whole
 		gc.collect()
+		continue
+	if (allocate_in_secure_stack_a_block_str in line) and (in_function_code):
+		#ALLOCATE STACK DATA OF SIZE: 500 | SETTER FOR THEM AND VAR : SET_STACK_PTR(X,
+		expression_of_size_in_bytes=line.split('|')[0].split(':')[1].strip()
+		setter_for_data=line.split('|')[1].split(':')[1].strip()
+		function_dict['use_of_explicit_stack_allocation']='1'
+		dst_lines.append(setter_for_data+'allocate_mem_into_secure_stack_return_ptr_only('+ expression_of_size_in_bytes+'));\n')
 		continue
 	if (name_of_function_str in line) and (in_function_declaration):
 		fun_name=line.strip().split(':')[1].strip()
