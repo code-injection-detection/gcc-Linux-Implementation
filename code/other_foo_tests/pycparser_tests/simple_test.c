@@ -121,6 +121,7 @@ int return_value_test()
 }
 */
 
+/*
 int  foo_fun(int a, char b, float c)
 {
 }
@@ -136,9 +137,14 @@ int function_call_test()
     
     return foo_fun(2,'a',3.14);
 }
-
+*/
 
 //int global_init=0;
+
+int global_array1[10],global_array_int[100];
+char * global_array2[n];
+
+void* bob[5];
 
 /*
 int global_g;

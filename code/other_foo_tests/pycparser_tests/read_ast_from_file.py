@@ -939,7 +939,6 @@ def create_secure_function_decl(name_of_fun):
 	func_decl+="RETURN_EXPRESSION: NULL\n" #add a dummy return expression, it will be filled on the fly every time "return" is seen
 	func_decl+="//PYTHON IGNORE: ^ dummy value, will be filled on the fly every time \"return\" is seen \n"
 	func_decl+="START_OF_FUNCTION :"+secure_fun_name+'\n'
-	#!!!!!!!!!!!!!!!!!!!!!!!!!!!!! don't forget the end of function!
 	
 	return func_decl
 
@@ -964,8 +963,14 @@ for type_of_var in ['char','int','long','float','double','ptr','arb_ptr']:
 	globals_dict[type_of_var]["names"]=[]
 	globals_dict[type_of_var]["original_c_decl"]=[]
 	globals_dict[type_of_var]["number"]=0
+	globals_dict['1_dim_array_of_'+type_of_var]={}
+	globals_dict['1_dim_array_of_'+type_of_var]["names"]=[]
+	globals_dict['1_dim_array_of_'+type_of_var]["original_c_decl"]=[]
+	globals_dict['1_dim_array_of_'+type_of_var]["number"]=0
+	globals_dict['1_dim_array_of_'+type_of_var]['dimension_asts']=[]
 	if type_of_var=='ptr':
 		globals_dict[type_of_var]["size_of_pointed_elements"]=[]
+		globals_dict[type_of_var]["is_created_because_of_global_array"]=[]
 	
 where_functions_start=ast_dict["ext"]
 
@@ -1088,6 +1093,7 @@ for item in where_functions_start:
 			globals_dict[identify_type(type_of_global)]["names"].append(name_of_global)
 			globals_dict[identify_type(type_of_global)]["original_c_decl"].append(original_c_lines_for_global)
 			globals_dict[identify_type(type_of_global)]["number"]+=1
+			globals_dict[identify_type(type_of_global)]["is_created_because_of_global_array"].append(0)
 			if (item["type"]["type"]["_nodetype"]=="PtrDecl"):
 				size_of_pointed_elem=8
 			elif (item["type"]["type"]["_nodetype"]=="TypeDecl"):
@@ -1096,6 +1102,31 @@ for item in where_functions_start:
 				sys.stderr.write("ERROR in finding the size of pointer elements for globals.\n")
 				exit(-1)
 			globals_dict[identify_type(type_of_global)]["size_of_pointed_elements"].append(size_of_pointed_elem)
+		elif item["type"]["_nodetype"]=="ArrayDecl":
+			global_of_type=''
+			if (item["type"]["type"]["_nodetype"]=="PtrDecl"):
+				global_of_type=identify_type('ptr')
+				type_of_global='1_dim_array_of_'+identify_type('ptr')
+			elif (item["type"]["type"]["_nodetype"]=="TypeDecl"):
+				global_of_type=identify_type(item["type"]["type"]["type"]["names"][0])
+				type_of_global='1_dim_array_of_'+identify_type(item["type"]["type"]["type"]["names"][0])
+			else:
+				sys.stderr.write("ERROR in finding the size of pointer elements for global array.\n")
+				exit(-1)
+			globals_dict[type_of_global]["names"].append(name_of_global)
+			globals_dict[type_of_global]["original_c_decl"].append(original_c_lines_for_global) #probably won't need that though
+			globals_dict[type_of_global]["number"]+=1
+			#dimension of array (it's an expression)
+			dim_ast = from_dict(item['type']['dim'])
+			globals_dict[type_of_global]['dimension_asts'].append(dim_ast)
+			
+			#let's create the corresponding ptr in the global vars
+			globals_dict['ptr']["names"].append(name_of_global)
+			original_type_of_array=original_c_lines_for_global.split(name_of_global)[0].strip()
+			globals_dict['ptr']["original_c_decl"].append(original_type_of_array+'* '+name_of_global+';\n')
+			globals_dict['ptr']["number"]+=1
+			globals_dict['ptr']["is_created_because_of_global_array"].append(1)
+
 		else:
 			print("unknown variable type parsing for globals")
 			
