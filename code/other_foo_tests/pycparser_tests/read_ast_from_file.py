@@ -393,30 +393,35 @@ class CGenerator(object):
 		 }
 		'''
 		s="//secure parameter initializations, if any\n"
-		for type_of_var in ['char','int','long','float','double','ptr','arb_ptr']:
-			for i,init_val in enumerate(fun_dict["locals"][type_of_var]["init"]):
-				if (init_val!=None):
-					new_ast_dict={}
-					new_ast_dict["_nodetype"]="Assignment"
-					#no coord
-					new_ast_dict["lvalue"]={}
-					new_ast_dict["lvalue"]["_nodetype"]="ID"
-					new_ast_dict["lvalue"]["name"]=fun_dict["locals"][type_of_var]["names"][i]
-					new_ast_dict["op"]="="
-					new_ast_dict["rvalue"]=to_dict(init_val) #rvalue is the expression takes from the first parsing
-					s+= (self.visit(from_dict(new_ast_dict))+';\n')
-				else:
-					s+= ''
+		
+		for order in range(1,fun_dict["local_init_maxorder"]):
+			#search the local vars
+			for type_of_var in ['char','int','long','float','double','ptr','arb_ptr']:
+				for i,init_val in enumerate(fun_dict["locals"][type_of_var]["init"]):
+					if (init_val!=None and fun_dict["locals"][type_of_var]["order_of_init"][i]==order):
+						new_ast_dict={}
+						new_ast_dict["_nodetype"]="Assignment"
+						#no coord
+						new_ast_dict["lvalue"]={}
+						new_ast_dict["lvalue"]["_nodetype"]="ID"
+						new_ast_dict["lvalue"]["name"]=fun_dict["locals"][type_of_var]["names"][i]
+						new_ast_dict["op"]="="
+						new_ast_dict["rvalue"]=to_dict(init_val) #rvalue is the expression takes from the first parsing
+						s+= (self.visit(from_dict(new_ast_dict))+';\n')
+					else:
+						s+= ''
 		if (self.name_of_fun_in_parsing=='main'):
 			#malloc global arrays
 			for type_of_var in ['char','int','long','float','double','ptr']:
 				for i,name in enumerate(globals_dict['1_dim_array_of_'+type_of_var]["names"]):
 					s+='UPDATE_GLOBAL_VAR('+name+', {{{HEY PYTHON CALL FUNCTION WITH NEW TEMPLATE: smalloc | HELPING ARGS FOR FUN CALL:  |PARAMETERS TO CALL WITH : '+self.visit(globals_dict['1_dim_array_of_'+type_of_var]["dimension_asts"][i])+' }}});\n'
 			#init the global vars that ask for initialization
-			for type_of_var in ['char','int','long','float','double','ptr']:
-				for i,name in enumerate(globals_dict[type_of_var]["names"]):
-					if (globals_dict[type_of_var]['init'][i]!=None):
-						s+='UPDATE_GLOBAL_VAR('+name+','+self.visit(globals_dict[type_of_var]['init'][i])+');\n'
+			for order in range (1,global_init_order):
+				#search the global vars
+				for type_of_var in ['char','int','long','float','double','ptr']:
+					for i,name in enumerate(globals_dict[type_of_var]["names"]):
+						if (globals_dict[type_of_var]['init'][i]!=None and globals_dict[type_of_var]['order_of_init'][i]==order):
+							s+='UPDATE_GLOBAL_VAR('+name+','+self.visit(globals_dict[type_of_var]['init'][i])+');\n'
 		return (s+"\n")
 
 
@@ -968,28 +973,33 @@ with open('ast', 'rb') as f:
 	
 	
 #init globals dict
+global_init_order=1
 for type_of_var in ['char','int','long','float','double','ptr','arb_ptr']:
 	globals_dict[type_of_var]={}
 	globals_dict[type_of_var]["names"]=[]
 	globals_dict[type_of_var]["original_c_decl"]=[]
 	globals_dict[type_of_var]["number"]=0
 	globals_dict[type_of_var]["init"]=[]
+	globals_dict[type_of_var]["order_of_init"]=[]
 	globals_dict['1_dim_array_of_'+type_of_var]={}
 	globals_dict['1_dim_array_of_'+type_of_var]["names"]=[]
 	globals_dict['1_dim_array_of_'+type_of_var]["original_c_decl"]=[]
 	globals_dict['1_dim_array_of_'+type_of_var]["number"]=0
 	globals_dict['1_dim_array_of_'+type_of_var]['dimension_asts']=[]
+	globals_dict['1_dim_array_of_'+type_of_var]['order_of_init']=[]
 	if type_of_var=='ptr':
 		globals_dict[type_of_var]["size_of_pointed_elements"]=[]
 		globals_dict[type_of_var]["is_created_because_of_global_array"]=[]
 	
 where_functions_start=ast_dict["ext"]
 
+locals_init_order=0
 for item in where_functions_start:
 	
 	if item["_nodetype"]=="FuncDef":
 		#we have a function definition!
 		if current_function_dict!={}:
+			current_function_dict["local_init_maxorder"]=locals_init_order
 			all_functions_dict[current_function_dict["name"]]=copy.deepcopy(current_function_dict)
 		current_function_dict={}
 		fun_metadata=item["decl"]
@@ -1043,11 +1053,14 @@ for item in where_functions_start:
 		fun_body=item["body"]["block_items"]
 		fun_locals=[]
 		current_function_dict["locals"]={}
+		locals_init_order=1
+		current_function_dict["local_init_maxorder"]=0
 		for type_of_var in ['char','int','long','float','double','ptr','arb_ptr']:
 			current_function_dict["locals"][type_of_var]={}
 			current_function_dict["locals"][type_of_var]["names"]=[]
 			current_function_dict["locals"][type_of_var]["number"]=0
 			current_function_dict["locals"][type_of_var]["init"]=[]
+			current_function_dict["locals"][type_of_var]["order_of_init"]=[]
 			if type_of_var=='ptr':
 				current_function_dict["locals"][type_of_var]["size_of_pointed_elements"]=[]
 				
@@ -1066,8 +1079,11 @@ for item in where_functions_start:
 				current_function_dict["locals"][our_type_of_possible_decl]["names"].append(name_of_local_var)
 				if  (init_of_local!=None):
 					current_function_dict["locals"][our_type_of_possible_decl]["init"].append(copy.deepcopy(from_dict(init_of_local)))
+					current_function_dict["locals"][our_type_of_possible_decl]["order_of_init"].append(locals_init_order)
+					locals_init_order+=1
 				else:
 					current_function_dict["locals"][our_type_of_possible_decl]["init"].append(None)
+					current_function_dict["locals"][our_type_of_possible_decl]["order_of_init"].append(-1)
 				if our_type_of_possible_decl=='ptr':
 					#DEFINITELY make a case for arb_ptr in the future !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 					#see the size of the pointed element
@@ -1106,8 +1122,11 @@ for item in where_functions_start:
 			globals_dict[identify_type(type_of_global)]["number"]+=1
 			if init_ast!=None:
 				globals_dict[identify_type(type_of_global)]["init"].append(init_ast)
+				globals_dict[identify_type(type_of_global)]["order_of_init"].append(global_init_order)
+				global_init_order+=1
 			else:
 				globals_dict[identify_type(type_of_global)]["init"].append(None)
+				globals_dict[identify_type(type_of_global)]["order_of_init"].append(-1)
 		elif item["type"]["_nodetype"]=='PtrDecl':
 			type_of_global='ptr'
 			globals_dict[identify_type(type_of_global)]["names"].append(name_of_global)
@@ -1115,8 +1134,11 @@ for item in where_functions_start:
 			globals_dict[identify_type(type_of_global)]["number"]+=1
 			if init_ast!=None:
 				globals_dict[identify_type(type_of_global)]["init"].append(init_ast)
+				globals_dict[identify_type(type_of_global)]["order_of_init"].append(global_init_order)
+				global_init_order+=1
 			else:
 				globals_dict[identify_type(type_of_global)]["init"].append(None)
+				globals_dict[identify_type(type_of_global)]["order_of_init"].append(-1)
 			globals_dict[identify_type(type_of_global)]["is_created_because_of_global_array"].append(0)
 			if (item["type"]["type"]["_nodetype"]=="PtrDecl"):
 				size_of_pointed_elem=8
@@ -1150,12 +1172,12 @@ for item in where_functions_start:
 			globals_dict['ptr']["original_c_decl"].append(original_type_of_array+'* '+name_of_global+';\n')
 			globals_dict['ptr']["number"]+=1
 			globals_dict['ptr']["is_created_because_of_global_array"].append(1)
-			globals_dict['ptr']["init"].append(None) #if we need to init the global, we search in the dicts 1_dim_array_of_<thing>
+			globals_dict['ptr']["init"].append(None) #if we need to init (i.e malloc) the global, we search in the dicts 1_dim_array_of_<thing>
+													 #array initialization not yet supported!!!!!!!
 		else:
 			print("unknown variable type parsing for globals")
 			
 #erase the declarations/initializations of the global variables, sice we will do them manually
-#!!!!!!!!!!!!!!!!! TODO: init them!
 num_of_nodes_not_deleted=0
 while (len(where_functions_start)>num_of_nodes_not_deleted):
 	if (where_functions_start[num_of_nodes_not_deleted]["_nodetype"]=="Decl"):

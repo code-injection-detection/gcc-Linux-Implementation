@@ -140,7 +140,9 @@ int function_call_test()
 */
 
 int global_no_init;
+char global_char_init=global_no_init;
 int global_init=global_no_init;
+char global_char_init2=global_no_init;
 /*
 int global_size;
 int global_array1[10],global_array_int[100];
@@ -152,17 +154,18 @@ void* bob[5];
 
 */
 
-/*
+
 int global_g;
 
 void fun_var_init()
 {
 	int a=global_g+1;
+    char c=a+4;
 	int b=a+4+1;
 	b=1;
 	a=b=2; 
 }
-*/
+
 int main()
 {
 
