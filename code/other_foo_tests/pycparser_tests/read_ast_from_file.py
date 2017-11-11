@@ -412,6 +412,11 @@ class CGenerator(object):
 			for type_of_var in ['char','int','long','float','double','ptr']:
 				for i,name in enumerate(globals_dict['1_dim_array_of_'+type_of_var]["names"]):
 					s+='UPDATE_GLOBAL_VAR('+name+', {{{HEY PYTHON CALL FUNCTION WITH NEW TEMPLATE: smalloc | HELPING ARGS FOR FUN CALL:  |PARAMETERS TO CALL WITH : '+self.visit(globals_dict['1_dim_array_of_'+type_of_var]["dimension_asts"][i])+' }}});\n'
+			#init the global vars that ask for initialization
+			for type_of_var in ['char','int','long','float','double','ptr']:
+				for i,name in enumerate(globals_dict[type_of_var]["names"]):
+					if (globals_dict[type_of_var]['init'][i]!=None):
+						s+='UPDATE_GLOBAL_VAR('+name+','+self.visit(globals_dict[type_of_var]['init'][i])+');\n'
 		return (s+"\n")
 
 
@@ -968,6 +973,7 @@ for type_of_var in ['char','int','long','float','double','ptr','arb_ptr']:
 	globals_dict[type_of_var]["names"]=[]
 	globals_dict[type_of_var]["original_c_decl"]=[]
 	globals_dict[type_of_var]["number"]=0
+	globals_dict[type_of_var]["init"]=[]
 	globals_dict['1_dim_array_of_'+type_of_var]={}
 	globals_dict['1_dim_array_of_'+type_of_var]["names"]=[]
 	globals_dict['1_dim_array_of_'+type_of_var]["original_c_decl"]=[]
@@ -1085,6 +1091,11 @@ for item in where_functions_start:
 	if item["_nodetype"]=="Decl":
 		#global declaration
 		name_of_global=item["name"]
+		init_ast=None
+		if item['init']!=None:
+			#save and then delete the initialization
+			init_ast=from_dict(copy.deepcopy(item['init']))
+			item['init']=None
 		original_c_lines_for_global=get_original_lines_in_C_of_ext_object(name_of_global,1)
 		gc.collect()
 		type_of_global=''
@@ -1093,11 +1104,19 @@ for item in where_functions_start:
 			globals_dict[identify_type(type_of_global)]["names"].append(name_of_global)
 			globals_dict[identify_type(type_of_global)]["original_c_decl"].append(original_c_lines_for_global)
 			globals_dict[identify_type(type_of_global)]["number"]+=1
+			if init_ast!=None:
+				globals_dict[identify_type(type_of_global)]["init"].append(init_ast)
+			else:
+				globals_dict[identify_type(type_of_global)]["init"].append(None)
 		elif item["type"]["_nodetype"]=='PtrDecl':
 			type_of_global='ptr'
 			globals_dict[identify_type(type_of_global)]["names"].append(name_of_global)
 			globals_dict[identify_type(type_of_global)]["original_c_decl"].append(original_c_lines_for_global)
 			globals_dict[identify_type(type_of_global)]["number"]+=1
+			if init_ast!=None:
+				globals_dict[identify_type(type_of_global)]["init"].append(init_ast)
+			else:
+				globals_dict[identify_type(type_of_global)]["init"].append(None)
 			globals_dict[identify_type(type_of_global)]["is_created_because_of_global_array"].append(0)
 			if (item["type"]["type"]["_nodetype"]=="PtrDecl"):
 				size_of_pointed_elem=8
@@ -1122,7 +1141,7 @@ for item in where_functions_start:
 			globals_dict[type_of_global]["original_c_decl"].append(original_c_lines_for_global) #probably won't need that though
 			globals_dict[type_of_global]["number"]+=1
 			#dimension of array (it's an expression)
-			dim_ast = from_dict(item['type']['dim'])
+			dim_ast = from_dict(copy.deepcopy(item['type']['dim']))
 			globals_dict[type_of_global]['dimension_asts'].append(dim_ast)
 			
 			#let's create the corresponding ptr in the global vars
@@ -1131,7 +1150,7 @@ for item in where_functions_start:
 			globals_dict['ptr']["original_c_decl"].append(original_type_of_array+'* '+name_of_global+';\n')
 			globals_dict['ptr']["number"]+=1
 			globals_dict['ptr']["is_created_because_of_global_array"].append(1)
-
+			globals_dict['ptr']["init"].append(None) #if we need to init the global, we search in the dicts 1_dim_array_of_<thing>
 		else:
 			print("unknown variable type parsing for globals")
 			

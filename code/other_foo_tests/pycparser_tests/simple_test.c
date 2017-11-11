@@ -139,8 +139,9 @@ int function_call_test()
 }
 */
 
-//int global_init=0;
-
+int global_no_init;
+int global_init=global_no_init;
+/*
 int global_size;
 int global_array1[10],global_array_int[100];
 char * global_array2[global_size];
@@ -148,12 +149,8 @@ char * global_array2[global_size];
 void* bob[5];
 
 
-int main()
-{
 
-return 0;
-}
-
+*/
 
 /*
 int global_g;
@@ -166,4 +163,10 @@ void fun_var_init()
 	a=b=2; 
 }
 */
+int main()
+{
+
+return 0;
+}
+
 
