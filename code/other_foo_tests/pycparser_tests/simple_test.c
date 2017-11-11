@@ -141,10 +141,19 @@ int function_call_test()
 
 //int global_init=0;
 
+int global_size;
 int global_array1[10],global_array_int[100];
-char * global_array2[n];
+char * global_array2[global_size];
 
 void* bob[5];
+
+
+int main()
+{
+
+return 0;
+}
+
 
 /*
 int global_g;

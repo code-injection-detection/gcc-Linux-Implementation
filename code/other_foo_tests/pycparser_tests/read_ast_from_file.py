@@ -407,6 +407,11 @@ class CGenerator(object):
 					s+= (self.visit(from_dict(new_ast_dict))+';\n')
 				else:
 					s+= ''
+		if (self.name_of_fun_in_parsing=='main'):
+			#malloc global arrays
+			for type_of_var in ['char','int','long','float','double','ptr']:
+				for i,name in enumerate(globals_dict['1_dim_array_of_'+type_of_var]["names"]):
+					s+='UPDATE_GLOBAL_VAR('+name+', {{{HEY PYTHON CALL FUNCTION WITH NEW TEMPLATE: smalloc | HELPING ARGS FOR FUN CALL:  |PARAMETERS TO CALL WITH : '+self.visit(globals_dict['1_dim_array_of_'+type_of_var]["dimension_asts"][i])+' }}});\n'
 		return (s+"\n")
 
 
