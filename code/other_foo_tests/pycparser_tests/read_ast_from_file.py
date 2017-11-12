@@ -278,7 +278,7 @@ class CGenerator(object):
 		return new_list_of_args
 		
 
-	def visit_FuncCall(self, n):
+	def visit_FuncCall(self, n,**kwargs):
 		fref = self._parenthesize_unless_simple(n.name)
 		if (fref not in all_functions_dict):
 			#our function is not one of the defined ones. It might be printf() or something else
@@ -292,7 +292,8 @@ class CGenerator(object):
 			new_params_as_list=self.put_parameters_in_secure_order(fref,params_as_list)
 			args_as_dict["exprs"]=new_params_as_list #change the list of params
 			n.args=from_dict(args_as_dict) #update the ast
-			s+=' | PARAMETERS TO CALL WITH: ' + self.visit(n.args) +' }}}' # no newline
+			kwargs["these_are_function_args"]=True #so as to replace ","'s with "@"'s. That is necessary in order for the next python script to distinguish between params and commas in params (splits in commas)
+			s+=' | PARAMETERS TO CALL WITH: ' + self.visit(n.args,**kwargs) +' }}}' # no newline
 			#{{{HEY PYTHON CALL FUNCTION WITH NEW TEMPLATE: <name_of_fun> | HELPING ARGS FOR FUN CALL: arg1="value1",arg2="value2",.. |PARAMETERS TO CALL WITH : param1,param2 ... }}}
 			return s
 			
@@ -386,10 +387,16 @@ class CGenerator(object):
 		s = '(' + self._generate_type(n.to_type) + ')'
 		return s + ' ' + self._parenthesize_unless_simple(n.expr)
 
-	def visit_ExprList(self, n):
+	def visit_ExprList(self, n,**kwargs):
+		these_are_function_args=kwargs.get("these_are_function_args",False)
+		kwargs["these_are_function_args"]=False #revert to old value
 		visited_subexprs = []
 		for expr in n.exprs:
-			visited_subexprs.append(self._visit_expr(expr))
+			if (these_are_function_args):
+				str_to_append=replace_comma_with_at_outside_funcall(self._visit_expr(expr))
+			else:
+				str_to_append=self._visit_expr(expr)
+			visited_subexprs.append(str_to_append)
 		return ', '.join(visited_subexprs)
 
 	def visit_InitList(self, n):

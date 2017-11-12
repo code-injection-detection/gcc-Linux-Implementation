@@ -168,8 +168,13 @@ void fun_var_init()
 }
 */
 
+int a_foo_fun(int x)
+{
+    return x;
+}
+
 int another_foo_global;
-void array_locals()
+void array_locals(int x,int y, int z)
 {
     int bob;
     int array_local[10];
@@ -184,12 +189,13 @@ void array_locals()
     
 }
 
-/*
+
 int main()
 {
 
+    array_locals(global_array1[5],a_foo_fun(global_array1[6]),global_array1[7]);
 return 0;
 }
-*/
+
 
 
