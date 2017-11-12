@@ -23,7 +23,51 @@ void print_primes_up_to_n(int n)
 }
 */
 
-
+void simple_sieve_of_Eratosthenes(int num)
+{
+	char * numbers;
+	int i;
+	int j;
+	int prime_cnt=0;
+	double square_root=sqrt(num);
+	
+	numbers=smalloc((num+1)*sizeof(char),__func__,__LINE__);
+	
+	for (i=2;i<=num;i++)
+	{
+		numbers[i]=1;
+	}
+	
+	
+	for (i=2;i<=square_root+1;i++)
+	{
+		if (numbers[i]==1)
+		{
+			for (j=2*i;j<=num;j+=i)
+			{
+				numbers[j]=0;
+			}
+		}
+	}
+	
+	
+	printf("\n");
+	printf("Primes with sieve:\n");
+	for (i=2;i<=num;i++)
+	{
+		if (numbers[i]==1)
+		{
+			printf("%d ",i);
+			prime_cnt++;
+		}
+	}
+	printf("\n");
+	printf("Total: %d primes.\n",prime_cnt);
+	
+	
+	//free(numbers);
+	
+}
 
 /*
 int a_function(int x, int y)
@@ -145,12 +189,13 @@ int global_init=global_no_init;
 char global_char_init2=global_no_init;
 */
 
+/*
 int global_size;
 int global_array1[10],global_array_int[100];
 char * global_array2[global_size];
 
 void* bob[5];
-
+*/
 
 
 
@@ -167,10 +212,10 @@ void fun_var_init()
 	a=b=2; 
 }
 */
-
-int a_foo_fun(int x)
+/*
+int a_foo_fun(int x,int y)
 {
-    return x;
+    return x+y;
 }
 
 int another_foo_global;
@@ -188,14 +233,15 @@ void array_locals(int x,int y, int z)
     global_array1[bob]=array_local[3] + array_local2[5];
     
 }
+*/
 
-
+/*
 int main()
 {
 
-    array_locals(global_array1[5],a_foo_fun(global_array1[6]),global_array1[7]);
+    //array_locals(global_array1[5],a_foo_fun(global_array1[6],global_array1[8]),global_array1[7]);
 return 0;
 }
-
+*/
 
 

@@ -199,21 +199,21 @@ class CGenerator(object):
 			if (is_global==0):
 				setter=find_name_of_stack_setter_in_caps(type_of_var)
 				#pay attention that we need an extra parenthesis
-				return "%s ( %s " % (setter,n.name)
+				return "%s( %s " % (setter,n.name)
 			else:
 				#pay attention that we need an extra parenthesis
 				if (coming_from_for_loop==False):
-					return "%s ( globals.%s " % ("UPDATE_GLOBAL_VAR",n.name)
+					return "%s( globals.%s " % ("UPDATE_GLOBAL_VAR",n.name)
 				else:
-					return "%s ( globals.%s " % ("UPDATE_GLOBAL_VAR_FOR_LOOPS",n.name)
+					return "%s( globals.%s " % ("UPDATE_GLOBAL_VAR_FOR_LOOPS",n.name)
 			
 		else:
 			getter=find_name_of_stack_getter_in_caps(type_of_var)
 			if (is_global==1):
 				getter=find_name_of_global_getter(type_of_var)
-				return "%s ( globals.%s )" % (getter,n.name)
+				return "%s( globals.%s )" % (getter,n.name)
 			else:
-				return "%s ( %s )" % (getter,n.name)
+				return "%s( %s )" % (getter,n.name)
 	
 	def visit_Pragma(self, n):
 		ret = '#pragma'
@@ -246,23 +246,23 @@ class CGenerator(object):
 				setter=find_name_of_stack_array_setter(type_of_pointed_var)
 				#pay attention that we need an extra parenthesis
 				if (type_of_var=='ptr'):
-					return "%s ( GET_STACK_PTR(%s) , %s " % (setter,name_of_array,self.visit(n.subscript))
+					return "%s( GET_STACK_PTR(%s) , %s " % (setter,name_of_array,self.visit(n.subscript))
 				else:
-					return "%s ( %s , %s " % (setter,name_of_array,self.visit(n.subscript))
+					return "%s( %s , %s " % (setter,name_of_array,self.visit(n.subscript))
 			else:
 				#pay attention that we need an extra parenthesis
 				setter=find_name_of_sheap_array_setter(type_of_pointed_var)
-				return "%s ( GET_GLOBAL_PTR(globals.%s) , %s " % (setter,name_of_array,self.visit(n.subscript))
+				return "%s( GET_GLOBAL_PTR(globals.%s) , %s " % (setter,name_of_array,self.visit(n.subscript))
 		else:
 			getter=find_name_of_stack_array_getter(type_of_pointed_var)
 			if (is_global==1):
 				getter=find_name_of_sheap_array_getter(type_of_pointed_var)
-				return "%s ( GET_GLOBAL_PTR(globals.%s) , %s )" % (getter,name_of_array,self.visit(n.subscript))
+				return "%s( GET_GLOBAL_PTR(globals.%s) , %s )" % (getter,name_of_array,self.visit(n.subscript))
 			else:
 				if (type_of_var=='ptr'):
-					return "%s ( GET_STACK_PTR(%s) , %s )" % (getter,name_of_array,self.visit(n.subscript))
+					return "%s( GET_STACK_PTR(%s) , %s )" % (getter,name_of_array,self.visit(n.subscript))
 				else:
-					return "%s ( %s , %s )" % (getter,name_of_array,self.visit(n.subscript))
+					return "%s( %s , %s )" % (getter,name_of_array,self.visit(n.subscript))
 
 	def visit_StructRef(self, n):
 		sref = self._parenthesize_unless_simple(n.name)
@@ -318,7 +318,7 @@ class CGenerator(object):
 		else:
 			return '%s%s' % (n.op, operand)
 
-	def visit_BinaryOp(self, n):
+	def visit_BinaryOp(self, n,**kwargs):
 		lval_str = self._parenthesize_if(n.left,
 							lambda d: not self._is_simple_node(d))
 		rval_str = self._parenthesize_if(n.right,
