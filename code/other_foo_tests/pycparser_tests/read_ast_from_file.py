@@ -10,6 +10,7 @@ import gc
 
 from pycparser import parse_file, c_ast, c_parser,c_generator
 from pycparser.plyparser import Coord
+from extra_functions_for_parser import *
 
 RE_CHILD_ARRAY = re.compile(r'(.*)\[(.*)\]')
 RE_INTERNAL_ATTR = re.compile('__.*__')
@@ -221,8 +222,47 @@ class CGenerator(object):
 		return ret
 
 	def visit_ArrayRef(self, n,**kwargs):
-		arrref = self._parenthesize_unless_simple(n.name)
-		return arrref + '[' + self.visit(n.subscript) + ']'
+		use_setter=kwargs.get("use_setter_param",False)
+		name_of_array=n.name.name
+		is_global=0
+		#search in locals
+		type_of_var=identify_type_of_var(all_functions_dict[self.name_of_fun_in_parsing],name_of_array)
+		if (type_of_var=="unknown_type"):
+			#search in globals
+			type_of_var=identify_type_of_var_in_globals(name_of_array)
+			is_global=1
+			if (type_of_var=="unknown_type"):
+				#It might not be one of the secured variables, return what it would return normally
+				arrref = self._parenthesize_unless_simple(n.name)
+				return arrref + '[' + self.visit(n.subscript) + ']'
+			else:
+				type_of_pointed_var=identify_type_of_pointed_var_in_globals(name_of_array)
+		else:
+			type_of_pointed_var=identify_type_of_pointed_var(all_functions_dict[self.name_of_fun_in_parsing],name_of_array)
+		
+		
+		if (use_setter):
+			if (is_global==0):
+				setter=find_name_of_stack_array_setter(type_of_pointed_var)
+				#pay attention that we need an extra parenthesis
+				if (type_of_var=='ptr'):
+					return "%s ( GET_STACK_PTR(%s) , %s " % (setter,name_of_array,self.visit(n.subscript))
+				else:
+					return "%s ( %s , %s " % (setter,name_of_array,self.visit(n.subscript))
+			else:
+				#pay attention that we need an extra parenthesis
+				setter=find_name_of_sheap_array_setter(type_of_pointed_var)
+				return "%s ( GET_GLOBAL_PTR(globals.%s) , %s " % (setter,name_of_array,self.visit(n.subscript))
+		else:
+			getter=find_name_of_stack_array_getter(type_of_pointed_var)
+			if (is_global==1):
+				getter=find_name_of_sheap_array_getter(type_of_pointed_var)
+				return "%s ( GET_GLOBAL_PTR(globals.%s) , %s )" % (getter,name_of_array,self.visit(n.subscript))
+			else:
+				if (type_of_var=='ptr'):
+					return "%s ( GET_STACK_PTR(%s) , %s )" % (getter,name_of_array,self.visit(n.subscript))
+				else:
+					return "%s ( %s , %s )" % (getter,name_of_array,self.visit(n.subscript))
 
 	def visit_StructRef(self, n):
 		sref = self._parenthesize_unless_simple(n.name)
@@ -801,65 +841,36 @@ def identify_type_of_var(fun_dict,var_name):
 			if var_name==name:
 				return type_of_var
 	return "unknown_type"
-				
-
+	
 def identify_type_of_var_in_globals(var_name):
 	#check the globals too
 	for type_of_var in ['char','int','long','float','double','ptr','arb_ptr']:
-		for name in globals_dict[type_of_var]["names"]:
+		for i,name in enumerate(globals_dict[type_of_var]["names"]):
 			if var_name==name:
 				return type_of_var
 	return "unknown_type"
+		
+def identify_type_of_pointed_var(fun_dict,var_name):
+	param=fun_dict["params"]
+	for type_of_var in ['ptr','arb_ptr']:
+		for i,name in enumerate(param[type_of_var]["names"]):
+			if var_name==name:
+				return param[type_of_var]['type_of_pointed_var'][i]
+	local=fun_dict["locals"]
+	for type_of_var in ['ptr','arb_ptr']:
+		for i,name in enumerate(local[type_of_var]["names"]):
+			if var_name==name:
+				return local[type_of_var]['type_of_pointed_var'][i]
+	return "unknown_type"		
+
+def identify_type_of_pointed_var_in_globals(var_name):
+	#check the globals too
+	for type_of_var in ['ptr','arb_ptr']:
+		for i,name in enumerate(globals_dict[type_of_var]["names"]):
+			if var_name==name:
+				return globals_dict[type_of_var]['type_of_pointed_var'][i]
+	return "unknown_type"
 	
-
-def find_name_of_stack_getter_in_caps(type_of_var):
-	name_of_setter='GET_STACK_'
-	if( type_of_var=='long' or type_of_var=='long int'):
-		name_of_setter+='LONG'
-	if ( type_of_var=='pointer' or type_of_var=='ptr'):
-		name_of_setter+='PTR'
-	if ( type_of_var=='int'):
-		name_of_setter+='INT'
-	if ( type_of_var=='float'):
-		name_of_setter+='FLOAT'
-	if ( type_of_var=='double'):
-		name_of_setter+='DOUBLE'
-	if ( type_of_var=='char'):
-		name_of_setter+='CHAR'
-	return name_of_setter
-
-
-def find_name_of_global_getter(type_of_var):
-	name_of_getter='GET_GLOBAL_'
-	if( type_of_var=='long' or type_of_var=='long int'):
-		name_of_getter+='LONG'
-	if ( type_of_var=='pointer' or type_of_var=='ptr'):
-		name_of_getter+='PTR'
-	if ( type_of_var=='int'):
-		name_of_getter+='INT'
-	if ( type_of_var=='float'):
-		name_of_getter+='FLOAT'
-	if ( type_of_var=='double'):
-		name_of_getter+='DOUBLE'
-	if ( type_of_var=='char'):
-		name_of_getter+='CHAR'
-	return name_of_getter
-
-def find_name_of_stack_setter_in_caps(type_of_var):
-	name_of_setter='SET_STACK_'
-	if( type_of_var=='long' or type_of_var=='long int'):
-		name_of_setter+='LONG'
-	if ( type_of_var=='pointer' or type_of_var=='ptr'):
-		name_of_setter+='PTR'
-	if ( type_of_var=='int'):
-		name_of_setter+='INT'
-	if ( type_of_var=='float'):
-		name_of_setter+='FLOAT'
-	if ( type_of_var=='double'):
-		name_of_setter+='DOUBLE'
-	if ( type_of_var=='char'):
-		name_of_setter+='CHAR'
-	return name_of_setter
 
 
 def find_total_number_of_parameters(func_dict):
