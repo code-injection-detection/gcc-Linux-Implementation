@@ -410,11 +410,15 @@ class CGenerator(object):
 						s+= (self.visit(from_dict(new_ast_dict))+';\n')
 					else:
 						s+= ''
+		#allocate local arrays:
+		for i,dimension_ast in enumerate(fun_dict["locals"]['ptr']["dimension_asts"]):
+			if (fun_dict["locals"]['ptr']["is_created_because_of_local_array"][i]==1):
+				s+='//ALLOCATE STACK DATA OF SIZE: ('+self.visit(dimension_ast)+')*'+str(fun_dict["locals"]['ptr']["size_of_pointed_elements"][i])+' | SETTER FOR THEM AND VAR : SET_STACK_PTR('+fun_dict["locals"]['ptr']["names"][i]+', \n'
 		if (self.name_of_fun_in_parsing=='main'):
 			#malloc global arrays
 			for type_of_var in ['char','int','long','float','double','ptr']:
 				for i,name in enumerate(globals_dict['1_dim_array_of_'+type_of_var]["names"]):
-					s+='UPDATE_GLOBAL_VAR('+name+', {{{HEY PYTHON CALL FUNCTION WITH NEW TEMPLATE: smalloc | HELPING ARGS FOR FUN CALL:  |PARAMETERS TO CALL WITH : '+self.visit(globals_dict['1_dim_array_of_'+type_of_var]["dimension_asts"][i])+' }}});\n'
+					s+='UPDATE_GLOBAL_VAR('+name+', {{{HEY PYTHON CALL FUNCTION WITH NEW TEMPLATE: smalloc | HELPING ARGS FOR FUN CALL:  |PARAMETERS TO CALL WITH : ('+self.visit(globals_dict['1_dim_array_of_'+type_of_var]["dimension_asts"][i])+')*'+str(globals_dict['1_dim_array_of_'+type_of_var]["size_of_pointed_elements"][i])+' }}});\n'
 			#init the global vars that ask for initialization
 			for order in range (1,global_init_order):
 				#search the global vars
@@ -919,8 +923,7 @@ def create_secure_function_decl(name_of_fun):
 				s+=func_dict['params'][type_of_var]['names'][i] +","
 			s+=func_dict['params'][type_of_var]['names'][num_of_type-1]
 			if (type_of_var=='ptr'):
-				#!!!!!!!!!!!!!!! what about arb_ptr?
-				s+='| size_of_pointed_elements: '
+				s+=' | size_of_pointed_elements: '
 				for i in range(num_of_type-1):
 					s+=str(func_dict['params'][type_of_var]['size_of_pointed_elements'][i]) +","
 				s+=str(func_dict['params'][type_of_var]['size_of_pointed_elements'][num_of_type-1])
@@ -942,12 +945,15 @@ def create_secure_function_decl(name_of_fun):
 				s+=func_dict['locals'][type_of_var]['names'][i] +","
 			s+=func_dict['locals'][type_of_var]['names'][num_of_type-1]
 			if (type_of_var=='ptr'):
-				#!!!!!!!!!!!!!!! what about arb_ptr?
-				s+='| size_of_pointed_elements: '
+				s+=' | size_of_pointed_elements: '
 				for i in range(num_of_type-1):
 					s+=str(func_dict['locals'][type_of_var]['size_of_pointed_elements'][i]) +","
 				s+=str(func_dict['locals'][type_of_var]['size_of_pointed_elements'][num_of_type-1])
-				#SOS arb_ptr with size_of_objects!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			if (type_of_var=='arb_ptr'):
+				s+=' | size_of_objects: '
+				for i in range(num_of_type-1):
+					s+=str(func_dict['locals'][type_of_var]['size_of_objects'][i]) +","
+				s+=str(func_dict['locals'][type_of_var]['size_of_objects'][num_of_type-1])
 		s+='\n'
 		func_decl+=s
 	func_decl+="END_OF_LOCAL_VARIABLES\n"
@@ -986,6 +992,7 @@ for type_of_var in ['char','int','long','float','double','ptr','arb_ptr']:
 	globals_dict['1_dim_array_of_'+type_of_var]["original_c_decl"]=[]
 	globals_dict['1_dim_array_of_'+type_of_var]["number"]=0
 	globals_dict['1_dim_array_of_'+type_of_var]['dimension_asts']=[]
+	globals_dict['1_dim_array_of_'+type_of_var]["size_of_pointed_elements"]=[]
 	globals_dict['1_dim_array_of_'+type_of_var]['order_of_init']=[]
 	if type_of_var=='ptr':
 		globals_dict[type_of_var]["size_of_pointed_elements"]=[]
@@ -1063,6 +1070,11 @@ for item in where_functions_start:
 			current_function_dict["locals"][type_of_var]["order_of_init"]=[]
 			if type_of_var=='ptr':
 				current_function_dict["locals"][type_of_var]["size_of_pointed_elements"]=[]
+				current_function_dict["locals"][type_of_var]["is_created_because_of_local_array"]=[] #for locally declared arrays of non-constant size
+				current_function_dict["locals"][type_of_var]["dimension_asts"]=[]
+			if type_of_var=='arb_ptr':
+				current_function_dict["locals"][type_of_var]["size_of_objects"]=[]
+				current_function_dict["locals"][type_of_var]["dimension_asts"]=[]
 				
 		if (fun_body==None):
 			continue
@@ -1070,21 +1082,41 @@ for item in where_functions_start:
 			if (possible_decl["_nodetype"]=="Decl"):
 				name_of_local_var=possible_decl["name"]
 				init_of_local=possible_decl["init"]
+				is_array=0
+				size_of_constant_array=0
+				expression_of_non_constant_array=None
 				if "names" in  possible_decl["type"]["type"]: #see if it's a simple variable
 					type_of_local_var=possible_decl["type"]["type"]["names"]
 					our_type_of_possible_decl=identify_type(type_of_local_var)
 				elif possible_decl["type"]["_nodetype"]=="PtrDecl": #it's probably a pointer to something
 					our_type_of_possible_decl ='ptr'
+					current_function_dict["locals"]['ptr']["is_created_because_of_local_array"].append(0)
+					current_function_dict["locals"]['ptr']["dimension_asts"].append(None)
+				elif possible_decl["type"]["_nodetype"]=="ArrayDecl":
+					is_array=1
+					if possible_decl["type"]["dim"]["_nodetype"]=="Constant":
+						our_type_of_possible_decl='arb_ptr'
+						size_of_constant_array=int(possible_decl["type"]["dim"]["value"])
+						current_function_dict["locals"]['arb_ptr']["dimension_asts"].append(from_dict(copy.deepcopy(possible_decl["type"]["dim"])))
+					else:
+						our_type_of_possible_decl='ptr'
+						expression_of_non_constant_array=(from_dict(copy.deepcopy(possible_decl["type"]["dim"])))
+						current_function_dict["locals"]['ptr']["is_created_because_of_local_array"].append(1)
+						current_function_dict["locals"]['ptr']["dimension_asts"].append(expression_of_non_constant_array)
+						
 				current_function_dict["locals"][our_type_of_possible_decl]["number"]+=1
 				current_function_dict["locals"][our_type_of_possible_decl]["names"].append(name_of_local_var)
 				if  (init_of_local!=None):
 					current_function_dict["locals"][our_type_of_possible_decl]["init"].append(copy.deepcopy(from_dict(init_of_local)))
 					current_function_dict["locals"][our_type_of_possible_decl]["order_of_init"].append(locals_init_order)
 					locals_init_order+=1
+					if (is_array):
+						sys.stderr.write("Array initialization not supported.\n")
+						exit(-1)
 				else:
 					current_function_dict["locals"][our_type_of_possible_decl]["init"].append(None)
 					current_function_dict["locals"][our_type_of_possible_decl]["order_of_init"].append(-1)
-				if our_type_of_possible_decl=='ptr':
+				if our_type_of_possible_decl=='ptr' or our_type_of_possible_decl=='arb_ptr':
 					#DEFINITELY make a case for arb_ptr in the future !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 					#see the size of the pointed element
 					if (possible_decl["type"]["type"]["_nodetype"]=="PtrDecl"):
@@ -1094,8 +1126,10 @@ for item in where_functions_start:
 					else:
 						sys.stderr.write("ERROR in finding the parameter size for locals.\n")
 						exit(-1)
-					current_function_dict["locals"][our_type_of_possible_decl]["size_of_pointed_elements"].append(size_of_pointed_elem)
-		
+					if (our_type_of_possible_decl=='ptr'):	
+						current_function_dict["locals"][our_type_of_possible_decl]["size_of_pointed_elements"].append(size_of_pointed_elem)
+					else:
+						current_function_dict["locals"][our_type_of_possible_decl]["size_of_objects"].append(int(size_of_constant_array*size_of_pointed_elem))
 		#erase the declarations/initializations of the local variables, sice we will do them manually
 		num_of_nodes_not_deleted=0
 		while (len(fun_body)>num_of_nodes_not_deleted):
@@ -1155,7 +1189,7 @@ for item in where_functions_start:
 				type_of_global='1_dim_array_of_'+identify_type('ptr')
 			elif (item["type"]["type"]["_nodetype"]=="TypeDecl"):
 				global_of_type=identify_type(item["type"]["type"]["type"]["names"][0])
-				type_of_global='1_dim_array_of_'+identify_type(item["type"]["type"]["type"]["names"][0])
+				type_of_global='1_dim_array_of_'+identify_type(global_of_type)
 			else:
 				sys.stderr.write("ERROR in finding the size of pointer elements for global array.\n")
 				exit(-1)
@@ -1165,6 +1199,7 @@ for item in where_functions_start:
 			#dimension of array (it's an expression)
 			dim_ast = from_dict(copy.deepcopy(item['type']['dim']))
 			globals_dict[type_of_global]['dimension_asts'].append(dim_ast)
+			globals_dict[type_of_global]["size_of_pointed_elements"].append(process_var_size(identify_type(global_of_type)))
 			
 			#let's create the corresponding ptr in the global vars
 			globals_dict['ptr']["names"].append(name_of_global)
@@ -1174,6 +1209,7 @@ for item in where_functions_start:
 			globals_dict['ptr']["is_created_because_of_global_array"].append(1)
 			globals_dict['ptr']["init"].append(None) #if we need to init (i.e malloc) the global, we search in the dicts 1_dim_array_of_<thing>
 													 #array initialization not yet supported!!!!!!!
+			globals_dict['ptr']["size_of_pointed_elements"].append(process_var_size(identify_type(global_of_type)))
 		else:
 			print("unknown variable type parsing for globals")
 			
