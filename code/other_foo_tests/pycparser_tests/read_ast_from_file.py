@@ -220,7 +220,7 @@ class CGenerator(object):
 			ret += ' ' + n.string
 		return ret
 
-	def visit_ArrayRef(self, n):
+	def visit_ArrayRef(self, n,**kwargs):
 		arrref = self._parenthesize_unless_simple(n.name)
 		return arrref + '[' + self.visit(n.subscript) + ']'
 
@@ -994,9 +994,11 @@ for type_of_var in ['char','int','long','float','double','ptr','arb_ptr']:
 	globals_dict['1_dim_array_of_'+type_of_var]['dimension_asts']=[]
 	globals_dict['1_dim_array_of_'+type_of_var]["size_of_pointed_elements"]=[]
 	globals_dict['1_dim_array_of_'+type_of_var]['order_of_init']=[]
+	globals_dict['1_dim_array_of_'+type_of_var]['type_of_pointed_var']=type_of_var
 	if type_of_var=='ptr':
 		globals_dict[type_of_var]["size_of_pointed_elements"]=[]
 		globals_dict[type_of_var]["is_created_because_of_global_array"]=[]
+		globals_dict[type_of_var]['type_of_pointed_var']=[]
 	
 where_functions_start=ast_dict["ext"]
 
@@ -1030,6 +1032,7 @@ for item in where_functions_start:
 			current_function_dict["params"][type_of_var]["order_in_calling"]=[]
 			if type_of_var=='ptr':
 				current_function_dict["params"][type_of_var]["size_of_pointed_elements"]=[]
+				current_function_dict["params"][type_of_var]['type_of_pointed_var']=[]
 		if fun_metadata["type"]["args"]!=None:
 			fun_params=fun_metadata["type"]["args"]["params"]
 			for param in fun_params:
@@ -1048,8 +1051,12 @@ for item in where_functions_start:
 					#see the size of the pointed element
 					if (param["type"]["type"]["_nodetype"]=="PtrDecl"):
 						size_of_pointed_elem=8
+						type_of_pointed_var='ptr'
+						current_function_dict["params"][our_type_of_param]['type_of_pointed_var'].append(type_of_pointed_var)
 					elif (param["type"]["type"]["_nodetype"]=="TypeDecl"):
-						size_of_pointed_elem=process_var_size(identify_type(param["type"]["type"]["type"]["names"][0]))
+						type_of_pointed_var=identify_type(param["type"]["type"]["type"]["names"][0])
+						size_of_pointed_elem=process_var_size(type_of_pointed_var)
+						current_function_dict["params"][our_type_of_param]['type_of_pointed_var'].append(type_of_pointed_var)
 					else:
 						sys.stderr.write("ERROR in finding the parameter size for parameters.\n")
 						exit(-1)
@@ -1072,9 +1079,11 @@ for item in where_functions_start:
 				current_function_dict["locals"][type_of_var]["size_of_pointed_elements"]=[]
 				current_function_dict["locals"][type_of_var]["is_created_because_of_local_array"]=[] #for locally declared arrays of non-constant size
 				current_function_dict["locals"][type_of_var]["dimension_asts"]=[]
+				current_function_dict["locals"][type_of_var]['type_of_pointed_var']=[]
 			if type_of_var=='arb_ptr':
 				current_function_dict["locals"][type_of_var]["size_of_objects"]=[]
 				current_function_dict["locals"][type_of_var]["dimension_asts"]=[]
+				current_function_dict["locals"][type_of_var]['type_of_pointed_var']=[]
 				
 		if (fun_body==None):
 			continue
@@ -1121,8 +1130,11 @@ for item in where_functions_start:
 					#see the size of the pointed element
 					if (possible_decl["type"]["type"]["_nodetype"]=="PtrDecl"):
 						size_of_pointed_elem=8
+						current_function_dict["locals"][our_type_of_possible_decl]['type_of_pointed_var'].append('ptr')
 					elif (possible_decl["type"]["type"]["_nodetype"]=="TypeDecl"):
-						size_of_pointed_elem=process_var_size(identify_type(possible_decl["type"]["type"]["type"]["names"][0]))
+						type_of_pointed_var=identify_type(possible_decl["type"]["type"]["type"]["names"][0])
+						size_of_pointed_elem=process_var_size(type_of_pointed_var)
+						current_function_dict["locals"][our_type_of_possible_decl]['type_of_pointed_var'].append(type_of_pointed_var)
 					else:
 						sys.stderr.write("ERROR in finding the parameter size for locals.\n")
 						exit(-1)
@@ -1176,8 +1188,10 @@ for item in where_functions_start:
 			globals_dict[identify_type(type_of_global)]["is_created_because_of_global_array"].append(0)
 			if (item["type"]["type"]["_nodetype"]=="PtrDecl"):
 				size_of_pointed_elem=8
+				globals_dict[identify_type(type_of_global)]['type_of_pointed_var'].append('ptr')
 			elif (item["type"]["type"]["_nodetype"]=="TypeDecl"):
 				size_of_pointed_elem=process_var_size(identify_type(item["type"]["type"]["type"]["names"][0]))
+				globals_dict[identify_type(type_of_global)]['type_of_pointed_var'].append(identify_type(item["type"]["type"]["type"]["names"][0]))
 			else:
 				sys.stderr.write("ERROR in finding the size of pointer elements for globals.\n")
 				exit(-1)
@@ -1210,6 +1224,7 @@ for item in where_functions_start:
 			globals_dict['ptr']["init"].append(None) #if we need to init (i.e malloc) the global, we search in the dicts 1_dim_array_of_<thing>
 													 #array initialization not yet supported!!!!!!!
 			globals_dict['ptr']["size_of_pointed_elements"].append(process_var_size(identify_type(global_of_type)))
+			globals_dict['ptr']['type_of_pointed_var'].append(global_of_type)
 		else:
 			print("unknown variable type parsing for globals")
 			

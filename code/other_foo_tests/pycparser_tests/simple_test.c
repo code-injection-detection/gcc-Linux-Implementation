@@ -144,13 +144,13 @@ char global_char_init=global_no_init;
 int global_init=global_no_init;
 char global_char_init2=global_no_init;
 */
-
+/*
 int global_size;
 int global_array1[10],global_array_int[100];
 char * global_array2[global_size];
 
 void* bob[5];
-
+*/
 
 
 
@@ -174,18 +174,21 @@ void array_locals()
     int bob;
     int array_local[10];
     int array_local2[another_foo_global];
-    char * array_local3[bob];
-    float array_local4[100];
-    double array_local5[100];
+    //char * array_local3[bob];
+    //float array_local4[100];
+    //double array_local5[100];
+    
+    array_local[3]=1;
+
     
 }
 
-
+/*
 int main()
 {
 
 return 0;
 }
-
+*/
 
 
