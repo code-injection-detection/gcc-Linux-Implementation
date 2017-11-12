@@ -227,6 +227,7 @@ class CGenerator(object):
 		is_global=0
 		#search in locals
 		type_of_var=identify_type_of_var(all_functions_dict[self.name_of_fun_in_parsing],name_of_array)
+		is_pointer_created_because_of_array=is_ptr_created_because_of_array(all_functions_dict[self.name_of_fun_in_parsing],name_of_array)
 		if (type_of_var=="unknown_type"):
 			#search in globals
 			type_of_var=identify_type_of_var_in_globals(name_of_array)
@@ -243,7 +244,11 @@ class CGenerator(object):
 		
 		if (use_setter):
 			if (is_global==0):
-				setter=find_name_of_stack_array_setter(type_of_pointed_var)
+				if (is_pointer_created_because_of_array):
+					setter=find_name_of_stack_array_setter(type_of_pointed_var)
+				else:
+					#it's a pointer and has been malloc'ed
+					setter=find_name_of_sheap_array_setter(type_of_pointed_var)
 				#pay attention that we need an extra parenthesis
 				if (type_of_var=='ptr'):
 					return "%s( GET_STACK_PTR(%s) , %s " % (setter,name_of_array,self.visit(n.subscript))
@@ -254,11 +259,15 @@ class CGenerator(object):
 				setter=find_name_of_sheap_array_setter(type_of_pointed_var)
 				return "%s( GET_GLOBAL_PTR(globals.%s) , %s " % (setter,name_of_array,self.visit(n.subscript))
 		else:
-			getter=find_name_of_stack_array_getter(type_of_pointed_var)
 			if (is_global==1):
 				getter=find_name_of_sheap_array_getter(type_of_pointed_var)
 				return "%s( GET_GLOBAL_PTR(globals.%s) , %s )" % (getter,name_of_array,self.visit(n.subscript))
 			else:
+				if (is_pointer_created_because_of_array):
+					getter=find_name_of_stack_array_getter(type_of_pointed_var)
+				else:
+					#it's a pointer and has been malloc'ed
+					getter=find_name_of_sheap_array_getter(type_of_pointed_var)
 				if (type_of_var=='ptr'):
 					return "%s( GET_STACK_PTR(%s) , %s )" % (getter,name_of_array,self.visit(n.subscript))
 				else:
@@ -848,6 +857,20 @@ def identify_type_of_var(fun_dict,var_name):
 			if var_name==name:
 				return type_of_var
 	return "unknown_type"
+	
+def is_ptr_created_because_of_array(fun_dict,var_name):
+	retval=1
+	param=fun_dict["params"]
+	for type_of_var in ['ptr']:
+		for i,name in enumerate(param[type_of_var]["names"]):
+			if var_name==name:
+				retval=param[type_of_var]["is_created_because_of_local_array"][i]
+	local=fun_dict["locals"]
+	for type_of_var in ['ptr']:
+		for i,name in enumerate(local[type_of_var]["names"]):
+			if var_name==name:
+				retval=local[type_of_var]["is_created_because_of_local_array"][i]
+	return retval
 	
 def identify_type_of_var_in_globals(var_name):
 	#check the globals too
