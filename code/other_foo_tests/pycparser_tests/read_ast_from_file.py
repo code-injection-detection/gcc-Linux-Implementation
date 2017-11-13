@@ -309,7 +309,7 @@ class CGenerator(object):
 			
 			
 	def visit_UnaryOp(self, n,**kwargs):
-		operand = self._parenthesize_unless_simple(n.expr)
+		operand = self._parenthesize_unless_simple(n.expr) #well, we probably don't want to pass use_setter with kwargs here..?
 		if n.op == 'p++' or n.op=="++":
 			#return '%s++' % operand
 			kwargs["use_setter_param"]=True
@@ -329,9 +329,9 @@ class CGenerator(object):
 
 	def visit_BinaryOp(self, n,**kwargs):
 		lval_str = self._parenthesize_if(n.left,
-							lambda d: not self._is_simple_node(d))
+							lambda d: not self._is_simple_node(d),**kwargs)
 		rval_str = self._parenthesize_if(n.right,
-							lambda d: not self._is_simple_node(d))
+							lambda d: not self._is_simple_node(d),**kwargs)
 		return '%s %s %s' % (lval_str, n.op, rval_str)
 
 	def visit_Assignment(self, n,**kwargs):
@@ -344,8 +344,11 @@ class CGenerator(object):
 							lambda n: isinstance(n, c_ast.Assignment),**kwargs)
 		#return '%s %s %s' % (self.visit(n.lvalue), n.op, rval_str)
 		if n.op=="=":
-			kwargs["use_setter_param"]=True
-			return '%s, %s)' % (self.visit(n.lvalue,**kwargs), rval_str)
+			if (to_dict(n.lvalue)["_nodetype"]=="UnaryOp"):
+				return '%s=%s' % (self.visit(n.lvalue,**kwargs), rval_str)
+			else:
+				kwargs["use_setter_param"]=True
+				return '%s, %s)' % (self.visit(n.lvalue,**kwargs), rval_str)
 		elif (len(n.op)==2 and n.op[1]=="="): #+= , -= etc
 			kwargs_1=copy.deepcopy(kwargs)
 			kwargs_2=copy.deepcopy(kwargs)

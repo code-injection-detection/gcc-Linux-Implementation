@@ -22,7 +22,7 @@ void print_primes_up_to_n(int n)
 
 }
 */
-
+/*
 void simple_sieve_of_Eratosthenes(int num)
 {
 	char * numbers;
@@ -68,6 +68,52 @@ void simple_sieve_of_Eratosthenes(int num)
 	//free(numbers);
 	
 }
+*/
+/*
+long calc_determinant(int *matrix,int dim)
+{
+	int isminus,j,p,q,t,r,s;
+	int submatrix[625];
+	long subdets[25];
+	long d;
+	if (dim==2)
+	{	
+		d=((*(matrix+0*25+0)) * (*(matrix+1*25+1)) ) - ( (*(matrix+0*25+1)) * (*(matrix+1*25+0)) );
+		return(d);
+	}
+	else
+	{
+		for(j=0;j<dim;j++)
+		{       
+			r=s=0;
+			for(p=0;p<dim;p++)
+			{
+				for(q=0;q<dim;q++)
+				{
+					if(p!=0 && q!=j)
+					{
+						*(submatrix+r*(25)+s)=*(matrix+p*25+q);
+						s=(s+1)%(dim-1);
+						if (s==0)
+							r++;
+					}
+				}
+			}
+			for(t=0,isminus=1;t<j;t++)
+			{
+				 isminus=(-1)*isminus;
+			}
+			subdets[j]=isminus*calc_determinant(submatrix,dim-1);
+
+		}
+		for(j=0,d=0;j<dim;j++)
+		{
+			d=d+(*(matrix+0*25+j)*subdets[j]);
+		}
+		return(d);
+	}
+}
+*/
 
 /*
 int a_function(int x, int y)
@@ -234,6 +280,16 @@ void array_locals(int x,int y, int z)
     
 }
 */
+
+
+void test_pointer()
+{
+    int * bob;
+    
+    *bob=1;
+    *(bob+1)=*bob;
+    
+}
 
 /*
 int main()
