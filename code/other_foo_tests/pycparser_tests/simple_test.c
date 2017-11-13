@@ -22,7 +22,7 @@ void print_primes_up_to_n(int n)
 
 }
 */
-/*
+
 void simple_sieve_of_Eratosthenes(int num)
 {
 	char * numbers;
@@ -31,7 +31,7 @@ void simple_sieve_of_Eratosthenes(int num)
 	int prime_cnt=0;
 	double square_root=sqrt(num);
 	
-	numbers=smalloc((num+1)*sizeof(char),__func__,__LINE__);
+	numbers=smalloc((num+1)*sizeof(char));
 	
 	for (i=2;i<=num;i++)
 	{
@@ -68,7 +68,7 @@ void simple_sieve_of_Eratosthenes(int num)
 	//free(numbers);
 	
 }
-*/
+
 /*
 long calc_determinant(int *matrix,int dim)
 {
@@ -281,7 +281,7 @@ void array_locals(int x,int y, int z)
 }
 */
 
-
+/*
 void test_pointer()
 {
     int * bob;
@@ -290,7 +290,7 @@ void test_pointer()
     *(bob+1)=*bob;
     
 }
-
+*/
 /*
 int main()
 {

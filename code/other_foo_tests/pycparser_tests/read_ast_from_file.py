@@ -1281,6 +1281,7 @@ while (len(where_functions_start)>num_of_nodes_not_deleted):
 		num_of_nodes_not_deleted+=1
 	
 if current_function_dict!={}:
+	current_function_dict["local_init_maxorder"]=locals_init_order
 	all_functions_dict[current_function_dict["name"]]=copy.deepcopy(current_function_dict)
 	current_function_dict={}
 			
