@@ -19,7 +19,9 @@ RE_INTERNAL_ATTR = re.compile('__.*__')
 
 #help functions for parsing start
 
-
+#functions taken from pycparser code, in https://github.com/eliben/pycparser . The class Generator has been changed significantly.
+# Eli Bendersky [http://eli.thegreenplace.net]
+# License: BSD
 
 class CJsonError(Exception):
 	pass
@@ -147,10 +149,11 @@ def from_json(ast_json):
 #------------------------------------------------------------------------------
 # pycparser: c_generator.py
 #
-# C code generator from pycparser AST nodes.
+# C code generator from pycparser AST nodes. (https://github.com/eliben/pycparser)
 #
 # Eli Bendersky [http://eli.thegreenplace.net]
 # License: BSD
+# Modified by mitros123
 #------------------------------------------------------------------------------
 
 
@@ -186,7 +189,7 @@ class CGenerator(object):
 		use_setter=kwargs.get("use_setter_param",False)
 		coming_from_for_loop=kwargs.get("coming_from_for_loop",False)
 		is_global=0
-		type_of_var=identify_type_of_var(all_functions_dict[self.name_of_fun_in_parsing],n.name)
+		type_of_var=identify_type_of_var(all_functions_dict[self.name_of_fun_in_parsing],n.name) #try to find it in locals
 		if (type_of_var=="unknown_type"):
 			#search in globals
 			type_of_var=identify_type_of_var_in_globals(n.name)
@@ -849,6 +852,7 @@ def process_var_size(var_size): #This has to be improved in the future
 
 
 def identify_type_of_var(fun_dict,var_name):
+	#given a var name, returns its type. Searches in function params/locals
 	param=fun_dict["params"]
 	for type_of_var in ['char','int','long','float','double','ptr','arb_ptr']:
 		for name in param[type_of_var]["names"]:
@@ -862,6 +866,7 @@ def identify_type_of_var(fun_dict,var_name):
 	return "unknown_type"
 	
 def is_ptr_created_because_of_array(fun_dict,var_name):
+	#Have we created a pointer instead of an array? 
 	retval=1
 	param=fun_dict["params"]
 	for type_of_var in ['ptr']:
@@ -876,7 +881,7 @@ def is_ptr_created_because_of_array(fun_dict,var_name):
 	return retval
 	
 def identify_type_of_var_in_globals(var_name):
-	#check the globals too
+	#check the globals and return the type of a variable, given its name
 	for type_of_var in ['char','int','long','float','double','ptr','arb_ptr']:
 		for i,name in enumerate(globals_dict[type_of_var]["names"]):
 			if var_name==name:
@@ -884,6 +889,7 @@ def identify_type_of_var_in_globals(var_name):
 	return "unknown_type"
 		
 def identify_type_of_pointed_var(fun_dict,var_name):
+	#given a pointer, return the type of pointed var
 	param=fun_dict["params"]
 	for type_of_var in ['ptr','arb_ptr']:
 		for i,name in enumerate(param[type_of_var]["names"]):
@@ -897,7 +903,7 @@ def identify_type_of_pointed_var(fun_dict,var_name):
 	return "unknown_type"		
 
 def identify_type_of_pointed_var_in_globals(var_name):
-	#check the globals too
+	##given a pointer, return the type of pointed var in globals
 	for type_of_var in ['ptr','arb_ptr']:
 		for i,name in enumerate(globals_dict[type_of_var]["names"]):
 			if var_name==name:
@@ -928,6 +934,7 @@ def give_name_for_func_declaration_of_type(type_of_var):
 
 
 def give_global_definition():
+	#create the way the globals should be declared
 	global_def=''
 	for type_of_var in ['char','int','long','float','double','ptr','arb_ptr']:
 		for i,name_of_global_var in enumerate(globals_dict[type_of_var]["names"]):
@@ -940,7 +947,7 @@ def give_global_definition():
 			else:
 				s+=type_of_var
 			s+='\n'
-			s+=globals_dict[type_of_var]["original_c_decl"][i]+"\n"
+			s+=globals_dict[type_of_var]["original_c_decl"][i]+"\n" #add the original c declaration
 			global_def+=s
 	return (global_def)
 			
@@ -971,7 +978,7 @@ def create_secure_function_decl(name_of_fun):
 				for i in range(num_of_type-1):
 					s+=str(func_dict['params'][type_of_var]['size_of_pointed_elements'][i]) +","
 				s+=str(func_dict['params'][type_of_var]['size_of_pointed_elements'][num_of_type-1])
-				#SOS arb_ptr with size_of_objects!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+				#SOS arb_ptr with size_of_objects!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! (not supported yet)
 		s+='\n'
 		func_decl+=s
 	func_decl+="END_OF_PARAMETERS\n"
