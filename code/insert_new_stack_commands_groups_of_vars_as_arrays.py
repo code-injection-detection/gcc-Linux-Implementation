@@ -660,15 +660,15 @@ for line in src_lines:
 		substring_for_fun_call=substring_for_fun_call[3:-3] #remove {{{ and }}}
 		function_name=custom_split_of_str(custom_split_of_str(substring_for_fun_call,'|')[0].strip(),':')[1].strip()
 		num_of_params=int(all_functions_dict[function_name]['num_of_parameters'])
-		helping_args_for_fun_call=custom_split_of_str(custom_split_of_str(substring_for_fun_call,'|')[1].strip(),':')[1].strip()
+		helping_args_for_fun_call=custom_split_of_str(custom_split_of_str(substring_for_fun_call,'|')[1].strip(),':')[1].strip() #split by '|', split by ':' and strip
 		helping_args_for_fun_call_dict={}
-		#create the dict
+		#create the dict of the arguments
 		for item in helping_args_for_fun_call.split(','):
 			if len(custom_split_of_str(item,'='))>1:
 				helping_args_for_fun_call_dict[custom_split_of_str(item,'=')[0].strip()]=custom_split_of_str(item,'=')[1].strip()
 		if (parameters_for_calling_str in substring_for_fun_call):
-			list_of_params_currently_called=custom_split_of_str(custom_split_of_str(custom_split_of_str(substring_for_fun_call,'|')[2].strip(),':')[1].strip(),',')
-		list_of_params_currently_called=[x.replace('@',',') for x in list_of_params_currently_called]
+			list_of_params_currently_called=custom_split_of_str(custom_split_of_str(custom_split_of_str(substring_for_fun_call,'|')[2].strip(),':')[1].strip(),',') #split by '|', split by ':', split by ','
+		list_of_params_currently_called=[x.replace('@',',') for x in list_of_params_currently_called] #if the param has "@"'s in it, it means that it wanted to put ","'s in these places. It used "@" because of splitting.
 		code_for_replacing_fun=add_code_for_function_calling_new_template(function_name,helping_args_for_fun_call_dict,list_of_params_currently_called)
 		if (function_name==function_dict['name']):
 			function_dict['num_of_times_called_in_code']=str(int(function_dict['num_of_times_called_in_code'])+1)
