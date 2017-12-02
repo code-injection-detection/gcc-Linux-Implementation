@@ -243,8 +243,8 @@ typedef struct sheap_metadata_struct{
 } sheap_metadata;
 
 
-
-//OLD SECURE STACK IMPEMENTATION
+/*****  OLD SECURE STACK IMPEMENTATION *****/
+//obsolete now, leave for backwards compatibility
 /*This is the way that the function parameters will be passed, and declared inside a function*/
 typedef struct function_element_parameters{
 	
@@ -288,8 +288,10 @@ typedef struct function_parameters{
 	//pass weird stuff as parameters: just use void*'s in arb_pointer_params?	
 } fun_params;
 
+/*****  OLD SECURE STACK IMPLEMENTATION END *****/
 
-//used as return value for allocate_mem_into_secure_stack
+
+//used as return value for allocate_mem_into_secure_stack() 
 typedef struct chunks_and_old_memory{
 	long chunks_allocated;
 	void * old_mem;
@@ -299,6 +301,11 @@ typedef struct chunks_and_old_memory{
 
 
 /************************* SECURE GLOBAL DECLARATION *****************************/
+
+/*
+Here we declare the globals that will be used in the secure program. We use annotations for python to parse.
+Python will then initialize them (with keys + macs) in a struct in main_program.c
+*/
 
 //GLOBAL DECLARATION
 typedef struct global_variables_struct

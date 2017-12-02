@@ -23,7 +23,7 @@ src_lines = [x for x in src_lines if not "PYTHON IGNORE" in x] #drop the "PYTHON
 
 for line in src_lines:
 	newline=line
-	#change the defines
+	#change the defines according to the arguments
 	if '#define number_of_interleaved_keys' in line:
 		newline='#define number_of_interleaved_keys ('+sys.argv[1]+')\n'
 	if '#define bytes_used_for_keyshares' in line:
@@ -121,7 +121,7 @@ headers_dst.close()
 # GOING TO DO REPLACEMENTS FOR INITIALIZATION REQUESTS
 
 #the target is to read the annotations for the secure stack (the old version) and produce the code that is needed.
-#The code using the old stack is in general_tests_template.c
+#The code testing the old stack is in general_tests_template.c
 
 temp_line=''
 temp_line2=''
