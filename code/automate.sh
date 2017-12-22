@@ -271,10 +271,10 @@ echo "Copying header files, secure getters/setters, crypto functions and initial
 	cp ./template_files/heap_manager_new_secure_template.c heap_manager_new_secure.c
 echo "Copied these files."
 
-echo "Creating headers.h for compilation of encryption calculators, as well as the crypto initializer... "
+echo "Creating headers.h in which there are the global constants... "
 	DO_STUFF_FOR_HEADERS_NEEDED_ONLY=1
 	./insert_keys_and_macs_among_globals.py $NUM_OF_INTERLEAVED_KEYS $DECLARE_GLOBAL_KEYS_AS_AN_ARRAY $NUM_OF_GLOBAL_USEFUL_BYTES $NUM_OF_MAC_BYTES $SQEEZE_KEYS_WHEN_MACING $DO_STUFF_FOR_HEADERS_NEEDED_ONLY #use only for headers_needed.h
-echo "Created headers.h for compilation of encryption calculators, as well as the crypto initializer."
+echo "Created headers.h in which there are the global constants."
 
 
 echo "Compiling hash and encryption calculators, as well as the crypto initializer..."

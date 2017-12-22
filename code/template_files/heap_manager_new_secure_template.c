@@ -22,6 +22,7 @@ and one for allocated groups of chunks, one group for every smalloc() call.
 The idea behind the heap manager is here: based on http://g.oswego.edu/dl/html/malloc.html
 However this is a custom-made one, and a direct port to a "secure" version of the one implemented in heap_manager_new_unsafe_template.c
 Its goal is not to make something necessarily efficient, but functional.
+It is the equivalent of heap_manager_new_unsafe_template.c (copied line by line), but uses a "secure" heap with keys and macs.
 */
 
 /*Wherever you see "s" in a variable/function name, it means safe/secure*/

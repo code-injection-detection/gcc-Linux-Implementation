@@ -12,6 +12,8 @@ import string
 This script inserts the commands that implement the secure stack.
 It parses the function annotations in tests_with_new_stack_template.c
 which describe the parameters, local vars, where the function is being called etc
+
+Its sister file, insert_new_stack_commands.py can be used as well, but it will soon be unsupported. Prefer this one.
 '''
 
 
@@ -69,7 +71,7 @@ def type_of_var_in_declaration(index):
 		return 'arb_ptr'
 
 
-#parses the local parameters and puts the into the dictionary
+#parses the local parameters and puts them into the dictionary
 #eg
 '''
 NUM_OF_PARAMETERS: 5
@@ -291,6 +293,7 @@ def add_code_for_function_calling(fun_name,write_to,params,use_secure_stack_sett
 
 
 def add_code_for_function_calling_new_template(function_name,helping_args_for_fun_call_dict,params):
+	#puts everything in a block of ({ .... }), which is treated as one command
 	global all_functions_dict
 	global return_addr_for_allocation_ctr
 	global sz_of_array_fun_params_ctr

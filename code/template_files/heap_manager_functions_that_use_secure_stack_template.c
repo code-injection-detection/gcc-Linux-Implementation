@@ -273,7 +273,8 @@ sheap_metadata * sfind_large_enough_free_group(long bytes_needed)
 
 
 
-#if 0==1
+#if 0==1 
+//^ that begins a comment
 //safe malloc
 unsigned char * smalloc(long bytes_asked_to_allocate)
 {
@@ -680,7 +681,7 @@ void * error_checking_smalloc_memory(long bytes_for_allocation,const char * fun_
 
 
 #if 0
-
+//^That begins a comment
 
 /*Frees the memory pointed to by the pointer in the argument*/
 void sfree_memory(void * ptr)

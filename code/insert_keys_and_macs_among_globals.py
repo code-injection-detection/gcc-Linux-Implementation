@@ -25,9 +25,12 @@ long secured_sum;
 }global_vars;
 '''
 
+#This script parses the global declaration, puts the keys/macs among them and initializes the struct with the global variables
+
+
 
 #input files that are going to be checked if they have global declarations
-#currently, only the main_program_template.c has
+#currently, only the headers_needed.h has
 inputfiles=[ 'headers_needed.h',
              './template_files/memory_manager_template.c',
 			 './template_files/stack_manager_template.c',
@@ -318,6 +321,7 @@ var_size=1
 #insert keys among the global variables in the code, by searching for canary strings
 for fileindex,filein in enumerate(inputfiles):
 	if (do_stuff_for_headers_needed_only==1 and filein!="headers_needed.h"):
+		#IMPORTANT BIT HERE. This script will be called with this flag activated as well.
 		continue
 	#read lines
 	filehandler=open(filein,'r')
