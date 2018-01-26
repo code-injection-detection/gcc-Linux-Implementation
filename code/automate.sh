@@ -322,7 +322,7 @@ if [ "$SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS" != "0" ]; then
 else
 	echo "Copying templates to target files"
 	#copying the rest of the templates
-	#headers_needed and general_tests are missing, they are taken care of the first python script
+	#headers_needed and general_tests are missing, they are taken care of the insert_keys_and_macs_among_globals.py
 	cp ./template_files/memory_manager_template.c memory_manager.c
 	cp ./template_files/verification_procedure_template.c verification_procedure.c
 	cp ./template_files/stack_manager_template.c stack_manager.c
@@ -354,7 +354,7 @@ ramtmp="$(mktemp -p /run/shm/)" #temporary file
 #this java code inserts the nops in assembly, as well as the jmps and the on-the-fly verification code
 if [ "$BYTES_FOR_INSTR_LEN" == "1" ]; then
 	java -cp ../bin Secure_Assembly $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_INSTRUCTIONS $NUM_OF_CANARIES $NUM_OF_MAC_BYTES $ADD_CODE_ON_THE_FLY_VERIFICATION $USE_FIXED_SIZE_CHUNKS_OF_CODE $NUM_OF_BYTES_IN_CODE_CHUNK $FORCE_NUM_OF_INSTRUCTIONS_OVER_NUM_OF_BYTES $ramtmp $IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES $FORCE_CODE_BLOCK_SPLIT_ON_LABELS_AND_CALLS $WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL $SPLIT_THE_BLOCKS_WHEN_THE_SECURE_CPU_WOULD
-else
+else #do not use the old version. New version uses fixed size for the useful bytes, a multiple of 16 (and some other things that make it simpler)
 	java -cp ../bin Secure_Assembly_new $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_MAC_BYTES $ADD_CODE_ON_THE_FLY_VERIFICATION $NUM_OF_BYTES_IN_CODE_CHUNK $ramtmp $IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES $SPLIT_THE_BLOCKS_WHEN_THE_SECURE_CPU_WOULD $VERIFY_EVERYTHING
 fi
 if [ $? -eq 0 ]; then
@@ -408,7 +408,7 @@ echo "Replacing NOPs with canaries,keys and macs..."
 #this java code searches through the binary, finds the jmps+rest of nops, and replaces the nops with canaries,padded nops (in case of fixed length), keys and macs
 if [ "$BYTES_FOR_INSTR_LEN" == "1" ]; then
 	java -cp ../bin Secure_Machine_Code $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_TOTAL_STACK_BYTES_ALLOC $NUM_OF_MAC_BYTES $ADD_CODE_ON_THE_FLY_VERIFICATION $USE_FIXED_SIZE_CHUNKS_OF_CODE $NUM_OF_BYTES_IN_CODE_CHUNK $DO_NOT_MAC_WHAT_WHE_ADD_IN_CODE $IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES $SQEEZE_KEYS_WHEN_MACING $ADD_THE_PADDED_NOPS_IN_THE_MAC_IN_FIXED_SIZE $FORCE_CODE_BLOCK_SPLIT_ON_LABELS_AND_CALLS $WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL
-else
+else #do not use the old version. New version uses fixed size for the useful bytes, a multiple of 16 (and some other things that make it simpler)
 	java -cp ../bin Secure_Machine_Code_new $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_TOTAL_STACK_BYTES_ALLOC $NUM_OF_MAC_BYTES $ADD_CODE_ON_THE_FLY_VERIFICATION $NUM_OF_BYTES_IN_CODE_CHUNK $DO_NOT_MAC_WHAT_WHE_ADD_IN_CODE $IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES $SQEEZE_KEYS_WHEN_MACING $ADD_THE_PADDED_NOPS_IN_THE_MAC_IN_FIXED_SIZE $SPLIT_THE_BLOCKS_WHEN_THE_SECURE_CPU_WOULD $VERIFY_EVERYTHING
 fi
 echo "NOPs replaced with keys."

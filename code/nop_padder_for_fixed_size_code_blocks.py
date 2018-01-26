@@ -4,6 +4,7 @@ import sys
 import copy
 
 #pads enough nops to the proper assembly, so that the fixed size block length for code is reached
+#iterates over the assembly file and sizes file in parallel
 
 
 def RepresentsInt(s):
@@ -35,7 +36,7 @@ with open(assembly_filename) as f2:
 
 i=0
 j=0
-#find the "UNIQUE0 in the sizes
+#find the "UNIQUE0 in the sizes (that's where we start) 
 while j<len(lines_sizes) and ("UNIQUE0" not in lines_sizes[j+1].strip()):
 	j=j+1
 	
@@ -73,12 +74,7 @@ while i<len(lines_assembly) and j<len(lines_sizes):
 				k+=1
 			else:
 				break
-		'''
-		if (add_code_on_the_fly_verification):
-			nops_to_pad=num_of_bytes_in_code_chunk-2-5-size_of_former_cmd #jmp is 2 and call is 5 bytes long
-		else:
-			nops_to_pad=num_of_bytes_in_code_chunk-2-size_of_former_cmd #jmp is 2
-		'''	
+
 		nops_to_pad=num_of_bytes_in_code_chunk-total_size_of_cmds
 		
 		#pad nops
