@@ -17,6 +17,7 @@ import custom_c_generator
 
 #initialization of dicts
 def init_globals_dict(globals_dict):
+	globals_dict["global_init_order"]=1
 	for type_of_var in ['char','int','long','float','double','ptr','arb_ptr']:
 		globals_dict[type_of_var]={}
 		globals_dict[type_of_var]["names"]=[]
@@ -75,7 +76,11 @@ def init_function_dict(current_function_dict):
 			current_function_dict["locals"][type_of_var]['type_of_pointed_var']=[]		
 			
 	
-				
+	
+
+def init_typedefs_dict(typedefs_dict):
+	typedefs_dict["structs"]={}
+	#add more stuff later
 				
 				
 				
@@ -226,7 +231,6 @@ def fill_function_dict(subast,current_function_dict):
 
 def fill_global_dict(subast,globals_dict,ast_dict):
 	item=subast
-	
 	name_of_global=item["name"]
 	init_ast=None
 	if item['init']!=None: #this global is initialized
@@ -236,19 +240,19 @@ def fill_global_dict(subast,globals_dict,ast_dict):
 	original_c_lines_for_global=get_original_lines_in_C_of_ext_object(name_of_global,1,ast_dict)
 	gc.collect()
 	type_of_global=''
-	if item["type"]["_nodetype"]=='TypeDecl':
+	if item["type"]["_nodetype"]=='TypeDecl': #typical, non array global (int,long etc)
 		type_of_global=item["type"]["type"]["names"][0]
 		globals_dict[identify_type(type_of_global)]["names"].append(name_of_global)
 		globals_dict[identify_type(type_of_global)]["original_c_decl"].append(original_c_lines_for_global)
 		globals_dict[identify_type(type_of_global)]["number"]+=1
 		if init_ast!=None:
 			globals_dict[identify_type(type_of_global)]["init"].append(init_ast)
-			globals_dict[identify_type(type_of_global)]["order_of_init"].append(global_init_order)
-			global_init_order+=1
+			globals_dict[identify_type(type_of_global)]["order_of_init"].append(globals_dict["global_init_order"])
+			globals_dict["global_init_order"]+=1
 		else:
 			globals_dict[identify_type(type_of_global)]["init"].append(None)
 			globals_dict[identify_type(type_of_global)]["order_of_init"].append(-1)
-	elif item["type"]["_nodetype"]=='PtrDecl':
+	elif item["type"]["_nodetype"]=='PtrDecl': #pointer
 		type_of_global='ptr'
 		globals_dict[identify_type(type_of_global)]["names"].append(name_of_global)
 		globals_dict[identify_type(type_of_global)]["original_c_decl"].append(original_c_lines_for_global)
@@ -261,22 +265,22 @@ def fill_global_dict(subast,globals_dict,ast_dict):
 			globals_dict[identify_type(type_of_global)]["init"].append(None)
 			globals_dict[identify_type(type_of_global)]["order_of_init"].append(-1)
 		globals_dict[identify_type(type_of_global)]["is_created_because_of_global_array"].append(0)
-		if (item["type"]["type"]["_nodetype"]=="PtrDecl"):
+		if (item["type"]["type"]["_nodetype"]=="PtrDecl"): #pointer to pointer
 			size_of_pointed_elem=8
 			globals_dict[identify_type(type_of_global)]['type_of_pointed_var'].append('ptr')
-		elif (item["type"]["type"]["_nodetype"]=="TypeDecl"):
+		elif (item["type"]["type"]["_nodetype"]=="TypeDecl"): #pointer to non pointer
 			size_of_pointed_elem=process_var_size(identify_type(item["type"]["type"]["type"]["names"][0]))
 			globals_dict[identify_type(type_of_global)]['type_of_pointed_var'].append(identify_type(item["type"]["type"]["type"]["names"][0]))
 		else:
 			sys.stderr.write("ERROR in finding the size of pointer elements for globals.\n")
 			exit(-1)
 		globals_dict[identify_type(type_of_global)]["size_of_pointed_elements"].append(size_of_pointed_elem)
-	elif item["type"]["_nodetype"]=="ArrayDecl":
+	elif item["type"]["_nodetype"]=="ArrayDecl": #global array
 		global_of_type=''
-		if (item["type"]["type"]["_nodetype"]=="PtrDecl"):
+		if (item["type"]["type"]["_nodetype"]=="PtrDecl"): #array of pointers
 			global_of_type=identify_type('ptr')
 			type_of_global='1_dim_array_of_'+identify_type('ptr')
-		elif (item["type"]["type"]["_nodetype"]=="TypeDecl"):
+		elif (item["type"]["type"]["_nodetype"]=="TypeDecl"): #array of non pointers
 			global_of_type=identify_type(item["type"]["type"]["type"]["names"][0])
 			type_of_global='1_dim_array_of_'+identify_type(global_of_type)
 		else:
@@ -304,7 +308,56 @@ def fill_global_dict(subast,globals_dict,ast_dict):
 		print("unknown variable type parsing for globals")	
 
 
+
+def add_variable_info_in_decl(subast,array_of_decls):
+	item=subast
+	dict_to_append={}
+	dict_to_append["name"]=item["name"]
+	
+	if item["type"]["_nodetype"]=='TypeDecl': #typical, non array variable declaration (int,long etc)
+		type_of_decl=item["type"]["type"]["names"][0]
+		dict_to_append["type_of_decl"]=identify_type(type_of_decl)
+	elif item["type"]["_nodetype"]=='PtrDecl': #pointer
+		type_of_decl='ptr'
+		dict_to_append["type_of_decl"]=identify_type(type_of_decl)
+		#no support for arrays of variable size in struct decl
+		if (item["type"]["type"]["_nodetype"]=="PtrDecl"): #pointer to pointer
+			size_of_pointed_elem=8
+			dict_to_append['type_of_pointed_var']='ptr'
+		elif (item["type"]["type"]["_nodetype"]=="TypeDecl"): #pointer to non pointer
+			size_of_pointed_elem=process_var_size(identify_type(item["type"]["type"]["type"]["names"][0]))
+			dict_to_append['type_of_pointed_var']=identify_type(item["type"]["type"]["type"]["names"][0])
+		else:
+			sys.stderr.write("ERROR in finding the size of pointer elements in struct.\n")
+			exit(-1)
+		dict_to_append["size_of_pointed_element"]=size_of_pointed_elem
+	elif item["type"]["_nodetype"]=="ArrayDecl": #global array
+		type_of_decl=''
+		if (item["type"]["type"]["_nodetype"]=="PtrDecl"): #array of pointers
+			type_of_decl=identify_type('ptr')
+			type_of_decl_arr='1_dim_array_of_'+identify_type('ptr')
+		elif (item["type"]["type"]["_nodetype"]=="TypeDecl"): #array of non pointers
+			type_of_decl=identify_type(item["type"]["type"]["type"]["names"][0])
+			type_of_decl_arr='1_dim_array_of_'+identify_type(type_of_decl)
+		else:
+			sys.stderr.write("ERROR in finding the size of pointer elements for array in struct.\n")
+			exit(-1)
+		dict_to_append["type_of_decl"]=type_of_decl_arr
+		#dimension of array (it's an expression)
+		dim_ast = from_dict(copy.deepcopy(item['type']['dim']))
+		dict_to_append['dimension_ast']=dim_ast
+		
+	array_of_decls.append(dict_to_append)
+	
 			
 			
+def add_struct_to_types(subast,typedefs_dict):
+	item=subast
+	name_of_struct=item["type"]["name"]
+	typedefs_dict["structs"][name_of_struct]={}
+	typedefs_dict["structs"][name_of_struct]["name_of_struct"]=name_of_struct
+	typedefs_dict["structs"][name_of_struct]["decls"]=[]
+	for decl in item["type"]["decls"]:
+		add_variable_info_in_decl(decl,typedefs_dict["structs"][name_of_struct]["decls"])
 			
 			

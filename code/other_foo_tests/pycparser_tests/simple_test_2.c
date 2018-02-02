@@ -5,10 +5,12 @@ struct lol
 {
     int a;
     int b;
+    int* m;
     char c[10];
-};
+};// bob;
 
-
+//struct lol bab;
+/*
 
 int a_fun(int x,int* y)
 {
@@ -24,3 +26,4 @@ struct ll
 };
 
 int z[10];
+*/

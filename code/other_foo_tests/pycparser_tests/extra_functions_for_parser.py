@@ -231,8 +231,19 @@ def get_original_lines_in_C_of_ext_object(name_of_object,type_of_obj,ast_dict):
 
 
 
+def encountered_global_decl(item):
+	if (item["_nodetype"]=="Decl" and item["type"]["_nodetype"]!="Struct"): #structs have a similar declaration :/
+		return True
+	else:
+		return False
 
-
+def encountered_struct_def(item):
+	if (item["_nodetype"]=="Decl" and item["type"]["_nodetype"]=="Struct"):
+		return True
+	else:
+		return False
+		
+		
 	
 RE_CHILD_ARRAY = re.compile(r'(.*)\[(.*)\]')
 RE_INTERNAL_ATTR = re.compile('__.*__')

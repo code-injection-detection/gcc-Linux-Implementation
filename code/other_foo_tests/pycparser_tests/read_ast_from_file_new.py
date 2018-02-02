@@ -35,8 +35,8 @@ with open('ast', 'rb') as f:
 	#print(ast_dict)
 	
 #init globals dict
-global_init_order=1
 init_globals_dict(globals_dict)
+init_typedefs_dict(typedefs_dict)
 
 where_functions_start=ast_dict["ext"]
 
@@ -52,12 +52,21 @@ for item in where_functions_start:
 		fill_function_dict(item,current_function_dict) #fill the dict
 		
 	
-	if item["_nodetype"]=="Decl" and item["type"]["_nodetype"]!="Struct": #structs have a similar declaration :/
+	if encountered_global_decl(item): 
 		#we have a global declaration!
 		fill_global_dict(item,globals_dict,ast_dict)
 		
-	
+	if encountered_struct_def(item):
+		#we have a struct definition!
+		add_struct_to_types(item,typedefs_dict)
 		
+#erase the declarations/initializations of the global variables, sice we will do them manually
+num_of_nodes_not_deleted=0
+while (len(where_functions_start)>num_of_nodes_not_deleted):
+	if encountered_global_decl(where_functions_start[num_of_nodes_not_deleted]):
+		del(where_functions_start[num_of_nodes_not_deleted])
+	else:
+		num_of_nodes_not_deleted+=1
 		
 		
 if current_function_dict!={}:
@@ -66,6 +75,8 @@ if current_function_dict!={}:
 	current_function_dict={}		
 		
 print(all_functions_dict)
+print(globals_dict)
+print(typedefs_dict)
 	
 	
 
