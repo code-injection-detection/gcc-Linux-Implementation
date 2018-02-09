@@ -54,7 +54,7 @@ for item in where_functions_start:
 	
 	if encountered_global_decl(item): 
 		#we have a global declaration!
-		fill_global_dict(item,globals_dict,ast_dict)
+		fill_global_dict(item,globals_dict,typedefs_dict,ast_dict)
 		
 	if encountered_struct_def(item):
 		#we have a struct definition!

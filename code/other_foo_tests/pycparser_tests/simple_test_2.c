@@ -7,9 +7,9 @@ struct lol
     int b;
     int* m;
     char c[10];
-};// bob;
+} bob;
 
-//struct lol bab;
+struct lol bab;
 /*
 
 int a_fun(int x,int* y)

@@ -18,6 +18,7 @@ import custom_c_generator
 #initialization of dicts
 def init_globals_dict(globals_dict):
 	globals_dict["global_init_order"]=1
+	globals_dict["struct"]={}
 	for type_of_var in ['char','int','long','float','double','ptr','arb_ptr']:
 		globals_dict[type_of_var]={}
 		globals_dict[type_of_var]["names"]=[]
@@ -57,6 +58,7 @@ def init_function_dict(current_function_dict):
 	#local vars
 	fun_locals=[]
 	current_function_dict["locals"]={}
+	current_function_dict["locals"]["struct"]={}
 	current_function_dict["locals"]["locals_init_order"]=1
 	current_function_dict["local_init_maxorder"]=0
 	for type_of_var in ['char','int','long','float','double','ptr','arb_ptr']:
@@ -229,7 +231,7 @@ def fill_function_dict(subast,current_function_dict):
 			
 
 
-def fill_global_dict(subast,globals_dict,ast_dict):
+def fill_global_dict(subast,globals_dict,typedefs_dict,ast_dict):
 	item=subast
 	name_of_global=item["name"]
 	init_ast=None
@@ -240,18 +242,27 @@ def fill_global_dict(subast,globals_dict,ast_dict):
 	original_c_lines_for_global=get_original_lines_in_C_of_ext_object(name_of_global,1,ast_dict)
 	gc.collect()
 	type_of_global=''
-	if item["type"]["_nodetype"]=='TypeDecl': #typical, non array global (int,long etc)
-		type_of_global=item["type"]["type"]["names"][0]
-		globals_dict[identify_type(type_of_global)]["names"].append(name_of_global)
-		globals_dict[identify_type(type_of_global)]["original_c_decl"].append(original_c_lines_for_global)
-		globals_dict[identify_type(type_of_global)]["number"]+=1
-		if init_ast!=None:
-			globals_dict[identify_type(type_of_global)]["init"].append(init_ast)
-			globals_dict[identify_type(type_of_global)]["order_of_init"].append(globals_dict["global_init_order"])
-			globals_dict["global_init_order"]+=1
+	if item["type"]["_nodetype"]=='TypeDecl': #typical, non array global (int,long etc), or struct
+		if (item["type"]["type"]["_nodetype"]=="Struct"): #it's a struct
+			add_struct_to_types(item["type"],typedefs_dict)
+			type_of_global="struct"
+			name=item["type"]["declname"]
+			globals_dict[type_of_global][name]={}
+			globals_dict[type_of_global][name]["name"]=name
+			globals_dict[type_of_global][name]["type_of_struct"]=item["type"]["type"]["name"]
 		else:
-			globals_dict[identify_type(type_of_global)]["init"].append(None)
-			globals_dict[identify_type(type_of_global)]["order_of_init"].append(-1)
+			#if not a struct (simple variable)
+			type_of_global=item["type"]["type"]["names"][0]
+			globals_dict[identify_type(type_of_global)]["names"].append(name_of_global)
+			globals_dict[identify_type(type_of_global)]["original_c_decl"].append(original_c_lines_for_global)
+			globals_dict[identify_type(type_of_global)]["number"]+=1
+			if init_ast!=None:
+				globals_dict[identify_type(type_of_global)]["init"].append(init_ast)
+				globals_dict[identify_type(type_of_global)]["order_of_init"].append(globals_dict["global_init_order"])
+				globals_dict["global_init_order"]+=1
+			else:
+				globals_dict[identify_type(type_of_global)]["init"].append(None)
+				globals_dict[identify_type(type_of_global)]["order_of_init"].append(-1)
 	elif item["type"]["_nodetype"]=='PtrDecl': #pointer
 		type_of_global='ptr'
 		globals_dict[identify_type(type_of_global)]["names"].append(name_of_global)
@@ -354,10 +365,11 @@ def add_variable_info_in_decl(subast,array_of_decls):
 def add_struct_to_types(subast,typedefs_dict):
 	item=subast
 	name_of_struct=item["type"]["name"]
-	typedefs_dict["structs"][name_of_struct]={}
-	typedefs_dict["structs"][name_of_struct]["name_of_struct"]=name_of_struct
-	typedefs_dict["structs"][name_of_struct]["decls"]=[]
-	for decl in item["type"]["decls"]:
-		add_variable_info_in_decl(decl,typedefs_dict["structs"][name_of_struct]["decls"])
+	if (name_of_struct not in typedefs_dict["structs"]): #if it has been added before don't add it again
+		typedefs_dict["structs"][name_of_struct]={}
+		typedefs_dict["structs"][name_of_struct]["name_of_struct"]=name_of_struct
+		typedefs_dict["structs"][name_of_struct]["decls"]=[]
+		for decl in item["type"]["decls"]:
+			add_variable_info_in_decl(decl,typedefs_dict["structs"][name_of_struct]["decls"])	
 			
 			
