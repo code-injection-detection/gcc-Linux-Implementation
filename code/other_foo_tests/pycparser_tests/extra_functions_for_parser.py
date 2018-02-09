@@ -13,6 +13,14 @@ from pycparser.plyparser import Coord
 import custom_c_generator
 
 
+def RepresentsInt(s):
+    try: 
+        int(s)
+        return True
+    except ValueError:
+        return False
+
+
 def find_name_of_stack_getter_in_caps(type_of_var):
 	name_of_setter='GET_STACK_'
 	if( type_of_var=='long' or type_of_var=='long int'):
@@ -194,6 +202,31 @@ def process_var_size(var_size): #This has to be improved in the future
 
 
 
+def process_var_size_extended(var_size,**kwargs): #supports more possible types
+	if var_size in ['int','char','long','ptr','double','float','none','null']:
+		return (process_var_size(var_size))
+	if var_size=='struct':
+		#get its size from the kwargs
+		typedefs_dictionary=kwargs['typedefs_dictionary']
+		name_of_struct=kwargs['name_of_struct']
+		struct_size=typedefs_dictionary['structs'][name_of_struct]['size_of_struct']
+		return struct_size
+	if "1_dim_array_of" in var_size:
+		typedefs_dictionary=kwargs['typedefs_dictionary']
+		name_of_struct=kwargs['name_of_struct']
+		name_of_var=kwargs['name_of_var']
+		#find the var
+		for decl in typedefs_dictionary['structs'][name_of_struct]['decls']:
+			if name_of_var==decl['name']:
+				break
+		sz_of_var=decl["dimension_value"]
+		if (sz_of_var)=="variable_size":
+			return "variable_size"
+		else:
+			return int(sz_of_var)
+	else:
+		print("UNKNOWN VARIABLE SIZE:",var_size)
+
 
 
 def condition_for_each_object_for_get_original_lines(type_of_obj,new_ast_dict,name_of_object,index):
@@ -245,6 +278,11 @@ def encountered_struct_def(item):
 	else:
 		return False
 		
+		
+		
+def pretty_print_of_dict(dict_in):
+	values = [{"file_name": k, "file_information": v} for k, v in dict_in.items()]
+	json.dumps(values, indent=4)
 		
 	
 RE_CHILD_ARRAY = re.compile(r'(.*)\[(.*)\]')

@@ -366,6 +366,13 @@ def add_variable_info_in_decl(subast,array_of_decls):
 		#dimension of array (it's an expression)
 		dim_ast = from_dict(copy.deepcopy(item['type']['dim']))
 		dict_to_append['dimension_ast']=dim_ast
+		#let's see if it is a constant. Try to recreate the C lines
+		generator = c_generator.CGenerator() #that's the proper generator, not our custom
+		original_c_lines=generator.visit(dim_ast)
+		if (RepresentsInt(original_c_lines)): #is it an int?
+			dict_to_append["dimension_value"]=original_c_lines
+		else:
+			dict_to_append["dimension_value"]="variable_size"
 		
 	array_of_decls.append(dict_to_append)
 	
@@ -379,6 +386,20 @@ def add_struct_to_types(subast,typedefs_dict):
 		typedefs_dict["structs"][name_of_struct]["name_of_struct"]=name_of_struct
 		typedefs_dict["structs"][name_of_struct]["decls"]=[]
 		for decl in item["type"]["decls"]:
-			add_variable_info_in_decl(decl,typedefs_dict["structs"][name_of_struct]["decls"])	
+			add_variable_info_in_decl(decl,typedefs_dict["structs"][name_of_struct]["decls"])
+			
+		#now calculate the size of the struct
+		struct_sz=0
+		for decl in typedefs_dict["structs"][name_of_struct]["decls"]:
+			type_of_decl=decl["type_of_decl"]
+			kwargs = {'typedefs_dictionary':typedefs_dict, 'name_of_struct': name_of_struct,'name_of_var':decl}
+			sz_of_new_var=process_var_size_extended(type_of_decl,**kwargs)
+			if (sz_of_new_var=="variable_size"):
+				typedefs_dict["structs"][name_of_struct]['size_of_struct']="variable_size"
+				break
+			else:
+				struct_sz+=sz_of_new_var
+		typedefs_dict["structs"][name_of_struct]['size_of_struct']=struct_sz
+		#!!!! add pointers to structs support
 			
 			
