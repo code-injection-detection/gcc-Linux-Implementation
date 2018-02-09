@@ -7,15 +7,17 @@ struct lol
     int b;
     int* m;
     char c[10];
-} bob;
+}; //bob;
 
-struct lol bab;
-/*
+//struct lol bab;
+
 
 int a_fun(int x,int* y)
 {
     int b=1;
     int *c;
+    struct lol m;
+
     return 0;
 }
 
@@ -26,4 +28,4 @@ struct ll
 };
 
 int z[10];
-*/
+

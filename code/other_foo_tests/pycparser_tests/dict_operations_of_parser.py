@@ -58,10 +58,9 @@ def init_function_dict(current_function_dict):
 	#local vars
 	fun_locals=[]
 	current_function_dict["locals"]={}
-	current_function_dict["locals"]["struct"]={}
 	current_function_dict["locals"]["locals_init_order"]=1
 	current_function_dict["local_init_maxorder"]=0
-	for type_of_var in ['char','int','long','float','double','ptr','arb_ptr']:
+	for type_of_var in ['char','int','long','float','double','ptr','arb_ptr','struct']:
 		current_function_dict["locals"][type_of_var]={}
 		current_function_dict["locals"][type_of_var]["names"]=[]
 		current_function_dict["locals"][type_of_var]["number"]=0
@@ -119,7 +118,7 @@ def process_param_decl(param,dict_for_var,extra_info):
 		pass
 			
 			
-def process_local_decl(local,dict_for_var,extra_info):
+def process_local_decl(local,dict_for_var,typedefs_dict,extra_info):
 	#fills the dictionary with info for that local variable of the function
 	#change names because of old code
 	possible_decl=local
@@ -128,7 +127,16 @@ def process_local_decl(local,dict_for_var,extra_info):
 	is_array=0
 	size_of_constant_array=0
 	expression_of_non_constant_array=None
-	if "names" in  possible_decl["type"]["type"]: #see if it's a simple variable
+	if (possible_decl["type"]["_nodetype"]=="TypeDecl") and ("_nodetype" in possible_decl["type"]["type"]) and (possible_decl["type"]["type"]["_nodetype"]=="Struct"):
+		#we have a struct!
+		add_struct_to_types(possible_decl["type"],typedefs_dict) #register it as a struct!
+		type_of_local_var="struct"
+		our_type_of_possible_decl="struct"
+		name=possible_decl["type"]["declname"]
+		dict_for_var[type_of_local_var]["struct_"+name]={}
+		dict_for_var[type_of_local_var]["struct_"+name]["name"]=name
+		dict_for_var[type_of_local_var]["struct_"+name]["type_of_struct"]=possible_decl["type"]["type"]["name"]
+	elif "names" in  possible_decl["type"]["type"]: #see if it's a simple variable
 		type_of_local_var=possible_decl["type"]["type"]["names"]
 		our_type_of_possible_decl=identify_type(type_of_local_var)
 	elif possible_decl["type"]["_nodetype"]=="PtrDecl": #it's probably a pointer to something
@@ -182,7 +190,7 @@ def process_local_decl(local,dict_for_var,extra_info):
 			
 #filling of dicts
 
-def fill_function_dict(subast,current_function_dict):
+def fill_function_dict(subast,current_function_dict,typedefs_dict):
 	#parses a function definition and fills the function dict
 	item=subast
 	fun_metadata=item["decl"]
@@ -219,7 +227,7 @@ def fill_function_dict(subast,current_function_dict):
 	for possible_decl in fun_body:
 		if (possible_decl["_nodetype"]=="Decl"):
 			extra_info["from"]="fun_locals"
-			process_local_decl(possible_decl,current_function_dict["locals"],extra_info)
+			process_local_decl(possible_decl,current_function_dict["locals"],typedefs_dict,extra_info)
 			
 	#erase the declarations/initializations of the local variables, since we will do them manually
 	num_of_nodes_not_deleted=0
@@ -244,12 +252,13 @@ def fill_global_dict(subast,globals_dict,typedefs_dict,ast_dict):
 	type_of_global=''
 	if item["type"]["_nodetype"]=='TypeDecl': #typical, non array global (int,long etc), or struct
 		if (item["type"]["type"]["_nodetype"]=="Struct"): #it's a struct
-			add_struct_to_types(item["type"],typedefs_dict)
+			add_struct_to_types(item["type"],typedefs_dict) #register it as a struct!
 			type_of_global="struct"
 			name=item["type"]["declname"]
-			globals_dict[type_of_global][name]={}
-			globals_dict[type_of_global][name]["name"]=name
-			globals_dict[type_of_global][name]["type_of_struct"]=item["type"]["type"]["name"]
+			globals_dict[identify_type(type_of_global)]["struct_"+name]={}
+			globals_dict[identify_type(type_of_global)]["struct_"+name]["name"]=name
+			globals_dict[identify_type(type_of_global)]["struct_"+name]["type_of_struct"]=item["type"]["type"]["name"]
+			globals_dict[identify_type(type_of_global)]["number"]+=1
 		else:
 			#if not a struct (simple variable)
 			type_of_global=item["type"]["type"]["names"][0]

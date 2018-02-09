@@ -49,7 +49,7 @@ for item in where_functions_start:
 			current_function_dict["local_init_maxorder"]=current_function_dict["locals"]["locals_init_order"]
 			all_functions_dict[current_function_dict["name"]]=copy.deepcopy(current_function_dict) #add it to the all functions dict
 		current_function_dict={}
-		fill_function_dict(item,current_function_dict) #fill the dict
+		fill_function_dict(item,current_function_dict,typedefs_dict) #fill the dict
 		
 	
 	if encountered_global_decl(item): 

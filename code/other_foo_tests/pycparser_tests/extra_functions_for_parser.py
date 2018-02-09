@@ -170,6 +170,8 @@ def identify_type(type_of_param):
 		return 'none'
 	if 'ptr' in type_of_param:
 		return 'ptr'
+	if type_of_param=="struct":
+		return "struct"
 		
 def process_var_size(var_size): #This has to be improved in the future
 	if var_size=='int':
