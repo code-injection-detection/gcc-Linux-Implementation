@@ -81,11 +81,12 @@ def init_function_dict(current_function_dict):
 
 def init_typedefs_dict(typedefs_dict):
 	typedefs_dict["structs"]={}
+	typedefs_dict["typedefs"]={}
 	#add more stuff later
 				
 				
 				
-def process_param_decl(param,dict_for_var,extra_info):
+def process_param_decl(param,dict_for_var,typedefs_dict,extra_info):
 	#fills the dictionary with info for that function parameter
 	name_of_param=param["name"]
 	if "names" in  param["type"]["type"]: #see if it's a simple variable
@@ -105,9 +106,18 @@ def process_param_decl(param,dict_for_var,extra_info):
 			type_of_pointed_var='ptr'
 			dict_for_var[our_type_of_param]['type_of_pointed_var'].append(type_of_pointed_var)
 		elif (param["type"]["type"]["_nodetype"]=="TypeDecl"): #pointer to sth else
-			type_of_pointed_var=identify_type(param["type"]["type"]["type"]["names"][0])
-			size_of_pointed_elem=process_var_size(type_of_pointed_var)
-			dict_for_var[our_type_of_param]['type_of_pointed_var'].append(type_of_pointed_var)
+			if (param["type"]["type"]["type"]["_nodetype"]=="Struct"): #pointer to a struct
+				add_struct_to_types(param["type"]["type"],typedefs_dict) #register it as a struct!
+				name_of_struct=param["type"]["type"]["type"]["name"]
+				type_of_pointed_var="struct_"+name_of_struct
+				size_of_pointed_elem=typedefs_dict['structs'][name_of_struct]['size_of_struct']
+				if size_of_pointed_elem=="variable_size":
+					size_of_pointed_elem=-10000
+				dict_for_var[our_type_of_param]['type_of_pointed_var'].append(type_of_pointed_var)
+			else:
+				type_of_pointed_var=identify_type(param["type"]["type"]["type"]["names"][0])
+				size_of_pointed_elem=process_var_size(type_of_pointed_var)
+				dict_for_var[our_type_of_param]['type_of_pointed_var'].append(type_of_pointed_var)
 		else:
 			sys.stderr.write("ERROR in finding the parameter size for parameters.\n")
 			exit(-1)
@@ -176,9 +186,18 @@ def process_local_decl(local,dict_for_var,typedefs_dict,extra_info):
 			size_of_pointed_elem=8
 			dict_for_var[our_type_of_possible_decl]['type_of_pointed_var'].append('ptr')
 		elif (possible_decl["type"]["type"]["_nodetype"]=="TypeDecl"): #pointer to non-pointer
-			type_of_pointed_var=identify_type(possible_decl["type"]["type"]["type"]["names"][0])
-			size_of_pointed_elem=process_var_size(type_of_pointed_var)
-			dict_for_var[our_type_of_possible_decl]['type_of_pointed_var'].append(type_of_pointed_var)
+			if (possible_decl["type"]["type"]["type"]["_nodetype"]=="Struct"): #pointer to a struct
+				add_struct_to_types(possible_decl["type"]["type"],typedefs_dict) #register it as a struct!
+				name_of_struct=possible_decl["type"]["type"]["type"]["name"]
+				type_of_pointed_var="struct_"+name_of_struct
+				size_of_pointed_elem=typedefs_dict['structs'][name_of_struct]['size_of_struct']
+				if size_of_pointed_elem=="variable_size":
+					size_of_pointed_elem=-10000
+				dict_for_var[our_type_of_possible_decl]['type_of_pointed_var'].append(type_of_pointed_var)
+			else:
+				type_of_pointed_var=identify_type(possible_decl["type"]["type"]["type"]["names"][0])
+				size_of_pointed_elem=process_var_size(type_of_pointed_var)
+				dict_for_var[our_type_of_possible_decl]['type_of_pointed_var'].append(type_of_pointed_var)
 		else:
 			sys.stderr.write("ERROR in finding the parameter size for locals.\n")
 			exit(-1)
@@ -215,7 +234,7 @@ def fill_function_dict(subast,current_function_dict,typedefs_dict):
 		for param in fun_params:
 			if (param["_nodetype"]=="Decl"):
 				extra_info["from"]="fun_params"
-				process_param_decl(param,current_function_dict["params"],extra_info)
+				process_param_decl(param,current_function_dict["params"],typedefs_dict,extra_info)
 			
 			
 	#local vars
@@ -259,8 +278,15 @@ def fill_global_dict(subast,globals_dict,typedefs_dict,ast_dict):
 			globals_dict[identify_type(type_of_global)]["struct_"+name]["name"]=name
 			globals_dict[identify_type(type_of_global)]["struct_"+name]["type_of_struct"]=item["type"]["type"]["name"]
 			globals_dict[identify_type(type_of_global)]["number"]+=1
+		elif item["type"]["type"]["_nodetype"]=="IdentifierType": #a typedefed variable
+			type_of_global=item["type"]["type"]["names"][0]
+			if ("typedef_"+type_of_global not in globals_dict):
+				globals_dict["typedef_"+type_of_global]={}
+				globals_dict["typedef_"+type_of_global]["names"]=[]
+			globals_dict["typedef_"+type_of_global]["names"].append(name_of_global)
+			#!!!!!!!!!!!! add more support here
 		else:
-			#if not a struct (simple variable)
+			#if it is a simple variable
 			type_of_global=item["type"]["type"]["names"][0]
 			globals_dict[identify_type(type_of_global)]["names"].append(name_of_global)
 			globals_dict[identify_type(type_of_global)]["original_c_decl"].append(original_c_lines_for_global)
@@ -289,8 +315,17 @@ def fill_global_dict(subast,globals_dict,typedefs_dict,ast_dict):
 			size_of_pointed_elem=8
 			globals_dict[identify_type(type_of_global)]['type_of_pointed_var'].append('ptr')
 		elif (item["type"]["type"]["_nodetype"]=="TypeDecl"): #pointer to non pointer
-			size_of_pointed_elem=process_var_size(identify_type(item["type"]["type"]["type"]["names"][0]))
-			globals_dict[identify_type(type_of_global)]['type_of_pointed_var'].append(identify_type(item["type"]["type"]["type"]["names"][0]))
+			if (item["type"]["type"]["type"]["_nodetype"]=="Struct"): #pointer to a struct
+				add_struct_to_types(item["type"]["type"],typedefs_dict) #register it as a struct!
+				name_of_struct=item["type"]["type"]["type"]["name"]
+				type_of_pointed_var="struct_"+name_of_struct
+				size_of_pointed_elem=typedefs_dict['structs'][name_of_struct]['size_of_struct']
+				if size_of_pointed_elem=="variable_size":
+					size_of_pointed_elem=-10000
+				globals_dict[identify_type(type_of_global)]['type_of_pointed_var'].append(type_of_pointed_var)
+			else: #if it is a simple variable
+				size_of_pointed_elem=process_var_size(identify_type(item["type"]["type"]["type"]["names"][0]))
+				globals_dict[identify_type(type_of_global)]['type_of_pointed_var'].append(identify_type(item["type"]["type"]["type"]["names"][0]))
 		else:
 			sys.stderr.write("ERROR in finding the size of pointer elements for globals.\n")
 			exit(-1)
@@ -400,6 +435,23 @@ def add_struct_to_types(subast,typedefs_dict):
 			else:
 				struct_sz+=sz_of_new_var
 		typedefs_dict["structs"][name_of_struct]['size_of_struct']=struct_sz
-		#!!!! add pointers to structs support
 			
 			
+def add_typedef_to_typedefs(subast,typedefs_dict):
+	#!!!!!!!! this function needs to be extended a lot, not to include struct support only for typedefs
+	item=subast
+	name_of_typedef=item["name"]
+	typedefs_dict["typedefs"][name_of_typedef]={}
+	typedefs_dict["typedefs"][name_of_typedef]["name"]=name_of_typedef
+	type_of_defined_elem=""
+	if item["type"]["_nodetype"]=="TypeDecl" and item["type"]["type"]["_nodetype"]=="Struct":
+		#we only support that at the moment
+		add_struct_to_types(item["type"],typedefs_dict)
+		type_of_defined_elem="struct"
+		
+
+	typedefs_dict["typedefs"][name_of_typedef]["type_of_defined_elem"]=type_of_defined_elem
+	if (type_of_defined_elem=="struct"):
+		typedefs_dict["typedefs"][name_of_typedef]["struct_name"]=item["type"]["type"]["name"]
+		
+	

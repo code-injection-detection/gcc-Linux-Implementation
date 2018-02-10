@@ -60,6 +60,10 @@ for item in where_functions_start:
 		#we have a struct definition!
 		add_struct_to_types(item,typedefs_dict)
 		
+	if encountered_typedef_decl(item):
+		#typedef!
+		add_typedef_to_typedefs(item,typedefs_dict)	
+		
 #erase the declarations/initializations of the global variables, sice we will do them manually
 num_of_nodes_not_deleted=0
 while (len(where_functions_start)>num_of_nodes_not_deleted):

@@ -1,0 +1,21 @@
+https://github.com/eliben/pycparser/blob/master/pycparser/_c_ast.cfg
+
+
+
+globals_dict structure:
+	-simple_vars
+	-1_dim_arrays
+	-structs
+
+	everyone has:
+		-name 
+		-type
+		-init (yes/no)
+		-order_of_decl
+		-order_of_init
+		-original_c_decl
+		
+		if ptr/array: size_of_pointed_element,type_of_pointed_var
+		if array: dimension ast
+		if structs: name_of_struct
+		

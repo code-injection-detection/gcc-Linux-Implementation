@@ -1,13 +1,21 @@
 int x;
 
+typedef struct hehe
+{
+    int b;
+    int x;
+} hoho;
 
+
+hoho beb;
+/*
 struct lol
 {
     int a;
     int b;
     int* m;
     char c[10];
-}; //bob;
+} *bob;
 
 //struct lol bab;
 
@@ -17,6 +25,7 @@ int a_fun(int x,int* y)
     int b=1;
     int *c;
     struct lol m;
+    struct lol * n;
 
     return 0;
 }
@@ -29,3 +38,5 @@ struct ll
 
 int z[10];
 
+struct lol * nob;
+*/

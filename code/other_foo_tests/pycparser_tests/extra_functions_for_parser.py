@@ -278,6 +278,13 @@ def encountered_struct_def(item):
 	else:
 		return False
 		
+
+def encountered_typedef_decl(item):
+	if (item["_nodetype"]=="Typedef"):
+		return True
+	else:
+		return False		
+		
 		
 		
 def pretty_print_of_dict(dict_in):
