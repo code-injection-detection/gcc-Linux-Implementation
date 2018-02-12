@@ -15,7 +15,7 @@ globals_dict structure:
 		-order_of_init
 		-original_c_decl
 		
-		if ptr/array: size_of_pointed_element,type_of_pointed_var
+		if ptr/array: size_of_pointed_elem,type_of_pointed_elem
 		if array: dimension ast
 		if structs: name_of_struct
 		
