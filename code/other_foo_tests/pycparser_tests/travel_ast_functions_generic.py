@@ -42,10 +42,36 @@ def identify_element(subast,**kwargs):
 		return identify_typedecl(item,**kwargs)
 	elif item["_nodetype"]=="PtrDecl":
 		return "pointer"
+	elif item["_nodetype"]=="ArrayDecl":
+		return "array"
+	elif item["_nodetype"]=="Struct":
+		return "struct"
 	#add more cases
 	else:
 		return "unidentified element"
 
+
+def identify_element_nice(subast,**kwargs):
+	item=subast
+	globals_dict=kwargs["globals_dict"]
+	typedefs_dict=kwargs["typedefs_dict"]
+	current_function_dict=kwargs["current_function_dict"]
+	all_functions_dict=kwargs["all_functions_dict"]
+	current_state=kwargs["current_state"]
+	
+	if item["_nodetype"]=="TypeDecl":
+		if (identify_typedecl(item,**kwargs))=="normal_var":
+			return identify_type(item["type"]["names"][0])
+		else:
+			return "unidentified element"
+	elif item["_nodetype"]=="PtrDecl":
+		return "ptr"
+	elif item["_nodetype"]=="ArrayDecl":
+		return "array"
+	#add more cases
+	else:
+		return "unidentified element"
+		
 
 def parse_normal_variable_typedecl(subast,**kwargs):
 	item=subast
@@ -56,8 +82,19 @@ def parse_normal_variable_typedecl(subast,**kwargs):
 	current_state=kwargs["current_state"]
 	
 	name_of_typedecl=item['declname']
+	dict_to_return=current_state["return_dict_of_decl--"+current_state["layer"]]
+	
 	if current_state["layer"]=="global": #global variable
 		add_normal_global_variable(item,**kwargs)
+	else:
+		dict_to_return=create_dict_for_normal_variable(item,**kwargs)
+	'''
+	name_of_struct=kwargs.get(current_state(["in_struct"],"not_a_struct_here")
+	if (name_of_struct!="not_a_struct_here" and "_struct_ " in current_state["layer"]):
+		#we are in a struct
+	'''
+	
+	current_state["return_dict_of_decl--"+current_state["layer"]]=dict_to_return
 		
 
 def parse_normal_variable_ptrdecl(subast,**kwargs):
@@ -69,11 +106,32 @@ def parse_normal_variable_ptrdecl(subast,**kwargs):
 	current_state=kwargs["current_state"]
 	
 	name_of_ptrdecl=kwargs['name_of_decl']
+	dict_to_return=current_state["return_dict_of_decl--"+current_state["layer"]]
 	#identify the pointed element
 	pointed_element=identify_element(item["type"],**kwargs)
 	kwargs["pointed_element"]=pointed_element
+	kwargs["type_of_pointed_element"]=identify_element_nice(item["type"],**kwargs)
 	if current_state["layer"]=="global": #global variable
 		add_normal_global_ptrvariable(item,**kwargs)
+		
+	!!!!! add support for pts and other stuff dict creation
+	current_state["return_dict_of_decl--"+current_state["layer"]]=dict_to_return
+		
+		
+def parse_normal_variable_arraydecl(subast,**kwargs):
+	item=subast
+	globals_dict=kwargs["globals_dict"]
+	typedefs_dict=kwargs["typedefs_dict"]
+	current_function_dict=kwargs["current_function_dict"]
+	all_functions_dict=kwargs["all_functions_dict"]
+	current_state=kwargs["current_state"]
+	
+	name_of_arraydecl=kwargs['name_of_decl']
+	#identify the type of the element of the array
+	array_element=identify_element_nice(item["type"],**kwargs)
+	kwargs["array_element"]=array_element
+	if current_state["layer"]=="global": #global array
+		add_global_array_variable(item,**kwargs)
 
 
 def parse_Decl(subast,**kwargs):
@@ -90,11 +148,20 @@ def parse_Decl(subast,**kwargs):
 	init_ast=None
 	if item['init']!=None: #this variable is initialized
 		#save the initialization (delete the ast too in case of globals (later) )
-		init_ast=from_dict(copy.deepcopy(item['init']))
+		init_ast=from_dict(copy.deepcopy(item)['init'])
 	
-	#since there is a problem with _nodetype access, we copy the item many times
+	kwargs["init_of_var_copied"]=init_ast
+	kwargs["decl_ast"]=item
+	
+	#if not a global variable, we need to return a dictionary to be added
+	dict_to_return=init_dict_of_decl_to_ret(**kwargs)
+	current_state["return_dict_of_decl--"+current_state["layer"]]=dict_to_return
+	
+	#since there is a problem with _nodetype access (gets deleted..?), we copy the item many times
 	item1=copy.deepcopy(item)
 	item2=copy.deepcopy(item)
+	item3=copy.deepcopy(item)
+	item4=copy.deepcopy(item)
 	
 	#start the checks
 	if item1["type"]["_nodetype"]=="TypeDecl":
@@ -105,15 +172,19 @@ def parse_Decl(subast,**kwargs):
 			print_dicts("all",**kwargs)
 			sys.exit(-1)
 		if typedecl_of_decl=="normal_var":
-			kwargs["init_of_var_copied"]=init_ast
-			kwargs["decl_ast"]=item
 			parse_normal_variable_typedecl(item["type"],**kwargs)
 
 	if identify_element(item2["type"],**kwargs)=="pointer":
 		#A pointer. Let's parse it as a normal pointer
-		kwargs["init_of_var_copied"]=init_ast
-		kwargs["decl_ast"]=item
 		parse_normal_variable_ptrdecl(item["type"],**kwargs)
+		
+	if identify_element(item3["type"],**kwargs)=="array":
+		parse_normal_variable_arraydecl(item["type"],**kwargs)
+	
+	if identify_element(item4["type"],**kwargs)=="struct":
+		#we have a struct definition
+		#add struct to the types
+		add_struct_to_types(item["type"],**kwargs)
 		
 		
 
@@ -146,3 +217,47 @@ def parse_whole_ast(ast_dict,**kwargs):
 	for subast in item["ext"]:
 		parse_subast(subast,**kwargs)
 	
+
+
+	
+	
+def add_struct_to_types(subast,**kwargs):
+	item=subast
+	globals_dict=kwargs["globals_dict"]
+	typedefs_dict=kwargs["typedefs_dict"]
+	current_function_dict=kwargs["current_function_dict"]
+	all_functions_dict=kwargs["all_functions_dict"]
+	current_state=kwargs["current_state"]
+	
+	#important! the name of the struct is not in the "Decl" block!
+	name_of_struct=item["name"]
+	if (name_of_struct not in typedefs_dict["structs"]): #if it has been added before don't add it again
+		typedefs_dict["structs"][name_of_struct]={}
+		typedefs_dict["structs"][name_of_struct]["name_of_struct"]=name_of_struct
+		typedefs_dict["structs"][name_of_struct]["scope"]=current_state["layer"]
+		typedefs_dict["structs"][name_of_struct]["decls"]=[]
+		kwargs["name_of_struct"]=name_of_struct
+		tempstate=copy.deepcopy(current_state) #hold this in this temp variable
+		#update the satet to show where we are
+		current_state["layer"]=current_state["layer"]+"_struct_"+name_of_struct
+		current_state["in_struct"]=name_of_struct
+		
+		for decl in item["decls"]:
+			parse_Decl(decl,**kwargs)
+			#now there is a dict of that decl in the current_state waiting for us to grab
+			dict_returned=current_state["return_dict_of_decl--"+current_state["layer"]]
+			typedefs_dict["structs"][name_of_struct]["decls"].append(copy.deepcopy(dict_returned))
+			
+		current_state=copy.deepcopy(tempstate) #restore the state
+		
+		#now calculate the size of the struct
+		struct_sz=0
+		for decl in typedefs_dict["structs"][name_of_struct]["decls"]:
+			sz_of_new_var=decl["size_of_variable"]
+			if (sz_of_new_var=="variable_size"):
+				typedefs_dict["structs"][name_of_struct]['size_of_struct']="variable_size"
+				break
+			else:
+				struct_sz+=int(sz_of_new_var)
+		typedefs_dict["structs"][name_of_struct]['size_of_struct']=str(struct_sz)
+		

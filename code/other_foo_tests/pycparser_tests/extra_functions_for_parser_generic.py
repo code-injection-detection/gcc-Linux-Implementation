@@ -228,6 +228,17 @@ def process_var_size(var_size): #This has to be improved in the future
 		print("UNKNOWN VARIABLE SIZE:",var_size)
 
 
+def process_var_size_extended(var_type,**kwargs): #supports more possible types
+	if var_type in ['int','char','long','ptr','double','float','none','null']:
+		return (process_var_size(var_type))
+	if var_type=='struct':
+		pass
+		#!!!!!!!!! sos extend
+		#get its size from the kwargs
+		#...
+	else:
+		print("UNKNOWN VARIABLE SIZE:",var_size)
+
 
 def condition_for_each_object_for_get_original_lines(type_of_obj,new_ast_dict,name_of_object,index):
 	#returns if the object in new_ast_dict['ext'][index] is the same as the object with type->type_of_obj, and name->name_of_object

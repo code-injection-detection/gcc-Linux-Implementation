@@ -1,6 +1,10 @@
 https://github.com/eliben/pycparser/blob/master/pycparser/_c_ast.cfg
 
 
+typedefs dict:
+	-structs: name_of_struct, scope of decl, size_in_bytes (if available)
+	-every struct variable: whatever the other variables have
+
 
 globals_dict structure:
 	-simple_vars
@@ -16,6 +20,6 @@ globals_dict structure:
 		-original_c_decl
 		
 		if ptr/array: size_of_pointed_elem,type_of_pointed_elem
-		if array: dimension ast
-		if structs: name_of_struct
+		if array: dimension ast, size_in_bytes (if available)
+		if structs: name_of_struct, scope of decl? (for non-global ones)
 		
