@@ -22,6 +22,9 @@ public class Secure_Machine_Code_new {
 	static int size_of_jmp_command=5;
 	static int bytes_for_instr_len=2;
 	static boolean verify_everything; //everything calculated world
+	static String filename_for_writing_bytes_to_be_maced="";
+	static String filename_for_reading_mac_bytes="";
+	static int num_that_denotes_end_of_needing_other_mac_calculations=-424242;
 
 	
 	public static void main(String[] args) throws Exception
@@ -34,6 +37,8 @@ public class Secure_Machine_Code_new {
 		String memory_manager_filename=new File("../code/memory_manager.c").getAbsolutePath();
 		String global_keys_filename=new File("../code/global_keyshares").getAbsolutePath();
 		String all_keyshares_filename=new File("../code/all_keyshares_for_verification").getAbsolutePath();
+		filename_for_writing_bytes_to_be_maced=new File("../code/communication_files/comm_file1").getAbsolutePath();
+		filename_for_reading_mac_bytes=new File("../code/communication_files/comm_file2").getAbsolutePath();
 		
 		
 		String newfilename = filename.substring(0,filename.length()-3)+"ksec";
@@ -70,6 +75,22 @@ public class Secure_Machine_Code_new {
 		FileOutputStream stack_keyshares_file = new FileOutputStream(new File(stack_keys_filename));
 		FileOutputStream all_keyshares_file_for_verification=new FileOutputStream(new File(all_keyshares_filename));
 		Path path = FileSystems.getDefault().getPath(global_keys_filename);
+		
+	
+		/*
+		FileOutputStream mac_out_pipe = new  FileOutputStream(filename_for_writing_bytes_to_be_maced);
+		FileInputStream mac_in_pipe = new FileInputStream(filename_for_reading_mac_bytes);
+		
+		RandomAccessFile mac_out_pipe = new RandomAccessFile(filename_for_writing_bytes_to_be_maced, "w");
+		RandomAccessFile mac_in_pipe = new RandomAccessFile(filename_for_reading_mac_bytes, "r");
+		*/
+		
+		File file_for_writing_bytes_to_be_maced= new File(filename_for_writing_bytes_to_be_maced);
+		FileWriter filewriter_for_writing_bytes_to_be_maced = new FileWriter(file_for_writing_bytes_to_be_maced, true);
+		PrintWriter printwriter_for_macs = new PrintWriter(filewriter_for_writing_bytes_to_be_maced);
+		
+		BufferedReader reader_of_mac_bytes = new BufferedReader(new FileReader(filename_for_reading_mac_bytes));
+		
 		byte [] global_keys = Files.readAllBytes(path);
 		byte[] stuff_in_code_to_be_MACed=new byte[40000];
 		boolean squeeze_keys_when_macing=false;

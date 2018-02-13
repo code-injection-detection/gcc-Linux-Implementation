@@ -18,6 +18,16 @@ void usage(char * name)
 }
 
 
+void check_fscanf_retval(int retval)
+{
+	if (retval!=1)
+	{
+		printf("Problem!fscanf retval!=1!\n");
+		printf("retval=%d\n",retval);
+		exit(-1);
+	}
+}
+
 
 
 int main(int argc, char* argv[])
@@ -28,8 +38,9 @@ int main(int argc, char* argv[])
 	unsigned char mac[66048];
 	int read_num;
 	int i,j;
+	int fscanf_retval;
 	
-	usage(argv[0]);
+	//usage(argv[0]);
 		
 	init_crypto_stuctures(0,0);
 
@@ -39,16 +50,22 @@ int main(int argc, char* argv[])
 	
 	for (;;)
 	{
-		fscanf(infile_fp,"%d",&len_of_all);
+		fscanf_retval=fscanf(infile_fp,"%d",&len_of_all);
+		check_fscanf_retval(fscanf_retval);
+		printf("%d\n",len_of_all);
 		
 		if (len_of_all==num_that_denotes_end) break; // if we have read the magic number, time to exit!
 		
-		fscanf(infile_fp,"%d",&len_of_useful);
+		fscanf_retval=fscanf(infile_fp,"%d",&len_of_useful);
+		check_fscanf_retval(fscanf_retval);
+		printf("%d\n",len_of_useful);
 		
 		for (i=0;i<len_of_all;i++)
 		{
-			fscanf(infile_fp,"%d",&read_num); //get the bytes
+			fscanf_retval=fscanf(infile_fp,"%d",&read_num); //get the bytes
+			check_fscanf_retval(fscanf_retval);
 			bytes[i]=(unsigned char) read_num;
+			printf("%d\n",read_num);
 		}
 		
 		//calc the mac
