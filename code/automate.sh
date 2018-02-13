@@ -234,6 +234,7 @@ fi
 rm -f addresses_of_unsplit_blocks.txt
 
 #creating 2 named pipes for communication (if they do not exist)
+mkdir -p  communication_files
 cd communication_files
 if [ -f comm_file1 ]; then
 	mkfifo comm_file1
