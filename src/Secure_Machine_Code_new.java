@@ -76,15 +76,6 @@ public class Secure_Machine_Code_new {
 		FileOutputStream all_keyshares_file_for_verification=new FileOutputStream(new File(all_keyshares_filename));
 		Path path = FileSystems.getDefault().getPath(global_keys_filename);
 		
-	
-		/*
-		FileOutputStream mac_out_pipe = new  FileOutputStream(filename_for_writing_bytes_to_be_maced);
-		FileInputStream mac_in_pipe = new FileInputStream(filename_for_reading_mac_bytes);
-		
-		RandomAccessFile mac_out_pipe = new RandomAccessFile(filename_for_writing_bytes_to_be_maced, "w");
-		RandomAccessFile mac_in_pipe = new RandomAccessFile(filename_for_reading_mac_bytes, "r");
-		*/
-		
 		File file_for_writing_bytes_to_be_maced= new File(filename_for_writing_bytes_to_be_maced);
 		FileWriter filewriter_for_writing_bytes_to_be_maced = new FileWriter(file_for_writing_bytes_to_be_maced, true);
 		PrintWriter printwriter_for_macs = new PrintWriter(filewriter_for_writing_bytes_to_be_maced);
@@ -553,11 +544,7 @@ public class Secure_Machine_Code_new {
 		byte[] mac= new byte[num_of_mac_bytes];
 		byte[] mac2= new byte[num_of_mac_bytes];
 		int[] args= new int[60480];
-		char[] mac_as_chars=new char[4096];
-		int cnt=0;
 		int cnt2=0;
-		String mac_calculator_filename=new File("../code/calc_mac_for_external_programs").getAbsolutePath();
-		String exec_str="";
 		String str_with_bytes_to_be_maced="";
 		String mac_as_str;
 		String[] mac_parts;
@@ -568,67 +555,30 @@ public class Secure_Machine_Code_new {
 		{
 			args[i+2]=(int)stuff_to_be_maced[i];
 		}
-		exec_str+=mac_calculator_filename+" "+args[0]+" "+args[1]+" ";
+
 		str_with_bytes_to_be_maced+=args[0]+" "+args[1]+" ";
 		for (int i=0;i<length_of_mac;i++)
 		{
-			exec_str+=args[i+2]+" ";
 			str_with_bytes_to_be_maced+=args[i+2]+" ";
 		}
-		/*
-		//exec the mac calculator
-		Runtime runtime = Runtime.getRuntime();
-		Process process = runtime.exec(exec_str);
-		BufferedInputStream macinputstream= new BufferedInputStream(process.getInputStream());
-		process.waitFor();
 		
-		while(macinputstream.available()>0)
-        {
-            // read the byte and convert the integer to character
-            char c = (char)macinputstream.read();
-            mac_as_chars[cnt]=c;
-            cnt++;
-		}
-		mac_as_str=new String(mac_as_chars);
-		mac_parts=mac_as_str.split(" ");
-		
-		cnt2=0;
-		for (String i:mac_parts)
-		{
-			if (i.trim().length()>0)
-			{
-				mac[cnt2]=(byte)Integer.parseInt(i.trim());
-				cnt2++;
-			}
-		}
-		*/
 
-		//Second way 
+		//Writing the string with the bytes to be maced in the named pipe
 		printwriter_for_macs.println(str_with_bytes_to_be_maced);
 		printwriter_for_macs.flush();
-		mac_as_str=reader_of_mac_bytes.readLine();
+		mac_as_str=reader_of_mac_bytes.readLine(); //reading the response of the C program into the other named pipe
 		mac_parts=mac_as_str.split(" ");
 		cnt2=0;
 		for (String i:mac_parts)
 		{
 			if (i.trim().length()>0)
 			{
-				mac2[cnt2]=(byte)Integer.parseInt(i.trim());
+				mac2[cnt2]=(byte)Integer.parseInt(i.trim()); //put the proper numbers in the array
 				cnt2++;
 			}
 		}
-
-		/*
-		//check the two macs
-		for(int i=0;i<num_of_mac_bytes;i++)
-		{
-			if (mac[i]!=mac2[i])
-				System.out.println("Opa!"+mac[i]+" "+mac2[i]);
-		}
-		*/
-
 		
-		return mac;
+		return mac2;
 	}
 	
 }

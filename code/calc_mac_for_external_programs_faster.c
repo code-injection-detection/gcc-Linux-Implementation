@@ -4,6 +4,7 @@ extern void calc_and_set_mac_of_data_sha256(char * input, long length, char * ou
 
 //finds the mac, given a bytestream. It is used by java and python.
 
+#define PRINT_VALUES 0
 
 char infile[100]="./communication_files/comm_file1";
 char outfile[100]="./communication_files/comm_file2";
@@ -51,21 +52,33 @@ int main(int argc, char* argv[])
 	for (;;)
 	{
 		fscanf_retval=fscanf(infile_fp,"%d",&len_of_all);
-		//check_fscanf_retval(fscanf_retval);
-		//printf("%d\n",len_of_all);
+		check_fscanf_retval(fscanf_retval);
+		#if PRINT_VALUES==1
+			printf("%d\n",len_of_all);
+		#endif
 		
-		if (len_of_all==num_that_denotes_end) break; // if we have read the magic number, time to exit!
+		if (len_of_all==num_that_denotes_end) 
+		{
+			#if PRINT_VALUES==1
+				printf("end!\n");
+			#endif
+			break; // if we have read the magic number, time to exit!
+		}
 		
 		fscanf_retval=fscanf(infile_fp,"%d",&len_of_useful);
-		//check_fscanf_retval(fscanf_retval);
-		//printf("%d\n",len_of_useful);
+		check_fscanf_retval(fscanf_retval);
+		#if PRINT_VALUES==1
+			printf("%d\n",len_of_useful);
+		#endif
 		
 		for (i=0;i<len_of_all;i++)
 		{
 			fscanf_retval=fscanf(infile_fp,"%d",&read_num); //get the bytes
-			//check_fscanf_retval(fscanf_retval);
+			check_fscanf_retval(fscanf_retval);
 			bytes[i]=(unsigned char) read_num;
-			//printf("%d\n",read_num);
+			#if PRINT_VALUES==1
+				printf("%d\n",read_num);
+			#endif
 		}
 		
 		//calc the mac
