@@ -234,10 +234,11 @@ fi
 rm -f addresses_of_unsplit_blocks.txt
 
 #creating 2 named pipes for communication (delete if already exist)
+mkdir -p communication_files
 cd communication_files
-rm comm_file1
+rm -f comm_file1
 mkfifo comm_file1
-rm comm_file2
+rm -f comm_file2
 mkfifo comm_file2
 cd ..
 

@@ -52,20 +52,20 @@ int main(int argc, char* argv[])
 	{
 		fscanf_retval=fscanf(infile_fp,"%d",&len_of_all);
 		check_fscanf_retval(fscanf_retval);
-		printf("%d\n",len_of_all);
+		//printf("%d\n",len_of_all);
 		
 		if (len_of_all==num_that_denotes_end) break; // if we have read the magic number, time to exit!
 		
 		fscanf_retval=fscanf(infile_fp,"%d",&len_of_useful);
 		check_fscanf_retval(fscanf_retval);
-		printf("%d\n",len_of_useful);
+		//printf("%d\n",len_of_useful);
 		
 		for (i=0;i<len_of_all;i++)
 		{
 			fscanf_retval=fscanf(infile_fp,"%d",&read_num); //get the bytes
 			check_fscanf_retval(fscanf_retval);
 			bytes[i]=(unsigned char) read_num;
-			printf("%d\n",read_num);
+			//printf("%d\n",read_num);
 		}
 		
 		//calc the mac
@@ -77,6 +77,7 @@ int main(int argc, char* argv[])
 				fprintf(outfile_fp,"%d ",(int)mac[i]);
 			}
 			fprintf(outfile_fp,"\n");
+			fflush(outfile_fp);
 		}
 	}
 	clear_crypto_structures();
