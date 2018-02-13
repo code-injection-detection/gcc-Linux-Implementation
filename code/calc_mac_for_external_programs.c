@@ -30,7 +30,7 @@ int main(int argc, char* argv[])
 	
 	for (i=0;i<len_of_all;i++)
 	{
-		bytes[i]=atoi(argv[3+i]); //get the bytes
+		bytes[i]=(unsigned char)atoi(argv[3+i]); //get the bytes
 	}
 	
 	//for (j=0;j<3;j++) //let's do it 3 times, for debugging reasons
@@ -39,7 +39,7 @@ int main(int argc, char* argv[])
 		
 		for (i=0;i<number_of_mac_bytes;i++) //print
 		{
-			printf("%d ",mac[i]);
+			printf("%d ",(int) mac[i]);
 		}
 		printf("\n");
 	}

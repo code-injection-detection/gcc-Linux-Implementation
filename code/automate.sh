@@ -233,6 +233,16 @@ fi
 #removing potentially old stuff...
 rm -f addresses_of_unsplit_blocks.txt
 
+#creating 2 named pipes for communication (if they do not exist)
+cd communication_files
+if [ -f comm_file1 ]; then
+	mkfifo comm_file1
+fi
+if [ -f comm_file2 ]; then
+	mkfifo comm_file2
+fi
+cd ..
+
 START_TIME_FIRST_PART=$(date +%s.%N)
 echo "Changing defines according to input..."
 #this script changes the defines according to user input, so that se secure program knows the constants as headers.
@@ -303,8 +313,10 @@ echo "Compiling hash and encryption calculators, as well as the crypto initializ
 	 #compile the extra stuff that would be implemented in hardware
 	 gcc -O3 -c secure_stack_manipulation_functions.c -lcrypto #-mno-red-zone
 	 gcc -O3 -c calc_mac_for_external_programs.c -lcrypto #-mno-red-zone #this one just calcs a mac
+	 gcc -O3 -c calc_mac_for_external_programs_faster.c -Wno-unused-result -lcrypto #-mno-red-zone #this one just calcs a mac
 	 gcc -O3 -c mac_time_calculator.c -lcrypto #-mno-red-zone  #this one calculates mac times, for all possible sizes
 	 gcc -O3 calc_mac_for_external_programs.o ./sha256.o ./crypto_functions.o -o calc_mac_for_external_programs -lcrypto #-mno-red-zone
+	 gcc -O3 calc_mac_for_external_programs_faster.o ./sha256.o ./crypto_functions.o -o calc_mac_for_external_programs_faster -lcrypto #-mno-red-zone
 	 gcc -O3 mac_time_calculator.o ./sha256.o ./crypto_functions.o -o mac_time_calculator -lcrypto #-mno-red-zone
 	 gcc -O3 initializer.c -c -mno-red-zone #this one runs 
 	 )
