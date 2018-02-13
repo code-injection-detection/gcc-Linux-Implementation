@@ -4,6 +4,7 @@ extern void calc_and_set_mac_of_data_sha256(char * input, long length, char * ou
 
 //finds the mac, given a bytestream. It is used by java and python.
 
+#define PRINT_VALUES 0
 
 char infile[100]="./communication_files/comm_file1";
 char outfile[100]="./communication_files/comm_file2";
@@ -18,6 +19,16 @@ void usage(char * name)
 }
 
 
+void check_fscanf_retval(int retval)
+{
+	if (retval!=1)
+	{
+		printf("Problem!fscanf retval!=1!\n");
+		printf("retval=%d\n",retval);
+		exit(-1);
+	}
+}
+
 
 
 int main(int argc, char* argv[])
@@ -28,8 +39,9 @@ int main(int argc, char* argv[])
 	unsigned char mac[66048];
 	int read_num;
 	int i,j;
+	int fscanf_retval;
 	
-	usage(argv[0]);
+	//usage(argv[0]);
 		
 	init_crypto_stuctures(0,0);
 
@@ -39,16 +51,34 @@ int main(int argc, char* argv[])
 	
 	for (;;)
 	{
-		fscanf(infile_fp,"%d",&len_of_all);
+		fscanf_retval=fscanf(infile_fp,"%d",&len_of_all);
+		check_fscanf_retval(fscanf_retval);
+		#if PRINT_VALUES==1
+			printf("%d\n",len_of_all);
+		#endif
 		
-		if (len_of_all==num_that_denotes_end) break; // if we have read the magic number, time to exit!
+		if (len_of_all==num_that_denotes_end) 
+		{
+			#if PRINT_VALUES==1
+				printf("end!\n");
+			#endif
+			break; // if we have read the magic number, time to exit!
+		}
 		
-		fscanf(infile_fp,"%d",&len_of_useful);
+		fscanf_retval=fscanf(infile_fp,"%d",&len_of_useful);
+		check_fscanf_retval(fscanf_retval);
+		#if PRINT_VALUES==1
+			printf("%d\n",len_of_useful);
+		#endif
 		
 		for (i=0;i<len_of_all;i++)
 		{
-			fscanf(infile_fp,"%d",&read_num); //get the bytes
+			fscanf_retval=fscanf(infile_fp,"%d",&read_num); //get the bytes
+			check_fscanf_retval(fscanf_retval);
 			bytes[i]=(unsigned char) read_num;
+			#if PRINT_VALUES==1
+				printf("%d\n",read_num);
+			#endif
 		}
 		
 		//calc the mac
@@ -60,6 +90,7 @@ int main(int argc, char* argv[])
 				fprintf(outfile_fp,"%d ",(int)mac[i]);
 			}
 			fprintf(outfile_fp,"\n");
+			fflush(outfile_fp);
 		}
 	}
 	clear_crypto_structures();

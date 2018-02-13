@@ -142,7 +142,7 @@ def get_mac_from_c_code(MAC):
 	if (do_stuff_for_headers_needed_only==1): #no mac calulation here, the program does not even exist
 		MAC=[0]*num_of_mac_bytes
 	else:
-		program='./calc_mac_for_external_programs'
+		program='./calc_mac_for_external_programs' #use the old (slightly slower) version. The globals are few and that's ok
 		mac_as_str=[str(i) for i in bytes_to_be_maced]
 		args=[program,str(len(bytes_to_be_maced)),str(useful_bytes_size)]
 		for i in mac_as_str:

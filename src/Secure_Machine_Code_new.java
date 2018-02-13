@@ -22,6 +22,9 @@ public class Secure_Machine_Code_new {
 	static int size_of_jmp_command=5;
 	static int bytes_for_instr_len=2;
 	static boolean verify_everything; //everything calculated world
+	static String filename_for_writing_bytes_to_be_maced="";
+	static String filename_for_reading_mac_bytes="";
+	static int num_that_denotes_end_of_needing_other_mac_calculations=-424242;
 
 	
 	public static void main(String[] args) throws Exception
@@ -34,6 +37,8 @@ public class Secure_Machine_Code_new {
 		String memory_manager_filename=new File("../code/memory_manager.c").getAbsolutePath();
 		String global_keys_filename=new File("../code/global_keyshares").getAbsolutePath();
 		String all_keyshares_filename=new File("../code/all_keyshares_for_verification").getAbsolutePath();
+		filename_for_writing_bytes_to_be_maced=new File("../code/communication_files/comm_file1").getAbsolutePath();
+		filename_for_reading_mac_bytes=new File("../code/communication_files/comm_file2").getAbsolutePath();
 		
 		
 		String newfilename = filename.substring(0,filename.length()-3)+"ksec";
@@ -70,6 +75,13 @@ public class Secure_Machine_Code_new {
 		FileOutputStream stack_keyshares_file = new FileOutputStream(new File(stack_keys_filename));
 		FileOutputStream all_keyshares_file_for_verification=new FileOutputStream(new File(all_keyshares_filename));
 		Path path = FileSystems.getDefault().getPath(global_keys_filename);
+		
+		File file_for_writing_bytes_to_be_maced= new File(filename_for_writing_bytes_to_be_maced);
+		FileWriter filewriter_for_writing_bytes_to_be_maced = new FileWriter(file_for_writing_bytes_to_be_maced, true);
+		PrintWriter printwriter_for_macs = new PrintWriter(filewriter_for_writing_bytes_to_be_maced);
+		
+		BufferedReader reader_of_mac_bytes = new BufferedReader(new FileReader(filename_for_reading_mac_bytes));
+		
 		byte [] global_keys = Files.readAllBytes(path);
 		byte[] stuff_in_code_to_be_MACed=new byte[40000];
 		boolean squeeze_keys_when_macing=false;
@@ -334,12 +346,12 @@ public class Secure_Machine_Code_new {
 						}
 						
 						//give them to the mac handler and calculate the mac
-						digest=calculate_mac(cnt_in_new_mac,cnt_in_new_mac-number_of_interleaved_keys,new_stuff_in_code_to_be_MACed,num_of_mac_bytes);
+						digest=calculate_mac(cnt_in_new_mac,cnt_in_new_mac-number_of_interleaved_keys,new_stuff_in_code_to_be_MACed,num_of_mac_bytes,printwriter_for_macs,reader_of_mac_bytes);
 					}
 					else
 					{
 						//give them to the mac handler and calculate the mac
-						digest=calculate_mac(cnt_for_instr_bytes+number_of_canaries+bytes_for_instr_len+number_of_interleaved_keys+number_of_padded_nops,cnt_for_instr_bytes+number_of_canaries+bytes_for_instr_len+number_of_padded_nops,stuff_in_code_to_be_MACed,num_of_mac_bytes);
+						digest=calculate_mac(cnt_for_instr_bytes+number_of_canaries+bytes_for_instr_len+number_of_interleaved_keys+number_of_padded_nops,cnt_for_instr_bytes+number_of_canaries+bytes_for_instr_len+number_of_padded_nops,stuff_in_code_to_be_MACed,num_of_mac_bytes,printwriter_for_macs,reader_of_mac_bytes);
 					}
 
 					
@@ -467,6 +479,11 @@ public class Secure_Machine_Code_new {
 	    stack_keyshares_file.close();
 	    all_keyshares_file_for_verification.flush();
 	    all_keyshares_file_for_verification.close();
+	    printwriter_for_macs.println(num_that_denotes_end_of_needing_other_mac_calculations);
+	    printwriter_for_macs.flush();
+	    printwriter_for_macs.close();
+	    reader_of_mac_bytes.close();
+
 	    /*Giving execute permissions*/
 	    Process p = r.exec("chmod +x " + newfilename );
 	    p.waitFor();
@@ -522,15 +539,15 @@ public class Secure_Machine_Code_new {
 	
 	
 	//calculate mac given an array, it calls an exteral C program
-	static byte[] calculate_mac(int length_of_mac, int length_of_useful_bytes, byte[] stuff_to_be_maced,int num_of_mac_bytes) throws IOException,InterruptedException
+	static byte[] calculate_mac(int length_of_mac, int length_of_useful_bytes, byte[] stuff_to_be_maced,int num_of_mac_bytes, PrintWriter printwriter_for_macs, BufferedReader reader_of_mac_bytes) throws IOException,InterruptedException
 	{
 		byte[] mac= new byte[num_of_mac_bytes];
+		byte[] mac2= new byte[num_of_mac_bytes];
 		int[] args= new int[60480];
-		char[] mac_as_chars=new char[4096];
-		int cnt=0;
 		int cnt2=0;
-		String mac_calculator_filename=new File("../code/calc_mac_for_external_programs").getAbsolutePath();
-		String exec_str="";
+		String str_with_bytes_to_be_maced="";
+		String mac_as_str;
+		String[] mac_parts;
 		
 		args[0]=length_of_mac; //first argument
 		args[1]=length_of_useful_bytes; //second argument
@@ -538,39 +555,30 @@ public class Secure_Machine_Code_new {
 		{
 			args[i+2]=(int)stuff_to_be_maced[i];
 		}
-		exec_str+=mac_calculator_filename+" "+args[0]+" "+args[1]+" ";
+
+		str_with_bytes_to_be_maced+=args[0]+" "+args[1]+" ";
 		for (int i=0;i<length_of_mac;i++)
 		{
-			exec_str+=args[i+2]+" ";
+			str_with_bytes_to_be_maced+=args[i+2]+" ";
 		}
 		
-		//exec the mac calculator
-		Runtime runtime = Runtime.getRuntime();
-		Process process = runtime.exec(exec_str);
-		BufferedInputStream macinputstream= new BufferedInputStream(process.getInputStream());
-		process.waitFor();
-		
-		while(macinputstream.available()>0)
-        {
-            // read the byte and convert the integer to character
-            char c = (char)macinputstream.read();
-            mac_as_chars[cnt]=c;
-            cnt++;
-		}
-		String mac_as_str=new String(mac_as_chars);
-		String[] mac_parts=mac_as_str.split(" ");
-		
+
+		//Writing the string with the bytes to be maced in the named pipe
+		printwriter_for_macs.println(str_with_bytes_to_be_maced);
+		printwriter_for_macs.flush();
+		mac_as_str=reader_of_mac_bytes.readLine(); //reading the response of the C program into the other named pipe
+		mac_parts=mac_as_str.split(" ");
 		cnt2=0;
 		for (String i:mac_parts)
 		{
 			if (i.trim().length()>0)
 			{
-				mac[cnt2]=(byte)Integer.parseInt(i.trim());
+				mac2[cnt2]=(byte)Integer.parseInt(i.trim()); //put the proper numbers in the array
 				cnt2++;
 			}
 		}
 		
-		return mac;
+		return mac2;
 	}
 	
 }
