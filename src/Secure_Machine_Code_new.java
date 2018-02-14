@@ -161,11 +161,11 @@ public class Secure_Machine_Code_new {
 		}
 		
 		
-		ArrayList[] keys = new ArrayList[number_of_interleaved_keys];
+		byte[] keys = new byte[number_of_interleaved_keys];
 		
 		for(int i=0;i<number_of_interleaved_keys;i++)
 		{
-			keys[i] =new  ArrayList<Byte>();
+			keys[i]=0;
 		}
 		
 		byte[] b =  new byte[1];
@@ -273,7 +273,7 @@ public class Secure_Machine_Code_new {
 	    			
 					//the probability that we will accidentally generate <jmp><proper opcode><canaries> is very low and we ignore it at this time.
     				arr[i+size_of_jmp_command+j+number_of_canaries+bytes_for_instr_len+number_of_padded_nops] = temp;
-    				keys[j].add(temp);    				
+    				keys[j]^=temp;    				
 	    		}
 	    		
 				i+=(size_of_jmp_command+number_of_interleaved_keys+number_of_canaries+bytes_for_instr_len+number_of_padded_nops); //jump above them and reach the mac bytes
@@ -406,7 +406,7 @@ public class Secure_Machine_Code_new {
 		    for(int j=0;j<number_of_interleaved_keys;j++)
 			{
 		    	byte temp = randomByte();
-		    	keys[j].add(temp);
+		    	keys[j]^=temp;
 		    	heap_keys_to_be_written[i*number_of_interleaved_keys+j]=temp;
 		    	/*
 		    	//use the following if heap is > 2gb
@@ -434,7 +434,7 @@ public class Secure_Machine_Code_new {
 		    for(int j=0;j<number_of_interleaved_keys;j++)
 			{
 		    	byte temp = randomByte();
-		    	keys[j].add(temp);
+		    	keys[j]^=temp;
 		    	stack_keys_to_be_written[i*number_of_interleaved_keys+j]=temp;
 		    	/*
 		    	//use the following if stack is > 2gb
@@ -451,7 +451,7 @@ public class Secure_Machine_Code_new {
 	    for(int i=0;i<global_keys.length;i++)
 			{
 		    	byte temp = global_keys[i];
-		    	keys[i%number_of_interleaved_keys].add(temp);
+		    	keys[i%number_of_interleaved_keys]^=temp;
 			}
 			
 		
@@ -462,10 +462,10 @@ public class Secure_Machine_Code_new {
 	    {
 	    	try
 	    	{
-	    		System.out.printf("Keyshare %d : 0x%02X \n",i, xor(keys[i]));
+	    		System.out.printf("Keyshare %d : 0x%02X \n",i, keys[i]);
 	    		//write all keyshares into the file for verification
 	    		byte[] temparray=new byte[1];
-	    		temparray[0]=xor(keys[i]);
+	    		temparray[0]=keys[i];
 	    		all_keyshares_file_for_verification.write(temparray);
 	    		
 	    	}
