@@ -556,10 +556,10 @@ public class Secure_Machine_Code_new {
 
 		if (tempind<num_of_rand_bytes_taken_at_a_time-1 && tempind!=-1)
 		{
-			if (tempind%(num_of_rand_bytes_taken_at_a_time/3)==0)
+			/*if (tempind%(num_of_rand_bytes_taken_at_a_time/3)==0)
 			{
 				System.out.println("Nom nom... consuming....");
-			}
+			}*/
 			temp_index_for_temp_random_bytes[0]+=1;
 			return temp_rand_bytes[tempind];
 		}
@@ -739,7 +739,7 @@ class Thread_for_random_byte_generation implements Runnable {
         	{
 
         		//produce random bytes!
-        		for (i=0;i<100000;i++)
+        		for (i=0;i<how_much_write_can_go_forward/8;i++)
         		{
         			random_bytes[writer_ind]=randomByte();
         			writer_ind=(writer_ind+1)%sz_of_random_bytes_array;
