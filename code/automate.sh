@@ -217,6 +217,7 @@ else
 		echo "Compiling Java class..."
 		javac ../src/Secure_Machine_Code_new.java
 		mv ../src/Secure_Machine_Code_new.class ../bin/
+		mv ../src/Thread_for_random_byte_generation.class ../bin/
 		echo "Compiled Java class."
 	else if [ ../bin/Secure_Machine_Code_new.class -ot ../src/Secure_Machine_Code_new.java ]; then #if the class file is older than the code
 		echo "Secure_Machine_Code_new class file is out of date!"
@@ -224,6 +225,7 @@ else
 		echo "Compiling Java class..."
 		javac ../src/Secure_Machine_Code_new.java
 		mv ../src/Secure_Machine_Code_new.class ../bin/
+		mv ../src/Thread_for_random_byte_generation.class ../bin/
 		echo "Compiled Java class."
 		fi
 	fi

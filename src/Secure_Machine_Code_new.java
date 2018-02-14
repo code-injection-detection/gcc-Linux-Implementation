@@ -7,12 +7,16 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.security.*;
 import java.lang.StringBuilder;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /*
  * This code reads a compiled exe file and then locates the nop instructions
  * and replaces them with the key share and mac values. Also, it replaces some other bytes inside the executable too.
  * 
  */ 
+
 
 public class Secure_Machine_Code_new {
 	
@@ -25,6 +29,8 @@ public class Secure_Machine_Code_new {
 	static String filename_for_writing_bytes_to_be_maced="";
 	static String filename_for_reading_mac_bytes="";
 	static int num_that_denotes_end_of_needing_other_mac_calculations=-424242;
+	static int num_that_denotes_thread_stop=-424242;
+	static int number_of_random_bytes_array_for_gen=100000000; //the size of the random bytes array practically, 100 mil
 
 	
 	public static void main(String[] args) throws Exception
@@ -83,9 +89,19 @@ public class Secure_Machine_Code_new {
 		BufferedReader reader_of_mac_bytes = new BufferedReader(new FileReader(filename_for_reading_mac_bytes));
 		
 		byte [] global_keys = Files.readAllBytes(path);
-		byte[] stuff_in_code_to_be_MACed=new byte[40000];
+		byte[] stuff_in_code_to_be_MACed=new byte[70000];
 		boolean squeeze_keys_when_macing=false;
 		boolean add_the_padded_nops_in_the_mac_in_fixed_size=false;
+
+
+		byte[] random_bytes_gen_by_thread=new byte[number_of_random_bytes_array_for_gen];
+		int[] reader_writer_indexes_for_rng=new int[2];
+		int[] temp_index_for_temp_random_bytes=new int[1];
+		temp_index_for_temp_random_bytes[0]=-1;
+		int num_of_rand_bytes_taken_at_a_time=10000000; //10 mil
+		byte[] temp_rand_bytes=new byte[num_of_rand_bytes_taken_at_a_time];
+		int how_much_write_can_go_forward=90000000; //90 mil
+
 		
 		if (args.length==15)
 		{
@@ -167,7 +183,23 @@ public class Secure_Machine_Code_new {
 		{
 			keys[i]=0;
 		}
-		
+
+		ReadWriteLock read_lock = new ReentrantReadWriteLock();
+		ReadWriteLock write_lock = new ReentrantReadWriteLock();
+
+		reader_writer_indexes_for_rng[0]=0; //reader position
+		reader_writer_indexes_for_rng[1]=0; //writer position
+		//start the thread for rng
+		//new Thread_for_random_byte_generation(/*reader_writer_indexes_for_rng,random_bytes_gen_by_thread,number_of_random_bytes_array_for_gen*/).start(); //start the thread for rng
+		Thread_for_random_byte_generation rng_thread = new Thread_for_random_byte_generation(reader_writer_indexes_for_rng,
+																							 random_bytes_gen_by_thread,
+																							 number_of_random_bytes_array_for_gen,
+																							 num_that_denotes_thread_stop,
+																							 read_lock,
+																							 write_lock,
+																							 how_much_write_can_go_forward);
+		rng_thread.start();
+
 		byte[] b =  new byte[1];
 		while(fr.available()>0)
 		{
@@ -267,7 +299,7 @@ public class Secure_Machine_Code_new {
 	    		//put the keys
 				for(int j=0;j<number_of_interleaved_keys;j++)
 	    		{
-	    			byte temp = randomByte();
+	    			byte temp = randomByte(random_bytes_gen_by_thread,read_lock,write_lock,reader_writer_indexes_for_rng,temp_index_for_temp_random_bytes,temp_rand_bytes,num_of_rand_bytes_taken_at_a_time,how_much_write_can_go_forward);
 	    					
 	    			random_bytes_generated[j]=temp;
 	    			
@@ -405,7 +437,7 @@ public class Secure_Machine_Code_new {
 		    //insert into heap_keyshares file
 		    for(int j=0;j<number_of_interleaved_keys;j++)
 			{
-		    	byte temp = randomByte();
+		    	byte temp = randomByte(random_bytes_gen_by_thread,read_lock,write_lock,reader_writer_indexes_for_rng,temp_index_for_temp_random_bytes,temp_rand_bytes,num_of_rand_bytes_taken_at_a_time,how_much_write_can_go_forward);
 		    	keys[j]^=temp;
 		    	heap_keys_to_be_written[i*number_of_interleaved_keys+j]=temp;
 		    	/*
@@ -433,7 +465,7 @@ public class Secure_Machine_Code_new {
 		    //insert into stack_keyshares file
 		    for(int j=0;j<number_of_interleaved_keys;j++)
 			{
-		    	byte temp = randomByte();
+		    	byte temp = randomByte(random_bytes_gen_by_thread,read_lock,write_lock,reader_writer_indexes_for_rng,temp_index_for_temp_random_bytes,temp_rand_bytes,num_of_rand_bytes_taken_at_a_time,how_much_write_can_go_forward);
 		    	keys[j]^=temp;
 		    	stack_keys_to_be_written[i*number_of_interleaved_keys+j]=temp;
 		    	/*
@@ -490,6 +522,10 @@ public class Secure_Machine_Code_new {
 	    printwriter_for_macs.flush();
 	    printwriter_for_macs.close();
 	    reader_of_mac_bytes.close();
+	    //stop the thread
+	    read_lock.writeLock().lock();
+	    reader_writer_indexes_for_rng[0]=num_that_denotes_thread_stop;
+	    read_lock.writeLock().unlock();
 
 	    /*Giving execute permissions*/
 	    Process p = r.exec("chmod +x " + newfilename );
@@ -511,9 +547,70 @@ public class Secure_Machine_Code_new {
 		}
 		return b;
 	}
-	static byte randomByte()
+	static byte randomByte(byte[] random_bytes_gen_by_thread,ReadWriteLock read_lock,ReadWriteLock write_lock,int[] reader_writer_indexes_for_rng,int[] temp_index_for_temp_random_bytes,byte[] temp_rand_bytes, int num_of_rand_bytes_taken_at_a_time,int how_much_write_can_go_forward) throws InterruptedException
 	{
-		return (  (byte) ((int)Math.floor((Math.random()*256)))  ); 
+		int read_ind;
+		int write_ind;
+		int tempind=temp_index_for_temp_random_bytes[0];
+		int sz_of_random_bytes_array=random_bytes_gen_by_thread.length;
+
+		if (tempind<num_of_rand_bytes_taken_at_a_time-1 && tempind!=-1)
+		{
+			if (tempind%(num_of_rand_bytes_taken_at_a_time/3)==0)
+			{
+				System.out.println("Nom nom... consuming....");
+			}
+			temp_index_for_temp_random_bytes[0]+=1;
+			return temp_rand_bytes[tempind];
+		}
+		else
+		{
+
+			while (true) //keep trying to get the indexes in good place
+			{
+				read_lock.readLock().lock();
+				read_ind=reader_writer_indexes_for_rng[0];
+				read_lock.readLock().unlock();
+
+				write_lock.readLock().lock();
+				write_ind=reader_writer_indexes_for_rng[1];
+				write_lock.readLock().unlock();
+
+				if (((read_ind>write_ind-num_of_rand_bytes_taken_at_a_time && read_ind<=write_ind) /*the writer ind is less than <how_much_write_can_go_forward> forward from the reader ind*/
+	        		|| (read_ind>write_ind && (sz_of_random_bytes_array-read_ind)+write_ind<=num_of_rand_bytes_taken_at_a_time) /*the reader ind wrapped around is less than <how_much_write_can_go_forward> close to the writer*/
+	        		))
+				{
+					//data needs to be produced
+					//wait and try again
+					System.out.println("sleep "+read_ind +" "+write_ind);
+					Thread.sleep(100); //100 ms
+					continue;
+				}
+				else
+				{
+					System.out.println("consume "+read_ind +" "+write_ind);
+					//fill the array
+					for (int j=0;j<num_of_rand_bytes_taken_at_a_time;j++)
+					{
+						temp_rand_bytes[j]=random_bytes_gen_by_thread[read_ind];
+						read_ind=(read_ind+1)%sz_of_random_bytes_array;
+					}
+
+						temp_index_for_temp_random_bytes[0]=0;
+
+						read_lock.writeLock().lock();
+						reader_writer_indexes_for_rng[0]=read_ind;
+						read_lock.writeLock().unlock();
+
+						break;
+				}
+			}
+
+			temp_index_for_temp_random_bytes[0]+=1;
+			tempind=0;
+			return temp_rand_bytes[tempind];
+		}
+
 	}
 	
 	//check if there are k nops after the current position
@@ -589,3 +686,83 @@ public class Secure_Machine_Code_new {
 	}
 	
 }
+
+/*Thread whose job is to generate random bytes. This is done is order to speed up the compilation of the file*/
+class Thread_for_random_byte_generation implements Runnable {
+
+	private Thread t;
+	int[] rw_indexes;
+	byte[] random_bytes;
+	int sz_of_random_bytes_array;
+	int num_for_thread_stop;
+	static int how_much_write_can_go_forward;
+	ReadWriteLock r_lock;
+	ReadWriteLock w_lock;
+
+	
+    Thread_for_random_byte_generation(int[] reader_writer_indexes_for_rng,byte[] random_bytes_gen_by_thread,
+    								 int number_of_random_bytes_array_for_gen,int num_that_denotes_thread_stop,
+    								 ReadWriteLock read_lock, ReadWriteLock write_lock, int how_much_w_forward) 
+    {
+    	//initialize the local vars
+    	rw_indexes=reader_writer_indexes_for_rng;
+    	random_bytes=random_bytes_gen_by_thread;
+    	sz_of_random_bytes_array=number_of_random_bytes_array_for_gen;
+    	num_for_thread_stop=num_that_denotes_thread_stop;
+    	r_lock=read_lock;
+    	w_lock=write_lock;
+    	how_much_write_can_go_forward=how_much_w_forward;
+    }
+
+    public void run() {
+    	int i;
+    	int reader_ind,writer_ind;
+
+        while (true) //run forever
+        {
+        	r_lock.readLock().lock();
+        	reader_ind=rw_indexes[0];
+        	r_lock.readLock().unlock();
+
+        	w_lock.readLock().lock();
+        	writer_ind=rw_indexes[1];
+        	w_lock.readLock().unlock();
+
+        	if (reader_ind==num_for_thread_stop) //we have received the fact that we should stop!
+        	{
+        		break;
+        	}
+
+        	if ((reader_ind>writer_ind-how_much_write_can_go_forward && reader_ind<=writer_ind) /*the writer ind is less than <how_much_write_can_go_forward> forward from the reader ind*/
+        		|| (reader_ind>writer_ind && (sz_of_random_bytes_array-reader_ind)+writer_ind<=how_much_write_can_go_forward) /*the reader ind wrapped around is less than <how_much_write_can_go_forward> close to the writer*/
+        		)
+        	{
+
+        		//produce random bytes!
+        		for (i=0;i<100000;i++)
+        		{
+        			random_bytes[writer_ind]=randomByte();
+        			writer_ind=(writer_ind+1)%sz_of_random_bytes_array;
+        		}
+        		//commit the change
+        		w_lock.writeLock().lock();
+        		rw_indexes[1]=writer_ind; 
+        		w_lock.writeLock().unlock();
+        	}
+        }
+    }
+
+    public void start () {
+      if (t == null) {
+         t = new Thread (this);
+         t.start ();
+      } 
+    } 
+
+    byte randomByte()
+	{
+		return (  (byte) ((int)Math.floor((Math.random()*256)))  ); 
+	}
+
+}
+
