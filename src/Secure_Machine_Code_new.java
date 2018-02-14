@@ -739,7 +739,7 @@ class Thread_for_random_byte_generation implements Runnable {
         	{
 
         		//produce random bytes!
-        		for (i=0;i<how_much_write_can_go_forward/8;i++)
+        		for (i=0;i<how_much_write_can_go_forward/20;i++)
         		{
         			random_bytes[writer_ind]=randomByte();
         			writer_ind=(writer_ind+1)%sz_of_random_bytes_array;
