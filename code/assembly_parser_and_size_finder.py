@@ -41,6 +41,8 @@ filename="assembly_commands_for_parsing.txt"
 number_of_nops_in_code=int(sys.argv[1])
 linesout=[]
 
+sizes_of_cmds={} #memorize the sizes that have already been found
+
 
 def get_next_cmd(line):
 	if line=="":
@@ -54,6 +56,7 @@ def get_next_cmd(line):
 		num_of_bytes=len(bytes_in_hex.split(' '))
 		cmd=bytes_and_cmd_split_tab[1].strip()
 		return cmd
+		
 		
 def is_cmd_nop(line):
 	if "\tnop" in line and line[-4:]=="\tnop":
@@ -79,32 +82,50 @@ for linecnt,line in enumerate(lines):
 		continue
 		
 	if (is_cmd_nop(line)==False):
-		linesplit_space=line.split(" ")
-		if (len(linesplit_space)>1 and linesplit_space[1].startswith("<")==True and linesplit_space[1].startswith("<.UNIQUE")==False):
-			linesout.append("NEXT_FUNCTION " + linesplit_space[1].replace("<","").replace(">","").replace(":","")) #name of function
-			continue
-		#add the labels
-		if (len(linesplit_space)>1 and linesplit_space[1].startswith("<.UNIQUE")==True):
-			#linesout.append(line) #nah don't add them
-			continue
 		
-		linesplit_colon=line.split(":")
-		address=linesplit_colon[0].strip()
-		bytes_and_cmd=linesplit_colon[1].strip()
-		bytes_and_cmd_split_tab=bytes_and_cmd.split('\t')
-		bytes_in_hex=bytes_and_cmd_split_tab[0].strip()
-		num_of_bytes=len(bytes_in_hex.split(' '))
+		#get the name of the cmd
+		linesplit_tab=line.split('\t')
+		do_extensive_calcs_for_cmd=1
+		if len(linesplit_tab)==2: #it's a cmd in one line
+			do_extensive_calcs_for_cmd=0
+			name_of_cmd= linesplit_tab[-1].strip()
+			if name_of_cmd in sizes_of_cmds:
+				num_of_bytes=sizes_of_cmds[name_of_cmd]
+				linesout.append(str(num_of_bytes)+" "+str(cmd))
+				print(str(num_of_bytes)+" "+str(cmd))
+				continue
+			else:
+				do_extensive_calcs_for_cmd=1
+				
+		if (do_extensive_calcs_for_cmd==1): #split the command, calculate the bytes, etc. Many calculations
 		
-		if (len(bytes_and_cmd_split_tab)<2): #it's a continuation of the former command, some commands are big and spread in two lines
-			former_num_of_bytes=int(linesout[-1].split(" ")[0])
-			new_num_of_bytes=former_num_of_bytes+num_of_bytes
-			linesout_parts=linesout[-1].split(" ") #correct the size of the last line
-			linesout[-1]=(str(new_num_of_bytes)+" ")
-			for i in range(1,len(linesout_parts)):
-				linesout[-1]+=linesout_parts[i]+" "
-			continue
-		else: #it's a new command
-			cmd=bytes_and_cmd_split_tab[1].strip()
+			linesplit_space=line.split(" ")
+			if (len(linesplit_space)>1 and linesplit_space[1].startswith("<")==True and linesplit_space[1].startswith("<.UNIQUE")==False):
+				linesout.append("NEXT_FUNCTION " + linesplit_space[1].replace("<","").replace(">","").replace(":","")) #name of function
+				continue
+			#add the labels
+			if (len(linesplit_space)>1 and linesplit_space[1].startswith("<.UNIQUE")==True):
+				#linesout.append(line) #nah don't add them
+				continue
+			
+			linesplit_colon=line.split(":")
+			address=linesplit_colon[0].strip()
+			bytes_and_cmd=linesplit_colon[1].strip()
+			bytes_and_cmd_split_tab=bytes_and_cmd.split('\t')
+			bytes_in_hex=bytes_and_cmd_split_tab[0].strip()
+			num_of_bytes=len(bytes_in_hex.split(' '))
+			
+			if (len(bytes_and_cmd_split_tab)<2): #it's a continuation of the former command, some commands are big and spread in two lines
+				former_num_of_bytes=int(linesout[-1].split(" ")[0])
+				new_num_of_bytes=former_num_of_bytes+num_of_bytes
+				linesout_parts=linesout[-1].split(" ") #correct the size of the last line
+				linesout[-1]=(str(new_num_of_bytes)+" ")
+				for i in range(1,len(linesout_parts)):
+					linesout[-1]+=linesout_parts[i]+" "
+				continue
+			else: #it's a new command
+				cmd=bytes_and_cmd_split_tab[1].strip()
+				sizes_of_cmds[cmd]=num_of_bytes
 	else:
 		cmd="nop"
 		num_of_bytes=1
