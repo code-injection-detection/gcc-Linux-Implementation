@@ -92,7 +92,6 @@ for linecnt,line in enumerate(lines):
 			if name_of_cmd in sizes_of_cmds:
 				num_of_bytes=sizes_of_cmds[name_of_cmd]
 				linesout.append(str(num_of_bytes)+" "+str(cmd))
-				print(str(num_of_bytes)+" "+str(cmd))
 				continue
 			else:
 				do_extensive_calcs_for_cmd=1
