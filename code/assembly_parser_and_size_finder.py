@@ -4,6 +4,9 @@ import sys
 import copy
 import platform
 import gc
+import pickle
+from pathlib import Path
+
 
 #takes an assembly output and finds the size of the individual commands
 #For example:
@@ -41,7 +44,16 @@ filename="assembly_commands_for_parsing.txt"
 number_of_nops_in_code=int(sys.argv[1])
 linesout=[]
 
-sizes_of_cmds={} #memorize the sizes that have already been found
+#memorize the sizes that have already been found
+#(or load them if the file exists)
+my_pickle_dump = Path("sizes_of_assembly_commands_for_python")
+if my_pickle_dump.is_file():
+	sizes_of_cmds= pickle.load( open( "sizes_of_assembly_commands_for_python", "rb" ) )
+else:
+	sizes_of_cmds={}
+
+
+#print(sizes_of_cmds,file=sys.stderr)
 
 
 def get_next_cmd(line):
@@ -89,6 +101,11 @@ for linecnt,line in enumerate(lines):
 		if len(linesplit_tab)==2: #it's a cmd in one line
 			do_extensive_calcs_for_cmd=0
 			name_of_cmd= linesplit_tab[-1].strip()
+			opcode=name_of_cmd.split(" ")[0]
+			if (opcode=="callq" or opcode=="jmpq"):
+				num_of_bytes=5
+				linesout.append(str(num_of_bytes)+" "+str(cmd))
+				continue
 			if name_of_cmd in sizes_of_cmds:
 				num_of_bytes=sizes_of_cmds[name_of_cmd]
 				linesout.append(str(num_of_bytes)+" "+str(cmd))
@@ -143,7 +160,9 @@ for linecnt,line in enumerate(lines):
 		nop_cnt=0
 	
 	linesout.append(str(num_of_bytes)+" "+str(cmd))
-
+	
+#save the dictionary with the sizes of the assembly commands
+pickle.dump( sizes_of_cmds, open( "sizes_of_assembly_commands_for_python", "wb" ) )
 
 for line in linesout:
 	print(line)
