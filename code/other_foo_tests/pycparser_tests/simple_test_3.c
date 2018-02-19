@@ -1,5 +1,6 @@
 
 
+/*
 int x=1;
 int y;
 float xp;
@@ -7,7 +8,7 @@ char * y;
 char z[10];
 char** m;
 char zz[x];
-
+*/
 
 struct hehe
 {
@@ -15,9 +16,9 @@ struct hehe
     int x;
 	int **aa;
 	int *oo;	
-	//char m[10];
-	//char mm[y];
-}; //hoho;
+	char m[10];
+	char mm[y];
+} hoho;
 
 
 //then typedef with a name, then variables/pointer to structs etc

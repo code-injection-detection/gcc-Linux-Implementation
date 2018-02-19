@@ -24,7 +24,9 @@ def identify_typedecl(subast,**kwargs):
 	current_state=kwargs["current_state"]
 	
 	if item["type"]["_nodetype"]=="IdentifierType":
-		return "normal_var"	
+		return "normal_var"
+	if item["type"]["_nodetype"]=="Struct":
+		return "typedecl_struct"	
 	#add more cases
 	else:
 		return "unidentified element"
@@ -88,11 +90,27 @@ def parse_normal_variable_typedecl(subast,**kwargs):
 		add_normal_global_variable(item,**kwargs)
 	else:
 		dict_to_return=create_dict_for_normal_variable(item,**kwargs)
-	'''
-	name_of_struct=kwargs.get(current_state(["in_struct"],"not_a_struct_here")
-	if (name_of_struct!="not_a_struct_here" and "_struct_ " in current_state["layer"]):
-		#we are in a struct
-	'''
+	
+	current_state["return_dict_of_decl--"+current_state["layer"]]=dict_to_return
+	
+	
+def parse_struct_variable_typedecl(subast,**kwargs):
+	item=subast
+	globals_dict=kwargs["globals_dict"]
+	typedefs_dict=kwargs["typedefs_dict"]
+	current_function_dict=kwargs["current_function_dict"]
+	all_functions_dict=kwargs["all_functions_dict"]
+	current_state=kwargs["current_state"]
+	
+	name_of_typedecl=item['declname']
+	dict_to_return=current_state["return_dict_of_decl--"+current_state["layer"]]
+	add_struct_to_types(item["type"],**kwargs) #add the struct to the types if it is not already there
+	
+	!!!complete this function
+	if current_state["layer"]=="global": #global variable
+		add_struct_global_variable(item,**kwargs)
+	else:
+		dict_to_return=create_dict_for_struct_variable(item,**kwargs)
 	
 	current_state["return_dict_of_decl--"+current_state["layer"]]=dict_to_return
 		
@@ -128,11 +146,17 @@ def parse_normal_variable_arraydecl(subast,**kwargs):
 	current_state=kwargs["current_state"]
 	
 	name_of_arraydecl=kwargs['name_of_decl']
+	dict_to_return=current_state["return_dict_of_decl--"+current_state["layer"]]
 	#identify the type of the element of the array
 	array_element=identify_element_nice(item["type"],**kwargs)
 	kwargs["array_element"]=array_element
+	kwargs["array_dimension"]=copy.deepcopy(item["dim"])
 	if current_state["layer"]=="global": #global array
 		add_global_array_variable(item,**kwargs)
+	else:
+		dict_to_return=create_dict_for_array_variable(item,**kwargs)
+		
+	current_state["return_dict_of_decl--"+current_state["layer"]]=dict_to_return
 
 
 def parse_Decl(subast,**kwargs):
@@ -174,6 +198,8 @@ def parse_Decl(subast,**kwargs):
 			sys.exit(-1)
 		if typedecl_of_decl=="normal_var":
 			parse_normal_variable_typedecl(item["type"],**kwargs)
+		if typedecl_of_decl=="typedecl_struct": #variable as a struct
+			parse_struct_variable_typedecl(item["type"],**kwargs)
 
 	if identify_element(item2["type"],**kwargs)=="pointer":
 		#A pointer. Let's parse it as a normal pointer
@@ -182,8 +208,8 @@ def parse_Decl(subast,**kwargs):
 	if identify_element(item3["type"],**kwargs)=="array":
 		parse_normal_variable_arraydecl(item["type"],**kwargs)
 	
-	if identify_element(item4["type"],**kwargs)=="struct":
-		#we have a struct definition
+	if identify_element(item4["type"],**kwargs)=="struct": 
+		#we have a struct definition (just a definition, no variable)
 		#add struct to the types
 		add_struct_to_types(item["type"],**kwargs)
 		

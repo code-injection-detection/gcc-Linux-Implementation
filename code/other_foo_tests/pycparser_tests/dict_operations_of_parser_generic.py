@@ -104,6 +104,42 @@ def create_dict_for_ptr_variable(subast,**kwargs):
 	
 	return dict_to_return
 	
+
+def create_dict_for_array_variable(subast,**kwargs):
+	item=subast
+	globals_dict=kwargs["globals_dict"]
+	typedefs_dict=kwargs["typedefs_dict"]
+	current_function_dict=kwargs["current_function_dict"]
+	all_functions_dict=kwargs["all_functions_dict"]
+	current_state=kwargs["current_state"]
+	
+	dict_to_return=current_state["return_dict_of_decl--"+current_state["layer"]]
+	init_ast=kwargs["init_of_var_copied"]
+	decl_ast=kwargs["decl_ast"]
+	name_of_decl=kwargs["name_of_decl"]
+	type_of_var='array'
+	array_element=kwargs["array_element"]
+		
+	#init of arrays is not supported
+	#save the dimension of the array
+	dim_ast=copy.deepcopy(kwargs["array_dimension"])
+	#check if dimension is an integer
+	sz_of_array=get_original_C_lines_of_a_dict(dim_ast)
+	if (RepresentsInt(sz_of_array)):
+		size_of_array=str(process_var_size(array_element)*int(sz_of_array))
+	else:
+		size_of_array="variable_size"
+	#create the dict (some parts of it have been initialized)
+	dict_to_return["name"]=name_of_decl
+	dict_to_return["type"]=type_of_var
+	dict_to_return["type_of_array_elem"]=array_element
+	dict_to_return["size_of_array_elem"]=process_var_size_extended(array_element)
+	dict_to_return["size_of_array"]=size_of_array
+	dict_to_return["dimension_ast"]=copy.deepcopy(dim_ast)
+	dict_to_return["init_ast"]=init_ast
+	dict_to_return["size_of_variable"]=size_of_array
+	
+	return dict_to_return	
 	
 def add_normal_global_variable(subast,**kwargs):
 	item=subast
