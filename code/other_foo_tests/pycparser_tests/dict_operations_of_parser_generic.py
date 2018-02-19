@@ -61,11 +61,44 @@ def create_dict_for_normal_variable(subast,**kwargs):
 	
 	#delete the init because we want to recreate the global lines without it
 	decl_ast["init"]=None
-	original_c_lines_for_global=get_original_C_lines_of_a_dict(decl_ast)
+	original_c_lines=get_original_C_lines_of_a_dict(decl_ast)
 	#create the dict (some parts of it have been initialized)
 	dict_to_return["name"]=name_of_typedecl
 	dict_to_return["type"]=type_of_var
-	dict_to_return["original_c_decl"]=original_c_lines_for_global
+	dict_to_return["original_c_decl"]=original_c_lines
+	dict_to_return["init_ast"]=init_ast
+	dict_to_return["size_of_variable"]=str(process_var_size_extended(type_of_var))
+	
+	return dict_to_return
+	
+	
+def create_dict_for_ptr_variable(subast,**kwargs):
+	item=subast
+	globals_dict=kwargs["globals_dict"]
+	typedefs_dict=kwargs["typedefs_dict"]
+	current_function_dict=kwargs["current_function_dict"]
+	all_functions_dict=kwargs["all_functions_dict"]
+	current_state=kwargs["current_state"]
+	
+	dict_to_return=current_state["return_dict_of_decl--"+current_state["layer"]]
+	init_ast=kwargs["init_of_var_copied"]
+	decl_ast=kwargs["decl_ast"]
+	name_of_decl=kwargs["name_of_decl"]
+	type_of_var='ptr'
+	
+	#pointed element check
+	type_of_pointed_element=kwargs["type_of_pointed_element"] #in a "nice" format
+	#!!!!! other types
+	
+	#delete the init because we want to recreate the global lines without it
+	decl_ast["init"]=None
+	original_c_lines=get_original_C_lines_of_a_dict(decl_ast)
+	#create the dict (some parts of it have been initialized)
+	dict_to_return["name"]=name_of_decl
+	dict_to_return["type"]=type_of_var
+	dict_to_return["type_of_pointed_elem"]=type_of_pointed_element
+	dict_to_return["size_of_pointed_elem"]=process_var_size_extended(type_of_pointed_element)
+	dict_to_return["original_c_decl"]=original_c_lines
 	dict_to_return["init_ast"]=init_ast
 	dict_to_return["size_of_variable"]=str(process_var_size_extended(type_of_var))
 	

@@ -113,8 +113,9 @@ def parse_normal_variable_ptrdecl(subast,**kwargs):
 	kwargs["type_of_pointed_element"]=identify_element_nice(item["type"],**kwargs)
 	if current_state["layer"]=="global": #global variable
 		add_normal_global_ptrvariable(item,**kwargs)
-		
-	!!!!! add support for pts and other stuff dict creation
+	else:
+		dict_to_return=create_dict_for_ptr_variable(item,**kwargs)
+	
 	current_state["return_dict_of_decl--"+current_state["layer"]]=dict_to_return
 		
 		

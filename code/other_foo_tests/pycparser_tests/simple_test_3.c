@@ -13,7 +13,8 @@ struct hehe
 {
     int b;
     int x;
-	//int **aa;	
+	int **aa;
+	int *oo;	
 	//char m[10];
 	//char mm[y];
 }; //hoho;
