@@ -104,9 +104,9 @@ def parse_struct_variable_typedecl(subast,**kwargs):
 	
 	name_of_typedecl=item['declname']
 	dict_to_return=current_state["return_dict_of_decl--"+current_state["layer"]]
-	add_struct_to_types(item["type"],**kwargs) #add the struct to the types if it is not already there
+	name_of_struct=add_struct_to_types(item["type"],**kwargs) #add the struct to the types if it is not already there
+	kwargs["name_of_struct"]=name_of_struct
 	
-	!!!complete this function
 	if current_state["layer"]=="global": #global variable
 		add_struct_global_variable(item,**kwargs)
 	else:
@@ -265,7 +265,7 @@ def add_struct_to_types(subast,**kwargs):
 		typedefs_dict["structs"][name_of_struct]["decls"]=[]
 		kwargs["name_of_struct"]=name_of_struct
 		tempstate=copy.deepcopy(current_state) #hold this in this temp variable
-		#update the satet to show where we are
+		#update the state to show where we are
 		current_state["layer"]=current_state["layer"]+"_struct_"+name_of_struct
 		current_state["in_struct"]=name_of_struct
 		
@@ -275,7 +275,13 @@ def add_struct_to_types(subast,**kwargs):
 			dict_returned=current_state["return_dict_of_decl--"+current_state["layer"]]
 			typedefs_dict["structs"][name_of_struct]["decls"].append(copy.deepcopy(dict_returned))
 			
-		current_state=copy.deepcopy(tempstate) #restore the state
+		#restore the state
+		#well we need the inner stuff as well, for functions that have already acquired their current state through the kwargs
+		for key, value in tempstate.items():
+			# do something with value
+			current_state[key] = copy.deepcopy(tempstate[key])
+		current_state=copy.deepcopy(tempstate)
+		kwargs["current_state"]=current_state
 		
 		#now calculate the size of the struct
 		struct_sz=0
@@ -287,4 +293,7 @@ def add_struct_to_types(subast,**kwargs):
 			else:
 				struct_sz+=int(sz_of_new_var)
 		typedefs_dict["structs"][name_of_struct]['size_of_struct']=str(struct_sz)
+	
+	#return name of struct
+	return name_of_struct
 		
