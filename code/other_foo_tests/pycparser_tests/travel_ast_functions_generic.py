@@ -228,9 +228,12 @@ def parse_subast(subast,**kwargs):
 	current_function_dict=kwargs["current_function_dict"]
 	all_functions_dict=kwargs["all_functions_dict"]
 	current_state=kwargs["current_state"]
+	
 	type_of_ast=item["_nodetype"]
 	if (type_of_ast=="Decl"):
 		parse_Decl(item,**kwargs)
+	if (type_of_ast=="Typedef"):
+		!!!! add typedef support
 	
 
 

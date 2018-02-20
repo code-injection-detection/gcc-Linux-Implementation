@@ -9,7 +9,7 @@ char z[10];
 char** m;
 char zz[x];
 */
-
+/*
 struct hehe
 {
     int b;
@@ -19,8 +19,20 @@ struct hehe
 	char m[10];
 	char mm[y];
 } *hoho,hohoooo[3];
+*/
 
+typedef struct typetypetype
+{
+    int b;
+    int x;
+	int **aa;
+	int *oo;	
+	char m[10];
+	char mm[y];
+} troll;
 
-struct hehe muehehe;
+//struct hehe muehehe;
+
+troll muahaha;
 
 //then typedef with a name, then variables/pointer to structs etc
