@@ -26,7 +26,7 @@ def identify_typedecl(subast,**kwargs):
 	if item["type"]["_nodetype"]=="IdentifierType":
 		return "normal_var"
 	if item["type"]["_nodetype"]=="Struct":
-		return "typedecl_struct"	
+		return "typedecl_struct"
 	#add more cases
 	else:
 		return "unidentified element"
@@ -63,7 +63,7 @@ def identify_element_nice(subast,**kwargs):
 	
 	if item["_nodetype"]=="TypeDecl":
 		if (identify_typedecl(item,**kwargs))=="normal_var":
-			return identify_type(item["type"]["names"][0])
+			return identify_type(item["type"]["names"][0],**kwargs)
 		elif (identify_typedecl(item,**kwargs))=="typedecl_struct":
 			return "struct++++++++++name:"+item["type"]["name"] #give the fact that it is a struct in that form
 		else:
@@ -94,6 +94,8 @@ def parse_normal_variable_typedecl(subast,**kwargs):
 		dict_to_return=create_dict_for_normal_variable(item,**kwargs)
 	
 	current_state["return_dict_of_decl--"+current_state["layer"]]=dict_to_return
+	
+	
 	
 	
 def parse_struct_variable_typedecl(subast,**kwargs):
@@ -206,6 +208,9 @@ def parse_Decl(subast,**kwargs):
 			parse_normal_variable_typedecl(item["type"],**kwargs)
 		if typedecl_of_decl=="typedecl_struct": #variable as a struct
 			parse_struct_variable_typedecl(item["type"],**kwargs)
+		if typedecl_of_decl=="typedecl_identifier": #perhaps a typedef?
+			parse_typedecl_identifier(item["type"],**kwargs)
+			pass
 
 	if identify_element(item2["type"],**kwargs)=="pointer":
 		#A pointer. Let's parse it as a normal pointer
@@ -218,8 +223,36 @@ def parse_Decl(subast,**kwargs):
 		#we have a struct definition (just a definition, no variable)
 		#add struct to the types
 		add_struct_to_types(item["type"],**kwargs)
+	
 		
 		
+def parse_Typedef(subast,**kwargs):
+	item=subast
+	globals_dict=kwargs["globals_dict"]
+	typedefs_dict=kwargs["typedefs_dict"]
+	current_function_dict=kwargs["current_function_dict"]
+	all_functions_dict=kwargs["all_functions_dict"]
+	current_state=kwargs["current_state"]
+	
+	name_of_typedef=item["name"]
+	kwargs["name_of_typedef"]=name_of_typedef
+	
+	#init typedef
+	typedefs_dict["typedefs"][name_of_typedef]={}
+	
+	#check type of typedef
+	if (item["type"]["_nodetype"]=="TypeDecl") and (item["type"]["type"]["_nodetype"]=="Struct"): 
+		#struct typedef
+		#add struct to types
+		name_of_struct=add_struct_to_types(item["type"]["type"],**kwargs)
+		typedefs_dict["typedefs"][name_of_typedef]["type_of_typedef"]="struct"
+		typedefs_dict["typedefs"][name_of_typedef]["struct_that_is_typedefed"]=name_of_struct
+	#!!! add support for more types
+	else:
+		print("ERROR:Unsupported typedef!")
+	
+	
+	
 
 def parse_subast(subast,**kwargs):
 	item=subast
@@ -233,7 +266,7 @@ def parse_subast(subast,**kwargs):
 	if (type_of_ast=="Decl"):
 		parse_Decl(item,**kwargs)
 	if (type_of_ast=="Typedef"):
-		!!!! add typedef support
+		parse_Typedef(item,**kwargs)
 	
 
 

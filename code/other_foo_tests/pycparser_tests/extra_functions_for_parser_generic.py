@@ -183,7 +183,7 @@ def replace_comma_with_at_outside_funcall(str_in):
 	return ''.join(str_out)
 	
 	
-def identify_type(type_of_param):
+def identify_type(type_of_param,**kwargs):
 	if '*' in type_of_param:
 		return 'ptr'
 	if '[' in type_of_param and ']' in type_of_param:
@@ -207,6 +207,10 @@ def identify_type(type_of_param):
 		return 'ptr'
 	if type_of_param=="struct":
 		return "struct"
+	if (type_of_param in kwargs["typedefs_dict"]["typedefs"]):
+		return "typedefed++++++++++"+type_of_param
+	#below this point no types have been identified
+	print("ERROR: Unidentified type")
 		
 def process_var_size(var_size): #This has to be improved in the future
 	if var_size=='int':
@@ -237,6 +241,12 @@ def process_var_size_extended(var_type,**kwargs): #supports more possible types
 		name_of_struct=var_type.split("struct++++++++++name:")[1]
 		var_size=typedefs_dict["structs"][name_of_struct]["size_of_struct"]
 		return var_size
+	if "typedefed++++++++++" in var_type: #typedef
+		name_of_typedef=var_type.split("typedefed++++++++++")[1]
+		type_of_typedef=typedefs_dict["typedefs"][name_of_typedef]["type_of_typedef"]
+		if (type_of_typedef=="struct"): #only that supported right now, !!!!extend
+			struct_that_is_typedefed=typedefs_dict["typedefs"][name_of_typedef]["struct_that_is_typedefed"]
+			return process_var_size_extended("struct++++++++++name:"+struct_that_is_typedefed,**kwargs)
 		#!!!!!!!!! sos extend
 		#get its size from the kwargs
 		#...

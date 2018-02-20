@@ -34,5 +34,6 @@ typedef struct typetypetype
 //struct hehe muehehe;
 
 troll muahaha;
+troll * muaha;
 
 //then typedef with a name, then variables/pointer to structs etc

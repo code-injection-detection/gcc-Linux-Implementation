@@ -57,7 +57,7 @@ def create_dict_for_normal_variable(subast,**kwargs):
 	decl_ast=kwargs["decl_ast"]
 	name_of_typedecl=name_of_decl=kwargs["name_of_decl"]
 	type_of_var=item["type"]["names"][0]
-	type_of_var=identify_type(type_of_var)
+	type_of_var=identify_type(type_of_var,**kwargs)
 	
 	#delete the init because we want to recreate the global lines without it
 	decl_ast["init"]=None
@@ -176,7 +176,7 @@ def add_normal_global_variable(subast,**kwargs):
 	decl_ast=kwargs["decl_ast"]
 	name_of_typedecl=name_of_decl=kwargs["name_of_decl"]
 	type_of_var=item["type"]["names"][0]
-	type_of_var=identify_type(type_of_var)
+	type_of_var=identify_type(type_of_var,**kwargs)
 	#delete the init because we want to recreate the global lines without it
 	decl_ast["init"]=None
 	original_c_lines_for_global=get_original_C_lines_of_a_dict(decl_ast)
