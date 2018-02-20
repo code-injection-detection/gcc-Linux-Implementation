@@ -229,10 +229,14 @@ def process_var_size(var_size): #This has to be improved in the future
 
 
 def process_var_size_extended(var_type,**kwargs): #supports more possible types
+	typedefs_dict=kwargs["typedefs_dict"]
+	
 	if var_type in ['int','char','long','ptr','double','float','none','null']:
 		return (process_var_size(var_type))
-	if var_type=='struct':
-		pass
+	if 'struct++++++++++name:' in var_type: #struct
+		name_of_struct=var_type.split("struct++++++++++name:")[1]
+		var_size=typedefs_dict["structs"][name_of_struct]["size_of_struct"]
+		return var_size
 		#!!!!!!!!! sos extend
 		#get its size from the kwargs
 		#...

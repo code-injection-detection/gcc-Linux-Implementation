@@ -64,6 +64,8 @@ def identify_element_nice(subast,**kwargs):
 	if item["_nodetype"]=="TypeDecl":
 		if (identify_typedecl(item,**kwargs))=="normal_var":
 			return identify_type(item["type"]["names"][0])
+		elif (identify_typedecl(item,**kwargs))=="typedecl_struct":
+			return "struct++++++++++name:"+item["type"]["name"] #give the fact that it is a struct in that form
 		else:
 			return "unidentified element"
 	elif item["_nodetype"]=="PtrDecl":
@@ -187,6 +189,10 @@ def parse_Decl(subast,**kwargs):
 	item2=copy.deepcopy(item)
 	item3=copy.deepcopy(item)
 	item4=copy.deepcopy(item)
+	item_parse_for_types=copy.deepcopy(item)
+	
+	#does that decl contain any typedefs deep inside (perhaps after a ton of pointers?)
+	parse_for_type_declarations(item_parse_for_types,**kwargs)
 	
 	#start the checks
 	if item1["type"]["_nodetype"]=="TypeDecl":
@@ -284,16 +290,37 @@ def add_struct_to_types(subast,**kwargs):
 		kwargs["current_state"]=current_state
 		
 		#now calculate the size of the struct
-		struct_sz=0
+		struct_sz="0"
 		for decl in typedefs_dict["structs"][name_of_struct]["decls"]:
 			sz_of_new_var=decl["size_of_variable"]
 			if (sz_of_new_var=="variable_size"):
 				typedefs_dict["structs"][name_of_struct]['size_of_struct']="variable_size"
+				struct_sz="variable_size"
 				break
 			else:
-				struct_sz+=int(sz_of_new_var)
+				struct_sz=str(int(struct_sz)+int(sz_of_new_var))
 		typedefs_dict["structs"][name_of_struct]['size_of_struct']=str(struct_sz)
 	
 	#return name of struct
 	return name_of_struct
 		
+		
+def parse_for_type_declarations(subast,**kwargs):
+	item=subast
+	globals_dict=kwargs["globals_dict"]
+	typedefs_dict=kwargs["typedefs_dict"]
+	current_function_dict=kwargs["current_function_dict"]
+	all_functions_dict=kwargs["all_functions_dict"]
+	current_state=kwargs["current_state"]
+	
+	#check if there are any declarations
+	while (True):
+		#go down the syntax tree and search for structs 
+		if ("_nodetype" in item) and (item["_nodetype"]== "Struct"):
+			add_struct_to_types(item,**kwargs)
+		#!!! add other types
+		if ("type" in item):
+			item=item["type"]
+		else:
+			break
+

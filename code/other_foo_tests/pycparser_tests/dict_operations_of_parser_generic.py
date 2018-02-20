@@ -67,7 +67,7 @@ def create_dict_for_normal_variable(subast,**kwargs):
 	dict_to_return["type"]=type_of_var
 	dict_to_return["original_c_decl"]=original_c_lines
 	dict_to_return["init_ast"]=init_ast
-	dict_to_return["size_of_variable"]=str(process_var_size_extended(type_of_var))
+	dict_to_return["size_of_variable"]=str(process_var_size_extended(type_of_var,**kwargs))
 	
 	return dict_to_return
 	
@@ -97,10 +97,10 @@ def create_dict_for_ptr_variable(subast,**kwargs):
 	dict_to_return["name"]=name_of_decl
 	dict_to_return["type"]=type_of_var
 	dict_to_return["type_of_pointed_elem"]=type_of_pointed_element
-	dict_to_return["size_of_pointed_elem"]=process_var_size_extended(type_of_pointed_element)
+	dict_to_return["size_of_pointed_elem"]=process_var_size_extended(type_of_pointed_element,**kwargs)
 	dict_to_return["original_c_decl"]=original_c_lines
 	dict_to_return["init_ast"]=init_ast
-	dict_to_return["size_of_variable"]=str(process_var_size_extended(type_of_var))
+	dict_to_return["size_of_variable"]=str(process_var_size_extended(type_of_var,**kwargs))
 	
 	return dict_to_return
 	
@@ -125,15 +125,15 @@ def create_dict_for_array_variable(subast,**kwargs):
 	dim_ast=copy.deepcopy(kwargs["array_dimension"])
 	#check if dimension is an integer
 	sz_of_array=get_original_C_lines_of_a_dict(dim_ast)
-	if (RepresentsInt(sz_of_array)):
-		size_of_array=str(process_var_size(array_element)*int(sz_of_array))
+	if (RepresentsInt(sz_of_array) and process_var_size_extended(array_element,**kwargs)!="variable_size"): #dimension is int and type of var has constant size
+		size_of_array=str(process_var_size_extended(array_element,**kwargs)*int(sz_of_array))
 	else:
 		size_of_array="variable_size"
 	#create the dict (some parts of it have been initialized)
 	dict_to_return["name"]=name_of_decl
 	dict_to_return["type"]=type_of_var
 	dict_to_return["type_of_array_elem"]=array_element
-	dict_to_return["size_of_array_elem"]=process_var_size_extended(array_element)
+	dict_to_return["size_of_array_elem"]=process_var_size_extended(array_element,**kwargs)
 	dict_to_return["size_of_array"]=size_of_array
 	dict_to_return["dimension_ast"]=copy.deepcopy(dim_ast)
 	dict_to_return["init_ast"]=init_ast
@@ -217,7 +217,7 @@ def add_normal_global_ptrvariable(subast,**kwargs):
 	globals_dict["simple_vars"][name_of_decl]["name"]=name_of_decl
 	globals_dict["simple_vars"][name_of_decl]["type"]=type_of_var
 	globals_dict["simple_vars"][name_of_decl]["type_of_pointed_elem"]=type_of_pointed_element
-	globals_dict["simple_vars"][name_of_decl]["size_of_pointed_elem"]=process_var_size_extended(type_of_pointed_element)
+	globals_dict["simple_vars"][name_of_decl]["size_of_pointed_elem"]=process_var_size_extended(type_of_pointed_element,**kwargs)
 	globals_dict["simple_vars"][name_of_decl]["order_of_decl"]=globals_dict["global_decl_order"]
 	globals_dict["global_decl_order"]=globals_dict["global_decl_order"]+1
 	globals_dict["simple_vars"][name_of_decl]["original_c_decl"]=original_c_lines_for_global
@@ -247,8 +247,8 @@ def add_global_array_variable(subast,**kwargs):
 	dim_ast=copy.deepcopy(item["dim"])
 	#check if dimension is an integer
 	sz_of_array=get_original_C_lines_of_a_dict(dim_ast)
-	if (RepresentsInt(sz_of_array)):
-		size_of_array=str(process_var_size(array_element)*int(sz_of_array))
+	if (RepresentsInt(sz_of_array) and process_var_size_extended(array_element,**kwargs)!="variable_size"): #dimension is int and type of var has constant size
+		size_of_array=str(process_var_size_extended(array_element,**kwargs)*int(sz_of_array))
 	else:
 		size_of_array="variable_size"
 	#array element check
@@ -258,7 +258,7 @@ def add_global_array_variable(subast,**kwargs):
 	globals_dict["1_dim_arrays"][name_of_decl]["name"]=name_of_decl
 	globals_dict["1_dim_arrays"][name_of_decl]["type"]=type_of_var
 	globals_dict["1_dim_arrays"][name_of_decl]["type_of_array_elem"]=array_element
-	globals_dict["1_dim_arrays"][name_of_decl]["size_of_array_elem"]=process_var_size_extended(array_element)
+	globals_dict["1_dim_arrays"][name_of_decl]["size_of_array_elem"]=process_var_size_extended(array_element,**kwargs)
 	globals_dict["1_dim_arrays"][name_of_decl]["size_of_array"]=size_of_array
 	globals_dict["1_dim_arrays"][name_of_decl]["order_of_decl"]=globals_dict["global_decl_order"]
 	globals_dict["global_decl_order"]=globals_dict["global_decl_order"]+1
