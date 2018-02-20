@@ -18,7 +18,7 @@ struct hehe
 	int *oo;	
 	char m[10];
 	char mm[y];
-} hoho;
+} **hoho;
 
 
 //then typedef with a name, then variables/pointer to structs etc

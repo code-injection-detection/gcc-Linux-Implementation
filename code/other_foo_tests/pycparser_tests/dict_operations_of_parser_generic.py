@@ -143,13 +143,26 @@ def create_dict_for_array_variable(subast,**kwargs):
 	
 	
 def create_dict_for_struct_variable(subast,**kwargs):	
-	!!!complete
 	item=subast
 	globals_dict=kwargs["globals_dict"]
 	typedefs_dict=kwargs["typedefs_dict"]
 	current_function_dict=kwargs["current_function_dict"]
 	all_functions_dict=kwargs["all_functions_dict"]
 	current_state=kwargs["current_state"]
+	
+	init_ast=kwargs["init_of_var_copied"]
+	decl_ast=kwargs["decl_ast"]
+	name_of_struct=kwargs["name_of_struct"]
+	#!!!!! other types
+	name_of_decl=kwargs["name_of_decl"]
+	type_of_var='struct'
+	#init of structs is not supported
+
+	dict_to_return={}
+	dict_to_return["name"]=name_of_decl
+	dict_to_return["type"]=type_of_var
+	dict_to_return["name_of_type_of_struct"]=name_of_struct
+	return dict_to_return
 	
 def add_normal_global_variable(subast,**kwargs):
 	item=subast
