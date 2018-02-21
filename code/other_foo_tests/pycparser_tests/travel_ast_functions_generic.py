@@ -77,6 +77,20 @@ def identify_element_nice(subast,**kwargs):
 		return "unidentified element"
 		
 
+
+def extract_full_type_of_var(item,**kwargs):
+	str_to_ret=""
+	if "type" not in item:
+		return str_to_ret
+	else:
+		str_to_ret+=identify_element_nice(item,**kwargs)
+		next_step_str=extract_full_type_of_var(item["type"],**kwargs)
+		if (next_step_str==""):
+			return str_to_ret
+		else:
+			return str_to_ret+"->"+ next_step_str
+
+
 def parse_normal_variable_typedecl(subast,**kwargs):
 	item=subast
 	globals_dict=kwargs["globals_dict"]
@@ -87,6 +101,7 @@ def parse_normal_variable_typedecl(subast,**kwargs):
 	
 	name_of_typedecl=item['declname']
 	dict_to_return=current_state["return_dict_of_decl--"+current_state["layer"]]
+	kwargs["full_type"]=extract_full_type_of_var(item,**kwargs)
 	
 	if current_state["layer"]=="global": #global variable
 		add_normal_global_variable(item,**kwargs)
@@ -110,6 +125,7 @@ def parse_struct_variable_typedecl(subast,**kwargs):
 	dict_to_return=current_state["return_dict_of_decl--"+current_state["layer"]]
 	name_of_struct=add_struct_to_types(item["type"],**kwargs) #add the struct to the types if it is not already there
 	kwargs["name_of_struct"]=name_of_struct
+	kwargs["full_type"]=extract_full_type_of_var(item,**kwargs)
 	
 	if current_state["layer"]=="global": #global variable
 		add_struct_global_variable(item,**kwargs)
@@ -133,6 +149,8 @@ def parse_normal_variable_ptrdecl(subast,**kwargs):
 	pointed_element=identify_element(item["type"],**kwargs)
 	kwargs["pointed_element"]=pointed_element
 	kwargs["type_of_pointed_element"]=identify_element_nice(item["type"],**kwargs)
+	kwargs["full_type"]=extract_full_type_of_var(item,**kwargs)
+	
 	if current_state["layer"]=="global": #global variable
 		add_normal_global_ptrvariable(item,**kwargs)
 	else:
@@ -155,6 +173,8 @@ def parse_normal_variable_arraydecl(subast,**kwargs):
 	array_element=identify_element_nice(item["type"],**kwargs)
 	kwargs["array_element"]=array_element
 	kwargs["array_dimension"]=copy.deepcopy(item["dim"])
+	kwargs["full_type"]=extract_full_type_of_var(item,**kwargs)
+	
 	if current_state["layer"]=="global": #global array
 		add_global_array_variable(item,**kwargs)
 	else:

@@ -25,10 +25,11 @@ typedef struct typetypetype
 {
     int b;
     int x;
-	int **aa;
+	int *****aa;
 	int *oo;	
 	char m[10];
 	char mm[y];
+	int* arp[3];
 } troll;
 
 //struct hehe muehehe;

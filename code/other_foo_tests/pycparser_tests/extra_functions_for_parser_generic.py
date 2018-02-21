@@ -254,6 +254,7 @@ def process_var_size_extended(var_type,**kwargs): #supports more possible types
 		print("UNKNOWN VARIABLE SIZE:",var_size)
 
 
+
 def condition_for_each_object_for_get_original_lines(type_of_obj,new_ast_dict,name_of_object,index):
 	#returns if the object in new_ast_dict['ext'][index] is the same as the object with type->type_of_obj, and name->name_of_object
 	#usually used to isolate in a dict that object alone, deleting all others

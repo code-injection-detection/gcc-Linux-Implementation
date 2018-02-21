@@ -38,7 +38,7 @@ int get_ptr_size()
 
 /*Allocates <bytes_to_allocate> bytes into the secure stack. Practically just moves the stack pointer.
  * Returns the address of the stack pointer, before it was moved.
- * Allocates whole number of chunks!
+ * Allocates whole (integral) number of chunks!
 */
 chunks_and_old_mem allocate_mem_into_secure_stack(long stack_bytes_to_allocate)
 {
@@ -90,7 +90,7 @@ chunks_and_old_mem allocate_mem_into_secure_stack(long stack_bytes_to_allocate)
 
 /*Allocates <bytes_to_allocate> bytes into the secure stack. Practically just moves the stack pointer.
  * Returns the address of the stack pointer, before it was moved.
- * Allocates whole number of chunks!
+ * Allocates whole (integral) number of chunks!
 */
 unsigned char * allocate_mem_into_secure_stack_return_ptr_only(long stack_bytes_to_allocate)
 {
@@ -138,7 +138,7 @@ unsigned char * allocate_mem_into_secure_stack_return_ptr_only(long stack_bytes_
 
 /*Allocates <chunks_to_allocate> chunks into the secure stack. Practically just moves the stack pointer.
  * Returns the address of the stack pointer, before it was moved.
- * Allocates whole number of chunks!
+ * Allocates whole (integral) number of chunks!
 */
 unsigned char * allocate_mem_into_secure_stack_in_chunks(long chunks_to_allocate)
 {
@@ -176,7 +176,7 @@ unsigned char * allocate_mem_into_secure_stack_in_chunks(long chunks_to_allocate
 }
 
 /*Frees <chunks_to_free> chunks from the secure stack. Practically just moves the stack pointer.
- * Frees whole number of chunks!
+ * Frees whole (integral) number of chunks!
 */
 void free_mem_from_secure_stack_in_chunks(long chunks_to_free)
 {
@@ -190,7 +190,7 @@ void free_mem_from_secure_stack_in_chunks(long chunks_to_free)
 
 
 /*Frees <stack_bytes_to_free> bytes from the secure stack. Practically just moves the stack pointer.
- * Frees whole number of chunks!
+ * Frees whole (integral) number of chunks!
 */
 void free_mem_from_secure_stack(long stack_bytes_to_free)
 {
