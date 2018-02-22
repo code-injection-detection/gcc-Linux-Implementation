@@ -74,11 +74,12 @@ del lines[0]
 		
 nop_cnt=0
 in_function=0
+length_of_lines=len(lines)
 for linecnt,line in enumerate(lines):
-	if line.strip()=="":
-		continue
+	if (nop_cnt==0) and (line.strip())=="": #nop_count==0 is put here for optimization. If we are in the procedure of counting nops, then the next one will be nop, not an empty line
+		continue							#to understand the code, ignore it
 		
-	if (is_cmd_nop(line)==False):
+	if ((nop_cnt==0) and (is_cmd_nop(line)==False)): #nop_count==0 is put here for optimization. If we are in the procedure of counting nops, then the next one will be nop, not an empty line. To understand the code, ignore it
 		linesplit_space=line.split(" ")
 		if (len(linesplit_space)>1 and linesplit_space[1].startswith("<")==True and linesplit_space[1].startswith("<.UNIQUE")==False):
 			linesout.append("NEXT_FUNCTION " + linesplit_space[1].replace("<","").replace(">","").replace(":","")) #name of function
@@ -111,18 +112,19 @@ for linecnt,line in enumerate(lines):
 	
 	if (cmd=="nop"):
 		nop_cnt+=1 #count nops going forward
-		if ((linecnt==len(lines)-1) or ((is_cmd_nop(lines[linecnt+1])==False) and nop_cnt>10)): #we have more than 10 nops in total
+		#see if the next command is not NOP and if yes put the (consecutive) NOPs so far found in the file.
+		if ((linecnt==length_of_lines-1) or ((is_cmd_nop(lines[linecnt+1])==False) and nop_cnt>10)): #we have more than 10 nops in total
 			linesout.append("NOPS_HERE "+str(nop_cnt)) #put one line representing all of them
 			nop_cnt=0
-		if ((linecnt==len(lines)-1) or ((is_cmd_nop(lines[linecnt+1])==False) and nop_cnt<=10)): #there are some nops that are alone...
+		if ((linecnt==length_of_lines-1) or ((is_cmd_nop(lines[linecnt+1])==False) and nop_cnt<=10)): #there are some nops that are alone...
 			for i in range(nop_cnt):
 				linesout.append("1 nop") #put many lines, one for each one of them
 			nop_cnt=0
-		continue
+		continue #continue to find other nops if nop_cnt!=0, and other commands if it is =0.
 	else:
-		nop_cnt=0
-	
-	linesout.append(str(num_of_bytes)+" "+str(cmd))
+		nop_cnt=0 #this line is not a nop one.
+
+	linesout.append(str(num_of_bytes)+" "+str(cmd)) #add the line. That is not the case with nops, since they have laready been added before (and the code has "continue"'d)
 
 
 for line in linesout:
