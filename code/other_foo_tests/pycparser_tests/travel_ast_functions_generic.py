@@ -206,6 +206,12 @@ def add_function_decl(subast,**kwargs):
 			#now there is a dict of that decl in the current_state waiting for us to grab
 			dict_returned=current_state["return_dict_of_decl--"+current_state["layer"]]
 			all_functions_dict[name_of_function]["params"].append(copy.deepcopy(dict_returned))	
+			
+	#get return type
+	ret_type_full_type=extract_full_type_of_var(item["type"],**kwargs)
+	ret_type=identify_element_nice(item["type"],**kwargs)
+	all_functions_dict[name_of_function]["return_type"]=ret_type
+	all_functions_dict[name_of_function]["return_type_full"]=ret_type_full_type
 	
 	
 
@@ -351,7 +357,6 @@ def parse_Funcdef(subast,**kwargs):
 	
 	#parse function body (for local vars etc)
 	parse_fun_body(item["body"],**kwargs)
-	
 	
 	#restore the scope
 	#well we need the inner stuff as well, for functions that have already acquired their current state through the kwargs
