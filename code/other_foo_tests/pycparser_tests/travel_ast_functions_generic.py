@@ -196,12 +196,39 @@ def add_function_decl(subast,**kwargs):
 	current_state=kwargs["current_state"]
 
 	name_of_function=kwargs["name_of_decl"]
-	#create function dict, change scope etc
+	kwargs["name_of_function"]=name_of_function
+	#create function dict
+	all_functions_dict[name_of_function]={}
+	all_functions_dict[name_of_function]["name_of_function"]=name_of_function
+	all_functions_dict[name_of_function]["params"]=[]
+	all_functions_dict[name_of_function]["locals"]=[]
+	
+	#change scope
+	tempstate=copy.deepcopy(current_state) #hold this in this temp variable
+	#update the state to show where we are
+	current_state["layer"]="in_function"+"++++++++++"+name_of_function
+	current_state["in_function"]=name_of_function
+	
 	params_list=item["args"]["params"]
 	for param in params_list:
-		parse_Decl(param)
+		parse_Decl(param,**kwargs)
+		#now there is a dict of that decl in the current_state waiting for us to grab
+		dict_returned=current_state["return_dict_of_decl--"+current_state["layer"]]
+		all_functions_dict[name_of_function]["params"].append(copy.deepcopy(dict_returned))
+	
+	locals_list=
+	for local_var in locals_list:
+	
 	!!!continue here
 
+	#restore the state
+	#well we need the inner stuff as well, for functions that have already acquired their current state through the kwargs
+	for key,value in tempstate.items():
+		# do something with value
+		current_state[key] = copy.deepcopy(tempstate[key])
+	current_state=copy.deepcopy(tempstate)
+	kwargs["current_state"]=current_state
+	
 
 def parse_Decl(subast,**kwargs):
 	item=subast
