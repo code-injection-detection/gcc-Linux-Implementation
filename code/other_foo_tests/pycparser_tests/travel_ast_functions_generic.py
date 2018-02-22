@@ -48,6 +48,8 @@ def identify_element(subast,**kwargs):
 		return "array"
 	elif item["_nodetype"]=="Struct":
 		return "struct"
+	elif item["_nodetype"]=="FuncDecl":
+		return "function_decl"
 	#add more cases
 	else:
 		return "unidentified element"
@@ -72,6 +74,8 @@ def identify_element_nice(subast,**kwargs):
 		return "ptr"
 	elif item["_nodetype"]=="ArrayDecl":
 		return "array"
+	elif item["_nodetype"]=="FuncDecl":
+		return "function_decl"
 	#add more cases
 	else:
 		return "unidentified element"
@@ -183,6 +187,22 @@ def parse_normal_variable_arraydecl(subast,**kwargs):
 	current_state["return_dict_of_decl--"+current_state["layer"]]=dict_to_return
 
 
+def add_function_decl(subast,**kwargs):
+	item=subast
+	globals_dict=kwargs["globals_dict"]
+	typedefs_dict=kwargs["typedefs_dict"]
+	current_function_dict=kwargs["current_function_dict"]
+	all_functions_dict=kwargs["all_functions_dict"]
+	current_state=kwargs["current_state"]
+
+	name_of_function=kwargs["name_of_decl"]
+	#create function dict, change scope etc
+	params_list=item["args"]["params"]
+	for param in params_list:
+		parse_Decl(param)
+	!!!continue here
+
+
 def parse_Decl(subast,**kwargs):
 	item=subast
 	globals_dict=kwargs["globals_dict"]
@@ -211,6 +231,7 @@ def parse_Decl(subast,**kwargs):
 	item2=copy.deepcopy(item)
 	item3=copy.deepcopy(item)
 	item4=copy.deepcopy(item)
+	item5=copy.deepcopy(item)
 	item_parse_for_types=copy.deepcopy(item)
 	
 	#does that decl contain any typedefs deep inside (perhaps after a ton of pointers?)
@@ -243,6 +264,10 @@ def parse_Decl(subast,**kwargs):
 		#we have a struct definition (just a definition, no variable)
 		#add struct to the types
 		add_struct_to_types(item["type"],**kwargs)
+		
+	if identify_element(item5["type"],**kwargs)=="function_decl":
+		add_function_decl(item["type"],**kwargs)
+		
 	
 		
 		
@@ -272,7 +297,18 @@ def parse_Typedef(subast,**kwargs):
 		print("ERROR:Unsupported typedef!")
 	
 	
+def parse_Funcdef(subast,**kwargs):
+	item=subast
+	globals_dict=kwargs["globals_dict"]
+	typedefs_dict=kwargs["typedefs_dict"]
+	current_function_dict=kwargs["current_function_dict"]
+	all_functions_dict=kwargs["all_functions_dict"]
+	current_state=kwargs["current_state"]
 	
+	#parse the decl part (the arguments etc)
+	if "decl" in item:
+		parse_Decl(item["decl"],**kwargs)	
+
 
 def parse_subast(subast,**kwargs):
 	item=subast
@@ -287,6 +323,8 @@ def parse_subast(subast,**kwargs):
 		parse_Decl(item,**kwargs)
 	if (type_of_ast=="Typedef"):
 		parse_Typedef(item,**kwargs)
+	if (type_of_ast=="FuncDef"):
+		parse_Funcdef(item,**kwargs)
 	
 
 
