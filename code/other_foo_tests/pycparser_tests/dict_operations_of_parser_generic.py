@@ -27,6 +27,25 @@ def init_globals_dict(globals_dict):
 def init_typedefs_dict(typedefs_dict):
 	typedefs_dict["structs"]={}
 	typedefs_dict["typedefs"]={}
+	
+	
+def init_function_dict(name_of_function,all_functions_dict):
+	all_functions_dict[name_of_function]={}
+	all_functions_dict[name_of_function]["name_of_function"]=name_of_function
+	all_functions_dict[name_of_function]["params"]=[]
+	all_functions_dict[name_of_function]["locals"]=[]
+	
+def init_typedef_struct_dict(name_of_struct,**kwargs):
+	globals_dict=kwargs["globals_dict"]
+	typedefs_dict=kwargs["typedefs_dict"]
+	current_function_dict=kwargs["current_function_dict"]
+	all_functions_dict=kwargs["all_functions_dict"]
+	current_state=kwargs["current_state"]
+	
+	typedefs_dict["structs"][name_of_struct]={}
+	typedefs_dict["structs"][name_of_struct]["name_of_struct"]=name_of_struct
+	typedefs_dict["structs"][name_of_struct]["scope"]=current_state["layer"]
+	typedefs_dict["structs"][name_of_struct]["decls"]=[]
 
 
 def init_dict_of_decl_to_ret(**kwargs):

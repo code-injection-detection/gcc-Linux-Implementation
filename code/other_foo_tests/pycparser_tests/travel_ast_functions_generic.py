@@ -63,6 +63,8 @@ def identify_element_nice(subast,**kwargs):
 	all_functions_dict=kwargs["all_functions_dict"]
 	current_state=kwargs["current_state"]
 	
+	if item["_nodetype"]=="Decl":
+		return "just_a_decl"
 	if item["_nodetype"]=="TypeDecl":
 		if (identify_typedecl(item,**kwargs))=="normal_var":
 			return identify_type(item["type"]["names"][0],**kwargs)
@@ -196,38 +198,15 @@ def add_function_decl(subast,**kwargs):
 	current_state=kwargs["current_state"]
 
 	name_of_function=kwargs["name_of_decl"]
-	kwargs["name_of_function"]=name_of_function
-	#create function dict
-	all_functions_dict[name_of_function]={}
-	all_functions_dict[name_of_function]["name_of_function"]=name_of_function
-	all_functions_dict[name_of_function]["params"]=[]
-	all_functions_dict[name_of_function]["locals"]=[]
-	
-	#change scope
-	tempstate=copy.deepcopy(current_state) #hold this in this temp variable
-	#update the state to show where we are
-	current_state["layer"]="in_function"+"++++++++++"+name_of_function
-	current_state["in_function"]=name_of_function
-	
+		
 	params_list=item["args"]["params"]
 	for param in params_list:
-		parse_Decl(param,**kwargs)
-		#now there is a dict of that decl in the current_state waiting for us to grab
-		dict_returned=current_state["return_dict_of_decl--"+current_state["layer"]]
-		all_functions_dict[name_of_function]["params"].append(copy.deepcopy(dict_returned))
+		if identify_element_nice(param,**kwargs)=="just_a_decl":
+			parse_Decl(param,**kwargs)
+			#now there is a dict of that decl in the current_state waiting for us to grab
+			dict_returned=current_state["return_dict_of_decl--"+current_state["layer"]]
+			all_functions_dict[name_of_function]["params"].append(copy.deepcopy(dict_returned))	
 	
-	locals_list=
-	for local_var in locals_list:
-	
-	!!!continue here
-
-	#restore the state
-	#well we need the inner stuff as well, for functions that have already acquired their current state through the kwargs
-	for key,value in tempstate.items():
-		# do something with value
-		current_state[key] = copy.deepcopy(tempstate[key])
-	current_state=copy.deepcopy(tempstate)
-	kwargs["current_state"]=current_state
 	
 
 def parse_Decl(subast,**kwargs):
@@ -324,6 +303,27 @@ def parse_Typedef(subast,**kwargs):
 		print("ERROR:Unsupported typedef!")
 	
 	
+	
+def parse_fun_body(subast,**kwargs):
+	item=subast
+	globals_dict=kwargs["globals_dict"]
+	typedefs_dict=kwargs["typedefs_dict"]
+	current_function_dict=kwargs["current_function_dict"]
+	all_functions_dict=kwargs["all_functions_dict"]
+	current_state=kwargs["current_state"]
+	
+	name_of_function=kwargs["name_of_function"]
+	
+	locals_list=item["block_items"]
+	for local_var in locals_list:
+		if identify_element_nice(local_var,**kwargs)=="just_a_decl":
+			parse_Decl(local_var,**kwargs)
+			#now there is a dict of that decl in the current_state waiting for us to grab
+			dict_returned=current_state["return_dict_of_decl--"+current_state["layer"]]
+			all_functions_dict[name_of_function]["locals"].append(copy.deepcopy(dict_returned))
+	
+	
+	
 def parse_Funcdef(subast,**kwargs):
 	item=subast
 	globals_dict=kwargs["globals_dict"]
@@ -332,10 +332,36 @@ def parse_Funcdef(subast,**kwargs):
 	all_functions_dict=kwargs["all_functions_dict"]
 	current_state=kwargs["current_state"]
 	
+	
+	name_of_function=item["decl"]["name"]
+	kwargs["name_of_function"]=name_of_function
+	#create function dict
+	init_function_dict(name_of_function,all_functions_dict)
+	
+	#change scope
+	tempstate=copy.deepcopy(current_state) #hold this in this temp variable
+	#update the state to show where we are
+	current_state["layer"]="in_function"+"++++++++++"+name_of_function
+	current_state["in_function"]=name_of_function
+	
 	#parse the decl part (the arguments etc)
+	#this part will also init the function dict, give us the name of the function etc.
 	if "decl" in item:
 		parse_Decl(item["decl"],**kwargs)	
-
+	
+	#parse function body (for local vars etc)
+	parse_fun_body(item["body"],**kwargs)
+	
+	
+	#restore the scope
+	#well we need the inner stuff as well, for functions that have already acquired their current state through the kwargs
+	for key,value in tempstate.items():
+		# do something with value
+		current_state[key] = copy.deepcopy(tempstate[key])
+	current_state=copy.deepcopy(tempstate)
+	kwargs["current_state"]=current_state
+	
+	
 
 def parse_subast(subast,**kwargs):
 	item=subast
@@ -386,11 +412,9 @@ def add_struct_to_types(subast,**kwargs):
 	#important! the name of the struct is not in the "Decl" block!
 	name_of_struct=item["name"]
 	if (name_of_struct not in typedefs_dict["structs"]): #if it has been added before don't add it again
-		typedefs_dict["structs"][name_of_struct]={}
-		typedefs_dict["structs"][name_of_struct]["name_of_struct"]=name_of_struct
-		typedefs_dict["structs"][name_of_struct]["scope"]=current_state["layer"]
-		typedefs_dict["structs"][name_of_struct]["decls"]=[]
+		init_typedef_struct_dict(name_of_struct,**kwargs)
 		kwargs["name_of_struct"]=name_of_struct
+		
 		tempstate=copy.deepcopy(current_state) #hold this in this temp variable
 		#update the state to show where we are
 		current_state["layer"]=current_state["layer"]+"_struct_"+name_of_struct
