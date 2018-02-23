@@ -201,7 +201,7 @@ if __name__ == "__main__":
         ast_dict = file_to_dict(sys.argv[1])
         ast = from_dict(ast_dict)
         #dump ast into file, too
-        with open('ast', 'wb') as f:
+        with open('ast_of_original_c_code', 'wb') as f:
             pickle.dump(ast, f, protocol=-1)
         #print(ast)
         print(to_json(ast, sort_keys=True, indent=4))

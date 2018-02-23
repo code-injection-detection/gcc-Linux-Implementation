@@ -30,7 +30,7 @@ typedefs_dict={} #dictionary that holds all the metadata for the types
 current_state={} #describes the state that we are in (e.g inside which function)
 
 # Deserialize.
-with open('ast', 'rb') as f:
+with open('ast_of_original_c_code', 'rb') as f:
 	ast = pickle.load(f)
 	ast_dict=to_dict(ast)
 	#print(ast_dict)
@@ -49,5 +49,13 @@ parse_whole_ast(ast_dict,**kwargs)
 print(all_functions_dict)
 print(globals_dict)
 print(typedefs_dict)
+
+dict_with_semantic_data={"typedefs_dict": typedefs_dict, "globals_dict": globals_dict,
+							 "all_functions_dict":all_functions_dict}
+							 
+							 
+#store the semantic data in the file 
+pickle.dump( dict_with_semantic_data, open( "semantic_data", "wb" ) )							 
+
 
 	

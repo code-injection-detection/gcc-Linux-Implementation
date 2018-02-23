@@ -21,6 +21,13 @@ class CustomCGenerator(object):
 		# the _make_indent method
 		self.indent_level = 0
 		self.name_of_fun_in_parsing=""
+		
+		#get the semantic data
+		with open('dict_with_semantic_data', 'rb') as f:
+			semantic_dict=pickle.load(f)
+			self.all_functions_dict=semantic_dict['all_functions_dict']
+			self.typedefs_dict=semantic_dict['typedefs_dict']
+			self.globals_dict=semantic_dict['globals_dict']
 
 	def _make_indent(self):
 		return ' ' * self.indent_level

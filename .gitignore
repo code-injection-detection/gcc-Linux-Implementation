@@ -45,6 +45,8 @@ table_with_assembly_command_sizes.txt
 #.project
 secure_executables/
 ast
+ast_of_original_c_code
+semantic_data
 comm_file1
 comm_file2
 calc_mac_for_external_programs_faster
