@@ -10,6 +10,18 @@
 # Modified by mitros123
 #------------------------------------------------------------------------------
 
+import pickle
+import json
+import sys
+import re
+import platform
+import copy
+import gc
+
+from pycparser import parse_file, c_ast, c_parser,c_generator
+from pycparser.plyparser import Coord
+from extra_functions_for_parser_generic import *
+
 
 class CustomCGenerator(object):
 	""" Uses the same visitor pattern as c_ast.NodeVisitor, but modified to
@@ -50,18 +62,19 @@ class CustomCGenerator(object):
 		use_setter=kwargs.get("use_setter_param",False)
 		coming_from_for_loop=kwargs.get("coming_from_for_loop",False)
 		is_global=0
-		type_of_var=identify_type_of_var(all_functions_dict[self.name_of_fun_in_parsing],n.name) #try to find it in locals
-		if (type_of_var=="unknown_type"):
-			#search in globals
-			type_of_var=identify_type_of_var_in_globals(n.name)
+		type_of_var=self.find_variable_in_fun_and_global_variables(self.name_of_fun_in_parsing,n.name) #try to find it in locals
+		if (type_of_var=="variable_was_not_found"):
+			#"printf" is an ID too. So, it might not be one of the secured variables
+			return n.name
+			
+		if type_of_var.split("$$$$$$")[1]=="found_in_globals":
 			is_global=1
-			if (type_of_var=="unknown_type"):
-				#"printf" is an ID too. So, it might not be one of the secured variables
-				return n.name
+			
+		type_of_var_proper=type_of_var.split("$$$$$$")[0]
 
 		if (use_setter):
 			if (is_global==0):
-				setter=find_name_of_stack_setter_in_caps(type_of_var)
+				setter=find_name_of_stack_setter_in_caps(type_of_var_proper)
 				#pay attention that we need an extra parenthesis
 				return "%s( %s " % (setter,n.name)
 			else:
@@ -70,14 +83,14 @@ class CustomCGenerator(object):
 					return "%s( globals.%s " % ("UPDATE_GLOBAL_VAR",n.name)
 				else:
 					return "%s( globals.%s " % ("UPDATE_GLOBAL_VAR_FOR_LOOPS",n.name)
-			
 		else:
-			getter=find_name_of_stack_getter_in_caps(type_of_var)
+			getter=find_name_of_stack_getter_in_caps(type_of_var_proper)
 			if (is_global==1):
-				getter=find_name_of_global_getter(type_of_var)
+				getter=find_name_of_global_getter(type_of_var_proper)
 				return "%s( globals.%s )" % (getter,n.name)
 			else:
 				return "%s( %s )" % (getter,n.name)
+	
 	
 	def visit_Pragma(self, n):
 		ret = '#pragma'
@@ -629,3 +642,65 @@ class CustomCGenerator(object):
 		"""
 		return isinstance(n,(   c_ast.Constant, c_ast.ID, c_ast.ArrayRef,
 								c_ast.StructRef, c_ast.FuncCall))
+								
+								
+								
+								
+								
+								
+								
+								
+								
+								
+								
+								
+	#############################################################################
+	####################  EXTRA_NON_AST_PARSING_FUNCTIONS  ######################
+	#############################################################################
+	
+	def find_variable_in_fun_variables(self,name_of_function,name_of_var):
+		#given a var name, returns its type. Searches in function params/locals
+		function_dict=self.all_functions_dict[name_of_function]
+		params_list=function_dict['params']
+		locals_list=function_dict['locals']
+		for param in params_list:
+			if name_of_var==param['name']:
+				return param['type']+"$$$$$$found_in_fun_params"
+		for local in locals_list:
+			if name_of_var==local['name']:
+				return local['type']+"$$$$$$found_in_fun_locals"
+		return "variable_not_found_in_fun_vars"
+		
+	def find_variable_in_globals(self,name_of_var):	
+		#!!!!!!!!!!!!!!! sos extend with structs+arrays. Now only supports simple global vars
+		globals_dict=self.globals_dict
+		simple_vars_in_globals= globals_dict['simple_vars']
+		structs_in_globals=globals_dict['structs']
+		arrays_in_globals=globals_dict['1_dim_arrays']
+		for simple_var in simple_vars_in_globals:
+			if simple_var['name']==name_of_var:
+				return simple_var['type']+"$$$$$$found_in_globals"
+		for struct in structs_in_globals:
+			if struct['name']==name_of_var:
+				return struct['type']+"$$$$$$found_in_globals"
+		for array in arrays_in_globals:
+			if array['name']==name_of_var:
+				return array['type']+"$$$$$$found_in_globals"
+		return "variable_not_found_in_globals"
+		
+	def find_variable_in_fun_and_gloabal_variables(self,name_of_function,name_of_var):
+		#given a var name, returns where it was found and its type. Searches in function params/locals and then in globals
+		function_dict=self.all_functions_dict[name_of_function]
+		params_list=function_dict['params']
+		locals_list=function_dict['locals']
+		globals_dict=self.globals_dict
+		#!!!!!!!!!!!!!!! sos extend with structs+arrays. Now only supports simple global vars
+		type_in_fun_vars=self.find_variable_in_fun_variables(name_of_function,name_of_var)
+		if (type_in_fun_vars=="variable_not_found_in_fun_vars"):
+			type_in_globals=self.find_variable_in_globals(name_of_var)
+			if (type_in_globals=="variable_not_found_in_globals"):
+				return "variable_was_not_found"
+			else:
+				return type_in_globals
+		else:
+			return type_in_fun_vars

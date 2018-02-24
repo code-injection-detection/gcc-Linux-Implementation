@@ -46,16 +46,22 @@ kwargs = {"typedefs_dict": typedefs_dict, "globals_dict": globals_dict,
 		  }
 parse_whole_ast(ast_dict,**kwargs)
 
-print(all_functions_dict)
-print(globals_dict)
-print(typedefs_dict)
+print("All functions dict:")
+#print(all_functions_dict)
+wellprint_dict(all_functions_dict)
+print("Globals_dict:")
+#print(globals_dict)
+wellprint_dict(globals_dict)
+print("Typedefs_dict:")
+#print(typedefs_dict)
+wellprint_dict(typedefs_dict)
 
 dict_with_semantic_data={"typedefs_dict": typedefs_dict, "globals_dict": globals_dict,
 							 "all_functions_dict":all_functions_dict}
 							 
 							 
 #store the semantic data in the file 
-pickle.dump( dict_with_semantic_data, open( "semantic_data", "wb" ) )							 
+pickle.dump( dict_with_semantic_data, open( "semantic_data", "wb" ) )				 
 
 
 	
