@@ -62,7 +62,7 @@ class CustomCGenerator(object):
 		use_setter=kwargs.get("use_setter_param",False)
 		coming_from_for_loop=kwargs.get("coming_from_for_loop",False)
 		is_global=0
-		type_of_var=self.find_variable_in_fun_and_global_variables(self.name_of_fun_in_parsing,n.name) #try to find it in locals
+		(type_of_var,dict_of_var)=self.find_variable_in_fun_and_global_variables(self.name_of_fun_in_parsing,n.name) #try to find it in the known variables
 		if (type_of_var=="variable_was_not_found"):
 			#"printf" is an ID too. So, it might not be one of the secured variables
 			return n.name
@@ -103,20 +103,23 @@ class CustomCGenerator(object):
 		name_of_array=n.name.name
 		is_global=0
 		#search in locals
-		type_of_var=identify_type_of_var(all_functions_dict[self.name_of_fun_in_parsing],name_of_array)
-		is_pointer_created_because_of_array=is_ptr_created_because_of_array(all_functions_dict[self.name_of_fun_in_parsing],name_of_array)
-		if (type_of_var=="unknown_type"):
-			#search in globals
-			type_of_var=identify_type_of_var_in_globals(name_of_array)
+		(type_of_var,dict_of_array)=self.find_variable_in_fun_and_global_variables(self.name_of_fun_in_parsing,name_of_array)
+		
+		if (type_of_var=="variable_was_not_found"):
+			#It might not be one of the secured variables, return what it would return normally
+			arrref = self._parenthesize_unless_simple(n.name) #kwargs?
+			return arrref + '[' + self.visit(n.subscript) + ']' #kwargs?
+			
+		if type_of_var.split("$$$$$$")[1]=="found_in_globals":
 			is_global=1
-			if (type_of_var=="unknown_type"):
-				#It might not be one of the secured variables, return what it would return normally
-				arrref = self._parenthesize_unless_simple(n.name)
-				return arrref + '[' + self.visit(n.subscript) + ']'
-			else:
-				type_of_pointed_var=identify_type_of_pointed_var_in_globals(name_of_array)
+			
+		type_of_var_proper=type_of_var.split("$$$$$$")[0]
+		
+		if type_of_var_proper=="array":
+			type_of_array_var=dict_of_array['type_of_array_elem']
 		else:
-			type_of_pointed_var=identify_type_of_pointed_var(all_functions_dict[self.name_of_fun_in_parsing],name_of_array)
+			#it's a pointer that has been malloced and accessed as array?
+			type_of_array_var=dict_of_array['type_of_pointed_elem']
 		
 		
 		if (use_setter):
@@ -659,17 +662,17 @@ class CustomCGenerator(object):
 	#############################################################################
 	
 	def find_variable_in_fun_variables(self,name_of_function,name_of_var):
-		#given a var name, returns its type. Searches in function params/locals
+		#given a var name, returns its type and its corresponding dict. Searches in function params/locals
 		function_dict=self.all_functions_dict[name_of_function]
 		params_list=function_dict['params']
 		locals_list=function_dict['locals']
 		for param in params_list:
 			if name_of_var==param['name']:
-				return param['type']+"$$$$$$found_in_fun_params"
+				return (param['type']+"$$$$$$found_in_fun_params",param)
 		for local in locals_list:
 			if name_of_var==local['name']:
-				return local['type']+"$$$$$$found_in_fun_locals"
-		return "variable_not_found_in_fun_vars"
+				return (local['type']+"$$$$$$found_in_fun_locals",local)
+		return ("variable_not_found_in_fun_vars",None)
 		
 	def find_variable_in_globals(self,name_of_var):	
 		#!!!!!!!!!!!!!!! sos extend with structs+arrays. Now only supports simple global vars
@@ -679,28 +682,30 @@ class CustomCGenerator(object):
 		arrays_in_globals=globals_dict['1_dim_arrays']
 		for simple_var in simple_vars_in_globals:
 			if simple_var['name']==name_of_var:
-				return simple_var['type']+"$$$$$$found_in_globals"
+				return (simple_var['type']+"$$$$$$found_in_globals",simple_var)
 		for struct in structs_in_globals:
 			if struct['name']==name_of_var:
-				return struct['type']+"$$$$$$found_in_globals"
+				return (struct['type']+"$$$$$$found_in_globals",struct)
 		for array in arrays_in_globals:
 			if array['name']==name_of_var:
-				return array['type']+"$$$$$$found_in_globals"
-		return "variable_not_found_in_globals"
+				return (array['type']+"$$$$$$found_in_globals",array)
+		return ("variable_not_found_in_globals",None)
 		
-	def find_variable_in_fun_and_gloabal_variables(self,name_of_function,name_of_var):
-		#given a var name, returns where it was found and its type. Searches in function params/locals and then in globals
+	def find_variable_in_fun_and_global_variables(self,name_of_function,name_of_var):
+		#given a var name, returns where it was found + its type, and the corresponding dict.  Searches in function params/locals and then in globals
 		function_dict=self.all_functions_dict[name_of_function]
 		params_list=function_dict['params']
 		locals_list=function_dict['locals']
 		globals_dict=self.globals_dict
 		#!!!!!!!!!!!!!!! sos extend with structs+arrays. Now only supports simple global vars
-		type_in_fun_vars=self.find_variable_in_fun_variables(name_of_function,name_of_var)
+		(type_in_fun_vars,dict_of_var)=self.find_variable_in_fun_variables(name_of_function,name_of_var)
 		if (type_in_fun_vars=="variable_not_found_in_fun_vars"):
-			type_in_globals=self.find_variable_in_globals(name_of_var)
+			(type_in_globals,dict_of_var)=self.find_variable_in_globals(name_of_var)
 			if (type_in_globals=="variable_not_found_in_globals"):
-				return "variable_was_not_found"
+				return ("variable_was_not_found",None)
 			else:
-				return type_in_globals
+				return (type_in_globals,dict_of_var)
 		else:
-			return type_in_fun_vars
+			return (type_in_fun_vars,dict_of_var)
+			
+	
