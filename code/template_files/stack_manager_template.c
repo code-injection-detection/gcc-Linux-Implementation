@@ -119,7 +119,12 @@ unsigned char * init_stack_mem()
   insert_keys_into_stack_mem(stack_mem);
 
   UPDATE_GLOBAL_VAR(globals.entire_stack_memory_chunk,stack_mem);
-  last_unused_stack_memory=stack_mem;
+  
+  #if stack_should_grow_to_decreasing_numbers==0
+	last_unused_stack_memory=stack_mem;
+  #else
+	last_unused_stack_memory=stack_mem+total_stack_bytes_allocated;
+  #endif
   fclose(stack_keyshare_input_file);
    
   return stack_mem;

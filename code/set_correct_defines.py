@@ -97,12 +97,13 @@ for line in src_lines:
 	if '#define bytes_for_instructions_length' in line:
 		newline='#define bytes_for_instructions_length '+sys.argv[34]+'\n'
 	if '#define verify_everything' in line:
-		newline='#define verify_everything '+sys.argv[34]+'\n'
+		newline='#define verify_everything '+sys.argv[35]+'\n'
 	if '#define use_new_secure_heap' in line:
-		newline='#define use_new_secure_heap '+sys.argv[35]+'\n'
+		newline='#define use_new_secure_heap '+sys.argv[36]+'\n'
 	if '#define check_for_secure_stack_allocation_overflow' in line:
-		newline='#define check_for_secure_stack_allocation_overflow '+sys.argv[36]+'\n'
-
+		newline='#define check_for_secure_stack_allocation_overflow '+sys.argv[37]+'\n'
+	if '#define stack_should_grow_to_decreasing_numbers' in line:
+		newline='#define stack_should_grow_to_decreasing_numbers '+sys.argv[38]+'\n'
 	headers_dst.write(newline)
 
 

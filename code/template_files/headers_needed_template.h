@@ -223,6 +223,11 @@
 #endif				//checks if secure stack has enough size left to accommodate for a given secure stack allocation
 
 
+#ifndef stack_should_grow_to_decreasing_numbers
+#define stack_should_grow_to_decreasing_numbers 1
+#endif				//if 1, the allocation in the stack should make the stack pointer decrease in number (as stack normally behaves).
+
+
 #include "crypto_functions.h"
 #include "secure_getters_setters.h"
 

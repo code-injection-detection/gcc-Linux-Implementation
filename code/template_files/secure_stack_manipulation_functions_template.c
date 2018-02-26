@@ -66,22 +66,40 @@ chunks_and_old_mem allocate_mem_into_secure_stack(long stack_bytes_to_allocate)
 	ret.chunks_allocated=chunks_needed_to_allocate;
 	
 	//perform the allocation
-	last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) + (chunks_needed_to_allocate*(c+b+d));
-	
+	#if stack_should_grow_to_decreasing_numbers==0
+		last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) + (chunks_needed_to_allocate*(c+b+d));
+	#else
+		last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_needed_to_allocate*(c+b+d));
+	#endif
 	
 	#if check_for_secure_stack_allocation_overflow==1
-		//stack overflow check
-		//this way, allocating the last chunk results in the last_unused_stack_memory to reach out of the stack.
-		if ((unsigned char*)last_unused_stack_memory > ((unsigned char*)GET_GLOBAL_PTR(globals.entire_stack_memory_chunk)) + total_stack_bytes_allocated)
-		{
-			//cancel last increase
-			last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_needed_to_allocate*(c+b+d));
-			//return NULL
-			ret.chunks_allocated=0;
-			ret.old_mem=NULL;
-			fprintf(stderr,"Error:Attempted to allocate more memory than the secure stack size.\n");
-			return ret;
-		}
+		#if stack_should_grow_to_decreasing_numbers==0
+			//stack overflow check
+			//this way, allocating the last chunk results in the last_unused_stack_memory to reach out of the stack.
+			if ((unsigned char*)last_unused_stack_memory > ((unsigned char*)GET_GLOBAL_PTR(globals.entire_stack_memory_chunk)) + total_stack_bytes_allocated)
+			{
+				//cancel last increase
+				last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_needed_to_allocate*(c+b+d));
+				//return NULL
+				ret.chunks_allocated=0;
+				ret.old_mem=NULL;
+				fprintf(stderr,"Error:Attempted to allocate more memory than the secure stack size.\n");
+				return ret;
+			}
+		#else
+			//stack overflow check
+			//this way, allocating the last chunk results in the last_unused_stack_memory to reach out of the stack.
+			if ((unsigned char*)last_unused_stack_memory < ((unsigned char*)GET_GLOBAL_PTR(globals.entire_stack_memory_chunk)))
+			{
+				//cancel last decrease
+				last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) + (chunks_needed_to_allocate*(c+b+d));
+				//return NULL
+				ret.chunks_allocated=0;
+				ret.old_mem=NULL;
+				fprintf(stderr,"Error:Attempted to allocate more memory than the secure stack size.\n");
+				return ret;
+			}
+		#endif
 	#endif
 	
 	return ret;
@@ -115,21 +133,38 @@ unsigned char * allocate_mem_into_secure_stack_return_ptr_only(long stack_bytes_
 		chunks_needed_to_allocate++;
 	
 	//perform the allocation
-	last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) + (chunks_needed_to_allocate*(c+b+d));
-	
+	#if stack_should_grow_to_decreasing_numbers==0
+		last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) + (chunks_needed_to_allocate*(c+b+d));
+	#else
+		last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_needed_to_allocate*(c+b+d));
+	#endif
 	
 	#if check_for_secure_stack_allocation_overflow==1
-		//stack overflow check
-		//this way, allocating the last chunk results in the last_unused_stack_memory to reach out of the stack.
-		if ((unsigned char*)last_unused_stack_memory > ((unsigned char*)GET_GLOBAL_PTR(globals.entire_stack_memory_chunk)) + total_stack_bytes_allocated)
-		{
-			//cancel last increase
-			last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_needed_to_allocate*(c+b+d));
-			//return NULL
-			ret=NULL;
-			fprintf(stderr,"Error:Attempted to allocate more memory than the secure stack size.\n");
-			return ret;
-		}
+		#if stack_should_grow_to_decreasing_numbers==0
+			//stack overflow check
+			//this way, allocating the last chunk results in the last_unused_stack_memory to reach out of the stack.
+			if ((unsigned char*)last_unused_stack_memory > ((unsigned char*)GET_GLOBAL_PTR(globals.entire_stack_memory_chunk)) + total_stack_bytes_allocated)
+			{
+				//cancel last increase
+				last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_needed_to_allocate*(c+b+d));
+				//return NULL
+				ret=NULL;
+				fprintf(stderr,"Error:Attempted to allocate more memory than the secure stack size.\n");
+				return ret;
+			}
+		#else
+			//stack overflow check
+			//this way, allocating the last chunk results in the last_unused_stack_memory to reach out of the stack.
+			if ((unsigned char*)last_unused_stack_memory < ((unsigned char*)GET_GLOBAL_PTR(globals.entire_stack_memory_chunk)))
+			{
+				//cancel last decrease
+				last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) + (chunks_needed_to_allocate*(c+b+d));
+				//return NULL
+				ret=NULL;
+				fprintf(stderr,"Error:Attempted to allocate more memory than the secure stack size.\n");
+				return ret;
+			}
+		#endif
 	#endif
 	
 	return ret;
@@ -154,20 +189,38 @@ unsigned char * allocate_mem_into_secure_stack_in_chunks(long chunks_to_allocate
 	}
 	
 	//perform the allocation
-	last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) + (chunks_to_allocate)*(b+c+d);
+	#if stack_should_grow_to_decreasing_numbers==0
+		last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) + (chunks_to_allocate)*(b+c+d);
+	#else
+		last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_to_allocate)*(b+c+d);
+	#endif
 	
 	#if check_for_secure_stack_allocation_overflow==1
-		//stack overflow check
-		//this way, allocating the last chunk results in the last_unused_stack_memory to reach out of the stack.
-		if ((unsigned char*)last_unused_stack_memory > ((unsigned char*)GET_GLOBAL_PTR(globals.entire_stack_memory_chunk)) + total_stack_bytes_allocated)
-		{
-			//cancel last increase
-			last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_to_allocate)*(b+c+d);
-			//return NULL
-			old_mem=NULL;
-			fprintf(stderr,"Error:Attempted to allocate more memory than the secure stack size.\n");
-			return old_mem;
-		}
+		#if stack_should_grow_to_decreasing_numbers==0
+			//stack overflow check
+			//this way, allocating the last chunk results in the last_unused_stack_memory to reach out of the stack.
+			if ((unsigned char*)last_unused_stack_memory > ((unsigned char*)GET_GLOBAL_PTR(globals.entire_stack_memory_chunk)) + total_stack_bytes_allocated)
+			{
+				//cancel last increase
+				last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_to_allocate)*(b+c+d);
+				//return NULL
+				old_mem=NULL;
+				fprintf(stderr,"Error:Attempted to allocate more memory than the secure stack size.\n");
+				return old_mem;
+			}
+		#else
+			//stack overflow check
+			//this way, allocating the last chunk results in the last_unused_stack_memory to reach out of the stack.
+			if ((unsigned char*)last_unused_stack_memory < ((unsigned char*)GET_GLOBAL_PTR(globals.entire_stack_memory_chunk)))
+			{
+				//cancel last decrease
+				last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) + (chunks_to_allocate)*(b+c+d);
+				//return NULL
+				old_mem=NULL;
+				fprintf(stderr,"Error:Attempted to allocate more memory than the secure stack size.\n");
+				return old_mem;
+			}
+		#endif
 	#endif
 	
 	return old_mem;
@@ -185,7 +238,11 @@ void free_mem_from_secure_stack_in_chunks(long chunks_to_free)
 	long d=number_of_mac_bytes;
 	
 	//perform the deallocation
-	last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_to_free)*(b+c+d);
+	#if stack_should_grow_to_decreasing_numbers==0
+		last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_to_free)*(b+c+d);
+	#else
+		last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) + (chunks_to_free)*(b+c+d);
+	#endif
 }
 
 
@@ -206,7 +263,11 @@ void free_mem_from_secure_stack(long stack_bytes_to_free)
 		chunks_needed_to_free++;
 	
 	//perform the deallocation
-	last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_needed_to_free*(c+b+d));
+	#if stack_should_grow_to_decreasing_numbers==0
+		last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_needed_to_free*(c+b+d));
+	#else
+		last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) + (chunks_needed_to_free*(c+b+d));
+	#endif
 	
 }
 
@@ -221,7 +282,11 @@ void free_chunks_from_secure_stack(long chunks_to_free)
 	long chunks_needed_to_free=chunks_to_free;
 	
 	//perform the deallocation
-	last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_needed_to_free*(c+b+d));
+	#if stack_should_grow_to_decreasing_numbers==0
+		last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) - (chunks_needed_to_free*(c+b+d));
+	#else
+		last_unused_stack_memory=((unsigned char*)last_unused_stack_memory) + (chunks_needed_to_free*(c+b+d));
+	#endif
 }
 
 
