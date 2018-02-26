@@ -407,21 +407,21 @@ unsigned char * smalloc(long bytes_asked_to_allocate)
 	//chunk_found->previous=NULL;
 	set_sheap_meta_previous(chunk_found,NULL);
 	
-	/*
-	//checking calls
-	if (give_entire_chunk==0)
-	{
+	#if 0
+		//checking calls
+		if (give_entire_chunk==0)
+		{
+			printf("Checking chunk..\n");
+			sprint_chunk(new_meta);
+			scheck_chunk(new_meta,1);
+		}
 		printf("Checking chunk..\n");
-		sprint_chunk(new_meta);
-		scheck_chunk(new_meta,1);
-	}
-	printf("Checking chunk..\n");
-	sprint_chunk(chunk_found);
-	scheck_chunk(chunk_found,2);
-	*/
-	scheck_free_list_consistency(2);
-	scheck_alloc_list_consistency(2);
-	
+		sprint_chunk(chunk_found);
+		scheck_chunk(chunk_found,2);
+		*/
+		scheck_free_list_consistency(2);
+		scheck_alloc_list_consistency(2);
+	#endif
 	//return the start of the useful data
 	//return ((unsigned char*) chunk_found + sizeof(uheap_metadata));
 	return ((unsigned char*) chunk_found + size_in_bytes_for_sheap_metadata);
@@ -585,27 +585,28 @@ unsigned char * smalloc(long bytes_asked_to_allocate)
 	set_sheap_meta_previous(GET_STACK_PTR(chunk_found),NULL);
 	
 	
-	//checking calls
-	//before that, let's set the unsecure globals with the secure values since the checking functions work with them
+	#if 0
+		//checking calls
+		//before that, let's set the unsecure globals with the secure values since the checking functions work with them
+		
+		sfree_chunks_list=GET_GLOBAL_PTR(globals.sfree_chunks_list);
+		salloc_chunks_list=GET_GLOBAL_PTR(globals.salloc_chunks_list);
+		sfree_chunks_num=GET_GLOBAL_LONG(globals.sfree_chunks_num);
+		salloc_chunks_num=GET_GLOBAL_LONG(globals.salloc_chunks_num);
 	
-	sfree_chunks_list=GET_GLOBAL_PTR(globals.sfree_chunks_list);
-	salloc_chunks_list=GET_GLOBAL_PTR(globals.salloc_chunks_list);
-	sfree_chunks_num=GET_GLOBAL_LONG(globals.sfree_chunks_num);
-	salloc_chunks_num=GET_GLOBAL_LONG(globals.salloc_chunks_num);
-	/*
-	if (GET_STACK_CHAR(give_entire_chunk)==0)
-	{
+		if (GET_STACK_CHAR(give_entire_chunk)==0)
+		{
+			printf("Checking chunk..\n");
+			sprint_chunk(GET_STACK_PTR(new_meta));
+			scheck_chunk(GET_STACK_PTR(new_meta),1);
+		}
 		printf("Checking chunk..\n");
-		sprint_chunk(GET_STACK_PTR(new_meta));
-		scheck_chunk(GET_STACK_PTR(new_meta),1);
-	}
-	printf("Checking chunk..\n");
-	sprint_chunk(GET_STACK_PTR(chunk_found));
-	scheck_chunk(GET_STACK_PTR(chunk_found),2);
-	*/
-	scheck_free_list_consistency(2);
-	scheck_alloc_list_consistency(2);
-	
+		sprint_chunk(GET_STACK_PTR(chunk_found));
+		scheck_chunk(GET_STACK_PTR(chunk_found),2);
+		*/
+		scheck_free_list_consistency(2);
+		scheck_alloc_list_consistency(2);
+	#endif
 	//return the start of the useful data
 	//return ((unsigned char*) chunk_found + size_in_bytes_for_sheap_metadata);
 	RETURN_POINT_OF_FUNCTION: smalloc
@@ -1134,24 +1135,24 @@ void sfree_memory(void * ptr)
 	
 	//checking calls
 	//before that, let's set the unsecure globals with the secure values since the checking functions work with them
-	
-	sfree_chunks_list=GET_GLOBAL_PTR(globals.sfree_chunks_list);
-	salloc_chunks_list=GET_GLOBAL_PTR(globals.salloc_chunks_list);
-	sfree_chunks_num=GET_GLOBAL_LONG(globals.sfree_chunks_num);
-	salloc_chunks_num=GET_GLOBAL_LONG(globals.salloc_chunks_num);
-	/*
-	if (GET_STACK_CHAR(merge_next) && !GET_STACK_CHAR(merge_prev))
-	{
-	printf("Checking chunk..\n");
-	sprint_chunk(GET_STACK_PTR(chunk_meta));
-	scheck_chunk(GET_STACK_PTR(chunk_meta),1);
-	printf("checked chunk.\n");
-	}
-	*/
-	//printf("merge next=%d,merge prev=%d\n",GET_STACK_CHAR(merge_next),GET_STACK_CHAR(merge_prev));
-	scheck_free_list_consistency(1);
-	scheck_alloc_list_consistency(1);
-	
+	#if 0
+		sfree_chunks_list=GET_GLOBAL_PTR(globals.sfree_chunks_list);
+		salloc_chunks_list=GET_GLOBAL_PTR(globals.salloc_chunks_list);
+		sfree_chunks_num=GET_GLOBAL_LONG(globals.sfree_chunks_num);
+		salloc_chunks_num=GET_GLOBAL_LONG(globals.salloc_chunks_num);
+		/*
+		if (GET_STACK_CHAR(merge_next) && !GET_STACK_CHAR(merge_prev))
+		{
+		printf("Checking chunk..\n");
+		sprint_chunk(GET_STACK_PTR(chunk_meta));
+		scheck_chunk(GET_STACK_PTR(chunk_meta),1);
+		printf("checked chunk.\n");
+		}
+		*/
+		//printf("merge next=%d,merge prev=%d\n",GET_STACK_CHAR(merge_next),GET_STACK_CHAR(merge_prev));
+		scheck_free_list_consistency(1);
+		scheck_alloc_list_consistency(1);
+	#endif
 	END_OF_FUNCTION: sfree_memory
 
 
