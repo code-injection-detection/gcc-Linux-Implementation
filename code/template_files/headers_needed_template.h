@@ -332,6 +332,8 @@ long sfree_chunks_num;
 long salloc_chunks_num;
 //ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:int
 int size_of_sheap_metadata_in_chunks;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:int || EXTRA_STUFF::: full_type=int
+int testinttest;
 }global_vars;
 
 extern global_vars globals;

@@ -12,7 +12,7 @@ import gc
 from pycparser import parse_file, c_ast, c_parser,c_generator
 from pycparser.plyparser import Coord
 from extra_functions_for_parser_generic import *
-import custom_c_generator
+#import custom_c_generator
 
 
 #initialization of dicts
@@ -117,7 +117,7 @@ def create_dict_for_ptr_variable(subast,**kwargs):
 	dict_to_return["name"]=name_of_decl
 	dict_to_return["type"]=type_of_var
 	dict_to_return["type_of_pointed_elem"]=type_of_pointed_element
-	dict_to_return["size_of_pointed_elem"]=process_var_size_extended(type_of_pointed_element,**kwargs)
+	dict_to_return["size_of_pointed_elem"]=str(process_var_size_extended(type_of_pointed_element,**kwargs))
 	dict_to_return["original_c_decl"]=original_c_lines
 	dict_to_return["init_ast"]=init_ast
 	dict_to_return["size_of_variable"]=str(process_var_size_extended(type_of_var,**kwargs))
@@ -141,22 +141,26 @@ def create_dict_for_array_variable(subast,**kwargs):
 	type_of_var='array'
 	array_element=kwargs["array_element"]
 		
-	#init of arrays is not supported
+	#init of arrays is not supported	
+		
+	#delete the init because we want to recreate the global lines without it
+	original_c_lines=get_original_C_lines_of_a_dict(decl_ast)
 	#save the dimension of the array
 	dim_ast=copy.deepcopy(kwargs["array_dimension"])
 	#check if dimension is an integer
 	sz_of_array=get_original_C_lines_of_a_dict(dim_ast)
-	if (RepresentsInt(sz_of_array) and process_var_size_extended(array_element,**kwargs)!="variable_size"): #dimension is int and type of var has constant size
-		size_of_array=str(process_var_size_extended(array_element,**kwargs)*int(sz_of_array))
+	if (RepresentsInt(sz_of_array) and str(process_var_size_extended(array_element,**kwargs))!="variable_size"): #dimension is int and type of var has constant size
+		size_of_array=str(int(process_var_size_extended(array_element,**kwargs))*int(sz_of_array))
 	else:
 		size_of_array="variable_size"
 	#create the dict (some parts of it have been initialized)
 	dict_to_return["name"]=name_of_decl
 	dict_to_return["type"]=type_of_var
 	dict_to_return["type_of_array_elem"]=array_element
-	dict_to_return["size_of_array_elem"]=process_var_size_extended(array_element,**kwargs)
+	dict_to_return["size_of_array_elem"]=str(process_var_size_extended(array_element,**kwargs))
 	dict_to_return["size_of_array"]=size_of_array
 	dict_to_return["dimension_ast"]=copy.deepcopy(dim_ast)
+	dict_to_return["original_c_decl"]=original_c_lines
 	dict_to_return["init_ast"]=init_ast
 	dict_to_return["size_of_variable"]=size_of_array
 	dict_to_return["full_type"]=kwargs["full_type"]
@@ -179,12 +183,15 @@ def create_dict_for_struct_variable(subast,**kwargs):
 	name_of_decl=kwargs["name_of_decl"]
 	type_of_var='struct'
 	#init of structs is not supported
+	
+	original_c_lines=get_original_C_lines_of_a_dict(decl_ast)
 
 	dict_to_return={}
 	dict_to_return["name"]=name_of_decl
 	dict_to_return["type"]=type_of_var
 	dict_to_return["name_of_type_of_struct"]=name_of_struct
 	dict_to_return["full_type"]=kwargs["full_type"]
+	dict_to_return["original_c_decl"]=original_c_lines
 	
 	return dict_to_return
 	
@@ -208,6 +215,7 @@ def add_normal_global_variable(subast,**kwargs):
 	globals_dict["simple_vars"][name_of_typedecl]={}
 	globals_dict["simple_vars"][name_of_typedecl]["name"]=name_of_typedecl
 	globals_dict["simple_vars"][name_of_typedecl]["type"]=type_of_var
+	globals_dict["simple_vars"][name_of_typedecl]['size_of_variable']=str(process_var_size_extended(type_of_var,**kwargs))
 	globals_dict["simple_vars"][name_of_typedecl]["order_of_decl"]=globals_dict["global_decl_order"]
 	globals_dict["global_decl_order"]=globals_dict["global_decl_order"]+1
 	globals_dict["simple_vars"][name_of_typedecl]["original_c_decl"]=original_c_lines_for_global
@@ -241,8 +249,9 @@ def add_normal_global_ptrvariable(subast,**kwargs):
 	globals_dict["simple_vars"][name_of_decl]={}
 	globals_dict["simple_vars"][name_of_decl]["name"]=name_of_decl
 	globals_dict["simple_vars"][name_of_decl]["type"]=type_of_var
+	globals_dict["simple_vars"][name_of_typedecl]['size_of_variable']=str(process_var_size_extended(type_of_var,**kwargs))
 	globals_dict["simple_vars"][name_of_decl]["type_of_pointed_elem"]=type_of_pointed_element
-	globals_dict["simple_vars"][name_of_decl]["size_of_pointed_elem"]=process_var_size_extended(type_of_pointed_element,**kwargs)
+	globals_dict["simple_vars"][name_of_decl]["size_of_pointed_elem"]=str(process_var_size_extended(type_of_pointed_element,**kwargs))
 	globals_dict["simple_vars"][name_of_decl]["order_of_decl"]=globals_dict["global_decl_order"]
 	globals_dict["global_decl_order"]=globals_dict["global_decl_order"]+1
 	globals_dict["simple_vars"][name_of_decl]["original_c_decl"]=original_c_lines_for_global
@@ -269,12 +278,13 @@ def add_global_array_variable(subast,**kwargs):
 	name_of_decl=kwargs["name_of_decl"]
 	type_of_var='array'
 	#init of arrays is not supported
+	original_c_lines_for_global=get_original_C_lines_of_a_dict(decl_ast)
 	#save the dimension of the array
 	dim_ast=copy.deepcopy(item["dim"])
 	#check if dimension is an integer
 	sz_of_array=get_original_C_lines_of_a_dict(dim_ast)
-	if (RepresentsInt(sz_of_array) and process_var_size_extended(array_element,**kwargs)!="variable_size"): #dimension is int and type of var has constant size
-		size_of_array=str(process_var_size_extended(array_element,**kwargs)*int(sz_of_array))
+	if (RepresentsInt(sz_of_array) and str(process_var_size_extended(array_element,**kwargs))!="variable_size"): #dimension is int and type of var has constant size
+		size_of_array=str(int(process_var_size_extended(array_element,**kwargs))*int(sz_of_array))
 	else:
 		size_of_array="variable_size"
 	#array element check
@@ -284,11 +294,12 @@ def add_global_array_variable(subast,**kwargs):
 	globals_dict["1_dim_arrays"][name_of_decl]["name"]=name_of_decl
 	globals_dict["1_dim_arrays"][name_of_decl]["type"]=type_of_var
 	globals_dict["1_dim_arrays"][name_of_decl]["type_of_array_elem"]=array_element
-	globals_dict["1_dim_arrays"][name_of_decl]["size_of_array_elem"]=process_var_size_extended(array_element,**kwargs)
+	globals_dict["1_dim_arrays"][name_of_decl]["size_of_array_elem"]=str(process_var_size_extended(array_element,**kwargs))
 	globals_dict["1_dim_arrays"][name_of_decl]["size_of_array"]=size_of_array
 	globals_dict["1_dim_arrays"][name_of_decl]["order_of_decl"]=globals_dict["global_decl_order"]
 	globals_dict["global_decl_order"]=globals_dict["global_decl_order"]+1
 	globals_dict["1_dim_arrays"][name_of_decl]["dimension_ast"]=copy.deepcopy(dim_ast)
+	globals_dict["1_dim_arrays"][name_of_decl]['original_c_decl']=original_c_lines_for_global
 	if init_ast!=None:
 		globals_dict["1_dim_arrays"][name_of_decl]["order_of_init"]=globals_dict["global_init_order"]
 		globals_dict["global_init_order"]=globals_dict["global_init_order"]+1
@@ -312,9 +323,12 @@ def add_struct_global_variable(subast,**kwargs):
 	name_of_decl=kwargs["name_of_decl"]
 	type_of_var='struct'
 	#init of structs is not supported
+	
+	original_c_lines_for_global=get_original_C_lines_of_a_dict(decl_ast)
 
 	globals_dict["structs"][name_of_decl]={}
 	globals_dict["structs"][name_of_decl]["name"]=name_of_decl
 	globals_dict["structs"][name_of_decl]["type"]=type_of_var
 	globals_dict["structs"][name_of_decl]["name_of_type_of_struct"]=name_of_struct
 	globals_dict["structs"][name_of_decl]["full_type"]=kwargs["full_type"]
+	globals_dict["structs"][name_of_decl]["original_c_decl"]=original_c_lines_for_global

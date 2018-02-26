@@ -25,6 +25,12 @@ long secured_sum;
 }global_vars;
 '''
 
+'''
+The general way of a global variable should be
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:int |<obsolete part>| EXTRA_STUFF: stuff1=info1,stuff2=info2, etc
+int secured_i;
+'''
+
 #This script parses the global declaration, puts the keys/macs among them and initializes the struct with the global variables
 
 
@@ -99,7 +105,15 @@ def process_var_type(var_type):
 		return ''
 	else:
 		return str(var_type)
-		
+	
+def RepresentsInt(s):
+    try: 
+        int(s)
+        return True
+    except ValueError:
+        return False
+        
+        	
 #returns the variable size, depending on the type. 
 def process_var_size(var_size): #This has to be improved in the future not to have these static values
 	if var_size=='int':
@@ -115,6 +129,8 @@ def process_var_size(var_size): #This has to be improved in the future not to ha
 		return 8
 	if var_size=='float':
 		return 4
+	if RepresentsInt(var_size):
+		return int(var_size)
 	else:
 		print("UNKNOWN VARIABLE SIZE:",var_size)
 
@@ -340,7 +356,7 @@ for fileindex,filein in enumerate(inputfiles):
 			if (len(line.split('|')))>1:
 				var_size=int(process_var_size(line.split('|')[1].split(':')[1].strip().lower()))
 			var_type='normal'
-			if (len(line.split('|')))>2:
+			if (len(line.split('|')))>2 and line.split('|')[2]!='':
 				var_type=line.split('|')[2].split(':')[1].strip().lower()
 			processing_global=1
 			bytes_to_be_maced=[]

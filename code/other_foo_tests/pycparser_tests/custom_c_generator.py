@@ -35,7 +35,7 @@ class CustomCGenerator(object):
 		self.name_of_fun_in_parsing=""
 		
 		#get the semantic data
-		with open('dict_with_semantic_data', 'rb') as f:
+		with open('semantic_data', 'rb') as f:
 			semantic_dict=pickle.load(f)
 			self.all_functions_dict=semantic_dict['all_functions_dict']
 			self.typedefs_dict=semantic_dict['typedefs_dict']
@@ -102,6 +102,7 @@ class CustomCGenerator(object):
 		use_setter=kwargs.get("use_setter_param",False)
 		name_of_array=n.name.name
 		is_global=0
+		is_array=1 # might be a malloc'ed pointer which is accessed as array
 		#search in locals
 		(type_of_var,dict_of_array)=self.find_variable_in_fun_and_global_variables(self.name_of_fun_in_parsing,name_of_array)
 		
@@ -117,38 +118,48 @@ class CustomCGenerator(object):
 		
 		if type_of_var_proper=="array":
 			type_of_array_var=dict_of_array['type_of_array_elem']
+			is_array=1
 		else:
 			#it's a pointer that has been malloced and accessed as array?
 			type_of_array_var=dict_of_array['type_of_pointed_elem']
+			is_array=0
 		
+		
+		if (is_var_simple_var(type_of_array_var)==0):
+			print("ERROR: Not yet supported array subscript")
+			print(name_of_array,type_of_var,type_of_array_var)
+			sys.exit(-1)
 		
 		if (use_setter):
 			if (is_global==0):
-				if (is_pointer_created_because_of_array):
-					setter=find_name_of_stack_array_setter(type_of_pointed_var)
+				if (is_array==1): #!!!!important: add support for structs as array elements etc.
+					setter=find_name_of_stack_array_setter(type_of_array_var)
 				else:
 					#it's a pointer and has been malloc'ed
-					setter=find_name_of_sheap_array_setter(type_of_pointed_var)
+					setter=find_name_of_sheap_array_setter(type_of_array_var)
 				#pay attention that we need an extra parenthesis
-				if (type_of_var=='ptr'):
+				if (type_of_var_proper=='ptr'):
 					return "%s( GET_STACK_PTR(%s) , %s " % (setter,name_of_array,self.visit(n.subscript))
 				else:
 					return "%s( %s , %s " % (setter,name_of_array,self.visit(n.subscript))
 			else:
+				#it is a global array, therefore it is replaced with a pointer with the same name
 				#pay attention that we need an extra parenthesis
-				setter=find_name_of_sheap_array_setter(type_of_pointed_var)
+				setter=find_name_of_sheap_array_setter(type_of_array_var)
 				return "%s( GET_GLOBAL_PTR(globals.%s) , %s " % (setter,name_of_array,self.visit(n.subscript))
 		else:
+			#getter
 			if (is_global==1):
-				getter=find_name_of_sheap_array_getter(type_of_pointed_var)
+				#it is a global array, therefore it is replaced with a pointer with the same name
+				getter=find_name_of_sheap_array_getter(type_of_array_var)
 				return "%s( GET_GLOBAL_PTR(globals.%s) , %s )" % (getter,name_of_array,self.visit(n.subscript))
 			else:
-				if (is_pointer_created_because_of_array):
-					getter=find_name_of_stack_array_getter(type_of_pointed_var)
+				if (is_array==1):
+					getter=find_name_of_stack_array_getter(type_of_array_var)
 				else:
 					#it's a pointer and has been malloc'ed
-					getter=find_name_of_sheap_array_getter(type_of_pointed_var)
-				if (type_of_var=='ptr'):
+					getter=find_name_of_sheap_array_getter(type_of_array_var)
+				if (type_of_var_proper=='ptr'):
 					return "%s( GET_STACK_PTR(%s) , %s )" % (getter,name_of_array,self.visit(n.subscript))
 				else:
 					return "%s( %s , %s )" % (getter,name_of_array,self.visit(n.subscript))
@@ -707,5 +718,46 @@ class CustomCGenerator(object):
 				return (type_in_globals,dict_of_var)
 		else:
 			return (type_in_fun_vars,dict_of_var)
+			
+			
+	def give_global_definition(self):
+		#create the way the globals should be declared
+		#that is, they should be given in an annotated way
+		#the variables that are structs
+		'''
+		The general way of a global variable should be
+		//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:int |<obsolete part>| EXTRA_STUFF::: stuff1=info1,stuff2=info2, etc
+		int secured_i;
+		'''
+		globals_dict=self.globals_dict
+		global_def=''
+		max_global_decl_num=globals_dict['global_decl_order']
+		for declared_var_order in range(1,max_global_decl_num):
+			(var_type,dict_of_var)=find_variable_with_certain_global_order(declared_var_order,'order_of_decl',globals_dict)
+			name_of_var=dict_of_var['name']
+			original_c_decl=dict_of_var['original_c_decl']
+			s=''
+			if var_type=='simple_var':
+				#!!!attention: add support for typedefs etc!
+				s+='//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:'+dict_of_var['type']
+				s+='|| EXTRA_STUFF::: full_type='+dict_of_var['full_type']
+				s+='\n'
+				s+=original_c_decl+';\n'
+			if var_type=="array":
+				type_of_array_elem=dict_of_var['type_of_array_elem']
+				s+='//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE: ptr' 
+				s+='|| EXTRA_STUFF::: is_created_because_of=array, type_of_array_element='+dict_of_var['type_of_array_elem']+', full_type='+dict_of_var['full_type']
+				s+='\n'
+				type_of_array_elem_in_c_decl=original_c_decl.split(name_of_var)[0]
+				s+=type_of_array_elem_in_c_decl+' '+name_of_var+';\n'
+			if var_type=='struct':
+				s+='//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE: ptr' 
+				s+='|| EXTRA_STUFF::: is_created_because_of=struct, name_of_struct='+dict_of_var['name_of_type_of_struct']+', full_type='+dict_of_var['full_type']
+				s+='\n'
+				type_of_struct_elem_in_c_decl=original_c_decl.split(name_of_var)[0]
+				s+=type_of_struct_elem_in_c_decl+' '+name_of_var+';\n'
+				
+			global_def+=s
+		return global_def
 			
 	

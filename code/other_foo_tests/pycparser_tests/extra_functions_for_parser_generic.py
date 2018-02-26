@@ -10,7 +10,7 @@ import gc
 
 from pycparser import parse_file, c_ast, c_parser,c_generator
 from pycparser.plyparser import Coord
-import custom_c_generator
+#import custom_c_generator
 
 
 def print_dicts(info,**kwargs):
@@ -187,7 +187,7 @@ def identify_type(type_of_param,**kwargs):
 	if '*' in type_of_param:
 		return 'ptr'
 	if '[' in type_of_param and ']' in type_of_param:
-		return 'arb_ptr' #hmmm... I do not like it
+		return 'array' #hmmm... I do not like it
 	if 'long double' in type_of_param: #pay attention in the order. long double is forbidden
 		sys.stderr.write('ERROR. long double param given.\n')
 		exit(-1)
@@ -207,10 +207,20 @@ def identify_type(type_of_param,**kwargs):
 		return 'ptr'
 	if type_of_param=="struct":
 		return "struct"
-	if (type_of_param in kwargs["typedefs_dict"]["typedefs"]):
+	if (('typedefs_dict' in kwargs) and (type_of_param in kwargs["typedefs_dict"]["typedefs"])):
 		return "typedefed++++++++++"+type_of_param
 	#below this point no types have been identified
 	print("ERROR: Unidentified type")
+	
+	
+def is_var_simple_var(type_of_var):
+	id_type=identify_type(type_of_var)
+	#simple vars only
+	if id_type in ['int','char','ptr','long','float','double']:
+		return True
+	else:
+		return False
+	
 		
 def process_var_size(var_size): #This has to be improved in the future
 	if var_size=='int':
@@ -247,6 +257,8 @@ def process_var_size_extended(var_type,**kwargs): #supports more possible types
 		if (type_of_typedef=="struct"): #only that supported right now, !!!!extend
 			struct_that_is_typedefed=typedefs_dict["typedefs"][name_of_typedef]["struct_that_is_typedefed"]
 			return process_var_size_extended("struct++++++++++name:"+struct_that_is_typedefed,**kwargs)
+	if RepresentsInt(var_type):
+		return int(var_type)	
 		#!!!!!!!!! sos extend
 		#get its size from the kwargs
 		#...
@@ -292,12 +304,23 @@ def get_original_lines_in_C_of_ext_object(name_of_object,type_of_obj,ast_dict):
 	
 	
 def get_original_C_lines_of_a_dict(dict_in):
-	ast_in=from_dict(dict_in)
+	ast_in=from_dict(copy.deepcopy(dict_in))
 	generator = c_generator.CGenerator() #that's the proper (pycparser) generator, not our custom
 	original_c_lines=generator.visit(ast_in)
 	return (original_c_lines)
 
 
+def find_variable_with_certain_global_order(global_order,str_for_type_of_order,globals_dict):
+	#search in the global vars
+	for var in globals_dict['simple_vars']:
+		if globals_dict['simple_vars'][var][str_for_type_of_order]==global_order:
+			return('simple_var',globals_dict['simple_vars'][var])
+	for var in globals_dict['1_dim_arrays']:
+		if globals_dict['1_dim_arrays'][var][str_for_type_of_order]==global_order:
+			return('array',globals_dict['1_dim_arrays'][var])
+	for var in globals_dict['structs']:
+		if globals_dict['structs'][var][str_for_type_of_order]==global_order:
+			return('struct',globals_dict['structs'][var])
 
 
 

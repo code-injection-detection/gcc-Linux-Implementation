@@ -13,6 +13,7 @@ from pycparser.plyparser import Coord
 from extra_functions_for_parser_generic import *
 from dict_operations_of_parser_generic import *
 from travel_ast_functions_generic import *
+import custom_c_generator
 
 RE_CHILD_ARRAY = re.compile(r'(.*)\[(.*)\]')
 RE_INTERNAL_ATTR = re.compile('__.*__')
@@ -61,7 +62,10 @@ dict_with_semantic_data={"typedefs_dict": typedefs_dict, "globals_dict": globals
 							 
 							 
 #store the semantic data in the file 
-pickle.dump( dict_with_semantic_data, open( "semantic_data", "wb" ) )				 
+pickle.dump( dict_with_semantic_data, open( "semantic_data", "wb" ) )				
+
+cgen=custom_c_generator.CustomCGenerator()
+print(cgen.give_global_definition())
 
 
 	

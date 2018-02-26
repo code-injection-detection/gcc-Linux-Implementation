@@ -12,7 +12,7 @@ from pycparser import parse_file, c_ast, c_parser,c_generator
 from pycparser.plyparser import Coord
 from extra_functions_for_parser_generic import *
 from dict_operations_of_parser_generic import *
-import custom_c_generator
+#import custom_c_generator
 
 
 def identify_typedecl(subast,**kwargs):
