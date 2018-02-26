@@ -332,3 +332,5 @@ def add_struct_global_variable(subast,**kwargs):
 	globals_dict["structs"][name_of_decl]["name_of_type_of_struct"]=name_of_struct
 	globals_dict["structs"][name_of_decl]["full_type"]=kwargs["full_type"]
 	globals_dict["structs"][name_of_decl]["original_c_decl"]=original_c_lines_for_global
+	globals_dict["structs"][name_of_decl]["order_of_decl"]=globals_dict["global_decl_order"]
+	globals_dict["global_decl_order"]=globals_dict["global_decl_order"]+1
