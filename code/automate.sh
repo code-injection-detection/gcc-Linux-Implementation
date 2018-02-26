@@ -40,7 +40,7 @@ OVERHEAD_OF_VERIFICATION=7 #7 for fixed size, 14 for variable size (obsolete)
 USING_LARGE_JMPS_AND_CODE_BLOCKS_WITH_3_WORLDS=1 #using the new implementation which restricts the variables that we have. The worlds are: no macs, ignoring macs, splitting and caching like secure cpu would
 VERIFY_EVERYTHING=1 #the third world
 USE_NEW_SECURE_HEAP=2 # use the new secure heap implementation. 1-> use it, but do not use the secured global variables for its position/size etc. 2-> use it, with the secured global variables
-STACK_SHOULD_GROW_TO_DECREASING_NUMBERS=0 #IMPORTANT: 1 DOES NOT WORK YET. if 1, the "push" command in the stack should make the stack pointer decrease in number (as stack normally behaves)
+STACK_SHOULD_GROW_TO_DECREASING_NUMBERS=0 #IMPORTANT: 1 DOES NOT WORK YET. Search for bug in "return_addr_after_allocating", both in old and new templates. if 1, the "push" command in the stack should make the stack pointer decrease in number (as stack normally behaves)
 
 #usage
 if [[ ( "$#" -ne 9 ) ]]; then
