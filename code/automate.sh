@@ -40,7 +40,7 @@ OVERHEAD_OF_VERIFICATION=7 #7 for fixed size, 14 for variable size (obsolete)
 USING_LARGE_JMPS_AND_CODE_BLOCKS_WITH_3_WORLDS=1 #using the new implementation which restricts the variables that we have. The worlds are: no macs, ignoring macs, splitting and caching like secure cpu would
 VERIFY_EVERYTHING=1 #the third world
 USE_NEW_SECURE_HEAP=2 # use the new secure heap implementation. 1-> use it, but do not use the secured global variables for its position/size etc. 2-> use it, with the secured global variables
-STACK_SHOULD_GROW_TO_DECREASING_NUMBERS=0 #if 1, the "push" command in the stack should make the stack pointer decrease in number (as stack normally behaves)
+STACK_SHOULD_GROW_TO_DECREASING_NUMBERS=0 #IMPORTANT: 1 DOES NOT WORK YET. if 1, the "push" command in the stack should make the stack pointer decrease in number (as stack normally behaves)
 
 #usage
 if [[ ( "$#" -ne 9 ) ]]; then
@@ -260,11 +260,11 @@ echo "Inserted secure heap manager + more tests into the great function that con
 
 if [ "$INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS" == "0" ]; then
 	#we now insert the code that manipulates the secure stack
-	python3 insert_new_stack_commands.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_MAC_BYTES
+	python3 insert_new_stack_commands.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_MAC_BYTES $STACK_SHOULD_GROW_TO_DECREASING_NUMBERS
 fi
 if [ "$INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS" == "1" ]; then
 	#we now insert the code that manipulates the secure stack
-	python3 insert_new_stack_commands_groups_of_vars_as_arrays.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_MAC_BYTES
+	python3 insert_new_stack_commands_groups_of_vars_as_arrays.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_MAC_BYTES $STACK_SHOULD_GROW_TO_DECREASING_NUMBERS
 fi
 echo "Changed defines."
 

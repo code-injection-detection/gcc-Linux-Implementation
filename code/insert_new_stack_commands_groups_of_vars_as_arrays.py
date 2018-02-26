@@ -31,6 +31,7 @@ tests_dst=open('tests_with_new_stack.c','w')
 number_of_stack_key_bytes=int(sys.argv[1])
 number_of_stack_useful_data_bytes=int(sys.argv[2])
 number_of_mac_bytes=int(sys.argv[3])
+stack_grows_by_decreasing_numbers=int(sys.argv[4])
 
 
 def process_var_size(var_size): #This has to be improved in the future
@@ -237,6 +238,7 @@ def add_code_for_function_calling(fun_name,write_to,params,use_secure_stack_sett
 	num_of_times_called_in_code=fun_dict['num_of_times_called_in_code']
 	params_cnt=0
 	offset_for_params_in_chunks=0
+	all_chunks_of_fun=str(int(chunks_for_params)+int(chunks_for_local_vars)+int(chunks_for_return_value)+int(chunks_for_base_pointer)+int(chunks_for_return_address))
 	
 
 	lines_to_append=[]
@@ -283,10 +285,17 @@ def add_code_for_function_calling(fun_name,write_to,params,use_secure_stack_sett
 		name_of_getter=find_name_of_getter(fun_dict['return_value_type'],0)
 		if (use_secure_stack_setter_for_result):
 			name_of_setter=given_setter_to_use_to_write_retval
-			lines_to_append.append(name_of_setter+'('+write_to+','+name_of_getter+'(last_unused_stack_memory+('+chunks_for_params+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)));\n')
+			if (stack_grows_by_decreasing_numbers==0):
+				lines_to_append.append(name_of_setter+'('+write_to+','+name_of_getter+'(last_unused_stack_memory+('+chunks_for_params+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)));\n')
+			else:
+				#now last_unused_stack_memory is above the position we need to access
+				lines_to_append.append(name_of_setter+'('+write_to+','+name_of_getter+'(last_unused_stack_memory-('+all_chunks_of_fun+'-'+chunks_for_params+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)));\n')
 		else:	
 			#now using last_unused_stack_memory (the stack pointer), and not returned_addr_after_allocating, since it might have changed after the call
-			lines_to_append.append(write_to+'='+name_of_getter+'(last_unused_stack_memory+('+chunks_for_params+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
+			if (stack_grows_by_decreasing_numbers==0):
+				lines_to_append.append(write_to+'='+name_of_getter+'(last_unused_stack_memory+('+chunks_for_params+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
+			else:
+				lines_to_append.append(write_to+'='+name_of_getter+'(last_unused_stack_memory-('+all_chunks_of_fun+'-'+chunks_for_params+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
 	for line in lines_to_append:
 		dst_lines.append(line)
 
@@ -309,6 +318,7 @@ def add_code_for_function_calling_new_template(function_name,helping_args_for_fu
 	num_of_times_called_in_code=fun_dict['num_of_times_called_in_code']
 	params_cnt=0
 	offset_for_params_in_chunks=0
+	all_chunks_of_fun=str(int(chunks_for_params)+int(chunks_for_local_vars)+int(chunks_for_return_value)+int(chunks_for_base_pointer)+int(chunks_for_return_address))
 	
 	#every variable must be different, since we might nest function calls
 	return_addr_for_allocation_ctr+=1
@@ -363,7 +373,10 @@ def add_code_for_function_calling_new_template(function_name,helping_args_for_fu
 	#add return label
 	lines_to_append.append('return_label_'+fun_name+'_no_'+num_of_times_called_in_code+':\n ;')
 	#return value
-	start_of_return_place='last_unused_stack_memory+('+chunks_for_params+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
+	if (stack_grows_by_decreasing_numbers==0):
+		start_of_return_place='last_unused_stack_memory+('+chunks_for_params+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
+	else: 
+		start_of_return_place='last_unused_stack_memory-('+all_chunks_of_fun+'-'+chunks_for_params+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
 	if (fun_dict['return_value_type']!='' and fun_dict['return_value_type'].lower()!='none' and fun_dict['return_value_type'].lower!='null'):
 		getter_name=find_name_of_getter(fun_dict['return_value_type'],0)
 		lines_to_append.append(getter_name+'(('+start_of_return_place+'));\n')
@@ -450,7 +463,10 @@ def add_the_function_footer(bool_for_undef):
 		lines_to_append.append('free_mem_from_secure_stack_in_chunks('+function_dict['chunks_in_stack']+');\n')
 	else:
 		#place the stack pointer into its position right after the local vars
-		lines_to_append.append('last_unused_stack_memory=temp_base_pointer+('+str(int(chunks_for_base_pointer)+int(chunks_for_local_vars))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data);\n')
+		if (stack_grows_by_decreasing_numbers==0):
+			lines_to_append.append('last_unused_stack_memory=temp_base_pointer+('+str(int(chunks_for_base_pointer)+int(chunks_for_local_vars))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data);\n')
+		else:
+			lines_to_append.append('last_unused_stack_memory=temp_base_pointer-('+str(int(chunks_for_base_pointer)+int(chunks_for_local_vars))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data);\n')
 		lines_to_append.append('free_mem_from_secure_stack_in_chunks('+function_dict['chunks_in_stack']+');\n')
 	if(bool_for_undef):
 		#undef
