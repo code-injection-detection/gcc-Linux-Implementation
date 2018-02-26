@@ -123,7 +123,7 @@ unsigned char * init_stack_mem()
   #if stack_should_grow_to_decreasing_numbers==0
 	last_unused_stack_memory=stack_mem;
   #else
-	last_unused_stack_memory=stack_mem+total_stack_bytes_allocated;
+	last_unused_stack_memory=stack_mem+total_stack_bytes_allocated;//-1000*(stack_bytes_for_useful_data+stack_bytes_used_for_keyshares+number_of_mac_bytes);
   #endif
   fclose(stack_keyshare_input_file);
    

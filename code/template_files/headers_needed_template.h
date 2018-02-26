@@ -215,7 +215,7 @@
 
 #ifndef use_new_secure_heap
 #define use_new_secure_heap 0
-#endif				//third world
+#endif				 //should we use the new secure heap? 1-> use it, but do not use the secured global variables for its position/size etc. 2-> use it, with the secured global variables
 
 
 #ifndef check_for_secure_stack_allocation_overflow
