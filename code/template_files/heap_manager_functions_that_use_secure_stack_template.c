@@ -585,7 +585,7 @@ unsigned char * smalloc(long bytes_asked_to_allocate)
 	set_sheap_meta_previous(GET_STACK_PTR(chunk_found),NULL);
 	
 	
-	#if 0
+	//#if 0
 		//checking calls
 		//before that, let's set the unsecure globals with the secure values since the checking functions work with them
 		
@@ -593,7 +593,7 @@ unsigned char * smalloc(long bytes_asked_to_allocate)
 		salloc_chunks_list=GET_GLOBAL_PTR(globals.salloc_chunks_list);
 		sfree_chunks_num=GET_GLOBAL_LONG(globals.sfree_chunks_num);
 		salloc_chunks_num=GET_GLOBAL_LONG(globals.salloc_chunks_num);
-	
+		/*
 		if (GET_STACK_CHAR(give_entire_chunk)==0)
 		{
 			printf("Checking chunk..\n");
@@ -606,7 +606,7 @@ unsigned char * smalloc(long bytes_asked_to_allocate)
 		*/
 		scheck_free_list_consistency(2);
 		scheck_alloc_list_consistency(2);
-	#endif
+	//#endif
 	//return the start of the useful data
 	//return ((unsigned char*) chunk_found + size_in_bytes_for_sheap_metadata);
 	RETURN_POINT_OF_FUNCTION: smalloc
@@ -885,7 +885,7 @@ void sfree_memory(void * ptr)
 		}
 	}
 	
-	/*
+
 	//checking calls
 	if (merge_next && !merge_prev)
 	{
@@ -894,7 +894,7 @@ void sfree_memory(void * ptr)
 	scheck_chunk(chunk_meta,1);
 	printf("checked chunk.\n");
 	}
-	*/
+	
 	//printf("merge next=%d,merge prev=%d\n",merge_next,merge_prev);
 	//scheck_free_list_consistency(1);
 	//scheck_alloc_list_consistency(1);
@@ -1135,7 +1135,7 @@ void sfree_memory(void * ptr)
 	
 	//checking calls
 	//before that, let's set the unsecure globals with the secure values since the checking functions work with them
-	#if 0
+	//#if 0
 		sfree_chunks_list=GET_GLOBAL_PTR(globals.sfree_chunks_list);
 		salloc_chunks_list=GET_GLOBAL_PTR(globals.salloc_chunks_list);
 		sfree_chunks_num=GET_GLOBAL_LONG(globals.sfree_chunks_num);
@@ -1152,7 +1152,7 @@ void sfree_memory(void * ptr)
 		//printf("merge next=%d,merge prev=%d\n",GET_STACK_CHAR(merge_next),GET_STACK_CHAR(merge_prev));
 		scheck_free_list_consistency(1);
 		scheck_alloc_list_consistency(1);
-	#endif
+	//#endif
 	END_OF_FUNCTION: sfree_memory
 
 
