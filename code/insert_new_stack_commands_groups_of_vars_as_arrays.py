@@ -33,6 +33,14 @@ number_of_stack_useful_data_bytes=int(sys.argv[2])
 number_of_mac_bytes=int(sys.argv[3])
 stack_grows_by_decreasing_numbers=int(sys.argv[4])
 
+stack_dec_num=0
+if (stack_grows_by_decreasing_numbers==1):
+	stack_dec_num=1
+	
+op_to_move_in_stack='+'
+if stack_dec_num==1:
+	op_to_move_in_stack='-'
+
 
 def process_var_size(var_size): #This has to be improved in the future
 	if var_size=='int':
