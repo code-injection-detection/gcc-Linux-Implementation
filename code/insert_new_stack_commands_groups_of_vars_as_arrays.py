@@ -354,7 +354,10 @@ def add_code_for_function_calling_new_template(function_name,helping_args_for_fu
 	#initialize parameters
 	lines_to_append.append(' \n')
 	#return address
-	lines_to_append.append('set_stack_pointer('+ret_addr_alloc+'+('+chunks_for_params+'+'+chunks_for_return_value+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data), &&return_label_'+fun_name+'_no_'+num_of_times_called_in_code+');\n')
+	if stack_dec_num==0:
+		lines_to_append.append('set_stack_pointer('+ret_addr_alloc+'+('+chunks_for_params+'+'+chunks_for_return_value+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data), &&return_label_'+fun_name+'_no_'+num_of_times_called_in_code+');\n')
+	else:
+		lines_to_append.append('set_stack_pointer('+ret_addr_alloc+'-('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_return_address+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data), &&return_label_'+fun_name+'_no_'+num_of_times_called_in_code+');\n')
 	#set value to the parameters
 	for type_of_var in ['char','int','long','float','double','ptr']: #in that order!
 		num_of_var=int(fun_dict['params'][type_of_var]['number'])
@@ -375,7 +378,10 @@ def add_code_for_function_calling_new_template(function_name,helping_args_for_fu
 				if(value_of_var.lower()=='null'):
 					value_of_var='0'
 				lines_to_append.append(''+array_of_params_for_type_and_fun_name+'['+str(i)+']='+value_of_var+';\n')
-			lines_to_append.append('insert_data_into_stack_mem('+size_of_array_for_array_fun_params+',(unsigned char*)'+array_of_params_for_type_and_fun_name+',(unsigned char*)'+ret_addr_alloc+'+('+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
+			if stack_dec_num==0:
+				lines_to_append.append('insert_data_into_stack_mem('+size_of_array_for_array_fun_params+',(unsigned char*)'+array_of_params_for_type_and_fun_name+',(unsigned char*)'+ret_addr_alloc+'+('+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
+			else:
+				lines_to_append.append('insert_data_into_stack_mem('+size_of_array_for_array_fun_params+',(unsigned char*)'+array_of_params_for_type_and_fun_name+',(unsigned char*)'+ret_addr_alloc+'-('+chunks_for_params+'-'+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
 		offset_for_params_in_chunks+=int(fun_dict['chunks_for_'+type_of_var+'_params'])
 
 	#same for the arbitrary pointers
@@ -383,13 +389,19 @@ def add_code_for_function_calling_new_template(function_name,helping_args_for_fu
 	for i in range(num_of_var):
 		size_of_arb_ptr_data=fun_dict['params']['arb_ptr']['sizes'][i] #has to be an int, python doesn't know "sizeof()"
 		if (params[params_cnt]!='NULL' and params[params_cnt]!='0'):
-			lines_to_append.append('insert_data_into_stack_mem('+size_of_arb_ptr_data+','+params[params_cnt]+','+ret_addr_alloc+'+('+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
+			if stack_dec_num==0:
+				lines_to_append.append('insert_data_into_stack_mem('+size_of_arb_ptr_data+','+params[params_cnt]+','+ret_addr_alloc+'+('+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
+			else:
+				lines_to_append.append('insert_data_into_stack_mem('+size_of_arb_ptr_data+','+params[params_cnt]+','+ret_addr_alloc+'-('+chunks_for_params+'-'+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
 		params_cnt+=1
 		offset_for_params_in_chunks+=calculate_chunks_needed_for_a_size(int(size_of_arb_ptr_data))
 	#base pointer
-	lines_to_append.append('set_stack_pointer('+ret_addr_alloc+'+('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_return_address+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data),base_pointer_for_stack);\n')
-	lines_to_append.append('base_pointer_for_stack='+ret_addr_alloc+'+('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_return_address+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data);\n')
-	
+	if stack_dec_num==0:
+		lines_to_append.append('set_stack_pointer('+ret_addr_alloc+'+('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_return_address+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data),base_pointer_for_stack);\n')
+		lines_to_append.append('base_pointer_for_stack='+ret_addr_alloc+'+('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_return_address+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data);\n')
+	else:
+		lines_to_append.append('set_stack_pointer('+ret_addr_alloc+'-('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_return_address+'+'+chunks_for_base_pointer+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data),base_pointer_for_stack);\n')
+		lines_to_append.append('base_pointer_for_stack='+ret_addr_alloc+'-('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_return_address+'+'+chunks_for_base_pointer+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data);\n')	
 	#add goto to the function code
 	lines_to_append.append('goto '+fun_name+'_start_label;\n')
 	#add return label
@@ -398,7 +410,7 @@ def add_code_for_function_calling_new_template(function_name,helping_args_for_fu
 	if (stack_grows_by_decreasing_numbers==0):
 		start_of_return_place='last_unused_stack_memory+('+chunks_for_params+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
 	else: 
-		start_of_return_place='last_unused_stack_memory-('+all_chunks_of_fun+'-'+chunks_for_params+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
+		start_of_return_place='last_unused_stack_memory-('+chunks_for_params+'+'+chunks_for_return_value+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
 	if (fun_dict['return_value_type']!='' and fun_dict['return_value_type'].lower()!='none' and fun_dict['return_value_type'].lower!='null'):
 		getter_name=find_name_of_getter(fun_dict['return_value_type'],0)
 		lines_to_append.append(getter_name+'(('+start_of_return_place+'));\n')
