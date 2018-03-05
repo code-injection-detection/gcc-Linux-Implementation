@@ -252,7 +252,10 @@ def add_code_for_function_calling(fun_name,write_to,params,use_secure_stack_sett
 	#initialize parameters
 	lines_to_append.append(' \n')
 	#return address
-	lines_to_append.append('set_stack_pointer(returned_addr_after_allocating+('+chunks_for_params+'+'+chunks_for_return_value+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data), &&return_label_'+fun_name+'_no_'+num_of_times_called_in_code+');\n')
+	if (stack_dec_num==0):
+		lines_to_append.append('set_stack_pointer(returned_addr_after_allocating+('+chunks_for_params+'+'+chunks_for_return_value+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data), &&return_label_'+fun_name+'_no_'+num_of_times_called_in_code+');\n')
+	else:
+		lines_to_append.append('set_stack_pointer(returned_addr_after_allocating-('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_return_address+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data), &&return_label_'+fun_name+'_no_'+num_of_times_called_in_code+');\n')
 	#set value to the parameters
 	for type_of_var in ['char','int','long','float','double','ptr']: #in that order!
 		num_of_var=int(fun_dict['params'][type_of_var]['number'])
@@ -263,8 +266,11 @@ def add_code_for_function_calling(fun_name,write_to,params,use_secure_stack_sett
 			if(value_of_var.lower()=='null'):
 				value_of_var='0'
 			name_of_setter=find_name_of_setter(type_of_var)
-			lines_to_append.append(name_of_setter+'(returned_addr_after_allocating+('+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data),'+value_of_var+');\n')
-			offset_for_params_in_chunks+=calculate_chunks_needed_for_a_size(process_var_size(type_of_var)) #add value to the offset
+			if (stack_dec_num==0):
+				lines_to_append.append(name_of_setter+'(returned_addr_after_allocating+('+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data),'+value_of_var+');\n')
+				offset_for_params_in_chunks+=calculate_chunks_needed_for_a_size(process_var_size(type_of_var)) #add value to the offset
+			else:
+				
 	#same for the arbitrary pointers
 	num_of_var=int(fun_dict['params']['arb_ptr']['number'])
 	for i in range(num_of_var):

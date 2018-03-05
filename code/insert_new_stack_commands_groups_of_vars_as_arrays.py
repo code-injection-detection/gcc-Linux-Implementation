@@ -257,7 +257,10 @@ def add_code_for_function_calling(fun_name,write_to,params,use_secure_stack_sett
 	#initialize parameters
 	lines_to_append.append(' \n')
 	#return address
-	lines_to_append.append('set_stack_pointer(returned_addr_after_allocating+('+chunks_for_params+'+'+chunks_for_return_value+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data), &&return_label_'+fun_name+'_no_'+num_of_times_called_in_code+');\n')
+	if stack_dec_num==0:
+		lines_to_append.append('set_stack_pointer(returned_addr_after_allocating+('+chunks_for_params+'+'+chunks_for_return_value+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data), &&return_label_'+fun_name+'_no_'+num_of_times_called_in_code+');\n')
+	else:
+		lines_to_append.append('set_stack_pointer(returned_addr_after_allocating-('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_return_address+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data), &&return_label_'+fun_name+'_no_'+num_of_times_called_in_code+');\n')
 	#set value to the parameters
 	for type_of_var in ['char','int','long','float','double','ptr']: #in that order!
 		num_of_var=int(fun_dict['params'][type_of_var]['number'])
@@ -269,7 +272,10 @@ def add_code_for_function_calling(fun_name,write_to,params,use_secure_stack_sett
 				if(value_of_var.lower()=='null'):
 					value_of_var='0'
 				lines_to_append.append('array_for_'+type_of_var+'_fun_'+fun_name+'_params['+str(i)+']='+value_of_var+';\n')
-			lines_to_append.append('insert_data_into_stack_mem(size_of_array_for_array_fun_parameters,(unsigned char*)array_for_'+type_of_var+'_fun_'+fun_name+'_params,(unsigned char*)returned_addr_after_allocating+('+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
+			if stack_dec_num==0:
+				lines_to_append.append('insert_data_into_stack_mem(size_of_array_for_array_fun_parameters,(unsigned char*)array_for_'+type_of_var+'_fun_'+fun_name+'_params,(unsigned char*)returned_addr_after_allocating+('+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
+			else:
+				lines_to_append.append('insert_data_into_stack_mem(size_of_array_for_array_fun_parameters,(unsigned char*)array_for_'+type_of_var+'_fun_'+fun_name+'_params,(unsigned char*)returned_addr_after_allocating-('+chunks_for_params+'-'+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
 		offset_for_params_in_chunks+=int(fun_dict['chunks_for_'+type_of_var+'_params'])
 
 	#same for the arbitrary pointers
@@ -277,12 +283,20 @@ def add_code_for_function_calling(fun_name,write_to,params,use_secure_stack_sett
 	for i in range(num_of_var):
 		size_of_arb_ptr_data=fun_dict['params']['arb_ptr']['sizes'][i] #has to be an int, python doesn't know "sizeof()"
 		if (params[params_cnt]!='NULL' and params[params_cnt]!='0'):
-			lines_to_append.append('insert_data_into_stack_mem('+size_of_arb_ptr_data+','+params[params_cnt]+',returned_addr_after_allocating+('+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
+			if stack_dec_num==0:
+				lines_to_append.append('insert_data_into_stack_mem('+size_of_arb_ptr_data+','+params[params_cnt]+',returned_addr_after_allocating+('+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
+			else:
+				lines_to_append.append('insert_data_into_stack_mem('+size_of_arb_ptr_data+','+params[params_cnt]+',returned_addr_after_allocating-('+chunks_for_params+'-'+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
 		params_cnt+=1
 		offset_for_params_in_chunks+=calculate_chunks_needed_for_a_size(int(size_of_arb_ptr_data))
 	#base pointer
-	lines_to_append.append('set_stack_pointer(returned_addr_after_allocating+('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_return_address+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data),base_pointer_for_stack);\n')
-	lines_to_append.append('base_pointer_for_stack=returned_addr_after_allocating+('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_return_address+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data);\n')
+	if stack_dec_num==0:
+		lines_to_append.append('set_stack_pointer(returned_addr_after_allocating+('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_return_address+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data),base_pointer_for_stack);\n')
+		lines_to_append.append('base_pointer_for_stack=returned_addr_after_allocating+('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_return_address+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data);\n')
+	else:
+		lines_to_append.append('set_stack_pointer(returned_addr_after_allocating-('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_return_address+'+'+chunks_for_base_pointer+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data),base_pointer_for_stack);\n')
+		lines_to_append.append('base_pointer_for_stack=returned_addr_after_allocating-('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_return_address+'+'+chunks_for_base_pointer+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data);\n')
+
 	
 	#add goto to the function code
 	lines_to_append.append('goto '+fun_name+'_start_label;\n')
@@ -297,13 +311,13 @@ def add_code_for_function_calling(fun_name,write_to,params,use_secure_stack_sett
 				lines_to_append.append(name_of_setter+'('+write_to+','+name_of_getter+'(last_unused_stack_memory+('+chunks_for_params+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)));\n')
 			else:
 				#now last_unused_stack_memory is above the position we need to access
-				lines_to_append.append(name_of_setter+'('+write_to+','+name_of_getter+'(last_unused_stack_memory-('+all_chunks_of_fun+'-'+chunks_for_params+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)));\n')
+				lines_to_append.append(name_of_setter+'('+write_to+','+name_of_getter+'(last_unused_stack_memory-('+chunks_for_params+'+'+chunks_for_return_value+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)));\n')
 		else:	
 			#now using last_unused_stack_memory (the stack pointer), and not returned_addr_after_allocating, since it might have changed after the call
 			if (stack_grows_by_decreasing_numbers==0):
 				lines_to_append.append(write_to+'='+name_of_getter+'(last_unused_stack_memory+('+chunks_for_params+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
 			else:
-				lines_to_append.append(write_to+'='+name_of_getter+'(last_unused_stack_memory-('+all_chunks_of_fun+'-'+chunks_for_params+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
+				lines_to_append.append(write_to+'='+name_of_getter+'(last_unused_stack_memory-('+chunks_for_params+'+'+chunks_for_return_value+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
 	for line in lines_to_append:
 		dst_lines.append(line)
 
@@ -410,6 +424,8 @@ def add_the_function_header():
 	
 	#create the proper defines. Practically the addresses relevant to the base pointer
 	start_of_parameters='base_pointer_for_stack-('+str(int(chunks_for_return_address)+int(chunks_for_return_value)+int(chunks_for_params))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
+	if stack_dec_num==1:
+		start_of_parameters='base_pointer_for_stack+('+str(int(chunks_for_return_address)+int(chunks_for_return_value)+int(chunks_for_base_pointer))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
 	#params
 	for type_of_var in ['char','int','long','float','double','ptr']: #in that order!
 		num_of_var=int(function_dict['params'][type_of_var]['number'])
@@ -430,6 +446,8 @@ def add_the_function_header():
 		offset_in_chunks+=calculate_chunks_needed_for_a_size(int(size_of_arb_ptr_data))
 
 	start_of_local_vars='base_pointer_for_stack+('+str(int(chunks_for_base_pointer))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
+	if stack_dec_num==1:
+		start_of_local_vars='base_pointer_for_stack-('+str(int(chunks_for_local_vars))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
 	offset_in_chunks=0
 	#local vars
 	for type_of_var in ['char','int','long','float','double','ptr']: #in that order!
@@ -474,7 +492,7 @@ def add_the_function_footer(bool_for_undef):
 		if (stack_grows_by_decreasing_numbers==0):
 			lines_to_append.append('last_unused_stack_memory=temp_base_pointer+('+str(int(chunks_for_base_pointer)+int(chunks_for_local_vars))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data);\n')
 		else:
-			lines_to_append.append('last_unused_stack_memory=temp_base_pointer-('+str(int(chunks_for_base_pointer)+int(chunks_for_local_vars))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data);\n')
+			lines_to_append.append('last_unused_stack_memory=temp_base_pointer-('+str(int(chunks_for_local_vars))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data);\n')
 		lines_to_append.append('free_mem_from_secure_stack_in_chunks('+function_dict['chunks_in_stack']+');\n')
 	if(bool_for_undef):
 		#undef
@@ -482,7 +500,10 @@ def add_the_function_footer(bool_for_undef):
 			lines_to_append.append('#undef '+i+'\n')
 	#lines_to_append.append('printf("address_of_ret_lab2=%ld\\n",(long)(*(long*)(get_stack_pointer(temp_base_pointer-('+str(int(chunks_for_return_address))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)))));')
 	#add goto return address
-	lines_to_append.append('goto *(get_stack_pointer(temp_base_pointer-('+str(int(chunks_for_return_address))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)));\n')
+	if stack_dec_num==0:
+		lines_to_append.append('goto *(get_stack_pointer(temp_base_pointer-('+str(int(chunks_for_return_address))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)));\n')
+	else:
+		lines_to_append.append('goto *(get_stack_pointer(temp_base_pointer+('+str(int(chunks_for_base_pointer))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)));\n')
 	#writing of the return value is done where the function is being called
 	for line in lines_to_append:
 		dst_lines.append(line)
@@ -501,7 +522,10 @@ def copy_result_to_return_space(line_of_return):
 	chunks_for_return_address=function_dict['chunks_for_return_address']
 	
 	lines_to_append=[]
-	start_of_return_place='base_pointer_for_stack-('+str(int(chunks_for_return_address)+int(chunks_for_return_value))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
+	if stack_dec_num==0:
+		start_of_return_place='base_pointer_for_stack-('+str(int(chunks_for_return_address)+int(chunks_for_return_value))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
+	else:
+		start_of_return_place='base_pointer_for_stack+('+str(int(chunks_for_return_address)+int(chunks_for_base_pointer))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
 	if (function_dict['return_value_type']!='' and function_dict['return_value_type'].lower()!='none' and function_dict['return_value_type'].lower!='null'):
 		setter_name=find_name_of_setter(function_dict['return_value_type'],0)
 		if (str_for_new_ret_exp in line_of_return):
