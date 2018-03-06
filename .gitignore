@@ -47,6 +47,7 @@ secure_executables/
 ast
 ast_of_original_c_code
 semantic_data
+stack_canaries
 comm_file1
 comm_file2
 calc_mac_for_external_programs_faster
