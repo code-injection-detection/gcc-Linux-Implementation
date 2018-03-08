@@ -17,7 +17,18 @@ Its sister file, insert_new_stack_commands.py can be used as well, but it will s
 '''
 
 
-#stack frame: args (arg(1), arg(2)...) , return value, return address, base pointer, local vars
+#stack frame: args (arg(1), arg(2)...) , return value, return address, base pointer, (stack canary), local vars
+
+#for the stack that grows downwards:
+'''
+ <former stack frame>
+ args
+ return value
+ return address
+ base pointer
+ (stack canary)
+ local vars  <---stack pointer
+''' 
 
 tests_src=open('tests_with_new_stack.c','r')
 
@@ -32,6 +43,7 @@ number_of_stack_key_bytes=int(sys.argv[1])
 number_of_stack_useful_data_bytes=int(sys.argv[2])
 number_of_mac_bytes=int(sys.argv[3])
 stack_grows_by_decreasing_numbers=int(sys.argv[4])
+use_stack_canaries=int(sys.argv[5])
 
 stack_dec_num=0
 if (stack_grows_by_decreasing_numbers==1):
@@ -40,6 +52,21 @@ if (stack_grows_by_decreasing_numbers==1):
 op_to_move_in_stack='+'
 if stack_dec_num==1:
 	op_to_move_in_stack='-'
+
+
+def calculate_chunks_needed_for_a_size(size_in_bytes):
+	chunks_num=(size_in_bytes//number_of_stack_useful_data_bytes)
+	if (chunks_num*number_of_stack_useful_data_bytes<size_in_bytes):
+		chunks_num+=1	
+	return chunks_num
+
+size_of_stack_canary=0
+if (use_stack_canaries>0):
+	size_of_stack_canary=8
+	if stack_dec_num==0:
+		print("ERROR:We can't have stack canaries and the stack to grow towards increasing numbers!")
+		sys.exit(-1)
+chunks_for_stack_canary=str(calculate_chunks_needed_for_a_size(size_of_stack_canary))
 
 
 def process_var_size(var_size): #This has to be improved in the future
@@ -121,14 +148,7 @@ def process_params_locals(type_of_vars):
 					for x in sizes:
 						function_dict[type_of_vars][name_of_type]['sizes'].append(x.strip())
 
-		
-		
-def calculate_chunks_needed_for_a_size(size_in_bytes):
-	chunks_num=(size_in_bytes//number_of_stack_useful_data_bytes)
-	if (chunks_num*number_of_stack_useful_data_bytes<size_in_bytes):
-		chunks_num+=1	
-	return chunks_num
-	
+			
 	
 #how many chunks (blocks) the local variables are going to take. Their amounts are read from the dictionary.
 def calculate_chunks_for_params_locals(type_of_vars):
@@ -215,13 +235,14 @@ def calc_size_of_fun_in_stack():
 	chunks_for_return_value=calculate_chunks_needed_for_a_size(int(function_dict['return_value_size']))
 	chunks_for_base_pointer=calculate_chunks_needed_for_a_size(process_var_size('ptr'))
 	chunks_for_return_address=calculate_chunks_needed_for_a_size(process_var_size('ptr'))
-	total_chunks_needed=chunks_for_params+chunks_for_local_vars+chunks_for_return_value+chunks_for_base_pointer+chunks_for_return_address
+	total_chunks_needed=chunks_for_params+chunks_for_local_vars+chunks_for_return_value+chunks_for_base_pointer+chunks_for_return_address+int(chunks_for_stack_canary)
 	function_dict['chunks_in_stack']=str(total_chunks_needed)
 	function_dict['chunks_for_params']=str(chunks_for_params)
 	function_dict['chunks_for_local_vars']=str(chunks_for_local_vars)
 	function_dict['chunks_for_return_value']=str(chunks_for_return_value)
 	function_dict['chunks_for_base_pointer']=str(chunks_for_base_pointer)
 	function_dict['chunks_for_return_address']=str(chunks_for_return_address)
+	function_dict['chunks_for_stack_canary']=str(chunks_for_stack_canary)
 	for type_of_var in ['char','int','long','float','double','ptr']:
 		num_of_var=int(function_dict['params'][type_of_var]['number'])
 		chunks_for_type=calculate_chunks_needed_for_a_size(num_of_var*process_var_size(type_of_var))
@@ -246,7 +267,7 @@ def add_code_for_function_calling(fun_name,write_to,params,use_secure_stack_sett
 	num_of_times_called_in_code=fun_dict['num_of_times_called_in_code']
 	params_cnt=0
 	offset_for_params_in_chunks=0
-	all_chunks_of_fun=str(int(chunks_for_params)+int(chunks_for_local_vars)+int(chunks_for_return_value)+int(chunks_for_base_pointer)+int(chunks_for_return_address))
+	all_chunks_of_fun=str(int(chunks_for_params)+int(chunks_for_local_vars)+int(chunks_for_return_value)+int(chunks_for_base_pointer)+int(chunks_for_return_address)+int(chunks_for_stack_canary))
 	
 
 	lines_to_append=[]
@@ -340,7 +361,7 @@ def add_code_for_function_calling_new_template(function_name,helping_args_for_fu
 	num_of_times_called_in_code=fun_dict['num_of_times_called_in_code']
 	params_cnt=0
 	offset_for_params_in_chunks=0
-	all_chunks_of_fun=str(int(chunks_for_params)+int(chunks_for_local_vars)+int(chunks_for_return_value)+int(chunks_for_base_pointer)+int(chunks_for_return_address))
+	all_chunks_of_fun=str(int(chunks_for_params)+int(chunks_for_local_vars)+int(chunks_for_return_value)+int(chunks_for_base_pointer)+int(chunks_for_return_address)+int(chunks_for_stack_canary))
 	
 	#every variable must be different, since we might nest function calls
 	return_addr_for_allocation_ctr+=1
@@ -434,6 +455,9 @@ def add_the_function_header():
 	offset_in_chunks=0
 	lines_to_append=[]
 	
+	start_of_stack_canary='base_pointer_for_stack-('+str(int(chunks_for_stack_canary))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
+
+		
 	#create the proper defines. Practically the addresses relevant to the base pointer
 	start_of_parameters='base_pointer_for_stack-('+str(int(chunks_for_return_address)+int(chunks_for_return_value)+int(chunks_for_params))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
 	if stack_dec_num==1:
@@ -459,7 +483,7 @@ def add_the_function_header():
 
 	start_of_local_vars='base_pointer_for_stack+('+str(int(chunks_for_base_pointer))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
 	if stack_dec_num==1:
-		start_of_local_vars='base_pointer_for_stack-('+str(int(chunks_for_local_vars))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
+		start_of_local_vars='base_pointer_for_stack-('+str(int(chunks_for_stack_canary)+int(chunks_for_local_vars))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
 	offset_in_chunks=0
 	#local vars
 	for type_of_var in ['char','int','long','float','double','ptr']: #in that order!
@@ -479,8 +503,15 @@ def add_the_function_header():
 		offset_in_chunks+=calculate_chunks_needed_for_a_size(int(size_of_arb_ptr_data))
 			
 	function_dict['defines']=copy.deepcopy(defines)
+	
+	#set the stack canary
+	if (use_stack_canaries==1):
+		lines_to_append.append('//set stack canary \n');
+		lines_to_append.append('set_stack_long_int_array_element('+start_of_stack_canary+',0,GET_GLOBAL_LONG(globals.stack_canary_value));\n')
+	
 	for line in lines_to_append:
 		dst_lines.append(line)
+	
 	
 	
 	
@@ -492,7 +523,15 @@ def add_the_function_footer(bool_for_undef):
 	chunks_for_base_pointer=function_dict['chunks_for_base_pointer']
 	chunks_for_local_vars=function_dict['chunks_for_local_vars']
 
+	start_of_stack_canary='base_pointer_for_stack-('+str(int(chunks_for_stack_canary))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
+
+
 	lines_to_append=[]
+	#check the stack canary
+	if (use_stack_canaries==1):
+		lines_to_append.append('//check stack canary\n')
+		lines_to_append.append('if (GET_GLOBAL_LONG(globals.stack_canary_value)!=get_stack_long_int_array_element('+start_of_stack_canary+',0)) { fprintf(stderr,"ERROR in stack canary, line %d. Stack smashing attempt!\\n",__LINE__); exit(-1);} \n')
+	
 	#set the former base pointer
 	lines_to_append.append('temp_base_pointer=base_pointer_for_stack;\n')
 	lines_to_append.append('base_pointer_for_stack=get_stack_pointer(base_pointer_for_stack);\n')
@@ -504,7 +543,7 @@ def add_the_function_footer(bool_for_undef):
 		if (stack_grows_by_decreasing_numbers==0):
 			lines_to_append.append('last_unused_stack_memory=temp_base_pointer+('+str(int(chunks_for_base_pointer)+int(chunks_for_local_vars))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data);\n')
 		else:
-			lines_to_append.append('last_unused_stack_memory=temp_base_pointer-('+str(int(chunks_for_local_vars))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data);\n')
+			lines_to_append.append('last_unused_stack_memory=temp_base_pointer-('+str(int(chunks_for_local_vars)+int(chunks_for_stack_canary))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data);\n')
 		lines_to_append.append('free_mem_from_secure_stack_in_chunks('+function_dict['chunks_in_stack']+');\n')
 	if(bool_for_undef):
 		#undef
@@ -654,7 +693,10 @@ for line in src_lines:
 		expression_of_size_in_bytes=line.split('|')[0].split(':')[1].strip()
 		setter_for_data=line.split('|')[1].split(':')[1].strip()
 		function_dict['use_of_explicit_stack_allocation']='1'
-		dst_lines.append(setter_for_data+'allocate_mem_into_secure_stack_return_ptr_only('+ expression_of_size_in_bytes+'));\n')
+		if stack_dec_num==0:
+			dst_lines.append(setter_for_data+'allocate_mem_into_secure_stack_return_ptr_only('+ expression_of_size_in_bytes+'));\n')
+		else:
+			dst_lines.append(setter_for_data+'allocate_mem_into_secure_stack_return_ptr_only_after_alloc('+ expression_of_size_in_bytes+'));\n')
 		continue
 	if (name_of_function_str in line) and (in_function_declaration):
 		fun_name=line.strip().split(':')[1].strip()

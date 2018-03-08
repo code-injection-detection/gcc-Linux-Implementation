@@ -228,6 +228,11 @@
 #endif				//if 1, the allocation in the stack should make the stack pointer decrease in number (as stack normally behaves).
 
 
+#ifndef use_stack_canaries
+#define use_stack_canaries 0
+#endif				//1->use stack canaries against buffer overflows. 2->use cryptographically secure stack canaries.
+
+
 #include "crypto_functions.h"
 #include "secure_getters_setters.h"
 
@@ -339,6 +344,8 @@ long salloc_chunks_num;
 int size_of_sheap_metadata_in_chunks;
 //ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:int || EXTRA_STUFF::: full_type=int
 int testinttest;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:long
+long stack_canary_value;
 }global_vars;
 
 extern global_vars globals;
