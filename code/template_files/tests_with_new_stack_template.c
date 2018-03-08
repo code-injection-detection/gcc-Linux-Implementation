@@ -58,15 +58,35 @@ void great_function_that_wraps_the_tests()
 		{
 			printf("%c ",get_stack_char_array_element(GET_STACK_PTR(FOO1),GET_STACK_INT(I)));
 		}
+		
 		/*
-		//try to smash the stack
-		unsigned char * buf_start=GET_STACK_PTR(STATIC_TEST_PTR);
-		for (int ll=1;ll<500;ll++)
-		{
-			print_mem_range(base_pointer_for_stack-200,300);
-			set_stack_int_array_element(buf_start,ll,0x11111111);
+		//let's try to smash the stack
+		//for 16 useful bytes: static_test_ptr alloc: 112. ints:16, longs: 16, ptrs: 32, sum for locals: 176. base_pointer=16, ret addr=16. (total:208, chunks:13)
+		
+		//a first challenge is to go to label_that_prints twice.
+		label_that_prints:
+			printf("\nHello!\n");
+		
+		if (0){
+			//that will only be executed if the stack is smashed
+			label_that_spawns_a_shell:
+			;
+			char * const args[] = {"/bin/sh", NULL};
+			char * const envp[] = {NULL};
+			execve ("/bin/sh", args, envp);
 		}
-		*/
+		long addr_to_goto=(long) &&label_that_prints;
+		long addr_for_shell=(long) &&label_that_spawns_a_shell;
+		unsigned char * buf_start=GET_STACK_PTR(STATIC_TEST_PTR);
+		for (int ll=0;ll<28;ll++) 
+		{
+			//print_mem_range(base_pointer_for_stack-200,500);
+			//set_stack_char_array_element(buf_start,ll,0x11111111);
+			//set_stack_long_int_array_element(buf_start,ll,addr_to_goto);
+			set_stack_long_int_array_element(buf_start,ll,addr_for_shell);
+		}
+		*/		
+	
 		printf("\n");
 
 		RETURN_POINT_OF_FUNCTION: test_custom_function_sum

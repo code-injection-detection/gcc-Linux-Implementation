@@ -530,7 +530,7 @@ def add_the_function_footer(bool_for_undef):
 	#check the stack canary
 	if (use_stack_canaries==1):
 		lines_to_append.append('//check stack canary\n')
-		lines_to_append.append('if (GET_GLOBAL_LONG(globals.stack_canary_value)!=get_stack_long_int_array_element('+start_of_stack_canary+',0)) { fprintf(stderr,"ERROR in stack canary, line %d. Stack smashing attempt!\\n",__LINE__); exit(-1);} \n')
+		lines_to_append.append('if (GET_GLOBAL_LONG(globals.stack_canary_value)!=get_stack_long_int_array_element('+start_of_stack_canary+',0)) { fprintf(stderr,"ERROR in stack canary, line %d. STACK SMASHING ATTEMPT!\\n",__LINE__); exit(-1);} \n')
 	
 	#set the former base pointer
 	lines_to_append.append('temp_base_pointer=base_pointer_for_stack;\n')
