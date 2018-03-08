@@ -21,7 +21,9 @@ extern long find_number_of_useful_stack_chunks(long allocated_bytes);
 extern int get_ptr_size();
 extern chunks_and_old_mem allocate_mem_into_secure_stack(long stack_bytes_to_allocate);
 extern unsigned char * allocate_mem_into_secure_stack_in_chunks(long chunks_to_allocate);
+extern unsigned char * allocate_mem_into_secure_stack_in_chunks_return_ptr_after_alloc(long chunks_to_allocate);
 extern unsigned char * allocate_mem_into_secure_stack_return_ptr_only(long stack_bytes_to_allocate);
+extern unsigned char * allocate_mem_into_secure_stack_return_ptr_only_after_alloc(long stack_bytes_to_allocate);
 extern void free_mem_from_secure_stack_in_chunks(long chunks_to_free);
 extern void free_mem_from_secure_stack(long stack_bytes_to_free);
 extern void free_chunks_from_secure_stack(long chunks_to_free);
@@ -730,6 +732,23 @@ void print_stack_mem(unsigned char * stack_mem)
   printf("\n");
 
 }
+
+/*Memory printing in a range, for testing purposes*/
+void print_mem_range(unsigned char * mem,long bytes_to_print)
+{
+  long i;
+  unsigned char * p;
+  p=&mem[0];
+  printf("Printing memory range, start of mem:%ld, number of bytes:%ld:\n",(long)p,bytes_to_print);
+  for (i=0;i<bytes_to_print;i++)
+  {
+	//printf("%#04x ",p[i]);
+	printf("0x%02x ",p[i]);
+  }
+  printf("\n");
+
+}
+
 
 /*OBSOLETE, STAYS HERE FOR BACKWARDS COMPATIBILITY*/
 void print_fun_params(fun_params * params)

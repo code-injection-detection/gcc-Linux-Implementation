@@ -180,6 +180,14 @@ void free_heap_and_stack_memory()
 	free_secure_stack_mem((unsigned char*)GET_GLOBAL_PTR(globals.entire_stack_memory_chunk));
 }
 
+void init_stack_canary()
+{
+	if (use_stack_canaries)
+	{
+		UPDATE_GLOBAL_VAR(globals.stack_canary_value,0x4242424242424242); //todo: use random value
+	}
+}
+
 #include "mac_handling_functions.c"
 
 

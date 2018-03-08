@@ -58,7 +58,17 @@ void great_function_that_wraps_the_tests()
 		{
 			printf("%c ",get_stack_char_array_element(GET_STACK_PTR(FOO1),GET_STACK_INT(I)));
 		}
+		/*
+		//try to smash the stack
+		unsigned char * buf_start=GET_STACK_PTR(STATIC_TEST_PTR);
+		for (int ll=1;ll<500;ll++)
+		{
+			print_mem_range(base_pointer_for_stack-200,300);
+			set_stack_int_array_element(buf_start,ll,0x11111111);
+		}
+		*/
 		printf("\n");
+
 		RETURN_POINT_OF_FUNCTION: test_custom_function_sum
 		
 	END_OF_FUNCTION: test_custom_function_sum

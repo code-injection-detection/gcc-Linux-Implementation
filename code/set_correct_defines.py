@@ -104,6 +104,8 @@ for line in src_lines:
 		newline='#define check_for_secure_stack_allocation_overflow '+sys.argv[37]+'\n'
 	if '#define stack_should_grow_to_decreasing_numbers' in line:
 		newline='#define stack_should_grow_to_decreasing_numbers '+sys.argv[38]+'\n'
+	if '#define use_stack_canaries' in line:
+		newline='#define use_stack_canaries '+sys.argv[39]+'\n'
 	headers_dst.write(newline)
 
 
