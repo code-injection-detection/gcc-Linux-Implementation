@@ -184,7 +184,6 @@ unsigned char * allocate_mem_into_secure_stack_return_ptr_only_after_alloc(long 
 	long d=number_of_mac_bytes;
 	long chunks_needed_to_allocate;
 	unsigned char * ret;
-	ret=last_unused_stack_memory;
 	
 	if (stack_bytes_to_allocate==0)
 	{
@@ -232,8 +231,7 @@ unsigned char * allocate_mem_into_secure_stack_return_ptr_only_after_alloc(long 
 		#endif
 	#endif
 	
-	ret=last_unused_stack_memory;
-	return ret;
+	return last_unused_stack_memory;
 }
 
 
@@ -305,7 +303,7 @@ unsigned char * allocate_mem_into_secure_stack_in_chunks_return_ptr_after_alloc(
 	long b=stack_bytes_used_for_keyshares;
 	long c=stack_bytes_for_useful_data;
 	long d=number_of_mac_bytes;
-	unsigned char * old_mem=last_unused_stack_memory;
+	unsigned char * old_mem;
 	
 	if (chunks_to_allocate==0)
 	{
@@ -349,8 +347,6 @@ unsigned char * allocate_mem_into_secure_stack_in_chunks_return_ptr_after_alloc(
 	#endif
 	
 	return last_unused_stack_memory;
-	
-	
 }
 
 
