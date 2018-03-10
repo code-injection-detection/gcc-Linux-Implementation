@@ -276,7 +276,7 @@ public class Secure_Assembly_new {
 								
 				//if we have exhausted the group of commands, we need to add a jump and nops, and a label after them
 				if ((force_end_of_block || (((!ignore_macs_even_if_there_are_mac_bytes  && check_code_verification_on_the_fly) || verify_everything)  && /*label with .L<numbers> */Pattern.compile("^[ \t]*\\.L[0123456789]+:$").matcher(line).matches() ))
-					|| split_the_blocks_when_the_secure_cpu_would && (num_of_bytes_when_we_dont_split_blocks+size_of_current_cmd>num_of_bytes_in_code_chunk-(size_of_jmp_command+overhead_for_verif)) /*usually 12= verification call + jmp*/  
+					|| (split_the_blocks_when_the_secure_cpu_would && (num_of_bytes_when_we_dont_split_blocks+size_of_current_cmd>num_of_bytes_in_code_chunk-(size_of_jmp_command+overhead_for_verif))) /*usually 12= verification call + jmp*/  
 					)
 				{
 					

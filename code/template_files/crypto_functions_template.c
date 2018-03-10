@@ -40,14 +40,14 @@ int data_cache_slot_indexes_for_set_assosiative[(num_of_cached_blocks_of_data/da
 int data_cache_latest_index; //for fully assosiateve data cache
 unsigned char keys_temp_space[safe_length_for_buffer_storage];
 char count_mac_invocations_in_this_code_part=0;
-long long mac_size_invocation_counters[17000];
+long long mac_size_invocation_counters[31000];
 long previous_block_address=-1;
 long current_block_address;
 long next_block_address_that_will_be_reached_with_the_jmp;
-short jmp_rax_opcode=0xffe0; //2 bytes
-short jmp_rbx_opcode=0xffe3; //2 bytes
-short jmp_rcx_opcode=0xffe1; //2 bytes
-short jmp_rdx_opcode=0xffe2; //2 bytes
+unsigned short jmp_rax_opcode=0xe0ff; //2 bytes, reversed
+unsigned short jmp_rbx_opcode=0xe3ff; //2 bytes, reversed
+unsigned short jmp_rcx_opcode=0xe1ff; //2 bytes, reversed
+unsigned short jmp_rdx_opcode=0xe2ff; //2 bytes, reversed
 
 //experimental: when calculating cache on unsplit code blocks
 long addresses_of_unsplit_blocks[40000]; 
@@ -102,7 +102,7 @@ void init_crypto_stuctures(int print, int find_addr_of_first_code_block)
 	}
 	#if count_mac_invocations==1
 		int i;
-		for (i=0;i<1024;i++)
+		for (i=0;i<31000;i++)
 			mac_size_invocation_counters[i]=0;
 		count_mac_invocations_in_this_code_part=0;
 	#endif
@@ -849,6 +849,7 @@ long rbx_register;
 long rcx_register;
 long rdx_register;
 long number_of_jmp_register_jmps=0;
+long register_to_jmp_to;
 
 //disable gcc optimizations temporarily since the Pushes done there WILL break the fetching of the return address
 #pragma GCC push_options
@@ -974,13 +975,6 @@ void do_verify_code_on_the_fly()
 				
 		current_block_address=(long)((unsigned char*)(code_where_to_start_macing) - size_of_commands_before_getting_addr);
 		
-		if ((short)(*((short*)(current_block_address+overhead_of_verif)))==jmp_rax_opcode)
-		{
-			printf("Next command in a jump!\n");
-			number_of_jmp_register_jmps++;
-			printf("jmp_to_reg_cnt=%ld\n",number_of_jmp_register_jmps);
-		}
-		
 		//check the cache and if the code block is not there then mac and add it to the cache
 		if (-1==continue_macing_current_code_addr((unsigned char*)current_block_address)) //if using cache for code
 		{		
@@ -989,6 +983,46 @@ void do_verify_code_on_the_fly()
 		}
 		
 		previous_block_address=current_block_address;
+		
+		
+		//is the next command a jmp to register?
+		if ((unsigned short)(*((unsigned short*)((unsigned char*)current_block_address+overhead_of_verif)))==jmp_rax_opcode)
+			register_to_jmp_to=rax_register;
+		else if ((unsigned short)(*((unsigned short*)((unsigned char*)current_block_address+overhead_of_verif)))==jmp_rbx_opcode)
+			register_to_jmp_to=rbx_register;
+		else if ((unsigned short)(*((unsigned short*)((unsigned char*)current_block_address+overhead_of_verif)))==jmp_rcx_opcode)
+			register_to_jmp_to=rcx_register;
+		else if ((unsigned short)(*((unsigned short*)((unsigned char*)current_block_address+overhead_of_verif)))==jmp_rdx_opcode)
+			register_to_jmp_to=rdx_register;
+		else
+			register_to_jmp_to=-42424242;
+			
+		//todo:make sure that we truly catch all the cases that we jump to register
+		if (register_to_jmp_to!=-42424242)
+		//we have a jmp to register. IMPORTANT! WE DO NOT VERIFY THE TARGET. WE ONLY COUNT THE FACT THAT WE MACED
+		{
+			//printf("Next command is after a jump to register!\n");
+			number_of_jmp_register_jmps++;
+			//printf("jmp_to_reg_cnt=%ld\n",number_of_jmp_register_jmps);
+			if (-1==continue_macing_current_code_addr((unsigned char*)register_to_jmp_to)) //if using cache for code
+			{		
+				//we don't verify the code block in which we fall, because we don't know the start of it.
+				//however we add it to the cache and note that we had a mac calculation
+				
+				#if count_mac_invocations==1
+					if (count_mac_invocations_in_this_code_part)
+					{
+						#if squeeze_keys_when_macing==1
+							mac_size_invocation_counters[num_of_bytes_in_code_chunk-(size_of_jmp_command+overhead_of_verif)+number_of_interleaved_keys/2]+=1;
+						#else
+							mac_size_invocation_counters[num_of_bytes_in_code_chunk-(size_of_jmp_command+overhead_of_verif)+number_of_interleaved_keys]+=1;
+						#endif
+					}
+				#endif
+				
+				add_addr_to_code_cache((unsigned char*)register_to_jmp_to); //addr
+			}
+		}
         
        RESTORE_STATE;
 }
