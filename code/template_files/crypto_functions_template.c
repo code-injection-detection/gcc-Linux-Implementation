@@ -902,6 +902,7 @@ void do_verify_code_on_the_fly()
 		//printf("Code where to start macing:%ld\n",code_where_to_start_macing);
 				
 		current_block_address=(long)((unsigned char*)(code_where_to_start_macing) - size_of_commands_before_getting_addr);
+		
 		//check the cache and if the code block is not there then mac and add it to the cache
 		if (-1==continue_macing_current_code_addr((unsigned char*)current_block_address)) //if using cache for code
 		{		
@@ -976,7 +977,7 @@ void init_code_cache()
 }
 
 #if use_code_cache_with_unsplit_blocks==1
-	#define mapped_code_addr(addr) (find_addr_in_unsplit_blocks_addresses(addr))
+	#define mapped_code_addr(addr) (find_addr_in_unsplit_blocks_addresses(addr)) //the array index of the binary search, not the actual address itself
 #else
 	#define mapped_code_addr(addr) (addr)
 #endif

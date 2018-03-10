@@ -290,7 +290,7 @@ unsigned char * init_sheap()
   UPDATE_GLOBAL_VAR(globals.secure_heap,secure_heap);
   fclose(sheap_keyshare_input_file);
   
-  init_sheap_memory_manager();
+  init_sheap_memory_manager(); //this function probably has to be secured (use the secure stack). Still, there is no performance difference if it does not (since it is called only once).
   
   return mem;
 }
