@@ -41,6 +41,8 @@ int data_cache_latest_index; //for fully assosiateve data cache
 unsigned char keys_temp_space[safe_length_for_buffer_storage];
 char count_mac_invocations_in_this_code_part=0;
 long long mac_size_invocation_counters[17000];
+long previous_block_address=-1;
+long current_block_address;
 
 //experimental: when calculating cache on unsplit code blocks
 long addresses_of_unsplit_blocks[40000]; 
@@ -899,12 +901,15 @@ void do_verify_code_on_the_fly()
 				
 		//printf("Code where to start macing:%ld\n",code_where_to_start_macing);
 				
+		current_block_address=(long)((unsigned char*)(code_where_to_start_macing) - size_of_commands_before_getting_addr);
 		//check the cache and if the code block is not there then mac and add it to the cache
-		if (-1==continue_macing_current_code_addr((unsigned char*)(code_where_to_start_macing) - size_of_commands_before_getting_addr)) //if using cache for code
+		if (-1==continue_macing_current_code_addr((unsigned char*)current_block_address)) //if using cache for code
 		{		
 			verify_code_on_the_fly();
-			add_addr_to_code_cache((unsigned char*)(code_where_to_start_macing) - size_of_commands_before_getting_addr); //addr
+			add_addr_to_code_cache((unsigned char*)current_block_address); //addr
 		}
+		
+		previous_block_address=current_block_address;
         
         __asm__("movq %r15, %rsp;" //restore stack to the number it was
 				);     
