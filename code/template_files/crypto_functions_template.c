@@ -43,6 +43,11 @@ char count_mac_invocations_in_this_code_part=0;
 long long mac_size_invocation_counters[17000];
 long previous_block_address=-1;
 long current_block_address;
+long next_block_address_that_will_be_reached_with_the_jmp;
+short jmp_rax_opcode=0xffe0; //2 bytes
+short jmp_rbx_opcode=0xffe3; //2 bytes
+short jmp_rcx_opcode=0xffe1; //2 bytes
+short jmp_rdx_opcode=0xffe2; //2 bytes
 
 //experimental: when calculating cache on unsplit code blocks
 long addresses_of_unsplit_blocks[40000]; 
@@ -838,70 +843,143 @@ __m128 xmm13_var;
 __m128 xmm14_var;
 __m128 xmm15_var;
 
+
+long rax_register;
+long rbx_register;
+long rcx_register;
+long rdx_register;
+long number_of_jmp_register_jmps=0;
+
 //disable gcc optimizations temporarily since the Pushes done there WILL break the fetching of the return address
 #pragma GCC push_options
 #pragma GCC optimize ("O0")
 
+#define SAVE_STATE { \
+					/*get return adress from stack, to see where to mac*/ \
+					__asm__( \
+							  "pushq %rax;" \
+							  "movq %rax,rax_register(%rip);" \
+							  /*the following "0x10" will change if the offset of the return address is different*/ \
+							  "movq 0x10(%rsp),%rax;"  /*return address (rsp+X) in %rax (well, do_some_stuff subtracts 8 from %rsp, and perhaps we have some pushes too...)*/ \
+							  "movq %rax,code_where_to_start_macing(%rip);" /*the verifier knows that it should subtract an amount of bytes*/ \
+							); \
+					/*save state*/ \
+					__asm__ ( /*"pushfq;"  //saved before call*/ \
+							  /*"pushq %rax;" //saved before call*/ \
+							  /*"pushq %rbx;" //saved by the calling convention */ \
+							  "pushq %rcx;" \
+							  "pushq %rdx;" \
+							  /*"pushq %rbp;" //saved by the calling convention*/ \
+							  "pushq %rdi;" \
+							  "pushq %rsi;" \
+							  "pushq %r8;" \
+							  "pushq %r9;" \
+							  "pushq %r10;" \
+							  "pushq %r11;" \
+							  /*"pushq %r12;" //saved by the calling convention*/ \
+							  /*"pushq %r13;" //saved by the calling convention*/ \
+							  /*"pushq %r14;" //saved by the calling convention*/ \
+							  "pushq %r15;" /*saved by the calling convention but we use it to align the stack*/ \
+							  "movq %rbx,rbx_register(%rip);" \
+							  "movq %rcx,rcx_register(%rip);" \
+							  "movq %rdx,rdx_register(%rip);" \
+							);\
+							\
+					/*save the %xmm registers*/ \
+					__asm__(    "movdqu %xmm0,xmm0_var(%rip);" \
+								"movdqu %xmm1,xmm1_var(%rip);" \
+								"movdqu %xmm2,xmm2_var(%rip);" \
+								"movdqu %xmm3,xmm3_var(%rip);" \
+								"movdqu %xmm4,xmm4_var(%rip);" \
+								"movdqu %xmm5,xmm5_var(%rip);" \
+								"movdqu %xmm6,xmm6_var(%rip);" \
+								"movdqu %xmm7,xmm7_var(%rip);" \
+								"movdqu %xmm8,xmm8_var(%rip);" \
+								"movdqu %xmm9,xmm9_var(%rip);" \
+								"movdqu %xmm10,xmm10_var(%rip);" \
+								"movdqu %xmm11,xmm11_var(%rip);" \
+								"movdqu %xmm12,xmm12_var(%rip);" \
+								"movdqu %xmm13,xmm13_var(%rip);" \
+								"movdqu %xmm14,xmm14_var(%rip);" \
+								"movdqu %xmm15,xmm15_var(%rip);" \
+								); \
+								\
+						__asm__("movq %rsp,%r15;" /*align stack to 16 bytes for call, as System V ABI dictates*/ \
+								"and $0xfffffffffffffff0,%rsp;" \
+								); \
+					}
+					
+#define RESTORE_STATE   { \
+						__asm__("movq %r15, %rsp;" /*restore stack to the number it was*/ \
+									);   \
+						\
+						/*restore the %xmm registers*/ \
+						__asm__(    "movdqu xmm0_var(%rip),%xmm0;" \
+									"movdqu xmm1_var(%rip),%xmm1;" \
+									"movdqu xmm2_var(%rip),%xmm2;" \
+									"movdqu xmm3_var(%rip),%xmm3;" \
+									"movdqu xmm4_var(%rip),%xmm4;" \
+									"movdqu xmm5_var(%rip),%xmm5;" \
+									"movdqu xmm6_var(%rip),%xmm6;" \
+									"movdqu xmm7_var(%rip),%xmm7;" \
+									"movdqu xmm8_var(%rip),%xmm8;" \
+									"movdqu xmm9_var(%rip),%xmm9;" \
+									"movdqu xmm10_var(%rip),%xmm10;" \
+									"movdqu xmm11_var(%rip),%xmm11;" \
+									"movdqu xmm12_var(%rip),%xmm12;" \
+									"movdqu xmm13_var(%rip),%xmm13;" \
+									"movdqu xmm14_var(%rip),%xmm14;" \
+									"movdqu xmm15_var(%rip),%xmm15;" \
+									);     \
+								   \
+								   \
+						/*restore state*/ \
+						__asm__ ( \
+								  "popq %r15;" /*saved by the calling convention but we use it to align the stack*/ \
+								  /*"popq %r14;" //saved by the calling convention*/ \
+								  /*"popq %r13;" //saved by the calling convention*/ \
+								  /*"popq %r12;" //saved by the calling convention*/ \
+								  "popq %r11;" \
+								  "popq %r10;" \
+								  "popq %r9;" \
+								  "popq %r8;" \
+								  "popq %rsi;" \
+								  "popq %rdi;" \
+								  /*"popq %rbp;" //saved by the calling convention*/ \
+								  "popq %rdx;" \
+								  "popq %rcx;" \
+								  /*//"popq %rbx;"  //saved by the calling convention*/ \
+								  /*//"popq %rax;" //saved before call*/ \
+								  /*//"popfq;" //saved before call*/ \
+								 ); \
+								 \
+						__asm__( "popq %rax;" /*//the register in which we stored the return address*/ \
+								); \
+								\
+				}
+				
+
+
 //the function that is called at the start of each code block, to verify it mac
 void do_verify_code_on_the_fly()
 {
-	//get return adress from stack, to see where to mac
-	__asm__(
-			  "pushq %rax;"
-			  //the following "0x10" will change if the offset of the return address is different
-			  "movq 0x10(%rsp),%rax;" //return address (rsp+X) in %rax (well, do_some_stuff subtracts 8 from %rsp, and perhaps we have some pushes too...)
-			  "movq %rax,code_where_to_start_macing(%rip);" //the verifier knows that it should subtract an amount of bytes
-			);
-	//save state
-	__asm__ ( //"pushfq;"  //saved before call
-			  //"pushq %rax;" //saved before call
-              //"pushq %rbx;" //saved by the calling convention
-              "pushq %rcx;"
-              "pushq %rdx;"
-              //"pushq %rbp;" //saved by the calling convention
-              "pushq %rdi;"
-              "pushq %rsi;"
-              "pushq %r8;"
-              "pushq %r9;"
-              "pushq %r10;"
-              "pushq %r11;"
-              //"pushq %r12;" //saved by the calling convention
-              //"pushq %r13;" //saved by the calling convention
-              //"pushq %r14;" //saved by the calling convention
-              "pushq %r15;" //saved by the calling convention but we use it to align the stack
-			);
-
-	//save the %xmm registers
-	__asm__(    "movdqu %xmm0,xmm0_var(%rip);"
-				"movdqu %xmm1,xmm1_var(%rip);"
-				"movdqu %xmm2,xmm2_var(%rip);"
-				"movdqu %xmm3,xmm3_var(%rip);"
-				"movdqu %xmm4,xmm4_var(%rip);"
-				"movdqu %xmm5,xmm5_var(%rip);"
-				"movdqu %xmm6,xmm6_var(%rip);"
-				"movdqu %xmm7,xmm7_var(%rip);"
-				"movdqu %xmm8,xmm8_var(%rip);"
-				"movdqu %xmm9,xmm9_var(%rip);"
-				"movdqu %xmm10,xmm10_var(%rip);"
-				"movdqu %xmm11,xmm11_var(%rip);"
-				"movdqu %xmm12,xmm12_var(%rip);"
-				"movdqu %xmm13,xmm13_var(%rip);"
-				"movdqu %xmm14,xmm14_var(%rip);"
-				"movdqu %xmm15,xmm15_var(%rip);"
-				);
+		//save the state
+		SAVE_STATE;
 		
 			//test_find_primes_up_to_a_number(100);
 
 		num_of_useful_bytes_to_mac_in_code=num_of_bytes_in_code_chunk+number_of_canaries+bytes_for_instructions_length;
-
-		
-		__asm__("movq %rsp,%r15;" //align stack to 16 bytes for call, as System V ABI dictates
-				"and $0xfffffffffffffff0,%rsp;"
-				);
 				
 		//printf("Code where to start macing:%ld\n",code_where_to_start_macing);
 				
 		current_block_address=(long)((unsigned char*)(code_where_to_start_macing) - size_of_commands_before_getting_addr);
+		
+		if ((short)(*((short*)(current_block_address+overhead_of_verif)))==jmp_rax_opcode)
+		{
+			printf("Next command in a jump!\n");
+			number_of_jmp_register_jmps++;
+			printf("jmp_to_reg_cnt=%ld\n",number_of_jmp_register_jmps);
+		}
 		
 		//check the cache and if the code block is not there then mac and add it to the cache
 		if (-1==continue_macing_current_code_addr((unsigned char*)current_block_address)) //if using cache for code
@@ -912,51 +990,7 @@ void do_verify_code_on_the_fly()
 		
 		previous_block_address=current_block_address;
         
-        __asm__("movq %r15, %rsp;" //restore stack to the number it was
-				);     
-             
-    //restore the %xmm registers
-    __asm__(    "movdqu xmm0_var(%rip),%xmm0;"
-				"movdqu xmm1_var(%rip),%xmm1;"
-				"movdqu xmm2_var(%rip),%xmm2;"
-				"movdqu xmm3_var(%rip),%xmm3;"
-				"movdqu xmm4_var(%rip),%xmm4;"
-				"movdqu xmm5_var(%rip),%xmm5;"
-				"movdqu xmm6_var(%rip),%xmm6;"
-				"movdqu xmm7_var(%rip),%xmm7;"
-				"movdqu xmm8_var(%rip),%xmm8;"
-				"movdqu xmm9_var(%rip),%xmm9;"
-				"movdqu xmm10_var(%rip),%xmm10;"
-				"movdqu xmm11_var(%rip),%xmm11;"
-				"movdqu xmm12_var(%rip),%xmm12;"
-				"movdqu xmm13_var(%rip),%xmm13;"
-				"movdqu xmm14_var(%rip),%xmm14;"
-				"movdqu xmm15_var(%rip),%xmm15;"
-				);        
-             
-             
-    //restore state         
-    __asm__ (
-			  "popq %r15;" //saved by the calling convention but we use it to align the stack
-		      //"popq %r14;" //saved by the calling convention
-			  //"popq %r13;" //saved by the calling convention
-			  //"popq %r12;" //saved by the calling convention
-			  "popq %r11;"
-			  "popq %r10;"
-			  "popq %r9;"
-			  "popq %r8;"
-			  "popq %rsi;"
-			  "popq %rdi;"
-			  //"popq %rbp;" //saved by the calling convention
-			  "popq %rdx;"
-			  "popq %rcx;"
-			  //"popq %rbx;"  //saved by the calling convention
-			  //"popq %rax;" //saved before call
-			  //"popfq;" //saved before call
-             ); 
-             
-    __asm__( "popq %rax;" //the register in which we stored the return address
-			);
+       RESTORE_STATE;
 }
 //re-enable gcc optimizations
 #pragma GCC pop_options
