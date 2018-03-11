@@ -54,6 +54,7 @@ public class Secure_Assembly_v2 {
 	static	int num_of_requested_bytes_in_code_chunk=16; //number of useful bytes in code chunk. IMPORTANT: verification overhead, jmp to next block, canaries etc EXCLUDED!
 	static boolean force_end_of_block=false;
 	static int world=3; //=world_in_which_we_are (variable above)
+	static int label_counter=0;
 	
 	public static void main(String[] args) throws Exception
 	{
@@ -70,7 +71,6 @@ public class Secure_Assembly_v2 {
 		// the num_of_interleaved_nops is the number of bytes in a block (note: a NOP is 1 byte)
 		// i and label_counter are just counting variables, not too important
 		int num_of_grouped_orig_instr= 1;
-		int label_counter = 0;
 		int i = 0;
 		int line_index=0;
 		int size_of_current_cmd=0;
@@ -276,7 +276,7 @@ public class Secure_Assembly_v2 {
 				if (force_end_of_block==true)
 				{
 					//split the block, and reset the counters
-					add_lines_for_block_splitting(list_of_lines,label_counter,ulabel);
+					add_lines_for_block_splitting(list_of_lines,ulabel);
 
 					force_end_of_block=false;
 				}
@@ -604,7 +604,7 @@ public class Secure_Assembly_v2 {
 	}
 
 
-	static void add_lines_for_block_splitting(ArrayList<String> list_of_lines,int label_counter,String ulabel)
+	static void add_lines_for_block_splitting(ArrayList<String> list_of_lines,String ulabel)
 	{
 		int num_of_padded_nops=num_of_requested_bytes_in_code_chunk-num_of_bytes_in_blocks_as_calced_by_cpu;
 
