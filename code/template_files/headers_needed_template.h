@@ -86,7 +86,7 @@
 
 #ifndef canary_value
 #define canary_value (0x42)
-#endif				//the canary value. Does not matter what it is. Must be the same as in Secure_Machine_Code.java
+#endif				//the canary value. Does not matter what it is. Must be the same in the java files.
 
 
 #ifndef stack_bytes_used_for_keyshares
