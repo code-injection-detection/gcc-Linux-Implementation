@@ -199,6 +199,13 @@ public class Secure_Assembly_v2 {
 					break;
 				}
 
+				//some random directive which we ignore
+				if (line.trim().startsWith(".cfi_"))
+				{
+					list_of_lines.add(line);
+					continue;
+				}
+
 				//if it is a Label
 				//if (/*label with .L<numbers> */Pattern.compile("^[ \t]*\\.L[0123456789]+:$").matcher(line).matches())
 				if (/*starts with spaces and then label*/ Pattern.compile("^[ \t]*\\..*$").matcher(line).matches() ||  /*label*/ Pattern.compile("^\\..*$").matcher(line).matches())
@@ -281,6 +288,8 @@ public class Secure_Assembly_v2 {
 
 					//add the padded nops
 					int num_of_padded_nops=num_of_requested_bytes_in_code_chunk-num_of_bytes_in_blocks_as_calced_by_cpu;
+					list_of_lines.add("#actual_bytes_in_block:"+actual_bytes_in_block);
+					list_of_lines.add("#padded_nops:"+num_of_padded_nops);
 					//ok now we have the following problem: If we land at the end of the padded nops, we would want to know the number of the useful bytes
 					//so we implement the following convention (WORKS ONLY IF bytes_for_instr_len==2, which is fine):
 					//get the last 2 bytes. Check if before them there are the canaries, if yes then there are no padded nops and they contain the number you want.
@@ -333,7 +342,7 @@ public class Secure_Assembly_v2 {
 
 					//we have a new block, and we note down its address
 					list_of_addresses_that_denote_next_cpu_block_change.add(address_of_code_that_denotes_next_cpu_block_change);
-
+					list_of_lines.add("#place_of_secure_cpu_block_change, address:"+address_of_code_that_denotes_next_cpu_block_change);
 					//we need to verify the block in which we have just arrived!
 					if (world==3)
 					{
@@ -348,7 +357,7 @@ public class Secure_Assembly_v2 {
 					function_is_one_of_the_hardware_ones(line.trim().split("\t")[1].trim())==false) 
 					//call is a suspect for jump (certain actually), so we add verification lines. Except if it is a secure getter/setter or another of the "hardware" functions
 				{
-					list_of_lines.add(line);
+					list_of_lines.add(line + "\t#size_of_cmd-->"+size_of_current_cmd);
 					num_of_actual_bytes_in_current_block+=size_of_current_cmd;
 					num_of_bytes_in_blocks_as_calced_by_cpu+=size_of_current_cmd;
 					address_of_code_that_denotes_next_cpu_block_change+=size_of_current_cmd;
@@ -376,7 +385,7 @@ public class Secure_Assembly_v2 {
 						add_code_verification_lines(list_of_lines);
 					}
 
-					list_of_lines.add(cmd+".d32\t"+operands+"\n");
+					list_of_lines.add(cmd+".d32\t"+operands+ "\t#size_of_cmd-->"+size_of_current_cmd);
 					num_of_actual_bytes_in_current_block+=size_of_current_cmd;
 					num_of_bytes_in_blocks_as_calced_by_cpu+=size_of_current_cmd;
 					address_of_code_that_denotes_next_cpu_block_change+=size_of_current_cmd;
@@ -386,7 +395,7 @@ public class Secure_Assembly_v2 {
 				if (force_end_of_block==false)
 				//the default behavior is the program to add the next command
 				{
-					list_of_lines.add(line);
+					list_of_lines.add(line + "\t#size_of_cmd-->"+size_of_current_cmd);
 					num_of_actual_bytes_in_current_block+=size_of_current_cmd;
 					num_of_bytes_in_blocks_as_calced_by_cpu+=size_of_current_cmd;
 					address_of_code_that_denotes_next_cpu_block_change+=size_of_current_cmd;
@@ -406,6 +415,7 @@ public class Secure_Assembly_v2 {
 				continue;
 			}
 			list_of_lines.add(line); 
+			line_index++;
 		}
 				
         //write all the lines to the output file
