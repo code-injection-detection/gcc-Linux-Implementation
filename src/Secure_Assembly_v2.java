@@ -45,6 +45,15 @@ public class Secure_Assembly_v2 {
 										//NOPs are padded in ALL worlds.
 	static int num_of_actual_bytes_in_current_block=0;
 	static String canary_value="0x42";
+	static	int  num_of_interleaved_keys = 32;   //this should be equal to the number of keys we use in Secure_Machine_Code.java (now that we assume that 1 NOP = 1key)
+	static	int  number_of_canaries=3;	//the canary bytes are after the jmp above keyshares+MACs, to know where they are in the code
+	static	int  num_of_mac_bytes=16;
+	static	int bytes_for_instr_len=2; //2 bytes that denote the length of the useful bytes + <size_of_jmp_command> bytes for jmp. Verification code is included. Does the same. The padded nops are not included.
+	static	int bytes_for_num_of_padded_nops_len=2; //2 bytes that denote the number of padded nops that will be inserted
+	static	int number_of_nops_to_denote_program_start=300;
+	static	int num_of_requested_bytes_in_code_chunk=16; //number of useful bytes in code chunk. IMPORTANT: verification overhead, jmp to next block, canaries etc EXCLUDED!
+	static boolean force_end_of_block=false;
+	static int world=3; //=world_in_which_we_are (variable above)
 	
 	public static void main(String[] args) throws Exception
 	{
@@ -63,19 +72,11 @@ public class Secure_Assembly_v2 {
 		int num_of_grouped_orig_instr= 1;
 		int label_counter = 0;
 		int i = 0;
-		int  num_of_interleaved_keys = 32;   //this should be equal to the number of keys we use in Secure_Machine_Code.java (now that we assume that 1 NOP = 1key)
-		int  number_of_canaries=3;	//the canary bytes are after the jmp above keyshares+MACs, to know where they are in the code
-		int  num_of_mac_bytes=16;
-		int bytes_for_instr_len=2; //2 bytes that denote the length of the useful bytes + <size_of_jmp_command> bytes for jmp. Verification code is included. Does the same. The padded nops are not included.
-		int bytes_for_num_of_padded_nops_len=2; //2 bytes that denote the number of padded nops that will be inserted
-		int number_of_nops_to_denote_program_start=300;
-		int num_of_requested_bytes_in_code_chunk=16; //number of useful bytes in code chunk. IMPORTANT: verification overhead, jmp to next block, canaries etc EXCLUDED!
 		int line_index=0;
 		int size_of_current_cmd=0;
 		String ramtmp_file="";
 		ArrayList<String> list_of_assembly_sizes = new ArrayList<String>();
 		HashMap<String,Integer> hashmap_of_assembly_sizes =  new HashMap<String, Integer>();
-		int world=3;
 		
 		if (args.length==6)
 		{
@@ -153,7 +154,7 @@ public class Secure_Assembly_v2 {
 		
 		line_index=-1;
 		list_of_addresses_that_denote_next_cpu_block_change.add(0);
-		boolean force_end_of_block=false;
+		force_end_of_block=false;
 		for (String fun:function_names)
 		{	
 			while (sc.hasNext())
@@ -274,93 +275,10 @@ public class Secure_Assembly_v2 {
 
 				if (force_end_of_block==true)
 				{
-					int num_of_padded_nops=num_of_requested_bytes_in_code_chunk-num_of_bytes_in_blocks_as_calced_by_cpu;
+					//split the block, and reset the counters
+					add_lines_for_block_splitting(list_of_lines,label_counter,ulabel);
 
-					//split the block!
-					list_of_lines.add("# forcing block split because secure cpu would");
-					num_of_actual_bytes_in_current_block+=size_of_jmp_command;
-					list_of_lines.add(" jmp.d32 " + "." + ulabel + label_counter);
-
-					//add canary bytes
-					for (int j=0;j<number_of_canaries;j++)
-						list_of_lines.add(".byte "+canary_value);
-
-					//add bytes_for_instructions, which tell us how many bytes (verifications+jmp included) were in the block
-					short actual_bytes_in_block=(short)num_of_actual_bytes_in_current_block;
-					list_of_lines.add("#actual_bytes_in_block:"+actual_bytes_in_block);
-					//set the bytes after the canaries to denote the length of the useful bytes
-					//first turn the number into bytes
-					ByteBuffer dbuf = ByteBuffer.allocate(2);
-					dbuf.order(ByteOrder.LITTLE_ENDIAN);
-					dbuf.putShort((short)actual_bytes_in_block);
-					byte[] bytes_of_actual_bytes = dbuf.array();
-					for(int j=0;j<bytes_for_instr_len;j++)
-					{
-						byte[] current_byte=new byte[1]; current_byte[0]=bytes_of_actual_bytes[j];
-						list_of_lines.add(".byte 0x"+DatatypeConverter.printHexBinary(current_byte));
-					}
-
-					
-
-
-					//add the bytes for the padded nops
-					list_of_lines.add("#number_of_padded_nops:"+num_of_padded_nops);
-					ByteBuffer dbuf2 = ByteBuffer.allocate(2);
-					dbuf2.order(ByteOrder.LITTLE_ENDIAN);
-					dbuf2.putShort((short)num_of_padded_nops);
-					byte[] bytes_for_num_of_padded_nops = dbuf2.array();
-					for(int j=0;j<bytes_for_num_of_padded_nops_len;j++)
-					{
-						byte[] current_byte=new byte[1]; current_byte[0]=bytes_for_num_of_padded_nops[j];
-						list_of_lines.add(".byte 0x"+DatatypeConverter.printHexBinary(current_byte));
-					}
-
-
-					//add the padded nops
-					list_of_lines.add("#start_of_padded_nops");
-					//If we land at the end of the padded nops, and we would want to know the number of the useful bytes, we must go back until we find the canaries.
-					//add padded nops
-					for(int j=0;j<num_of_padded_nops;j++)
-						list_of_lines.add("NOP");
-
-					list_of_lines.add("#end_of_padded_nops");
-
-
-					//add keyshares
-					for (int j = 0; j < num_of_interleaved_keys; j++)
-						list_of_lines.add("NOP"); //keyshares
-
-					list_of_lines.add("#end_of_keyshares");
-
-					//add macs
-					if (world==2 || world==3)
-					{
-						for (int j = 0; j < num_of_mac_bytes; j++)
-						list_of_lines.add("NOP"); //MACs
-					}
-
-					list_of_lines.add("."+ ulabel + label_counter + ": " );          //we are just adding the label, not any command
-
-					address_of_code_that_denotes_next_cpu_block_change+=size_of_jmp_command;
-					address_of_code_that_denotes_next_cpu_block_change+=num_of_interleaved_keys+number_of_canaries+bytes_for_instr_len+num_of_padded_nops;
-					if (world==2 || world==3)
-					{
-						address_of_code_that_denotes_next_cpu_block_change+=num_of_mac_bytes;
-					}
-					label_counter++;
-
-					num_of_bytes_in_blocks_as_calced_by_cpu=0;
-					num_of_actual_bytes_in_current_block=0;
 					force_end_of_block=false;
-
-					//we have a new block, and we note down its address
-					list_of_addresses_that_denote_next_cpu_block_change.add(address_of_code_that_denotes_next_cpu_block_change);
-					list_of_lines.add("#place_of_secure_cpu_block_change, address:"+address_of_code_that_denotes_next_cpu_block_change);
-					//we need to verify the block in which we have just arrived!
-					if (world==3)
-					{
-						add_code_verification_lines(list_of_lines);
-					}
 				}
 
 
@@ -683,6 +601,100 @@ public class Secure_Assembly_v2 {
 			is_one=true;
 		}
 		return is_one;
+	}
+
+
+	static void add_lines_for_block_splitting(ArrayList<String> list_of_lines,int label_counter,String ulabel)
+	{
+		int num_of_padded_nops=num_of_requested_bytes_in_code_chunk-num_of_bytes_in_blocks_as_calced_by_cpu;
+
+		//split the block!
+		list_of_lines.add("# forcing block split because secure cpu would");
+		num_of_actual_bytes_in_current_block+=size_of_jmp_command;
+		list_of_lines.add(" jmp.d32 " + "." + ulabel + label_counter);
+
+		//add canary bytes
+		for (int j=0;j<number_of_canaries;j++)
+			list_of_lines.add(".byte "+canary_value);
+
+		//add bytes_for_instructions, which tell us how many bytes (verifications+jmp included) were in the block
+		short actual_bytes_in_block=(short)num_of_actual_bytes_in_current_block;
+		list_of_lines.add("#actual_bytes_in_block:"+actual_bytes_in_block);
+		//set the bytes after the canaries to denote the length of the useful bytes
+		//first turn the number into bytes
+		ByteBuffer dbuf = ByteBuffer.allocate(2);
+		dbuf.order(ByteOrder.LITTLE_ENDIAN);
+		dbuf.putShort((short)actual_bytes_in_block);
+		byte[] bytes_of_actual_bytes = dbuf.array();
+		for(int j=0;j<bytes_for_instr_len;j++)
+		{
+			byte[] current_byte=new byte[1]; current_byte[0]=bytes_of_actual_bytes[j];
+			list_of_lines.add(".byte 0x"+DatatypeConverter.printHexBinary(current_byte));
+		}
+
+		
+
+
+		//add the bytes for the padded nops
+		list_of_lines.add("#number_of_padded_nops:"+num_of_padded_nops);
+		ByteBuffer dbuf2 = ByteBuffer.allocate(2);
+		dbuf2.order(ByteOrder.LITTLE_ENDIAN);
+		dbuf2.putShort((short)num_of_padded_nops);
+		byte[] bytes_for_num_of_padded_nops = dbuf2.array();
+		for(int j=0;j<bytes_for_num_of_padded_nops_len;j++)
+		{
+			byte[] current_byte=new byte[1]; current_byte[0]=bytes_for_num_of_padded_nops[j];
+			list_of_lines.add(".byte 0x"+DatatypeConverter.printHexBinary(current_byte));
+		}
+
+
+		//add the padded nops
+		list_of_lines.add("#start_of_padded_nops");
+		//If we land at the end of the padded nops, and we would want to know the number of the useful bytes, we must go back until we find the canaries.
+		//add padded nops
+		for(int j=0;j<num_of_padded_nops;j++)
+			list_of_lines.add("NOP");
+
+		list_of_lines.add("#end_of_padded_nops, start_of_keyshares");
+
+
+		//add keyshares
+		for (int j = 0; j < num_of_interleaved_keys; j++)
+			list_of_lines.add("NOP"); //keyshares
+
+		list_of_lines.add("#end_of_keyshares, start_of_macs");
+
+		//add macs
+		if (world==2 || world==3)
+		{
+			for (int j = 0; j < num_of_mac_bytes; j++)
+			list_of_lines.add("NOP"); //MACs
+		}
+
+		list_of_lines.add("#end_of_macs");
+		
+		list_of_lines.add("."+ ulabel + label_counter + ": " );          //we are just adding the label, not any command
+
+		address_of_code_that_denotes_next_cpu_block_change+=size_of_jmp_command;
+		address_of_code_that_denotes_next_cpu_block_change+=num_of_interleaved_keys+number_of_canaries+bytes_for_instr_len+num_of_padded_nops;
+		if (world==2 || world==3)
+		{
+			address_of_code_that_denotes_next_cpu_block_change+=num_of_mac_bytes;
+		}
+		label_counter++;
+
+		num_of_bytes_in_blocks_as_calced_by_cpu=0;
+		num_of_actual_bytes_in_current_block=0;
+		force_end_of_block=false;
+
+		//we have a new block, and we note down its address
+		list_of_addresses_that_denote_next_cpu_block_change.add(address_of_code_that_denotes_next_cpu_block_change);
+		list_of_lines.add("#place_of_secure_cpu_block_change, address:"+address_of_code_that_denotes_next_cpu_block_change);
+		//we need to verify the block in which we have just arrived!
+		if (world==3)
+		{
+			add_code_verification_lines(list_of_lines);
+		}
 	}
 	
 	
