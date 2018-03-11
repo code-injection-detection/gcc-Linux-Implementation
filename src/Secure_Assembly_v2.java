@@ -335,6 +335,11 @@ public class Secure_Assembly_v2 {
 			}
 		}
 		
+		//at this point we are after the end of the last function. We need to secure that code as well, so we add keyshares+macs.
+		add_lines_for_block_splitting(list_of_lines,ulabel);
+
+
+
 		//Add the last lines
 		while (sc.hasNext())
 		{
