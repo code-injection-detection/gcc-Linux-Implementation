@@ -22,6 +22,17 @@ We ONLY split when the secure CPU splits.
         If it is not found, it increases the verification counter.
  */
 
+ /*Here's the structure of a block*/
+ /* <useful_bytes>  <--- in here we might have verification calls interleaved, 7 bytes for the 3 commands needed for each of them
+    <jmp to next block>  (5 bytes)
+    <canaries>  (typically 3 bytes)
+    <number of actual bytes in the block, all counted (useful,verifications,final jmp)>    (typically 2 bytes)
+    <number of padded nops>  (typically 2 bytes)
+    <padded nops> (so as the number of the ACTUAL useful bytes [that is, exclude verifications] + the padded nops to be fixed size)
+    <keyshares>
+    <mac>
+ */
+
 public class Secure_Assembly_v2 {
 	
 	private static ArrayList<String> hashmap_of_assemby_sizes;
@@ -56,6 +67,7 @@ public class Secure_Assembly_v2 {
 		int  number_of_canaries=3;	//the canary bytes are after the jmp above keyshares+MACs, to know where they are in the code
 		int  num_of_mac_bytes=16;
 		int bytes_for_instr_len=2; //2 bytes that denote the length of the useful bytes + <size_of_jmp_command> bytes for jmp. Verification code is included. Does the same. The padded nops are not included.
+		int bytes_for_num_of_padded_nops_len=2; //2 bytes that denote the number of padded nops that will be inserted
 		int number_of_nops_to_denote_program_start=300;
 		int num_of_requested_bytes_in_code_chunk=16; //number of useful bytes in code chunk. IMPORTANT: verification overhead, jmp to next block, canaries etc EXCLUDED!
 		int line_index=0;
@@ -262,6 +274,8 @@ public class Secure_Assembly_v2 {
 
 				if (force_end_of_block==true)
 				{
+					int num_of_padded_nops=num_of_requested_bytes_in_code_chunk-num_of_bytes_in_blocks_as_calced_by_cpu;
+
 					//split the block!
 					list_of_lines.add("# forcing block split because secure cpu would");
 					num_of_actual_bytes_in_current_block+=size_of_jmp_command;
@@ -273,51 +287,50 @@ public class Secure_Assembly_v2 {
 
 					//add bytes_for_instructions, which tell us how many bytes (verifications+jmp included) were in the block
 					short actual_bytes_in_block=(short)num_of_actual_bytes_in_current_block;
+					list_of_lines.add("#actual_bytes_in_block:"+actual_bytes_in_block);
 					//set the bytes after the canaries to denote the length of the useful bytes
 					//first turn the number into bytes
 					ByteBuffer dbuf = ByteBuffer.allocate(2);
 					dbuf.order(ByteOrder.LITTLE_ENDIAN);
 					dbuf.putShort((short)actual_bytes_in_block);
-					byte[] bytes_of_actual_useful_bytes = dbuf.array();
+					byte[] bytes_of_actual_bytes = dbuf.array();
 					for(int j=0;j<bytes_for_instr_len;j++)
 					{
-						byte[] current_byte=new byte[1]; current_byte[0]=bytes_of_actual_useful_bytes[j];
+						byte[] current_byte=new byte[1]; current_byte[0]=bytes_of_actual_bytes[j];
+						list_of_lines.add(".byte 0x"+DatatypeConverter.printHexBinary(current_byte));
+					}
+
+					
+
+
+					//add the bytes for the padded nops
+					list_of_lines.add("#number_of_padded_nops:"+num_of_padded_nops);
+					ByteBuffer dbuf2 = ByteBuffer.allocate(2);
+					dbuf2.order(ByteOrder.LITTLE_ENDIAN);
+					dbuf2.putShort((short)num_of_padded_nops);
+					byte[] bytes_for_num_of_padded_nops = dbuf2.array();
+					for(int j=0;j<bytes_for_num_of_padded_nops_len;j++)
+					{
+						byte[] current_byte=new byte[1]; current_byte[0]=bytes_for_num_of_padded_nops[j];
 						list_of_lines.add(".byte 0x"+DatatypeConverter.printHexBinary(current_byte));
 					}
 
 
 					//add the padded nops
-					int num_of_padded_nops=num_of_requested_bytes_in_code_chunk-num_of_bytes_in_blocks_as_calced_by_cpu;
-					list_of_lines.add("#actual_bytes_in_block:"+actual_bytes_in_block);
-					list_of_lines.add("#padded_nops:"+num_of_padded_nops);
-					//ok now we have the following problem: If we land at the end of the padded nops, we would want to know the number of the useful bytes
-					//so we implement the following convention (WORKS ONLY IF bytes_for_instr_len==2, which is fine):
-					//get the last 2 bytes. Check if before them there are the canaries, if yes then there are no padded nops and they contain the number you want.
-					//if the canaries are not there, check if they are one byte behind (there is only one padded nop)
-					//if the canaries are not there either, the value of the last 2 padded nops will have been replaced by the number you want. Get that value.
-					//write the number of the actual commands in the last padded nop bytes
-					if (num_of_padded_nops==0 || num_of_padded_nops==1)
-					{
-						for(int j=0;j<num_of_padded_nops;j++)
-							list_of_lines.add("NOP");
-					}
-					else
-					{
-						//add padded nops except 2
-						for(int j=0;j<num_of_padded_nops-bytes_for_instr_len;j++)
-							list_of_lines.add("NOP");
+					list_of_lines.add("#start_of_padded_nops");
+					//If we land at the end of the padded nops, and we would want to know the number of the useful bytes, we must go back until we find the canaries.
+					//add padded nops
+					for(int j=0;j<num_of_padded_nops;j++)
+						list_of_lines.add("NOP");
 
-						//add the bytes with the values of the useful bytes
-						for(int j=0;j<bytes_for_instr_len;j++)
-						{
-							byte[] current_byte=new byte[1]; current_byte[0]=bytes_of_actual_useful_bytes[j];
-							list_of_lines.add(".byte 0x"+DatatypeConverter.printHexBinary(current_byte));
-						}
-					}
+					list_of_lines.add("#end_of_padded_nops");
+
 
 					//add keyshares
 					for (int j = 0; j < num_of_interleaved_keys; j++)
 						list_of_lines.add("NOP"); //keyshares
+
+					list_of_lines.add("#end_of_keyshares");
 
 					//add macs
 					if (world==2 || world==3)
