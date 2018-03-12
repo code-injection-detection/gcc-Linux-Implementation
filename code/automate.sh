@@ -1,15 +1,13 @@
 #!/bin/bash
 
 #this script creates the actual secure program
+#do "make clean" if after the execution you want to clear the files
 
 SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS=1  #default 1
 DECLARE_GLOBAL_KEYS_AS_AN_ARRAY=0  #default 0
 INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS=1 #default 1
 CHECK_FOR_SECURE_STACK_ALLOCATION_OVERLOW=1 #default 1, checks if we don't have enough stack memory to accommodate for a given secure stack allocation
 
-ADD_CODE_ON_THE_FLY_VERIFICATION=1 #default 1
-FORCE_NUM_OF_INSTRUCTIONS_OVER_NUM_OF_BYTES=0 #for fixed size length, the default config (0) is to just have a fixed size code block without caring to complete the number of instructions given per block. If it is set to 1, then every block should have X instructions, or else an error occurs.
-DO_NOT_MAC_WHAT_WHE_ADD_IN_CODE=1 #ignore our additions to the code (like verification procedure, jmps etc) when calculating mac. Default 1
 USE_INLINE_CODE_FOR_DELAYS=0 #make it 1 when tou want to benchmark normal times (where extra code is added to the normal functions to simulate a fair (for the secure functions) delay. Default 0.
 CODE_CACHE_TYPE=2  #0 -> fully assosiative (default 2)
 				   #1 -> direct mapped
@@ -23,26 +21,35 @@ NUM_OF_CACHED_BLOCKS_OF_CODE=100 #if a code block is in the cache, it does not h
 CODE_CACHE_SET_ASSOSIATIVE_SIZE=2 #the size of the set in the code cache
 NUM_OF_CACHED_BLOCKS_OF_DATA=100 #if a data block is in the cache, it does not have to be verified. If it is 0, we have no cache
 DATA_CACHE_SET_ASSOSIATIVE_SIZE=2 #the size of the set in the data cache
-IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES=0  #put the macs in the memory, but do absolutely nothing about  (default 0)
-IGNORE_MACS_LAST_MOMENT_EVEN_IF_THERE_ARE_MAC_BYTES=0 #put the macs in memory, include the on the fly verification code, and when it comes to calculate them, don't do it (default 0)
-FORCE_CODE_BLOCK_SPLIT_ON_LABELS_AND_CALLS=0 #use it with IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES=1, the blocks are split but no verification code added
-TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES=0 #don't call the secure getters and setters for the loop counters. It seems wrong to not call them. Default 0.
 SQEEZE_KEYS_WHEN_MACING=1  #Reduces the size of the keys from 32 bytes to 16 when calculating mac. Default 1
-COUNT_MAC_INVOCATIONS=0 #Ignores mac correctness and reports mac invocations. Default 0.
-ADD_THE_PADDED_NOPS_IN_THE_MAC_IN_FIXED_SIZE=1 #takes into account the padded nops in the mac calculation. Default 1.
-USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=1 #The code blocks that are cached are cached if being unsplit. Default 0.
-SET_AS_GIVEN_THAT_EVERYTHING_MACED_WILL_BE_FIXED_AND_MULTIPLE_OF_16=1 #this means that we can disable length prepending and padding. Default 0.
-WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL=1 #Does not calculate the mac when splitting blocks due to label encounter and we continue normal execution. Only calcs mac when we jump to that label.
-SPLIT_THE_BLOCKS_WHEN_THE_SECURE_CPU_WOULD=1 #It changes the values of WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL and USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS to hold its value. Splits blocks when encountering call or label, but calculates the mac on the unsplit block.
 SIZE_OF_JMP_COMMAND=5 #jmp.d32 <label>
-BYTES_FOR_INSTR_LEN=2 #the number of bytes after the canaries that hold the size of the verif+useful bytes+the jmp bytes
+BYTES_FOR_INSTR_LEN=2 #the number of bytes after the canaries that hold the size of the verifications+useful bytes+the jmp bytes
+BYTES_FOR_NUM_OF_PADDED_NOPS_LEN=2 # the number of bytes after the canaries+bytes_for_instructions  that hold the number of padded nops
 OVERHEAD_OF_VERIFICATION=7 #7 for fixed size, 14 for variable size (obsolete)
-USING_LARGE_JMPS_AND_CODE_BLOCKS_WITH_3_WORLDS=1 #using the new implementation which restricts the variables that we have. The worlds are: no macs, ignoring macs, splitting and caching like secure cpu would
-VERIFY_EVERYTHING=1 #the third world
 USE_NEW_SECURE_HEAP=2 # use the new secure heap implementation. 1-> use it, but do not use the secured global variables for its position/size etc. 2-> use it, with the secured global variables
 STACK_SHOULD_GROW_TO_DECREASING_NUMBERS=1 #IMPORTANT: 1 ONLY WORKS WHEN INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS=1. Search for bug in "return_addr_after_allocating", both in old and new templates. if 1, the "push" command in the stack should make the stack pointer decrease in number (as stack normally behaves)
 USE_STACK_CANARIES=0 # IMPORTANT: ONLY WORKS WHEN STACK_SHOULD_GROW_TO_DECREASING_NUMBERS=1. Inserts a stack canary on top of the local variables of a function, in order to protect from buffer overflows. 1->use static stack canary, 2->use cryptographically secure stack canary (not yet supported)
-WORLD_IN_WHICH_WE_ARE=3 #NOT YET FUNCTIONAL, DESTINED TO REPLACE MOST FLAGS. # 1->No MACs no verification. 2-> Put MACs but ignore them (no verification), 3-> everything calculated world .  NOPs are padded in ALL worlds.
+WORLD_IN_WHICH_WE_ARE=3 # 1->No MACs no verification. 2-> Put MACs but ignore them (no verification), 3-> everything calculated world .  NOPs are padded in ALL worlds.
+
+
+#OBSOLETE FLAGS BELOW
+ADD_CODE_ON_THE_FLY_VERIFICATION=1 #default 1, that is the third world
+FORCE_NUM_OF_INSTRUCTIONS_OVER_NUM_OF_BYTES=0 #for fixed size length, the default config (0) is to just have a fixed size code block without caring to complete the number of instructions given per block. If it is set to 1, then every block should have X instructions, or else an error occurs. OBSOLETE since now we don't care completing a specific number of instructions per block
+DO_NOT_MAC_WHAT_WHE_ADD_IN_CODE=1 #ignore our additions to the code (like verification procedure, jmps etc) when calculating mac. Default 1. ALWAYS TRUE.
+IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES=0  #put the macs in the memory, but do absolutely nothing about  (default 0), That is world 2.
+IGNORE_MACS_LAST_MOMENT_EVEN_IF_THERE_ARE_MAC_BYTES=0 #put the macs in memory, include the on the fly verification code, and when it comes to calculate them, don't do it (default 0). OBSOLETE FLAG.
+FORCE_CODE_BLOCK_SPLIT_ON_LABELS_AND_CALLS=0 #use it with IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES=1, the blocks are split but no verification code added. OBSOLETE FLAG.
+TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES=0 #don't call the secure getters and setters for the loop counters. It seems wrong to not call them. Default 0. ALWAYS FALSE.
+COUNT_MAC_INVOCATIONS=0 #Ignores mac correctness and reports mac invocations. Default 1. That is the third world.
+ADD_THE_PADDED_NOPS_IN_THE_MAC_IN_FIXED_SIZE=1 #takes into account the padded nops in the mac calculation. Default 1. ALWAYS TRUE.
+USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=1 #The code blocks that are cached are cached if being unsplit. Default 1. ALWAYS TRUE.
+SET_AS_GIVEN_THAT_EVERYTHING_MACED_WILL_BE_FIXED_AND_MULTIPLE_OF_16=1 #this means that we can disable length prepending and padding. Default 1. ALWAYS TRUE. 
+WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL=1 #Does not calculate the mac when splitting blocks due to label encounter and we continue normal execution. Only calcs mac when we jump to that label. OBSOLETE FLAG.
+SPLIT_THE_BLOCKS_WHEN_THE_SECURE_CPU_WOULD=1 #It changes the values of WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL and USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS to hold its value. Splits blocks when encountering call or label, but calculates the mac on the unsplit block. ALWAYS TRUE.
+USING_LARGE_JMPS_AND_CODE_BLOCKS_WITH_3_WORLDS=1 #using the new implementation which restricts the variables that we have. The worlds are: no macs, ignoring macs, splitting and caching like secure cpu would. ALWAYS TRUE.
+VERIFY_EVERYTHING=1 #the third world
+
+
 
 #usage
 if [[ ( "$#" -ne 9 ) ]]; then
@@ -55,21 +62,21 @@ if [[ ( "$#" -ne 9 ) ]]; then
     echo "g=number of grouped useful bytes between keyshares in global variables"
     echo "h=number of bytes for MACs"
 	echo "i=size in bytes of a fixed chunk in code"
-	echo "Example: $0 32 3 16 50000 16 40000 16 16 28"
+	echo "Example: $0 32 3 16 50000 16 40000 16 16 16"
     exit
 fi
 
 NUM_OF_INTERLEAVED_KEYS=32 #The number of bytes for both the keyshares in a block
 NUM_OF_GROUPED_INSTRUCTIONS=80 #grouped code instructions per code block (obsolete)
 NUM_OF_GROUPED_USEFUL_BYTES=16 #the useful bytes in a heap block
-NUM_OF_TOTAL_BYTES_ALLOC=10000 #the size of the secure heap
+NUM_OF_TOTAL_BYTES_ALLOC_IN_HEAP=100000 #the size of the secure heap
 NUM_OF_CANARIES=3 
 NUM_OF_GROUPED_USEFUL_STACK_BYTES=16 #the useful bytes in a stack block
-NUM_OF_TOTAL_STACK_BYTES_ALLOC=8000 #the size of the secure stack
+NUM_OF_TOTAL_STACK_BYTES_ALLOC=80000 #the size of the secure stack
 NUM_OF_GLOBAL_USEFUL_BYTES=16  #the useful bytes in a data segment block
 NUM_OF_MAC_BYTES=16 
-USE_FIXED_SIZE_CHUNKS_OF_CODE=1 #should we use fixed chunks in code blocks? The preferred option is yes.
-NUM_OF_BYTES_IN_CODE_CHUNK=28 #Maximum value for code (verification code + useful code + jmps) per code block. The block may be split if we encounter label or call.
+USE_FIXED_SIZE_CHUNKS_OF_CODE=1 #should we use fixed chunks in code blocks? ALWAYS TRUE
+NUM_OF_REQUESTED_USEFUL_BYTES_IN_CODE_CHUNK=16 #We will complete that number with padded nops if we can't reach it
 
 #set the values
 
@@ -77,12 +84,12 @@ if [ "$#" -eq 9 ]; then
 	NUM_OF_INTERLEAVED_KEYS=$1
 	NUM_OF_CANARIES=$2
 	NUM_OF_GROUPED_USEFUL_BYTES=$3
-	NUM_OF_TOTAL_BYTES_ALLOC=$4
+	NUM_OF_TOTAL_BYTES_ALLOC_IN_HEAP=$4
 	NUM_OF_GROUPED_USEFUL_STACK_BYTES=$5
 	NUM_OF_TOTAL_STACK_BYTES_ALLOC=$6
 	NUM_OF_GLOBAL_USEFUL_BYTES=$7
 	NUM_OF_MAC_BYTES=$8
-	NUM_OF_BYTES_IN_CODE_CHUNK=$9  #${10} for a tenth parameter
+	NUM_OF_REQUESTED_USEFUL_BYTES_IN_CODE_CHUNK=$9  #${10} for a tenth parameter
 	USE_FIXED_SIZE_CHUNKS_OF_CODE=1
 fi
 
@@ -90,8 +97,8 @@ echo -n "NUM_OF_INTERLEAVED_KEYS: "
 echo $NUM_OF_INTERLEAVED_KEYS
 echo -n "NUM_OF_GROUPED_USEFUL_BYTES: "
 echo $NUM_OF_GROUPED_USEFUL_BYTES
-echo -n "NUM_OF_TOTAL_BYTES_ALLOC: "
-echo $NUM_OF_TOTAL_BYTES_ALLOC
+echo -n "NUM_OF_TOTAL_BYTES_ALLOC_IN_HEAP: "
+echo $NUM_OF_TOTAL_BYTES_ALLOC_IN_HEAP
 echo -n "NUM_OF_CANARIES: "
 echo $NUM_OF_CANARIES
 echo -n "NUM_OF_GROUPED_USEFUL_STACK_BYTES: "
@@ -104,14 +111,38 @@ echo -n "NUM_OF_GLOBAL_USEFUL_BYTES: "
 echo $NUM_OF_GLOBAL_USEFUL_BYTES
 echo -n "NUM_OF_MAC_BYTES: "
 echo $NUM_OF_MAC_BYTES
-echo -n "NUM_OF_BYTES_IN_CODE_CHUNK: "
-echo $NUM_OF_BYTES_IN_CODE_CHUNK
+echo -n "NUM_OF_REQUESTED_USEFUL_BYTES_IN_CODE_CHUNK: "
+echo $NUM_OF_REQUESTED_USEFUL_BYTES_IN_CODE_CHUNK
 
 echo ""
 
 
-if [ "$NUM_OF_BYTES_IN_CODE_CHUNK" -lt "28" ]; then
-	echo "Caution! The length of the code chunk should be bigger or equal than 28"
+#Attempt to set the obsolete flags with our new version (v2), which only uses worlds.
+if [ "$WORLD_IN_WHICH_WE_ARE" -eq "1" ]; then
+	ADD_CODE_ON_THE_FLY_VERIFICATION=0
+	NUM_OF_MAC_BYTES=0 #greatly simplifies things
+	COUNT_MAC_INVOCATIONS=0
+	VERIFY_EVERYTHING=0
+fi
+
+if [ "$WORLD_IN_WHICH_WE_ARE" -eq "2" ]; then
+	ADD_CODE_ON_THE_FLY_VERIFICATION=0
+	COUNT_MAC_INVOCATIONS=0
+	VERIFY_EVERYTHING=0
+	IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES=1
+	IGNORE_MACS_LAST_MOMENT_EVEN_IF_THERE_ARE_MAC_BYTES=0
+	FORCE_CODE_BLOCK_SPLIT_ON_LABELS_AND_CALLS=1
+fi
+
+if [ "$WORLD_IN_WHICH_WE_ARE" -eq "3" ]; then
+	#nothing changes from default values above
+	: ;
+fi
+
+
+
+if [ "$NUM_OF_REQUESTED_USEFUL_BYTES_IN_CODE_CHUNK" -lt "16" ]; then
+	echo "Caution! The useful bytes in the code chunk should be more or equal than 16"
 	echo "Your value of code chunk length is small enough to cause concerns. Exiting for safety."
 	echo "If you REALLY want such a value (it is small however), change the automate.sh script."
 	exit
@@ -142,6 +173,7 @@ if [[ ( "$NUM_OF_CACHED_BLOCKS_OF_DATA" -ne 0 ) && ( "$NUM_OF_GROUPED_USEFUL_STA
 	exit
 fi
 
+#OBSOLETE FLAGS checks
 if [ "$SPLIT_THE_BLOCKS_WHEN_THE_SECURE_CPU_WOULD" -eq "1" ]; then
 	WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL=1
 	USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=1
@@ -151,6 +183,7 @@ if [ "$SPLIT_THE_BLOCKS_WHEN_THE_SECURE_CPU_WOULD" -eq "0" ]; then
 	WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL=0
 	USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=0
 fi
+
 
 #Checking if the .class files are present. If not (or out of date), we create them.
 if [ ! -d "../bin" ]; then  #if directory does not exist
@@ -197,10 +230,16 @@ rm -f comm_file2
 mkfifo comm_file2
 cd ..
 
+
+SCRIPTS_FOR_CODEGEN_DIR='./scripts_for_code_generation/'
+
 START_TIME_FIRST_PART=$(date +%s.%N)
+echo "Copying scripts to current directory..."
+cp ${SCRIPTS_FOR_CODEGEN_DIR}/* ./
+
 echo "Changing defines according to input..."
 #this script changes the defines according to user input, so that se secure program knows the constants as headers.
-SET_PROPER_DEFINES='python3 set_correct_defines.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_TOTAL_STACK_BYTES_ALLOC $NUM_OF_GLOBAL_USEFUL_BYTES $NUM_OF_MAC_BYTES $INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS $USE_FIXED_SIZE_CHUNKS_OF_CODE $NUM_OF_BYTES_IN_CODE_CHUNK $DO_NOT_MAC_WHAT_WHE_ADD_IN_CODE $ADD_CODE_ON_THE_FLY_VERIFICATION $USE_INLINE_CODE_FOR_DELAYS $NUM_OF_CACHED_BLOCKS_OF_CODE $NUM_OF_CACHED_BLOCKS_OF_DATA $IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES $CODE_CACHE_TYPE $DATA_CACHE_TYPE $CODE_CACHE_SET_ASSOSIATIVE_SIZE $DATA_CACHE_SET_ASSOSIATIVE_SIZE $IGNORE_MACS_LAST_MOMENT_EVEN_IF_THERE_ARE_MAC_BYTES $TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES $SQEEZE_KEYS_WHEN_MACING $COUNT_MAC_INVOCATIONS $ADD_THE_PADDED_NOPS_IN_THE_MAC_IN_FIXED_SIZE $FORCE_CODE_BLOCK_SPLIT_ON_LABELS_AND_CALLS $USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS $SET_AS_GIVEN_THAT_EVERYTHING_MACED_WILL_BE_FIXED_AND_MULTIPLE_OF_16 $WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL $SIZE_OF_JMP_COMMAND $OVERHEAD_OF_VERIFICATION $USING_LARGE_JMPS_AND_CODE_BLOCKS_WITH_3_WORLDS $BYTES_FOR_INSTR_LEN $VERIFY_EVERYTHING $USE_NEW_SECURE_HEAP $CHECK_FOR_SECURE_STACK_ALLOCATION_OVERLOW $STACK_SHOULD_GROW_TO_DECREASING_NUMBERS $USE_STACK_CANARIES'
+SET_PROPER_DEFINES='python3 set_correct_defines.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC_IN_HEAP $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_TOTAL_STACK_BYTES_ALLOC $NUM_OF_GLOBAL_USEFUL_BYTES $NUM_OF_MAC_BYTES $INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS $USE_FIXED_SIZE_CHUNKS_OF_CODE $NUM_OF_REQUESTED_USEFUL_BYTES_IN_CODE_CHUNK $DO_NOT_MAC_WHAT_WHE_ADD_IN_CODE $ADD_CODE_ON_THE_FLY_VERIFICATION $USE_INLINE_CODE_FOR_DELAYS $NUM_OF_CACHED_BLOCKS_OF_CODE $NUM_OF_CACHED_BLOCKS_OF_DATA $IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES $CODE_CACHE_TYPE $DATA_CACHE_TYPE $CODE_CACHE_SET_ASSOSIATIVE_SIZE $DATA_CACHE_SET_ASSOSIATIVE_SIZE $IGNORE_MACS_LAST_MOMENT_EVEN_IF_THERE_ARE_MAC_BYTES $TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES $SQEEZE_KEYS_WHEN_MACING $COUNT_MAC_INVOCATIONS $ADD_THE_PADDED_NOPS_IN_THE_MAC_IN_FIXED_SIZE $FORCE_CODE_BLOCK_SPLIT_ON_LABELS_AND_CALLS $USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS $SET_AS_GIVEN_THAT_EVERYTHING_MACED_WILL_BE_FIXED_AND_MULTIPLE_OF_16 $WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL $SIZE_OF_JMP_COMMAND $OVERHEAD_OF_VERIFICATION $USING_LARGE_JMPS_AND_CODE_BLOCKS_WITH_3_WORLDS $BYTES_FOR_INSTR_LEN $VERIFY_EVERYTHING $USE_NEW_SECURE_HEAP $CHECK_FOR_SECURE_STACK_ALLOCATION_OVERLOW $STACK_SHOULD_GROW_TO_DECREASING_NUMBERS $USE_STACK_CANARIES $WORLD_IN_WHICH_WE_ARE'
 eval $SET_PROPER_DEFINES
 
 echo "Inserting secure heap manager + more tests into the great function that contains the secure functions..."
@@ -212,13 +251,13 @@ echo "Inserting secure heap manager + more tests into the great function that co
 	sed -i -e '/BASH PLEASE PLACE MORE_TESTS_THAT_USE_NEW_STACK.c HERE/r./more_tests_that_use_new_stack.c' tests_with_new_stack.c 
 echo "Inserted secure heap manager + more tests into the great function that contains the secure functions."
 
-if [ "$INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS" == "0" ]; then
-	#we now insert the code that manipulates the secure stack
-	python3 insert_new_stack_commands.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_MAC_BYTES $STACK_SHOULD_GROW_TO_DECREASING_NUMBERS
-fi
+
 if [ "$INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS" == "1" ]; then
 	#we now insert the code that manipulates the secure stack
 	python3 insert_new_stack_commands_groups_of_vars_as_arrays.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_MAC_BYTES $STACK_SHOULD_GROW_TO_DECREASING_NUMBERS $USE_STACK_CANARIES
+else
+	echo "INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS !=1   !!!"
+	exit
 fi
 echo "Changed defines."
 
@@ -253,11 +292,6 @@ echo "Compiling hash and encryption calculators, as well as the crypto initializ
 		#find the number of subtractions we have to do to fetch the return address (which is in the stack) in the verifier
          FIRST_LINES_OF_VERIF_PROCEDURE="$(objdump -d crypto_functions.o | grep -A 20  '<do_verify_code_on_the_fly>:')"
          BYTE_DIFFERENCE=$(echo "$FIRST_LINES_OF_VERIF_PROCEDURE" | ./finder_of_stack_pointer_reduction.py)
-		 #old, wrong way sometimes:
-		 #LINE_OF_VERIFIER=$(objdump -d crypto_functions.o | grep -n "<do_verify_code_on_the_fly>:" | grep -Eo '^[0123456789]+')
-		 #LINE_OF_MOV=$(objdump -d crypto_functions.o | grep -C 10 -n "<do_verify_code_on_the_fly>:" | grep "mov    0x10(%rsp),%rax" | grep -Eo '^[0123456789]+')
-		 #NUM_OF_8_BYTE_PUSHES=$(( $LINE_OF_MOV-$LINE_OF_VERIFIER -1 ))
-		 #BYTE_DIFFERENCE=$(( NUM_OF_8_BYTE_PUSHES*8 ))
 		 STR_FOR_SED="s/movq 0x10(%rsp),%rax;/movq ${BYTE_DIFFERENCE}(%rsp),%rax;/g" #changing the offset from %rsp to get the return address
 		 #replace and put the proper offset
 		 sed -i "$STR_FOR_SED" crypto_functions.c
@@ -314,74 +348,38 @@ echo "Compiled."
 
 END_TIME_FIRST_PART=$(date +%s.%N)
 
-echo "Inserting NOPs into assembly..."
+echo "Splitting blocks and inserting jmps+NOPs into assembly..."
 mkdir -p /run/shm/
 ramtmp="$(mktemp -p /run/shm/)" #temporary file
-#this java code inserts the nops in assembly, as well as the jmps and the on-the-fly verification code
-if [ "$BYTES_FOR_INSTR_LEN" == "1" ]; then
-	java -cp ../bin Secure_Assembly $NUM_OF_INTERLEAVED_KEYS $NUM_OF_GROUPED_INSTRUCTIONS $NUM_OF_CANARIES $NUM_OF_MAC_BYTES $ADD_CODE_ON_THE_FLY_VERIFICATION $USE_FIXED_SIZE_CHUNKS_OF_CODE $NUM_OF_BYTES_IN_CODE_CHUNK $FORCE_NUM_OF_INSTRUCTIONS_OVER_NUM_OF_BYTES $ramtmp $IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES $FORCE_CODE_BLOCK_SPLIT_ON_LABELS_AND_CALLS $WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL $SPLIT_THE_BLOCKS_WHEN_THE_SECURE_CPU_WOULD
-else #do not use the old version. New version uses fixed size for the useful bytes, a multiple of 16 (and some other things that make it simpler)
-	java -cp ../bin Secure_Assembly_new $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_MAC_BYTES $ADD_CODE_ON_THE_FLY_VERIFICATION $NUM_OF_BYTES_IN_CODE_CHUNK $ramtmp $IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES $SPLIT_THE_BLOCKS_WHEN_THE_SECURE_CPU_WOULD $VERIFY_EVERYTHING
-fi
+#this java code splits blocks, inserts the nops (padded nops and for keyshares+macs) in assembly, as well as the jmps and the on-the-fly verification code
+java -cp ../bin Secure_Assembly_v2 $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_MAC_BYTES $WORLD_IN_WHICH_WE_ARE $NUM_OF_REQUESTED_USEFUL_BYTES_IN_CODE_CHUNK $ramtmp
 if [ $? -eq 0 ]; then
 		: #all ok
 	else
-		echo "Error. Could not insert NOPs properly."
+		echo "Error. Could not split blocks and insert NOPs properly."
 		rm -f $ramtmp
 		exit
 	fi
 rm -f $ramtmp
-echo "NOPs inserted."
+echo "Blocks split and NOPs inserted."
 
 END_TIME_FIRST_JAVA_PART=$(date +%s.%N)
 #echo "Lines of main_program_sec.s: " `cat main_program_sec.s |wc -l`
-
-
-echo "Padding the nops for each block of code in order to reach fixed size blocks..."
-#assembling and disassembling
-cat main_program_sec.s | as && objdump -d > assembly_commands_for_parsing.txt
-NUM_OF_NOPS=$(( $NUM_OF_CANARIES + $BYTES_FOR_INSTR_LEN + $NUM_OF_INTERLEAVED_KEYS + $NUM_OF_MAC_BYTES ))
-#calculating sizes of commands
-./assembly_parser_and_size_finder.py $NUM_OF_NOPS > assembly_sizes.txt
-#padding bytes
-./nop_padder_for_fixed_size_code_blocks.py $NUM_OF_NOPS $NUM_OF_BYTES_IN_CODE_CHUNK $ADD_CODE_ON_THE_FLY_VERIFICATION > assembly_with_padded_nops.s
-mv assembly_with_padded_nops.s main_program_sec.s
-
-
-#verifying that blocks are fixed size
-#do the same thing with the new main_program_sec.s
-cat main_program_sec.s | as && objdump -d > assembly_commands_for_parsing.txt
-./assembly_parser_and_size_finder.py $NUM_OF_NOPS > assembly_sizes.txt
-./assembly_fixed_size_verifier.py $NUM_OF_NOPS $NUM_OF_BYTES_IN_CODE_CHUNK $ADD_CODE_ON_THE_FLY_VERIFICATION $NUM_OF_CANARIES $NUM_OF_INTERLEAVED_KEYS $NUM_OF_MAC_BYTES
-if [ $? -eq 0 ]; then
-	: #all ok
-else
-	echo "Error. Could not make the code blocks to be fixed size."
-	exit
-fi
-
-#rm -f assembly_commands_for_parsing.txt assembly_sizes.txt
-echo "Padded the nops."
-
 
 echo "Assembling code with NOPs..."
 make secure
 echo "Assembled."
 
-END_TIME_NOPS_PADDED_AND_MAKE=$(date +%s.%N)
+END_TIME_MAKE=$(date +%s.%N)
 
-echo "Replacing NOPs with canaries,keys and macs..."
+echo "Replacing NOPs with keys and macs..."
 #first running the mac calculator so it is ready to receive commands...
 #kill it first if it is running...
 killall calc_mac_for_external_programs_faster 2>/dev/null
 ./calc_mac_for_external_programs_faster & #it will wait for macs to calculate (talks with the following java program)
 
-#this java code searches through the binary, finds the jmps+rest of nops, and replaces the nops with canaries,padded nops (in case of fixed length), keys and macs
-if [ "$BYTES_FOR_INSTR_LEN" == "1" ]; then
-	java -cp ../bin Secure_Machine_Code $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_TOTAL_STACK_BYTES_ALLOC $NUM_OF_MAC_BYTES $ADD_CODE_ON_THE_FLY_VERIFICATION $USE_FIXED_SIZE_CHUNKS_OF_CODE $NUM_OF_BYTES_IN_CODE_CHUNK $DO_NOT_MAC_WHAT_WHE_ADD_IN_CODE $IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES $SQEEZE_KEYS_WHEN_MACING $ADD_THE_PADDED_NOPS_IN_THE_MAC_IN_FIXED_SIZE $FORCE_CODE_BLOCK_SPLIT_ON_LABELS_AND_CALLS $WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL
-else #do not use the old version. New version uses fixed size for the useful bytes, a multiple of 16 (and some other things that make it simpler)
-	java -cp ../bin Secure_Machine_Code_new $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_TOTAL_STACK_BYTES_ALLOC $NUM_OF_MAC_BYTES $ADD_CODE_ON_THE_FLY_VERIFICATION $NUM_OF_BYTES_IN_CODE_CHUNK $DO_NOT_MAC_WHAT_WHE_ADD_IN_CODE $IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES $SQEEZE_KEYS_WHEN_MACING $ADD_THE_PADDED_NOPS_IN_THE_MAC_IN_FIXED_SIZE $SPLIT_THE_BLOCKS_WHEN_THE_SECURE_CPU_WOULD $VERIFY_EVERYTHING
-fi
+#this java code searches through the binary, finds the jmps+rest of nops, and replaces the nops with keyshares and macs
+java -cp ../bin Secure_Machine_Code_v2 $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC_IN_HEAP $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_TOTAL_STACK_BYTES_ALLOC $NUM_OF_MAC_BYTES $NUM_OF_REQUESTED_USEFUL_BYTES_IN_CODE_CHUNK $SQEEZE_KEYS_WHEN_MACING $WORLD_IN_WHICH_WE_ARE
 
 #kill the program again if java segfaulted and did not send the termination number
 killall calc_mac_for_external_programs_faster 2>/dev/null
@@ -392,6 +390,6 @@ END_TIME_SECOND_JAVA_PART=$(date +%s.%N)
 echo ""
 echo "First part time:  $(echo "scale=3; ($END_TIME_FIRST_PART - $START_TIME_FIRST_PART)*1000/1000" | bc) seconds"
 echo "First Java part time:  $(echo "scale=3; ($END_TIME_FIRST_JAVA_PART - $END_TIME_FIRST_PART)*1000/1000" | bc) seconds"
-echo "Padding NOPs & make time:  $(echo "scale=3; ($END_TIME_NOPS_PADDED_AND_MAKE - $END_TIME_FIRST_JAVA_PART)*1000/1000" | bc) seconds"
-echo "Second Java part time:  $(echo "scale=3; ($END_TIME_SECOND_JAVA_PART - $END_TIME_NOPS_PADDED_AND_MAKE)*1000/1000" | bc) seconds"
+echo "make time:  $(echo "scale=3; ($END_TIME_MAKE - $END_TIME_FIRST_JAVA_PART)*1000/1000" | bc) seconds"
+echo "Second Java part time:  $(echo "scale=3; ($END_TIME_SECOND_JAVA_PART - $END_TIME_MAKE)*1000/1000" | bc) seconds"
 echo "Total compilation time:  $(echo "scale=3; ($END_TIME_SECOND_JAVA_PART - $START_TIME_FIRST_PART)*1000/1000" | bc) seconds"

@@ -233,6 +233,15 @@
 #endif				//1->use stack canaries against buffer overflows. 2->use cryptographically secure stack canaries.
 
 
+#ifndef world_in_which_we_are
+#define world_in_which_we_are 3
+#endif				//1->No MACs no verification. 2-> Put MACs but ignore them (no verification), 3-> everything calculated world .  NOPs are padded in ALL worlds.
+
+#ifndef world
+#define world (world_in_which_we_are)
+#endif				//1->No MACs no verification. 2-> Put MACs but ignore them (no verification), 3-> everything calculated world .  NOPs are padded in ALL worlds.
+
+
 #include "crypto_functions.h"
 #include "secure_getters_setters.h"
 

@@ -87,7 +87,7 @@ public class Secure_Machine_Code_v2 {
 		byte [] global_keys = Files.readAllBytes(path);
 		byte[] stuff_in_code_to_be_MACed=new byte[40000];
 		boolean squeeze_keys_when_macing=false;
-		
+		 
 		if (args.length==10)
 		{
 			number_of_interleaved_keys=Integer.parseInt(args[0]);
