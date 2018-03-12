@@ -51,6 +51,8 @@ long address_in_current_block_before_verif;
 long address_of_start_of_current_block;
 int code_length_of_current_block;
 int num_of_padded_nops_of_current_block;
+long position_after_us_that_jmp_above_keyshares_macs_is;
+int jump_offset_of_next_jmp;
 long next_block_address_that_will_be_reached_with_the_jmp;
 unsigned short jmp_rax_opcode=0xe0ff; //2 bytes, reversed
 unsigned short jmp_rbx_opcode=0xe3ff; //2 bytes, reversed
@@ -627,6 +629,8 @@ long get_start_of_current_block(unsigned char * addr_in_the_middle)
 	{
 		if (addr_in_the_middle[i]==0xE9 /*jmp opcode*/ && check_the_next_canaries((char*) &addr_in_the_middle[i+size_of_jmp_command]))
 		{
+			position_after_us_that_jmp_above_keyshares_macs_is=i;
+			jump_offset_of_next_jmp=(int)  *((int*)(&addr_in_the_middle[i+1]));
 			code_length_of_current_block =(int) *((short*) &addr_in_the_middle[i+size_of_jmp_command+number_of_canaries]);
 			num_of_padded_nops_of_current_block =(int) *((short*) &addr_in_the_middle[i+size_of_jmp_command+number_of_canaries+bytes_for_instructions_length]);
 			break;
@@ -1043,6 +1047,19 @@ void do_verify_code_on_the_fly()
 		//get the start of the block. To do that, we move forward until we encounter a jmp+canaries, and get the numberof the actual bytes in the block.
 		address_of_start_of_current_block= get_start_of_current_block((unsigned char *)address_in_current_block_before_verif);
 
+		if (position_after_us_that_jmp_above_keyshares_macs_is==overhead_of_verif)
+		{
+			//whoah! Exactly next to the verification procedure is the jump above the keyshares an macs.
+			//That means that a) The current verification code was added because of a call/label
+			//and that the secure CPU would consider the instruction pointer to have moved to the next block!
+			//So our calculations should be relative to the next block.
+			 
+			address_in_current_block_before_verif+=overhead_of_verif+size_of_jmp_command+jump_offset_of_next_jmp; //jmp to the start of next block,where a verification call lies
+			address_of_start_of_current_block= get_start_of_current_block((unsigned char *)address_in_current_block_before_verif);
+			//printf("We got verif at the end of the block! new_block:%ld\n",address_of_start_of_current_block);
+		}
+		
+		
 		//useful bytes here= all except keyshares. The unwanted ones will be removed later
 		num_of_useful_bytes_to_mac_in_code=code_length_of_current_block+number_of_canaries+bytes_for_instructions_length+bytes_for_num_of_padded_nops_len+num_of_padded_nops_of_current_block;
 				
