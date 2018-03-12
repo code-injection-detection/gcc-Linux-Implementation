@@ -42,7 +42,7 @@ VERIFY_EVERYTHING=1 #the third world
 USE_NEW_SECURE_HEAP=2 # use the new secure heap implementation. 1-> use it, but do not use the secured global variables for its position/size etc. 2-> use it, with the secured global variables
 STACK_SHOULD_GROW_TO_DECREASING_NUMBERS=1 #IMPORTANT: 1 ONLY WORKS WHEN INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS=1. Search for bug in "return_addr_after_allocating", both in old and new templates. if 1, the "push" command in the stack should make the stack pointer decrease in number (as stack normally behaves)
 USE_STACK_CANARIES=0 # IMPORTANT: ONLY WORKS WHEN STACK_SHOULD_GROW_TO_DECREASING_NUMBERS=1. Inserts a stack canary on top of the local variables of a function, in order to protect from buffer overflows. 1->use static stack canary, 2->use cryptographically secure stack canary (not yet supported)
-
+WORLD_IN_WHICH_WE_ARE=3 #NOT YET FUNCTIONAL, DESTINED TO REPLACE MOST FLAGS. # 1->No MACs no verification. 2-> Put MACs but ignore them (no verification), 3-> everything calculated world .  NOPs are padded in ALL worlds.
 
 #usage
 if [[ ( "$#" -ne 9 ) ]]; then

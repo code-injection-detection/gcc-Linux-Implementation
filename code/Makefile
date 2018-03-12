@@ -47,4 +47,4 @@ clean:
 	rm -f sha256.c sha256.h *_keyshares headers_needed.h verification_procedure.c stack_manager.c memory_manager.c general_tests.c functions_needed_header.c functions_needed_footer.c  main_program.c memory_manager_test_suite.c stack_manager_test_suite.c mac_handling_functions.c all_keyshares_for_verification
 	rm -f initializer.c assembly_with_padded_nops.s assembly_sizes.txt a.out assembly_commands_for_parsing.txt secure_getters_setters.c secure_getters_setters.h crypto_functions.c crypto_functions.h calc_mac_for_external_programs tests_with_new_stack.c secure_stack_manipulation_functions.c
 	rm -f secure_program_mac_invocations.txt mac_invocation_times.txt mac_time_calculator table_with_assembly_command_sizes.txt addresses_of_unsplit_blocks.txt heap_manager_new_unsafe.c heap_manager_new_secure.c heap_manager_functions_that_use_secure_stack.c
-	rm -f more_tests_that_use_new_stack.c calc_mac_for_external_programs_faster
+	rm -f more_tests_that_use_new_stack.c calc_mac_for_external_programs_faster addresses_of_cpu_split_blocks.txt
