@@ -255,9 +255,9 @@ public class Secure_Machine_Code_v2 {
 					int extra_bytes_because_of_verifications=(num_of_actual_bytes_in_block- size_of_jmp_command) /*bytes with verifications*/ - num_of_useful_bytes_to_be_maced;
 					int start_of_keyshares=i- number_of_interleaved_keys;
 
-					if ((world==3 && extra_bytes_because_of_verifications<overhead_for_verif)
-					 || extra_bytes_because_of_verifications%overhead_for_verif!=0
-					 || (world==2 && extra_bytes_because_of_verifications!=0)
+					if ((world==3 && extra_bytes_because_of_verifications<overhead_for_verif) //we need to have at least one verif, at the start of the block
+					 || extra_bytes_because_of_verifications%overhead_for_verif!=0 
+					 || (world==2 && extra_bytes_because_of_verifications!=0) //we should ave no verification calls
 					 )
 					{
 						System.out.println("ERROR in calculation of how many verifications are in a block!");
