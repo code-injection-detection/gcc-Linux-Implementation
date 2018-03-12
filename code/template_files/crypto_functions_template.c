@@ -648,7 +648,7 @@ int check_code_mac_for_error(unsigned char * input, int total_mac_bytes, int use
 	int i;
 	int actual_code_length;
 	int useful_code_length;
-	if (number_of_mac_bytes>0 && !ignore_macs_last_moment_even_if_there_are_mac_bytes)
+	if (number_of_mac_bytes>0 && world==3 && !ignore_macs_last_moment_even_if_there_are_mac_bytes)
 	{
 		
 
@@ -658,7 +658,7 @@ int check_code_mac_for_error(unsigned char * input, int total_mac_bytes, int use
 			length_of_verifier=0;
 		
 		//now let's find the actual code length. It will be in 2 bytes, set after the canaries. It holds the bytes for the code <verifiers+proper code+jmp>
-		//find it again, it is possible that code_length_of_current_block and num_of_padded_nops_of_current_block have not been set.
+		//find it again, it is possible (final check_code_macs() call) that code_length_of_current_block and num_of_padded_nops_of_current_block have not been set.
 		int code_length=0;
 		int num_of_padded_nops=0;
 		
@@ -687,12 +687,15 @@ int check_code_mac_for_error(unsigned char * input, int total_mac_bytes, int use
 		*/
 		
 		int cnt_in_new_mac=0;
+		int verifications_found=0;
+		int actual_useful_bytes=0;
 		//throw away what we've put in the code (verifiers,jmp etc)
 		for (i=0;i<code_length-size_of_jmp_command;)
 		{
 			if (in_front_there_seems_to_be_verif_call(&input[i]))
 			{
 				i+=overhead_of_verif;
+				verifications_found++;
 			}
 			else
 			{
@@ -700,6 +703,20 @@ int check_code_mac_for_error(unsigned char * input, int total_mac_bytes, int use
 				i++;
 				cnt_in_new_mac++;
 			}
+		}
+		actual_useful_bytes=cnt_in_new_mac;
+		
+		if ((code_length-size_of_jmp_command) -verifications_found*(overhead_of_verif) != actual_useful_bytes)
+		{
+			fprintf(stdout,"Did not find the correct number of verifications that we expected.\n");
+			fprintf(stdout,"Position:%ld\n",(long)input);
+			fprintf(stdout,"total mac bytes:%d\n",total_mac_bytes);
+			fprintf(stdout,"useful mac bytes:%d\n",useful_mac_bytes);
+			fprintf(stdout,"code length:%d\n",code_length);
+			fprintf(stdout,"num_of_padded_nops:%d\n",num_of_padded_nops);
+			fprintf(stdout,"verifications expected:%d\n",((code_length-size_of_jmp_command)-actual_useful_bytes)/overhead_of_verif);
+			fprintf(stdout,"verifications found:%d\n",verifications_found);
+			fprintf(stdout,"We continue however\n");
 		}
 		
 		//add padded nops
@@ -1027,6 +1044,7 @@ void do_verify_code_on_the_fly()
 		//get the start of the block. To do that, we move forward until we encounter a jmp+canaries, and get the numberof the actual bytes in the block.
 		address_of_start_of_current_block= get_start_of_current_block((unsigned char *)address_in_current_block_before_verif);
 
+		//useful bytes here= all except keyshares. The unwanted ones will be removed later
 		num_of_useful_bytes_to_mac_in_code=code_length_of_current_block+number_of_canaries+bytes_for_instructions_length+bytes_for_num_of_padded_nops_len+num_of_padded_nops_of_current_block;
 				
 		//printf("Address after return from verif_call:%ld\n",address_after_return_from_verif_call);
