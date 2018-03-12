@@ -1039,7 +1039,7 @@ void do_verify_code_on_the_fly()
 			//test_find_primes_up_to_a_number(100);
 			
 		address_in_current_block_before_verif=(long)((unsigned char*)(address_after_return_from_verif_call) - size_of_commands_before_getting_addr);
-		
+				
 		//get the start of the block. To do that, we move forward until we encounter a jmp+canaries, and get the numberof the actual bytes in the block.
 		address_of_start_of_current_block= get_start_of_current_block((unsigned char *)address_in_current_block_before_verif);
 
@@ -1051,7 +1051,19 @@ void do_verify_code_on_the_fly()
 		//check the cache and if the code block is not there then mac and add it to the cache
 		if (-1==continue_macing_current_code_addr((unsigned char*)address_in_current_block_before_verif)) //if using cache for code
 		{		
-			verify_code_on_the_fly();
+			#if count_mac_invocations==1
+				if (count_mac_invocations_in_this_code_part)
+				{
+					//simply increase the counters
+					#if squeeze_keys_when_macing==1
+						mac_size_invocation_counters[num_of_bytes_in_code_chunk+number_of_interleaved_keys/2]+=1;
+					#else
+						mac_size_invocation_counters[num_of_bytes_in_code_chunk+number_of_interleaved_keys]+=1;
+					#endif
+				}
+			#else
+				verify_code_on_the_fly();
+			#endif
 			add_addr_to_code_cache((unsigned char*)address_in_current_block_before_verif); //addr
 		}
 		
@@ -1081,7 +1093,6 @@ void do_verify_code_on_the_fly()
 			{		
 				//we don't verify the code block in which we fall, because we don't know the start of it.
 				//however we add it to the cache and note that we had a mac calculation
-				
 				#if count_mac_invocations==1
 					if (count_mac_invocations_in_this_code_part)
 					{

@@ -126,6 +126,10 @@
 #endif				//This is the number of useful bytes that each code chunk will have
 
 
+#ifndef num_of_requested_useful_bytes_in_code_chunk
+#define num_of_requested_useful_bytes_in_code_chunk (num_of_bytes_in_code_chunk)
+#endif				//This is the number of useful bytes that each code chunk will have
+
 #ifndef do_not_mac_what_we_add_in_code
 #define do_not_mac_what_we_add_in_code 1
 #endif				//This is a boolean variable that denotes if we should mac the extra stuff (verifier,jmps,canaries) that we have put in the code
