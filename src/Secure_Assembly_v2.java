@@ -16,14 +16,14 @@ import java.lang.StringBuilder;
  */
 /*Policy of splitting*/
 /*
-We try to split when the secure CPU splits.
+We only split when the secure CPU splits.
     -3 worlds: No MACs, Ignore MACs, verify everything. Code that verifies is only inserted in the last world.
     -After labels, after calls, before jumps to registers, after function starts AND at the start of each block-> We insert verification procedure, which does nothing if the block is found in the cache.
         If it is not found, it increases the verification counter.
  */
 
  /*Here's the structure of a block*/
- /* <useful_bytes>  <--- in here we might have verification calls interleaved, 7 bytes for the 3 commands needed for each of them
+ /* <useful_bytes>  <--- in here we might have verification calls interleaved, 7 bytes for each of them (they consist of 3 commands)
     <jmp to next block>  (5 bytes)
     <canaries>  (typically 3 bytes)
     <number of actual bytes in the block, all counted (useful,verifications,final jmp)>    (typically 2 bytes)
