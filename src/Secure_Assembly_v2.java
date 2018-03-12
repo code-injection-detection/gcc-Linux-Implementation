@@ -16,7 +16,7 @@ import java.lang.StringBuilder;
  */
 /*Policy of splitting*/
 /*
-We ONLY split when the secure CPU splits.
+We try to split when the secure CPU splits.
     -3 worlds: No MACs, Ignore MACs, verify everything. Code that verifies is only inserted in the last world.
     -After labels, after calls, before jumps to registers, after function starts AND at the start of each block-> We insert verification procedure, which does nothing if the block is found in the cache.
         If it is not found, it increases the verification counter.
@@ -155,6 +155,7 @@ public class Secure_Assembly_v2 {
 		line_index=-1;
 		list_of_addresses_that_denote_next_cpu_block_change.add(0);
 		force_end_of_block=false;
+		num_of_actual_bytes_in_current_block=0;
 		for (String fun:function_names)
 		{	
 			while (sc.hasNext())
@@ -180,7 +181,6 @@ public class Secure_Assembly_v2 {
 				
 			}
 			
-			num_of_actual_bytes_in_current_block=0;
 			// This inserts the verification code,jumps and NOPs in the code.
 			// It breaks at the end of the code ("end")
             //rememeber: we are in a function
@@ -203,6 +203,7 @@ public class Secure_Assembly_v2 {
 					break;
 				}
 				
+				//reached end of function
 				if (removeSpaces(line).startsWith(".cfi_endproc"))
 				{
 					//IMPORTANT: We don't split blocks as in the previous version of the code splitting algorithm
