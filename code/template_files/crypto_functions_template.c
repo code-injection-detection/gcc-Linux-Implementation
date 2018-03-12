@@ -16,7 +16,7 @@ unsigned char initialization_vector[]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 CMAC_CTX *cmac_ctx;
 
 BIGNUM bn_a;
-BIGNUM bn_b;
+BIGNUM bn_b; 
 BIGNUM bn_temp;
 BIGNUM bn_useful_data;
 BIGNUM bn_mac;

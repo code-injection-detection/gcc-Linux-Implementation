@@ -77,7 +77,7 @@ public class Secure_Assembly_v2 {
 		String ramtmp_file="";
 		ArrayList<String> list_of_assembly_sizes = new ArrayList<String>();
 		HashMap<String,Integer> hashmap_of_assembly_sizes =  new HashMap<String, Integer>();
-		
+		 
 		if (args.length==6)
 		{
 			num_of_interleaved_keys=Integer.parseInt(args[0]);
