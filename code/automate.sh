@@ -195,7 +195,7 @@ if [ ! -d "../bin" ]; then  #if directory does not exist
 	mv ../src/*.class ../bin/
 	echo "Compiled Java classes."
 else
-	declare -a java_names=("Secure_Assembly" "Secure_Assembly_new" "Secure_Assembly_v2" "Secure_Machine_Code" "Secure_Machine_Code_new" "Secure_Machine_Code_v2")
+	declare -a java_names=("Secure_Assembly_v2" "Secure_Machine_Code_v2")
 	for java_file in "${java_names[@]}"
 	do 
 		if [ ! -f ../bin/${java_file}.class ]; then #if .class file is not there

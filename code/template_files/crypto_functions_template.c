@@ -108,10 +108,10 @@ void init_crypto_stuctures(int print, int find_addr_of_first_code_block)
 	#endif
 	if(use_code_cache_with_unsplit_blocks && find_addr_of_first_code_block)
 	{
-		unsplit_block_addr_file=fopen("./addresses_of_unsplit_blocks.txt","r");
+		unsplit_block_addr_file=fopen("./addresses_of_cpu_split_blocks.txt","r");
 		if (unsplit_block_addr_file==NULL)
 		{
-			fprintf(stderr,"!!!!!!!!!!!!!!!!File addresses_of_unsplit_blocks.txt not found!!!!!!!!!!!!!!!!!!!!!!\n");
+			fprintf(stderr,"!!!!!!!!!!!!!!!!File addresses_of_cpu_split_blocks.txt not found!!!!!!!!!!!!!!!!!!!!!!\n");
 		}
 		else
 		{

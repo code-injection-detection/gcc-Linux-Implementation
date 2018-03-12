@@ -626,7 +626,7 @@ public class Secure_Assembly_v2 {
 		//add bytes_for_instructions, which tell us how many bytes (verifications+jmp included) were in the block
 		short actual_bytes_in_block=(short)num_of_actual_bytes_in_current_block;
 		list_of_lines.add("#actual_bytes_in_block:"+actual_bytes_in_block);
-		if (actual_bytes_in_block>32767) //more than 2 bytes can accommodate
+		if (num_of_actual_bytes_in_current_block>32767) //more than 2 bytes can accommodate
 		{
 			System.out.println("ERROR at position:"+address_of_code_that_denotes_next_cpu_block_change);
 			System.out.println("Way to manny actual bytes in block:"+actual_bytes_in_block);
