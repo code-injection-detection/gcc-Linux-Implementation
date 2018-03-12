@@ -1,5 +1,15 @@
 /bin/
 __pycache__/
+/code/*
+!/code/crypto_algorithms
+!/code/foo_explanations
+!/code/template_files
+!/code/automate.sh
+!/code/Makefile
+!/code/foo_tests
+!/code/other_foo_tests
+!/code/scripts_for_code_generation
+!/code/some_benchmarks
 *.o
 aes
 sha256
