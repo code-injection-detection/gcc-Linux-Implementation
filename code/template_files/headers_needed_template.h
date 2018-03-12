@@ -123,7 +123,7 @@
 
 #ifndef num_of_bytes_in_code_chunk
 #define num_of_bytes_in_code_chunk 20
-#endif				//This is the number of bytes that each code chunk will be, should the <use_fixed_size_chunks_of_code> is 1
+#endif				//This is the number of useful bytes that each code chunk will have
 
 
 #ifndef do_not_mac_what_we_add_in_code
@@ -206,8 +206,8 @@
 #endif				//using the new implementation which reduces the variables that we have
 
 #ifndef bytes_for_instructions_length
-#define bytes_for_instructions_length 1
-#endif				//the number of bytes after the canaries that hold the size of the verif+useful bytes+the jmp bytes
+#define bytes_for_instructions_length 2
+#endif				//the number of bytes after the canaries that hold the size of the verifications+useful bytes+the jmp bytes
 
 #ifndef verify_everything
 #define verify_everything 0
@@ -241,6 +241,9 @@
 #define world (world_in_which_we_are)
 #endif				//1->No MACs no verification. 2-> Put MACs but ignore them (no verification), 3-> everything calculated world .  NOPs are padded in ALL worlds.
 
+#ifndef bytes_for_num_of_padded_nops_len
+#define bytes_for_num_of_padded_nops_len 2
+#endif				//the number of bytes after the canaries+bytes_for_instructions  that hold the number of padded nops
 
 #include "crypto_functions.h"
 #include "secure_getters_setters.h"

@@ -255,11 +255,15 @@ public class Secure_Machine_Code_v2 {
 					int extra_bytes_because_of_verifications=(num_of_actual_bytes_in_block- size_of_jmp_command) /*bytes with verifications*/ - num_of_useful_bytes_to_be_maced;
 					int start_of_keyshares=i- number_of_interleaved_keys;
 
-					if (extra_bytes_because_of_verifications<overhead_for_verif || extra_bytes_because_of_verifications%overhead_for_verif!=0)
+					if ((world==3 && extra_bytes_because_of_verifications<overhead_for_verif)
+					 || extra_bytes_because_of_verifications%overhead_for_verif!=0
+					 || (world==2 && extra_bytes_because_of_verifications!=0)
+					 )
 					{
 						System.out.println("ERROR in calculation of how many verifications are in a block!");
 						System.out.println("Offset from start of file:"+start_of_block+" ,extra_bytes_because_of_verifications:"+extra_bytes_because_of_verifications);
 						System.out.println("actual_bytes="+num_of_actual_bytes_in_block+", padded_nops="+number_of_padded_nops);
+						System.out.println("world="+world);
 						System.exit(-1);
 					}
 
@@ -270,7 +274,7 @@ public class Secure_Machine_Code_v2 {
 					//fetch the bytes of the useful block that will be included in the mac (that is, not the verification calls or the jmp above keyshares+macs)
 					for (ind_for_maced_bytes_in_block=0;ind_for_mixed_bytes_in_block<num_of_actual_bytes_in_block-size_of_jmp_command;) //for some reason the break condition ind_for_maced_bytes_in_block<num_of_useful_bytes_to_be_maced does not seem to work
 					{
-						if (in_front_there_seems_to_be_verif_call(start_of_block+ind_for_mixed_bytes_in_block,arr)) //have we encountered verification call?
+						if (world==3 && in_front_there_seems_to_be_verif_call(start_of_block+ind_for_mixed_bytes_in_block,arr)) //have we encountered verification call?
 						//skip the call
 						{
 							ind_for_mixed_bytes_in_block+=overhead_for_verif;

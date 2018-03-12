@@ -103,7 +103,6 @@ public class Secure_Assembly_v2 {
 			System.exit(-1);
 		}
 		
-		
 		//we parse the file once to find the functions
 		//System.out.println("These are the function names:");
 		while (sc.hasNext())
@@ -629,7 +628,7 @@ public class Secure_Assembly_v2 {
 		if (num_of_actual_bytes_in_current_block>32767) //more than 2 bytes can accommodate
 		{
 			System.out.println("ERROR at position:"+address_of_code_that_denotes_next_cpu_block_change);
-			System.out.println("Way to manny actual bytes in block:"+actual_bytes_in_block);
+			System.out.println("Way to manny actual bytes in block:"+num_of_actual_bytes_in_current_block);
 			System.exit(-1);
 		}
 		//set the bytes after the canaries to denote the length of the useful bytes

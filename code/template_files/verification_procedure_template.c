@@ -110,27 +110,18 @@ void find_keyshares(int choice)
 	//printf("start of .text=0x%lx, end of .text=0x%lx, init=0x%lx, fini=0x%lx\n",(unsigned long)&__executable_start,(unsigned long)&__etext, (unsigned long)&_init,(unsigned long)&_fini);
    
 	//using start and end of text section
-	for (p=start_of_text;p<=end_of_text-(number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len);)
+	for (p=start_of_text;p<=end_of_text-(number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len+bytes_for_num_of_padded_nops_len);)
 	{
-		int number_of_jumped_bytes1=number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len+get_number_of_padded_nops(p);
-		int number_of_jumped_bytes2;
-		if (verify_everything)
-		{
-			number_of_jumped_bytes2=number_of_jumped_bytes1 + overhead_of_verif;
-		}
-		else
-		{
-			number_of_jumped_bytes2=number_of_jumped_bytes1;
-		}
-		if (*p==0xE9 && ( *((int*)(p+1))==number_of_jumped_bytes1 || *((int*)(p+1))==number_of_jumped_bytes2 ) && check_next_canaries(p+size_of_jmp_command)) //JMP <number of keys>+<number_of_canaries>+<number_of_mac_bytes>+<bytes_for_instr_len>
+		int number_of_jumped_bytes=number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len+bytes_for_num_of_padded_nops_len+get_number_of_padded_nops(p);
+		if (*p==0xE9 && ( *((int*)(p+1))==number_of_jumped_bytes) && check_next_canaries(p+size_of_jmp_command)) //JMP <number of keys>+<number_of_canaries>+<number_of_mac_bytes>+<bytes_for_instr_len>+<bytes_for_num_of_padded_nops_len>+<padded_nops>
 		{ 
 			//printf("0x%02x ",*(p+1));
 			code_key_groups_found++;
 			for (keycnt=0;keycnt<number_of_interleaved_keys;keycnt++)
 			{
-				keys[keycnt]^= (unsigned char) *(p+size_of_jmp_command+keycnt+number_of_canaries+bytes_for_instr_len+get_number_of_padded_nops(p));
+				keys[keycnt]^= (unsigned char) *(p+size_of_jmp_command+keycnt+number_of_canaries+bytes_for_instr_len+bytes_for_num_of_padded_nops_len+get_number_of_padded_nops(p));
 			}
-			p+=(number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len+get_number_of_padded_nops(p))+size_of_jmp_command; //jump over all the canaries,keys,macs
+			p+=(number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len+bytes_for_num_of_padded_nops_len+get_number_of_padded_nops(p))+size_of_jmp_command; //jump over all the canaries,keys,macs
 		}
 		else
 		{

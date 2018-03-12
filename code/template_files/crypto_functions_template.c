@@ -172,25 +172,14 @@ void find_addr_of_first_block_of_code()
 	
 	for (p=start_of_text;p<=end_of_text;p++)
 	{
-		int number_of_jumped_bytes1=number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len+get_number_of_padded_nops(p);
-		int number_of_jumped_bytes2;
-		if ( verify_everything )
-		{
-			number_of_jumped_bytes2=number_of_jumped_bytes1 + fixed_size_verif_overhead;
-		}
-		else
-		{
-			number_of_jumped_bytes2=number_of_jumped_bytes1;
-		}
+		int number_of_jumped_bytes=number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len+bytes_for_num_of_padded_nops_len+get_number_of_padded_nops(p);
 		//the first address can be found by finding the first jmp and its canaries
-		if (*p==0xE9 && (*((int*)(p+1))==number_of_jumped_bytes1 || *((int*)(p+1))==number_of_jumped_bytes2) && check_the_next_canaries(p+size_of_jmp_command)) //JMP <number of keys>+<number_of_canaries>+<number_of_mac_bytes>+<bytes_for_instr_len>
+		if (*p==0xE9 && (*((int*)(p+1))==number_of_jumped_bytes) && check_the_next_canaries(p+size_of_jmp_command)) //JMP <number of keys>+<number_of_canaries>+<number_of_mac_bytes>+<bytes_for_instr_len>+<bytes_for_num_of_padded_nops_len>+<padded_nops>
 		{
-			int length_of_useful_data=*((short*)(p+size_of_jmp_command+number_of_canaries));
-			addr_of_first_block_of_code=(long) (p-(length_of_useful_data-size_of_jmp_command));
+			int length_of_actual_data=*((short*)(p+size_of_jmp_command+number_of_canaries));
+			addr_of_first_block_of_code=(long) (p-(length_of_actual_data-size_of_jmp_command));
 			break;
 		}
-
-		
 	}
 }
 
@@ -592,7 +581,7 @@ int get_number_of_padded_nops(unsigned char *p)
 	}
 	else
 	{
-		return (num_of_bytes_in_code_chunk - *((short*)(p+size_of_jmp_command+number_of_canaries)));
+		return (*((short*)(p+size_of_jmp_command+number_of_canaries+bytes_for_instructions_length)));
 	}
 }
 

@@ -88,34 +88,26 @@ void check_code_macs()
 	unsigned char *p;
 	unsigned char* start_of_text=(unsigned char*)&__executable_start;  //we get the limits of .text section
 	unsigned char* end_of_text=(unsigned char*)&__etext;
-	int length_of_useful_data;
+	int length_of_actual_data;
 	int error=0;
 	long mac_cnt=0;
 	
 	
 	//using start and end of text section
-	for (p=start_of_text;p<=end_of_text-(number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len);)
+	for (p=start_of_text;p<=end_of_text-(number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len+bytes_for_num_of_padded_nops_len);)
 	{
-		int number_of_jumped_bytes1=number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len+get_number_of_padded_nops(p);
-		int number_of_jumped_bytes2;
-		if (verify_everything)
-		{
-			number_of_jumped_bytes2=number_of_jumped_bytes1 + overhead_of_verif;
-		}
-		else
-		{
-			number_of_jumped_bytes2=number_of_jumped_bytes1;
-		}
-		if (*p==0xE9 && (*((int*)(p+1))==number_of_jumped_bytes1 || *((int*)(p+1))==number_of_jumped_bytes2 ) && check_next_canaries(p+size_of_jmp_command)) //JMP <number of keys>+<number_of_canaries>+<number_of_mac_bytes>+<bytes_for_instr_len>
+		
+		int number_of_jumped_bytes=number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len+bytes_for_num_of_padded_nops_len+get_number_of_padded_nops(p);
+		if (*p==0xE9 && (*((int*)(p+1))==number_of_jumped_bytes) && check_next_canaries(p+size_of_jmp_command)) //JMP <number of keys>+<number_of_canaries>+<number_of_mac_bytes>+<bytes_for_instr_len>+<bytes_for_num_of_padded_nops_len>+<padded_nops>
 		{ 
 			mac_cnt++;
-			length_of_useful_data=*((short*)(p+size_of_jmp_command+number_of_canaries));
-			if (!ignore_macs_even_if_there_are_mac_bytes && check_code_mac_for_error(p-(length_of_useful_data-size_of_jmp_command),length_of_useful_data+number_of_interleaved_keys+number_of_canaries+bytes_for_instr_len+get_number_of_padded_nops(p),length_of_useful_data+number_of_canaries+bytes_for_instr_len+get_number_of_padded_nops(p)))
+			length_of_actual_data=*((short*)(p+size_of_jmp_command+number_of_canaries));
+			if (world==3 && check_code_mac_for_error(p-(length_of_actual_data-size_of_jmp_command),length_of_actual_data+number_of_interleaved_keys+number_of_canaries+bytes_for_instr_len+bytes_for_num_of_padded_nops_len+get_number_of_padded_nops(p),length_of_actual_data+number_of_canaries+bytes_for_instr_len+bytes_for_num_of_padded_nops_len+get_number_of_padded_nops(p)))
 			{	
 				fprintf(stderr,"Error in code macs, p=%ld, start of code=%ld\n",(long) p,(long)start_of_text);
 				error=1;
 			}
-			p+=(number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len+get_number_of_padded_nops(p))+size_of_jmp_command; //jump over all the canaries,keys,macs
+			p+=(number_of_interleaved_keys+number_of_canaries+number_of_mac_bytes+bytes_for_instr_len+bytes_for_num_of_padded_nops_len+get_number_of_padded_nops(p))+size_of_jmp_command; //jump over all the canaries,keys,macs
 		}
 		else
 		{

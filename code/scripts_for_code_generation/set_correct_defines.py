@@ -108,6 +108,8 @@ for line in src_lines:
 		newline='#define use_stack_canaries '+sys.argv[39]+'\n'
 	if '#define world_in_which_we_are' in line:
 		newline='#define world_in_which_we_are '+sys.argv[40]+'\n'
+	if '#define bytes_for_num_of_padded_nops_len' in line:
+		newline='#define bytes_for_num_of_padded_nops_len '+sys.argv[41]+'\n'
 	headers_dst.write(newline)
 
 
