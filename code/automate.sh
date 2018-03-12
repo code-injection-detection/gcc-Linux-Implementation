@@ -32,6 +32,9 @@ USE_STACK_CANARIES=0 # IMPORTANT: ONLY WORKS WHEN STACK_SHOULD_GROW_TO_DECREASIN
 WORLD_IN_WHICH_WE_ARE=3 # 1->No MACs no verification. 2-> Put MACs but ignore them (no verification), 3-> everything calculated world .  NOPs are padded in ALL worlds.
  
 
+#SEMI_OBSOLETE FLAG BELOW
+COUNT_MAC_INVOCATIONS=0 #Ignores mac correctness and reports mac invocations. Default 1. That is the third world. This is the only flag that we would like to change once in a while for correctnes check
+
 #OBSOLETE FLAGS BELOW
 ADD_CODE_ON_THE_FLY_VERIFICATION=1 #default 1, that is the third world
 FORCE_NUM_OF_INSTRUCTIONS_OVER_NUM_OF_BYTES=0 #for fixed size length, the default config (0) is to just have a fixed size code block without caring to complete the number of instructions given per block. If it is set to 1, then every block should have X instructions, or else an error occurs. OBSOLETE since now we don't care completing a specific number of instructions per block
@@ -40,7 +43,6 @@ IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES=0  #put the macs in the memory, but do a
 IGNORE_MACS_LAST_MOMENT_EVEN_IF_THERE_ARE_MAC_BYTES=0 #put the macs in memory, include the on the fly verification code, and when it comes to calculate them, don't do it (default 0). OBSOLETE FLAG.
 FORCE_CODE_BLOCK_SPLIT_ON_LABELS_AND_CALLS=0 #use it with IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES=1, the blocks are split but no verification code added. OBSOLETE FLAG.
 TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES=0 #don't call the secure getters and setters for the loop counters. It seems wrong to not call them. Default 0. ALWAYS FALSE.
-COUNT_MAC_INVOCATIONS=0 #Ignores mac correctness and reports mac invocations. Default 1. That is the third world.
 ADD_THE_PADDED_NOPS_IN_THE_MAC_IN_FIXED_SIZE=1 #takes into account the padded nops in the mac calculation. Default 1. ALWAYS TRUE.
 USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS=1 #The code blocks that are cached are cached if being unsplit. Default 1. ALWAYS TRUE.
 SET_AS_GIVEN_THAT_EVERYTHING_MACED_WILL_BE_FIXED_AND_MULTIPLE_OF_16=1 #this means that we can disable length prepending and padding. Default 1. ALWAYS TRUE. 
