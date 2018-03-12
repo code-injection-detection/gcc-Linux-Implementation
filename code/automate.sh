@@ -162,74 +162,26 @@ if [ ! -d "../bin" ]; then  #if directory does not exist
 	mv ../src/*.class ../bin/
 	echo "Compiled Java classes."
 else
-	if [ ! -f ../bin/Secure_Assembly.class ]; then #if .class file is not there
-		echo "Secure_Assembly class file not found!"
-		echo "The script will do the job for you. Make sure Java compiler is installed."
-		echo "Compiling Java class..."
-		javac ../src/Secure_Assembly.java
-		mv ../src/Secure_Assembly.class ../bin/
-		echo "Compiled Java class."
-	else if [ ../bin/Secure_Assembly.class -ot ../src/Secure_Assembly.java ]; then #if the class file is older than the code
-			echo "Secure_Assembly class file is out of date!"
+	declare -a java_names=("Secure_Assembly" "Secure_Assembly_new" "Secure_Assembly_v2" "Secure_Machine_Code" "Secure_Machine_Code_new" "Secure_Machine_Code_v2")
+	for java_file in "${java_names[@]}"
+	do 
+		if [ ! -f ../bin/${java_file}.class ]; then #if .class file is not there
+			echo "${java_file} class file not found!"
 			echo "The script will do the job for you. Make sure Java compiler is installed."
 			echo "Compiling Java class..."
-			javac ../src/Secure_Assembly.java
-			mv ../src/Secure_Assembly.class ../bin/
+			javac ../src/${java_file}.java
+			mv ../src/${java_file}.class ../bin/
 			echo "Compiled Java class."
-		 fi
-	fi
-	
-	if [ ! -f ../bin/Secure_Assembly_new.class ]; then #if .class file is not there
-		echo "Secure_Assembly_new class file not found!"
-		echo "The script will do the job for you. Make sure Java compiler is installed."
-		echo "Compiling Java class..."
-		javac ../src/Secure_Assembly_new.java
-		mv ../src/Secure_Assembly_new.class ../bin/
-		echo "Compiled Java class."
-	else if [ ../bin/Secure_Assembly_new.class -ot ../src/Secure_Assembly_new.java ]; then #if the class file is older than the code
-			echo "Secure_Assembly_new class file is out of date!"
-			echo "The script will do the job for you. Make sure Java compiler is installed."
-			echo "Compiling Java class..."
-			javac ../src/Secure_Assembly_new.java
-			mv ../src/Secure_Assembly_new.class ../bin/
-			echo "Compiled Java class."
-		 fi
-	fi
-	
-	if [ ! -f ../bin/Secure_Machine_Code.class ]; then #if .class file is not there
-		echo "Secure_Machine_Code class file not found!"
-		echo "The script will do the job for you. Make sure Java compiler is installed."
-		echo "Compiling Java class..."
-		javac ../src/Secure_Machine_Code.java
-		mv ../src/Secure_Machine_Code.class ../bin/
-		echo "Compiled Java class."
-	else if [ ../bin/Secure_Machine_Code.class -ot ../src/Secure_Machine_Code.java ]; then #if the class file is older than the code
-		echo "Secure_Machine_Code class file is out of date!"
-		echo "The script will do the job for you. Make sure Java compiler is installed."
-		echo "Compiling Java class..."
-		javac ../src/Secure_Machine_Code.java
-		mv ../src/Secure_Machine_Code.class ../bin/
-		echo "Compiled Java class."
+		else if [ ../bin/${java_file}.class -ot ../src/${java_file}.java ]; then #if the class file is older than the code
+				echo "${java_file} class file is out of date!"
+				echo "The script will do the job for you. Make sure Java compiler is installed."
+				echo "Compiling Java class..."
+				javac ../src/${java_file}.java
+				mv ../src/${java_file}.class ../bin/
+				echo "Compiled Java class."
+			 fi
 		fi
-	fi
-	
-	if [ ! -f ../bin/Secure_Machine_Code_new.class ]; then #if .class file is not there
-		echo "Secure_Machine_Code_new class file not found!"
-		echo "The script will do the job for you. Make sure Java compiler is installed."
-		echo "Compiling Java class..."
-		javac ../src/Secure_Machine_Code_new.java
-		mv ../src/Secure_Machine_Code_new.class ../bin/
-		echo "Compiled Java class."
-	else if [ ../bin/Secure_Machine_Code_new.class -ot ../src/Secure_Machine_Code_new.java ]; then #if the class file is older than the code
-		echo "Secure_Machine_Code_new class file is out of date!"
-		echo "The script will do the job for you. Make sure Java compiler is installed."
-		echo "Compiling Java class..."
-		javac ../src/Secure_Machine_Code_new.java
-		mv ../src/Secure_Machine_Code_new.class ../bin/
-		echo "Compiled Java class."
-		fi
-	fi
-	
+	done 
 fi
 
 #removing potentially old stuff...
