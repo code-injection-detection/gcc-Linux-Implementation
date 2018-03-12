@@ -650,7 +650,6 @@ int check_code_mac_for_error(unsigned char * input, int total_mac_bytes, int use
 	int useful_code_length;
 	if (number_of_mac_bytes>0 && world==3 && !ignore_macs_last_moment_even_if_there_are_mac_bytes)
 	{
-		
 
 		//we are not macing the on-the-fly verification code, the jmps, tha canaries, the bytes_for_instr and the bytes_for_num_of_padded_nops
 		int length_of_verifier=size_of_commands_before_getting_addr+1; //the final pop command
@@ -761,7 +760,7 @@ unsigned char mac_for_verification[number_of_mac_bytes];
 //that's for data
 void verify_mac_onthefly(unsigned char * input, int total_mac_bytes, int useful_mac_bytes,const char * fun_name,int line)
 {
-	if (number_of_mac_bytes>0 && !ignore_macs_last_moment_even_if_there_are_mac_bytes)
+	if (number_of_mac_bytes>0 && world==3 && !ignore_macs_last_moment_even_if_there_are_mac_bytes)
 	{
 		if (continue_getting_data_addr(input)==-1) //check the cache
 		{
@@ -1087,9 +1086,9 @@ void do_verify_code_on_the_fly()
 					if (count_mac_invocations_in_this_code_part)
 					{
 						#if squeeze_keys_when_macing==1
-							mac_size_invocation_counters[num_of_bytes_in_code_chunk-(size_of_jmp_command+overhead_of_verif)+number_of_interleaved_keys/2]+=1;
+							mac_size_invocation_counters[num_of_bytes_in_code_chunk+number_of_interleaved_keys/2]+=1;
 						#else
-							mac_size_invocation_counters[num_of_bytes_in_code_chunk-(size_of_jmp_command+overhead_of_verif)+number_of_interleaved_keys]+=1;
+							mac_size_invocation_counters[num_of_bytes_in_code_chunk+number_of_interleaved_keys]+=1;
 						#endif
 					}
 				#endif
