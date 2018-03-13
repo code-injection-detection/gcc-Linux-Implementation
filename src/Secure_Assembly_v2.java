@@ -687,7 +687,7 @@ public class Secure_Assembly_v2 {
 		list_of_lines.add("."+ ulabel + label_counter + ": " );          //we are just adding the label, not any command
 
 		address_of_code_that_denotes_next_cpu_block_change+=size_of_jmp_command;
-		address_of_code_that_denotes_next_cpu_block_change+=num_of_interleaved_keys+number_of_canaries+bytes_for_instr_len+num_of_padded_nops;
+		address_of_code_that_denotes_next_cpu_block_change+=num_of_interleaved_keys+number_of_canaries+bytes_for_instr_len+bytes_for_num_of_padded_nops_len+num_of_padded_nops;
 		if (world==2 || world==3)
 		{
 			address_of_code_that_denotes_next_cpu_block_change+=num_of_mac_bytes;
