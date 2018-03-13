@@ -55,6 +55,10 @@ public class Secure_Assembly_v2 {
 	static boolean force_end_of_block=false;
 	static int world=3; //=world_in_which_we_are (variable above)
 	static int label_counter=0;
+	static int number_of_verifications_in_this_block=0;
+	static ArrayList<ArrayList<Integer>> lists_of_lists_of_block_info = new ArrayList<>();
+	static ArrayList<Integer> list_of_verification_addresses_in_this_block=new ArrayList<Integer>();
+	static long position_in_which_there_is_the_jmp_to_next_in_this_block=0;
 	
 	public static void main(String[] args) throws Exception
 	{
@@ -151,8 +155,11 @@ public class Secure_Assembly_v2 {
 			list_of_lines.add("NOP");
 		}
 		
+		//start, and prepare the variables for writing down the info for each block.
+		ArrayList<Integer> list_of_block_info= new ArrayList<Integer>();
+		list_of_block_info.add(0); //address of 1st block
 		line_index=-1;
-		list_of_addresses_that_denote_next_cpu_block_change.add(0);
+		list_of_addresses_that_denote_next_cpu_block_change.add(0); //address of 1st block
 		force_end_of_block=false;
 		num_of_actual_bytes_in_current_block=0;
 		for (String fun:function_names)
@@ -380,8 +387,10 @@ public class Secure_Assembly_v2 {
 		
 		String addresses_of_cpu_split_blocks_path=new File("../code/addresses_of_cpu_split_blocks.txt").getAbsolutePath();
 		BufferedWriter addr_of_cpu_split_blocks = new BufferedWriter(new FileWriter(addresses_of_cpu_split_blocks_path));
+		//set the info of the blocks to the file
 		for (Integer addr:list_of_addresses_that_denote_next_cpu_block_change)
 		{
+			//address
 			addr_of_cpu_split_blocks.write( String.valueOf(addr) +"\n");
 		}
 		addr_of_cpu_split_blocks.flush();
@@ -495,8 +504,10 @@ public class Secure_Assembly_v2 {
 
         list_of_lines.add("popfq");
 
+        list_of_verification_addresses_in_this_block.add(address_of_code_that_denotes_next_cpu_block_change);
         address_of_code_that_denotes_next_cpu_block_change+=overhead_for_verif;
 		num_of_actual_bytes_in_current_block+=overhead_for_verif;
+		number_of_verifications_in_this_block++;
 	}
 	
 	//checks if the function encountered in the assembly code is one of the secure getters/setters, so is invocation will not result in a new block
@@ -701,6 +712,23 @@ public class Secure_Assembly_v2 {
 		//we have a new block, and we note down its address
 		list_of_addresses_that_denote_next_cpu_block_change.add(address_of_code_that_denotes_next_cpu_block_change);
 		list_of_lines.add("#place_of_secure_cpu_block_change, address:"+address_of_code_that_denotes_next_cpu_block_change);
+
+
+		//... as well note all the info about it
+
+
+		//add it to the list of lists
+		lists_of_lists_of_block_info.add(list_of_block_info);
+
+
+		//Start writing about the next block...
+		list_of_block_info= new ArrayList<Integer>(); 
+		list_of_block_info.add(address_of_code_that_denotes_next_cpu_block_change);
+		
+
+		number_of_verifications_in_this_block=0;
+		list_of_verification_addresses_in_this_block=new ArrayList<Integer>();
+		position_in_which_there_is_the_jmp_to_next_in_this_block=0;
 		//we need to verify the block in which we have just arrived!
 		if (world==3)
 		{
