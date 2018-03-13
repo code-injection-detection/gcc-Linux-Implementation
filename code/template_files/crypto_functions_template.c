@@ -8,6 +8,19 @@
 #define use_code_cache_with_cpu_split_blocks use_code_cache_with_unsplit_blocks  //that was the name of the define in previous version (v1)
 #endif
 
+#define good_enough_number_of_max_num_of_blocks 100000
+typedef struct info_for_a_block {
+	
+	long address_of_block_start;
+	int position_of_jmp_to_next_block;
+	int num_of_actual_bytes_in_current_block; //verifications+useful+jmp
+	int num_of_padded_nops;
+	int number_of_verifications;
+	int * verification_offsets;
+	
+} block_info;
+
+
 //the sha256 mac is implemented elsewhere
 extern void calc_and_set_mac_of_data_sha256(char * input, long length, char * output);
 
@@ -54,6 +67,9 @@ int num_of_padded_nops_of_current_block;
 long position_after_us_that_jmp_above_keyshares_macs_is;
 int jump_offset_of_next_jmp;
 long next_block_address_that_will_be_reached_with_the_jmp;
+
+block_info blocks_metadata[good_enough_number_of_max_num_of_blocks];
+
 unsigned short jmp_rax_opcode=0xe0ff; //2 bytes, reversed
 unsigned short jmp_rbx_opcode=0xe3ff; //2 bytes, reversed
 unsigned short jmp_rcx_opcode=0xe1ff; //2 bytes, reversed

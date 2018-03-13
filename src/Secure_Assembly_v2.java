@@ -58,6 +58,7 @@ public class Secure_Assembly_v2 {
 	static int number_of_verifications_in_this_block=0;
 	static ArrayList<ArrayList<Integer>> lists_of_lists_of_block_info = new ArrayList<>();
 	static ArrayList<Integer> list_of_verification_addresses_in_this_block=new ArrayList<Integer>();
+	static ArrayList<Integer> list_of_block_info;
 	static long position_in_which_there_is_the_jmp_to_next_in_this_block=0;
 	
 	public static void main(String[] args) throws Exception
@@ -156,7 +157,7 @@ public class Secure_Assembly_v2 {
 		}
 		
 		//start, and prepare the variables for writing down the info for each block.
-		ArrayList<Integer> list_of_block_info= new ArrayList<Integer>();
+		list_of_block_info= new ArrayList<Integer>();
 		list_of_block_info.add(0); //address of 1st block
 		line_index=-1;
 		list_of_addresses_that_denote_next_cpu_block_change.add(0); //address of 1st block
@@ -345,6 +346,9 @@ public class Secure_Assembly_v2 {
 		//at this point we are after the end of the last function. We need to secure that code as well, so we add keyshares+macs.
 		add_lines_for_block_splitting(list_of_lines,ulabel);
 
+		//signal to the structure that hold block info that we are finished
+		list_of_block_info.add(-100);
+		lists_of_lists_of_block_info.add(list_of_block_info);
 
 
 		//Add the last lines
@@ -384,6 +388,16 @@ public class Secure_Assembly_v2 {
 		}
 		sizes_new.flush();
 
+		/*
+		for ( ArrayList<Integer> a_list_of_block_info: lists_of_lists_of_block_info)
+		{
+			for (int an_int:a_list_of_block_info)
+			{
+				System.out.print(an_int+ " ");
+			}
+			System.out.println("");
+		}
+		*/
 		
 		String addresses_of_cpu_split_blocks_path=new File("../code/addresses_of_cpu_split_blocks.txt").getAbsolutePath();
 		BufferedWriter addr_of_cpu_split_blocks = new BufferedWriter(new FileWriter(addresses_of_cpu_split_blocks_path));
@@ -697,6 +711,23 @@ public class Secure_Assembly_v2 {
 		
 		list_of_lines.add("."+ ulabel + label_counter + ": " );          //we are just adding the label, not any command
 
+
+		//note down the info about the previous block, which is not already noted down (the address is)
+		int start_of_previous_block=list_of_addresses_that_denote_next_cpu_block_change.get(list_of_addresses_that_denote_next_cpu_block_change.size() - 1);
+		position_in_which_there_is_the_jmp_to_next_in_this_block=num_of_actual_bytes_in_current_block-size_of_jmp_command;
+		list_of_block_info.add((int)position_in_which_there_is_the_jmp_to_next_in_this_block);
+		list_of_block_info.add(num_of_actual_bytes_in_current_block);
+		list_of_block_info.add(num_of_padded_nops);
+		list_of_block_info.add(number_of_verifications_in_this_block);
+		for (int verif_addr:list_of_verification_addresses_in_this_block)
+		{
+			list_of_block_info.add(verif_addr-start_of_previous_block); //save the offset
+		}
+
+		//add it to the list of lists
+		lists_of_lists_of_block_info.add(list_of_block_info);
+
+		//update addr of new block
 		address_of_code_that_denotes_next_cpu_block_change+=size_of_jmp_command;
 		address_of_code_that_denotes_next_cpu_block_change+=num_of_interleaved_keys+number_of_canaries+bytes_for_instr_len+bytes_for_num_of_padded_nops_len+num_of_padded_nops;
 		if (world==2 || world==3)
@@ -705,27 +736,20 @@ public class Secure_Assembly_v2 {
 		}
 		label_counter++;
 
-		num_of_bytes_in_blocks_as_calced_by_cpu=0;
-		num_of_actual_bytes_in_current_block=0;
-		force_end_of_block=false;
-
+		
 		//we have a new block, and we note down its address
 		list_of_addresses_that_denote_next_cpu_block_change.add(address_of_code_that_denotes_next_cpu_block_change);
 		list_of_lines.add("#place_of_secure_cpu_block_change, address:"+address_of_code_that_denotes_next_cpu_block_change);
 
 
-		//... as well note all the info about it
-
-
-		//add it to the list of lists
-		lists_of_lists_of_block_info.add(list_of_block_info);
-
-
-		//Start writing about the next block...
+		//Start writing about the next block
 		list_of_block_info= new ArrayList<Integer>(); 
 		list_of_block_info.add(address_of_code_that_denotes_next_cpu_block_change);
 		
-
+		//re-init some variables
+		num_of_bytes_in_blocks_as_calced_by_cpu=0;
+		num_of_actual_bytes_in_current_block=0;
+		force_end_of_block=false;
 		number_of_verifications_in_this_block=0;
 		list_of_verification_addresses_in_this_block=new ArrayList<Integer>();
 		position_in_which_there_is_the_jmp_to_next_in_this_block=0;
