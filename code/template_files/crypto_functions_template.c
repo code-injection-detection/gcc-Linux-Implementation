@@ -692,74 +692,51 @@ int in_front_there_seems_to_be_verif_call(unsigned char* position)
 
 long set_block_metadata_and_return_addr_of_start(unsigned char * addr_in_the_middle)
 {
-	int i;
 	block_info* temp_block_metadata_cur;
 	block_info* temp_block_metadata_nxt;
 	block_info* temp_block_metadata_nxt2;
 	int we_are_in_cur_block_again=0;
 	int we_are_in_next_block=0;
 
-	//2 approaches: linear search until we find the jump with the canaries, and then derive all that info from there
-	//or use nibary search in the array of block info and get the data about the blocks that we need from there. The first approach works only when useful_bytes_in_block=16
+	//binary search in the array of block info and get the data about the blocks that we need from there.
+	if (current_block_index!=-2 && current_block_index<total_blocks_of_code-2) //if it's not the first block ever (current==-2) and we have a next block
+	{
+		//printf("oo\n");
+		//we probably are in the same block or in the next block...
+		temp_block_metadata_cur=&(blocks_metadata[current_block_index]);
+		temp_block_metadata_nxt=&(blocks_metadata[current_block_index+1]);
+		temp_block_metadata_nxt2=&(blocks_metadata[current_block_index+2]);
 
-	#define use_linear_search_till_jmp_canaries_to_find_block_info (num_of_requested_useful_bytes_in_code_chunk==16) //use linear search for small block sizes
-	#if use_linear_search_till_jmp_canaries_to_find_block_info
-		//old, linear search implementation
-		//search for the jmp with the canaries, in order to get the code length and the padded nops
-			for (i=0;;i++)
-			{
-				if (addr_in_the_middle[i]==0xE9 /*jmp opcode*/ && check_the_next_canaries((char*) &addr_in_the_middle[i+size_of_jmp_command]))
-				{
-					position_after_us_that_jmp_above_keyshares_macs_is=i;
-					jump_offset_of_next_jmp=(int)  *((int*)(&addr_in_the_middle[i+1]));
-					code_length_of_current_block =(int) *((short*) &addr_in_the_middle[i+size_of_jmp_command+number_of_canaries]);
-					num_of_padded_nops_of_current_block =(int) *((short*) &addr_in_the_middle[i+size_of_jmp_command+number_of_canaries+bytes_for_instructions_length]);
-					break;
-				}
-			}
-			i+=size_of_jmp_command;
-			return ((long)((long)addr_in_the_middle + i - (code_length_of_current_block)));
-	#else
-
-		if (current_block_index!=-2 && current_block_index<total_blocks_of_code-2) //if it's not the first block ever (current==-2) and we have a next block
+		if ((long)addr_in_the_middle > temp_block_metadata_cur->address_of_block_start+addr_of_first_block_of_code 
+			&& (long)addr_in_the_middle < temp_block_metadata_nxt->address_of_block_start+addr_of_first_block_of_code)
 		{
-			//printf("oo\n");
-			//we probably are in the same block or in the next block...
-			temp_block_metadata_cur=&(blocks_metadata[current_block_index]);
-			temp_block_metadata_nxt=&(blocks_metadata[current_block_index+1]);
-			temp_block_metadata_nxt2=&(blocks_metadata[current_block_index+2]);
-
-			if ((long)addr_in_the_middle > temp_block_metadata_cur->address_of_block_start+addr_of_first_block_of_code 
-				&& (long)addr_in_the_middle < temp_block_metadata_nxt->address_of_block_start+addr_of_first_block_of_code)
-			{
-				//we are in the same block
-				we_are_in_cur_block_again=1;
-				//printf("same block\n");
-			}
-			else if ((long)addr_in_the_middle > temp_block_metadata_nxt->address_of_block_start+addr_of_first_block_of_code 
-					 && (long)addr_in_the_middle < temp_block_metadata_nxt2->address_of_block_start+addr_of_first_block_of_code)
-			{
-				//we are in the next block
-				we_are_in_next_block=1;
-				current_block_index++;
-				current_block_metadata=&(blocks_metadata[current_block_index]);
-				//printf("next block\n");
-			}
+			//we are in the same block
+			we_are_in_cur_block_again=1;
+			//printf("same block\n");
 		}
+		else if ((long)addr_in_the_middle > temp_block_metadata_nxt->address_of_block_start+addr_of_first_block_of_code 
+				 && (long)addr_in_the_middle < temp_block_metadata_nxt2->address_of_block_start+addr_of_first_block_of_code)
+		{
+			//we are in the next block
+			we_are_in_next_block=1;
+			current_block_index++;
+			current_block_metadata=&(blocks_metadata[current_block_index]);
+			//printf("next block\n");
+		}
+	}
+
 	
-		
-		if (we_are_in_cur_block_again==0 && we_are_in_next_block==0) //not found, do binary search
-		{
-			current_block_metadata=find_metadata_of_a_block(addr_in_the_middle);
-			//printf("search_for_block\n");
-		}
-		//update the values
-		code_length_of_current_block=current_block_metadata->num_of_actual_bytes_in_current_block;
-		num_of_padded_nops_of_current_block=current_block_metadata->num_of_padded_nops;
-		position_after_us_that_jmp_above_keyshares_macs_is=  (code_length_of_current_block-size_of_jmp_command)- (  (long)addr_in_the_middle-((long)current_block_metadata->address_of_block_start+addr_of_first_block_of_code )  );
-		jump_offset_of_next_jmp=(int)  *((int*)(&addr_in_the_middle[position_after_us_that_jmp_above_keyshares_macs_is+1]));
-		return ((long)current_block_metadata->address_of_block_start+addr_of_first_block_of_code);
-	#endif
+	if (we_are_in_cur_block_again==0 && we_are_in_next_block==0) //not found, do binary search
+	{
+		current_block_metadata=find_metadata_of_a_block(addr_in_the_middle);
+		//printf("search_for_block\n");
+	}
+	//update the values
+	code_length_of_current_block=current_block_metadata->num_of_actual_bytes_in_current_block;
+	num_of_padded_nops_of_current_block=current_block_metadata->num_of_padded_nops;
+	position_after_us_that_jmp_above_keyshares_macs_is=  (code_length_of_current_block-size_of_jmp_command)- (  (long)addr_in_the_middle-((long)current_block_metadata->address_of_block_start+addr_of_first_block_of_code )  );
+	jump_offset_of_next_jmp=(int)  *((int*)(&addr_in_the_middle[position_after_us_that_jmp_above_keyshares_macs_is+1]));
+	return ((long)current_block_metadata->address_of_block_start+addr_of_first_block_of_code);
 }
 
 //disable optimizations temporarily, for stability reasons
@@ -1297,7 +1274,7 @@ void init_code_cache()
 }
 
 #if use_code_cache_with_cpu_split_blocks==1
-	#define mapped_code_addr(addr) (find_addr_in_cpu_split_blocks_addresses(addr)) //the array index of the binary search, not the actual address itself
+	#define mapped_code_addr(addr) (current_block_index==-2?(find_addr_in_cpu_split_blocks_addresses(addr)):(current_block_index)) //the array index of the binary search, not the actual address itself
 #else
 	#define mapped_code_addr(addr) (addr) //OBSOLETE
 #endif
