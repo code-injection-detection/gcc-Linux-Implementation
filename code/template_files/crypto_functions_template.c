@@ -697,6 +697,9 @@ long set_block_metadata_and_return_addr_of_start(unsigned char * addr_in_the_mid
 	block_info* temp_block_metadata_nxt2;
 	int we_are_in_cur_block_again=0;
 	int we_are_in_next_block=0;
+	int offset_of_our_verification_from_the_block_start;
+	int verif_offset_is_found=0;
+	int i;
 
 	//binary search in the array of block info and get the data about the blocks that we need from there.
 	if (current_block_index!=-2 && current_block_index<total_blocks_of_code-2) //if it's not the first block ever (current==-2) and we have a next block
@@ -732,6 +735,28 @@ long set_block_metadata_and_return_addr_of_start(unsigned char * addr_in_the_mid
 	num_of_padded_nops_of_current_block=current_block_metadata->num_of_padded_nops;
 	position_after_us_that_jmp_above_keyshares_macs_is=  (code_length_of_current_block-size_of_jmp_command)- (  (long)addr_in_the_middle-((long)current_block_metadata->address_of_block_start+addr_of_first_block_of_code )  );
 	jump_offset_of_next_jmp=(int)  *((int*)(&addr_in_the_middle[position_after_us_that_jmp_above_keyshares_macs_is+1]));
+	
+	#if 0
+		//uncomment if you want to check that the search for blocks was correct
+		//check if current address is in the know verification positions of this block. if it is not, error
+		offset_of_our_verification_from_the_block_start=(long)addr_in_the_middle-((long)current_block_metadata->address_of_block_start+addr_of_first_block_of_code );
+		for (i=0;i<current_block_metadata->number_of_verifications;i++)
+		{
+			if (offset_of_our_verification_from_the_block_start==current_block_metadata->verification_offsets[i])
+			{
+				verif_offset_is_found=1;
+				break;
+			}
+		}
+		if (verif_offset_is_found==0)
+		{
+			fprintf(stderr,"ERROR:we are in a verification that is not found in the known ones!\n");
+			fprintf(stderr,"That probably means that our block search was wrong!\n");
+			fprintf(stderr,"Address_of_verif:%ld, current_block_index:%d, block_start_addr=%ld\n",(long)addr_in_the_middle,current_block_index,(long)current_block_metadata->address_of_block_start+addr_of_first_block_of_code);
+			exit(-2);
+		}
+	#endif
+		
 	return ((long)current_block_metadata->address_of_block_start+addr_of_first_block_of_code);
 }
 
