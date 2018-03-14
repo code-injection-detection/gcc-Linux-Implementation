@@ -706,13 +706,13 @@ long set_block_metadata_and_return_addr_of_start(unsigned char * addr_in_the_mid
 		temp_block_metadata_nxt=&(blocks_metadata[current_block_index+1]);
 		temp_block_metadata_nxt2=&(blocks_metadata[current_block_index+2]);
 
-		if ((long)addr_in_the_middle > temp_block_metadata_cur->address_of_block_start+addr_of_first_block_of_code 
+		if ((long)addr_in_the_middle >= temp_block_metadata_cur->address_of_block_start+addr_of_first_block_of_code 
 			&& (long)addr_in_the_middle < temp_block_metadata_nxt->address_of_block_start+addr_of_first_block_of_code)
 		{
 			//we are in the same block
 			we_are_in_cur_block_again=1;
 		}
-		else if ((long)addr_in_the_middle > temp_block_metadata_nxt->address_of_block_start+addr_of_first_block_of_code 
+		else if ((long)addr_in_the_middle >= temp_block_metadata_nxt->address_of_block_start+addr_of_first_block_of_code 
 				 && (long)addr_in_the_middle < temp_block_metadata_nxt2->address_of_block_start+addr_of_first_block_of_code)
 		{
 			//we are in the next block
