@@ -316,56 +316,56 @@ block_info* find_metadata_of_a_block(unsigned char * address) //an address thet 
 void calc_and_set_mac_of_data(unsigned char *input,int length_all,int length_useful,unsigned char *output)
 {
 #if squeeze_keys_when_macing==1
-#if count_mac_invocations==1
-	if (count_mac_invocations_in_this_code_part)
-	{
-		//fprintf(stdout,"\nMac Invocation: length_all=%d\n",length_all-number_of_interleaved_keys/2); 
-		mac_size_invocation_counters[length_all-number_of_interleaved_keys/2]+=1;
-	}
-#endif
-	//save the keys and squeeze them
-	memcpy(keys_temp_space,(unsigned char*)(input)+(int)((length_all)-number_of_interleaved_keys),number_of_interleaved_keys);
-	squeeze_bytes_in_place((unsigned char*)(input)+(int)((length_all)-number_of_interleaved_keys),number_of_interleaved_keys);
-#if mac_algorithm==0
-	calc_and_set_mac_of_data_sha256((input),(length_all)-number_of_interleaved_keys/2,(output));
-#endif
-#if mac_algorithm==1
-	calc_and_set_mac_of_data_aes_ecb((input),(length_all)-number_of_interleaved_keys/2,(length_useful),(output));
-#endif
-#if mac_algorithm==2
-	calc_and_set_mac_of_data_aes_cmac((input),(length_all)-number_of_interleaved_keys/2,(output));
-#endif
-#if mac_algorithm==3
-	calc_and_set_mac_of_data_aes_cbc((input),(length_all)-number_of_interleaved_keys/2,(output));
-#endif
-#if mac_algorithm==4
-	calc_and_set_mac_of_data_aes_cbc((input),(length_all)-number_of_interleaved_keys/2,(output));
-#endif
-	//restore the keys
-	memcpy((unsigned char*)(input)+(int)((length_all)-number_of_interleaved_keys),keys_temp_space,number_of_interleaved_keys);
+	#if count_mac_invocations==1
+		if (count_mac_invocations_in_this_code_part)
+		{
+			//fprintf(stdout,"\nMac Invocation: length_all=%d\n",length_all-number_of_interleaved_keys/2); 
+			mac_size_invocation_counters[length_all-number_of_interleaved_keys/2]+=1;
+		}
+	#endif
+		//save the keys and squeeze them
+		memcpy(keys_temp_space,(unsigned char*)(input)+(int)((length_all)-number_of_interleaved_keys),number_of_interleaved_keys);
+		squeeze_bytes_in_place((unsigned char*)(input)+(int)((length_all)-number_of_interleaved_keys),number_of_interleaved_keys);
+	#if mac_algorithm==0
+		calc_and_set_mac_of_data_sha256((input),(length_all)-number_of_interleaved_keys/2,(output));
+	#endif
+	#if mac_algorithm==1
+		calc_and_set_mac_of_data_aes_ecb((input),(length_all)-number_of_interleaved_keys/2,(length_useful),(output));
+	#endif
+	#if mac_algorithm==2
+		calc_and_set_mac_of_data_aes_cmac((input),(length_all)-number_of_interleaved_keys/2,(output));
+	#endif
+	#if mac_algorithm==3
+		calc_and_set_mac_of_data_aes_cbc((input),(length_all)-number_of_interleaved_keys/2,(output));
+	#endif
+	#if mac_algorithm==4
+		calc_and_set_mac_of_data_aes_cbc((input),(length_all)-number_of_interleaved_keys/2,(output));
+	#endif
+		//restore the keys
+		memcpy((unsigned char*)(input)+(int)((length_all)-number_of_interleaved_keys),keys_temp_space,number_of_interleaved_keys);
 #else
-#if count_mac_invocations==1
-	if (count_mac_invocations_in_this_code_part)
-	{
-		//fprintf(stdout,"\nMac Invocation: length_all=%d\n",length_all);
-		mac_size_invocation_counters[length_all]+=1;
-	}
-#endif
-#if mac_algorithm==0
-	calc_and_set_mac_of_data_sha256((input),(length_all),(output));
-#endif
-#if mac_algorithm==1
-	calc_and_set_mac_of_data_aes_ecb((input),(length_all),(length_useful),(output));
-#endif
-#if mac_algorithm==2
-	calc_and_set_mac_of_data_aes_cmac((input),(length_all),(output));
-#endif
-#if mac_algorithm==3
-	calc_and_set_mac_of_data_aes_cbc((input),(length_all),(output));
-#endif
-#if mac_algorithm==4
-	calc_and_set_mac_of_data_aes_cbc((input),(length_all),(output));
-#endif
+	#if count_mac_invocations==1
+		if (count_mac_invocations_in_this_code_part)
+		{
+			//fprintf(stdout,"\nMac Invocation: length_all=%d\n",length_all);
+			mac_size_invocation_counters[length_all]+=1;
+		}
+	#endif
+	#if mac_algorithm==0
+		calc_and_set_mac_of_data_sha256((input),(length_all),(output));
+	#endif
+	#if mac_algorithm==1
+		calc_and_set_mac_of_data_aes_ecb((input),(length_all),(length_useful),(output));
+	#endif
+	#if mac_algorithm==2
+		calc_and_set_mac_of_data_aes_cmac((input),(length_all),(output));
+	#endif
+	#if mac_algorithm==3
+		calc_and_set_mac_of_data_aes_cbc((input),(length_all),(output));
+	#endif
+	#if mac_algorithm==4
+		calc_and_set_mac_of_data_aes_cbc((input),(length_all),(output));
+	#endif
 
 #endif
 }
@@ -701,7 +701,6 @@ long set_block_metadata_and_return_addr_of_start(unsigned char * addr_in_the_mid
 	//binary search in the array of block info and get the data about the blocks that we need from there.
 	if (current_block_index!=-2 && current_block_index<total_blocks_of_code-2) //if it's not the first block ever (current==-2) and we have a next block
 	{
-		//printf("oo\n");
 		//we probably are in the same block or in the next block...
 		temp_block_metadata_cur=&(blocks_metadata[current_block_index]);
 		temp_block_metadata_nxt=&(blocks_metadata[current_block_index+1]);
@@ -712,7 +711,6 @@ long set_block_metadata_and_return_addr_of_start(unsigned char * addr_in_the_mid
 		{
 			//we are in the same block
 			we_are_in_cur_block_again=1;
-			//printf("same block\n");
 		}
 		else if ((long)addr_in_the_middle > temp_block_metadata_nxt->address_of_block_start+addr_of_first_block_of_code 
 				 && (long)addr_in_the_middle < temp_block_metadata_nxt2->address_of_block_start+addr_of_first_block_of_code)
@@ -721,7 +719,6 @@ long set_block_metadata_and_return_addr_of_start(unsigned char * addr_in_the_mid
 			we_are_in_next_block=1;
 			current_block_index++;
 			current_block_metadata=&(blocks_metadata[current_block_index]);
-			//printf("next block\n");
 		}
 	}
 
@@ -729,7 +726,6 @@ long set_block_metadata_and_return_addr_of_start(unsigned char * addr_in_the_mid
 	if (we_are_in_cur_block_again==0 && we_are_in_next_block==0) //not found, do binary search
 	{
 		current_block_metadata=find_metadata_of_a_block(addr_in_the_middle);
-		//printf("search_for_block\n");
 	}
 	//update the values
 	code_length_of_current_block=current_block_metadata->num_of_actual_bytes_in_current_block;
@@ -880,21 +876,17 @@ void verify_mac_onthefly(unsigned char * input, int total_mac_bytes, int useful_
 	}
 }
 
-long num_of_useful_bytes_to_mac_in_code;
+long num_of_mixed_bytes_to_mac_in_code;
 long address_after_return_from_verif_call;
 unsigned char mac_for_code_verification[number_of_mac_bytes];
 void verify_code_on_the_fly()
 {
 	if (number_of_mac_bytes>0 && world==3 && !ignore_macs_last_moment_even_if_there_are_mac_bytes)
 	{
-		//old version
-		//calc_and_set_mac_of_data((unsigned char*)address_after_return_from_verif_call-size_of_commands_before_getting_addr,num_of_useful_bytes_to_mac_in_code+bytes_used_for_keyshares,num_of_useful_bytes_to_mac_in_code,mac_for_code_verification);
-		//if (0!=memcmp((unsigned char*)address_after_return_from_verif_call-size_of_commands_before_getting_addr+num_of_useful_bytes_to_mac_in_code+bytes_used_for_keyshares,mac_for_code_verification,number_of_mac_bytes)) //CRYPTO_memcmp?
-
-		if (check_code_mac_for_error((unsigned char*)address_of_start_of_current_block,num_of_useful_bytes_to_mac_in_code+bytes_used_for_keyshares,num_of_useful_bytes_to_mac_in_code))
+		if (check_code_mac_for_error((unsigned char*)address_of_start_of_current_block,num_of_mixed_bytes_to_mac_in_code+bytes_used_for_keyshares,num_of_mixed_bytes_to_mac_in_code))
 		{	
 			fprintf(stderr,"ERROR in on the fly code mac verification!. Address:%ld, total mac bytes:%ld, useful mac bytes:%ld\n",
-					(long)((unsigned char*)address_of_start_of_current_block) ,num_of_useful_bytes_to_mac_in_code+bytes_used_for_keyshares,num_of_useful_bytes_to_mac_in_code
+					(long)((unsigned char*)address_of_start_of_current_block) ,num_of_mixed_bytes_to_mac_in_code+bytes_used_for_keyshares,num_of_mixed_bytes_to_mac_in_code
 					);
 			exit(17);
 		}
@@ -1189,7 +1181,7 @@ void do_verify_code_on_the_fly()
 
 		
 		//useful bytes here= all except keyshares. The unwanted ones will be removed later
-		num_of_useful_bytes_to_mac_in_code=code_length_of_current_block+number_of_canaries+bytes_for_instructions_length+bytes_for_num_of_padded_nops_len+num_of_padded_nops_of_current_block;
+		num_of_mixed_bytes_to_mac_in_code=code_length_of_current_block+number_of_canaries+bytes_for_instructions_length+bytes_for_num_of_padded_nops_len+num_of_padded_nops_of_current_block;
 				
 		//printf("Address after return from verif_call:%ld\n",address_after_return_from_verif_call);
 				
@@ -1229,14 +1221,14 @@ void do_verify_code_on_the_fly()
 			
 		//todo:make sure that we truly catch all the cases that we jump to register
 		if (register_to_jmp_to!=-42424242)
-		//we have a jmp to register. IMPORTANT! WE DO NOT VERIFY THE TARGET. WE ONLY COUNT THE FACT THAT WE MACED
+		//we have a jmp to register. IMPORTANT! WE DO NOT VERIFY THE TARGET. WE ONLY COUNT THE FACT THAT WE MAC-ED
 		{
 			//printf("Next command is after a jump to register!\n");
 			number_of_jmp_register_jmps++;
 			//printf("jmp_to_reg_cnt=%ld\n",number_of_jmp_register_jmps);
 			if (-1==continue_macing_current_code_addr((unsigned char*)register_to_jmp_to)) //if using cache for code
 			{		
-				//we don't verify the code block in which we fall, because we don't know the start of it.
+				//we don't verify the code block in which we fall
 				//however we add it to the cache and note that we had a mac calculation
 				#if count_mac_invocations==1
 					if (count_mac_invocations_in_this_code_part)
