@@ -70,6 +70,7 @@ long next_block_address_that_will_be_reached_with_the_jmp;
 
 int block_index=0;
 block_info blocks_metadata[good_enough_number_of_max_num_of_blocks];
+block_info* current_block_metadata;
 
 unsigned short jmp_rax_opcode=0xe0ff; //2 bytes, reversed
 unsigned short jmp_rbx_opcode=0xe3ff; //2 bytes, reversed
@@ -263,7 +264,7 @@ int find_addr_in_cpu_split_blocks_addresses(unsigned char * address) //binary se
 	if (num_of_addresses_of_cpu_split_blocks==0)
 	{
 		fprintf(stderr,"Why is num_of_addresses_of_cpu_split_blocks 0?\n");
-		return 0;
+		return -1;
 	}
 	
 	if (addr>addr_in_code_as_offset_of_fist_block_addr(last))
@@ -291,7 +292,19 @@ int find_addr_in_cpu_split_blocks_addresses(unsigned char * address) //binary se
 		fprintf(stderr,"ERROR in binary search!!\n");
 		fprintf(stderr,"addr=%ld, currently first addr=%ld\n",(long)addr,(long)addr_in_code_as_offset_of_fist_block_addr(first));
 		fprintf(stderr,"globally first addr=%ld\n",(long)addr_in_code_as_offset_of_fist_block_addr(0));
+		return -1;
 	}
+}
+
+block_info* get_metadata_of_a_block(unsigned char * address) //an address thet is in the block. Binary search.
+{
+	int block_ind;
+	
+	block_ind=find_addr_in_cpu_split_blocks_addresses(address);
+	if (block_ind==-1)
+		return NULL;
+	else
+		return (&(blocks_metadata[block_ind]));
 }
 
 
@@ -973,12 +986,38 @@ long rax_register;
 long rbx_register;
 long rcx_register;
 long rdx_register;
+//below not set 
+long rbp_register;
+long rdi_register;
+long rsi_register;
+long r8_register,r9_register,r10_register,r11_register,r12_register,r13_register,r14_register,r15_register;
+long rsp_register;
+//above not set 
 long number_of_jmp_register_jmps=0;
 long register_to_jmp_to;
 
 //disable gcc optimizations temporarily since the Pushes done there WILL break the fetching of the return address
 #pragma GCC push_options
 #pragma GCC optimize ("O0")
+
+void print_block_metadata()
+{
+		printf("---------------------------------------------------\n");
+		printf("Address before verif:%ld\n",address_in_current_block_before_verif);
+		printf("address_of_start_of_current_block:%ld\n",address_of_start_of_current_block);
+		printf("position_after_us_that_jmp_above_keyshares_macs_is:%ld\n",position_after_us_that_jmp_above_keyshares_macs_is);
+		printf("jump_offset_of_next_jmp:%d\n",jump_offset_of_next_jmp);
+		printf("code_length_of_current_block:%d\n",code_length_of_current_block);
+		printf("num_of_padded_nops_of_current_block:%d\n",num_of_padded_nops_of_current_block);
+		
+		
+		current_block_metadata=get_metadata_of_a_block((unsigned char*)address_in_current_block_before_verif);
+		printf("Addr_of_first_block_of_code:%ld\n",addr_of_first_block_of_code);
+		printf("block_meta:address_of_start_of_current_block:%ld\n",addr_of_first_block_of_code+current_block_metadata->address_of_block_start);
+		printf("block_meta:code_length_of_current_block:%d\n",current_block_metadata->num_of_actual_bytes_in_current_block);
+		printf("block_meta:num_of_padded_nops_of_current_block:%d\n",current_block_metadata->num_of_padded_nops);
+}
+
 
 #define SAVE_STATE { \
 					/*get return adress from stack, to see where to mac*/ \
@@ -1111,6 +1150,9 @@ void do_verify_code_on_the_fly()
 			//printf("We got verif at the end of the block! new_block:%ld\n",address_of_start_of_current_block);
 		}
 		
+		//if you add many printfs it breaks for some reason...
+		//print_block_metadata();
+
 		
 		//useful bytes here= all except keyshares. The unwanted ones will be removed later
 		num_of_useful_bytes_to_mac_in_code=code_length_of_current_block+number_of_canaries+bytes_for_instructions_length+bytes_for_num_of_padded_nops_len+num_of_padded_nops_of_current_block;
