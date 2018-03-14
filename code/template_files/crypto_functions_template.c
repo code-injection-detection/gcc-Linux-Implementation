@@ -68,6 +68,7 @@ long position_after_us_that_jmp_above_keyshares_macs_is;
 int jump_offset_of_next_jmp;
 long next_block_address_that_will_be_reached_with_the_jmp;
 
+int block_index=0;
 block_info blocks_metadata[good_enough_number_of_max_num_of_blocks];
 
 unsigned short jmp_rax_opcode=0xe0ff; //2 bytes, reversed
@@ -145,13 +146,48 @@ void init_crypto_stuctures(int print, int find_addr_of_first_code_block)
 		}
 		else
 		{
-			//read the addresses of the cpusplit blocks and put them in an array
+			//read the info for every block
 			num_of_addresses_of_cpu_split_blocks=0;
+			block_index=0;
 			while (!feof(cpu_split_block_addr_file))
 			{
-				int scanf_retval=fscanf(cpu_split_block_addr_file,"%ld",&addresses_of_cpu_split_blocks[num_of_addresses_of_cpu_split_blocks]);
-				if (scanf_retval>0)	
+				long start_of_block;
+				int position_of_jmp;
+				int num_of_actual_bytes;
+				int num_padded_nops;
+				int num_of_verifs;
+				int ind_verif=0;
+				int ret_of_fscanf;
+								
+				ret_of_fscanf=fscanf(cpu_split_block_addr_file,"%ld",&start_of_block);
+				addresses_of_cpu_split_blocks[num_of_addresses_of_cpu_split_blocks]=start_of_block;
+				blocks_metadata[block_index].address_of_block_start=start_of_block;
+				
+				ret_of_fscanf=fscanf(cpu_split_block_addr_file,"%d",&position_of_jmp);
+				if (position_of_jmp==-100) //if it is that, break;
+				{
 					num_of_addresses_of_cpu_split_blocks++;
+					block_index++;
+					break;
+				}
+				blocks_metadata[block_index].position_of_jmp_to_next_block=position_of_jmp;
+				
+				ret_of_fscanf=fscanf(cpu_split_block_addr_file,"%d",&num_of_actual_bytes);
+				blocks_metadata[block_index].num_of_actual_bytes_in_current_block=num_of_actual_bytes;
+				ret_of_fscanf=fscanf(cpu_split_block_addr_file,"%d",&num_padded_nops);
+				blocks_metadata[block_index].num_of_padded_nops=num_padded_nops;
+				ret_of_fscanf=fscanf(cpu_split_block_addr_file,"%d",&num_of_verifs);
+				blocks_metadata[block_index].number_of_verifications=num_of_verifs;
+				
+				blocks_metadata[block_index].verification_offsets=malloc(num_of_verifs*sizeof(int));
+				for (ind_verif=0;ind_verif<num_of_verifs;ind_verif++)
+				{
+					ret_of_fscanf=fscanf(cpu_split_block_addr_file,"%d",&(blocks_metadata[block_index].verification_offsets[ind_verif]));
+				}
+								
+				num_of_addresses_of_cpu_split_blocks++;
+				block_index++;
+	
 			}
 			find_addr_of_first_block_of_code();
 		}

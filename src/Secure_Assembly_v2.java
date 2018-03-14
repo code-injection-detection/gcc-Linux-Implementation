@@ -388,24 +388,23 @@ public class Secure_Assembly_v2 {
 		}
 		sizes_new.flush();
 
-		/*
-		for ( ArrayList<Integer> a_list_of_block_info: lists_of_lists_of_block_info)
-		{
-			for (int an_int:a_list_of_block_info)
-			{
-				System.out.print(an_int+ " ");
-			}
-			System.out.println("");
-		}
-		*/
-		
 		String addresses_of_cpu_split_blocks_path=new File("../code/addresses_of_cpu_split_blocks.txt").getAbsolutePath();
 		BufferedWriter addr_of_cpu_split_blocks = new BufferedWriter(new FileWriter(addresses_of_cpu_split_blocks_path));
 		//set the info of the blocks to the file
+		/*
 		for (Integer addr:list_of_addresses_that_denote_next_cpu_block_change)
 		{
 			//address
 			addr_of_cpu_split_blocks.write( String.valueOf(addr) +"\n");
+		}
+		*/
+		for ( ArrayList<Integer> a_list_of_block_info: lists_of_lists_of_block_info)
+		{
+			for (int an_int:a_list_of_block_info)
+			{
+				addr_of_cpu_split_blocks.write(an_int+ " ");
+			}
+			addr_of_cpu_split_blocks.write("\n");
 		}
 		addr_of_cpu_split_blocks.flush();
 
