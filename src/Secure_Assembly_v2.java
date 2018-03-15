@@ -60,6 +60,7 @@ public class Secure_Assembly_v2 {
 	static ArrayList<Integer> list_of_verification_addresses_in_this_block=new ArrayList<Integer>();
 	static ArrayList<Integer> list_of_block_info;
 	static long position_in_which_there_is_the_jmp_to_next_in_this_block=0;
+	static boolean we_just_had_verification_code_inserted=false;
 	
 	public static void main(String[] args) throws Exception
 	{
@@ -226,28 +227,6 @@ public class Secure_Assembly_v2 {
 					list_of_lines.add(line);
 					continue;
 				}
-
-				//if it is a Label
-				//if (/*label with .L<numbers> */Pattern.compile("^[ \t]*\\.L[0123456789]+:$").matcher(line).matches())
-				if (/*starts with spaces and then label*/ Pattern.compile("^[ \t]*\\..*$").matcher(line).matches() ||  /*label*/ Pattern.compile("^\\..*$").matcher(line).matches())
-				{
-					list_of_lines.add(line);
-					//consume all following empty lines or labels
-					while(  /*empty*/ sc.hasNext(Pattern.compile("^[ \t\n]*$")) ||  /*starts with spaces and then label*/ sc.hasNext(Pattern.compile("^[ \t]*\\..*$")) ||   /*label*/  sc.hasNext(Pattern.compile("^\\..*$")) || /*dunno why, does not work with dollar in the end*/sc.hasNext(Pattern.compile("\\..*")))
-					{
-						line = sc.next();
-						line = removeNewlines(line);
-						line_index++;
-						list_of_lines.add(line);
-					}
-
-					if (world==3)
-					{
-						add_code_verification_lines(list_of_lines); //the label is suspect of being jumped on, so we add verification
-					}
-
-					continue;
-				}
 				
 				//find size of cmd, if it is a cmd. Also, determine if the secure cpu would split
 				if (removeSpaces(line).startsWith(".")==false) /*make sure it's a command*/
@@ -300,6 +279,7 @@ public class Secure_Assembly_v2 {
 					num_of_actual_bytes_in_current_block+=size_of_current_cmd;
 					num_of_bytes_in_blocks_as_calced_by_cpu+=size_of_current_cmd;
 					address_of_code_that_denotes_next_cpu_block_change+=size_of_current_cmd;
+					we_just_had_verification_code_inserted=false; //although that might be immediately chainged again afterwards
 
 					if (world==3)
 					{
@@ -319,7 +299,8 @@ public class Secure_Assembly_v2 {
 						operands=parts[1];
 
 					//If that jump is a jump to register,it should have verification code before it, which checks what happens and if by using that jump we leave the current block
-					if (operands.startsWith("*%") && world==3)
+					//important! we don't insert the jump just before us he had a verification insertion!
+					if (operands.startsWith("*%") && world==3 && we_just_had_verification_code_inserted==false)
 					{
 						add_code_verification_lines(list_of_lines);
 					}
@@ -328,8 +309,32 @@ public class Secure_Assembly_v2 {
 					num_of_actual_bytes_in_current_block+=size_of_current_cmd;
 					num_of_bytes_in_blocks_as_calced_by_cpu+=size_of_current_cmd;
 					address_of_code_that_denotes_next_cpu_block_change+=size_of_current_cmd;
+					we_just_had_verification_code_inserted=false;
 					continue;
 				}
+
+				//if it is a Label
+				//if (/*label with .L<numbers> */Pattern.compile("^[ \t]*\\.L[0123456789]+:$").matcher(line).matches())
+				if (/*starts with spaces and then label*/ Pattern.compile("^[ \t]*\\..*$").matcher(line).matches() ||  /*label*/ Pattern.compile("^\\..*$").matcher(line).matches())
+				{
+					list_of_lines.add(line);
+					//consume all following empty lines or labels
+					while(  /*empty*/ sc.hasNext(Pattern.compile("^[ \t\n]*$")) ||  /*starts with spaces and then label*/ sc.hasNext(Pattern.compile("^[ \t]*\\..*$")) ||   /*label*/  sc.hasNext(Pattern.compile("^\\..*$")) || /*dunno why, does not work with dollar in the end*/sc.hasNext(Pattern.compile("\\..*")))
+					{
+						line = sc.next();
+						line = removeNewlines(line);
+						line_index++;
+						list_of_lines.add(line);
+					}
+
+					if (world==3)
+					{
+						add_code_verification_lines(list_of_lines); //the label is suspect of being jumped on, so we add verification
+					}
+
+					continue;
+				}
+
 
 				if (force_end_of_block==false)
 				//the default behavior is the program to add the next command
@@ -338,6 +343,7 @@ public class Secure_Assembly_v2 {
 					num_of_actual_bytes_in_current_block+=size_of_current_cmd;
 					num_of_bytes_in_blocks_as_calced_by_cpu+=size_of_current_cmd;
 					address_of_code_that_denotes_next_cpu_block_change+=size_of_current_cmd;
+					we_just_had_verification_code_inserted=false;
 					continue;
 				}				
 			}
@@ -516,6 +522,8 @@ public class Secure_Assembly_v2 {
         list_of_lines.add("call do_verify_code_on_the_fly");
 
         list_of_lines.add("popfq");
+
+        we_just_had_verification_code_inserted=true;
 
         list_of_verification_addresses_in_this_block.add(address_of_code_that_denotes_next_cpu_block_change);
         address_of_code_that_denotes_next_cpu_block_change+=overhead_for_verif;
