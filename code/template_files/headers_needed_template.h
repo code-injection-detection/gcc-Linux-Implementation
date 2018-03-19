@@ -72,11 +72,11 @@
 #endif				//This one is for the memory, not for the interleaved NOPs. The number should be the same as number_of_interleaved_keys
 
 #ifndef bytes_to_allocate_on_start
-#define bytes_to_allocate_on_start (1024)
+#define bytes_to_allocate_on_start (102400)
 #endif				//The secure heap bytes (some bytes more may be needed, to complete full blocks)		
 
 #ifndef bytes_for_useful_data
-#define bytes_for_useful_data (8)
+#define bytes_for_useful_data (16)
 #endif				//The heap "useful" bytes. Important: It is not (currently) possible to split this bytegroup into multiple parts.
 				    //which means that should someone allocate x bytegroups but does not need the last one as a whole, we cannot give the rest of it to someone else
 
@@ -94,16 +94,16 @@
 #endif				//This one is for the stack. The number should be the same as number_of_interleaved_keys
 
 #ifndef stack_bytes_to_allocate_on_start
-#define stack_bytes_to_allocate_on_start (1024)
+#define stack_bytes_to_allocate_on_start (102400)
 #endif
 
 #ifndef stack_bytes_for_useful_data
-#define stack_bytes_for_useful_data (8)
+#define stack_bytes_for_useful_data (16)
 #endif				//practically the "useful" bytes in the stack. Important: It is not (currently) possible to split this bytegroup into multiple parts.
 				    //which means that should someone allocate x bytegroups but does not need the last one as a whole, we cannot give the rest of it to someone else
 
 #ifndef number_of_global_useful_bytes
-#define number_of_global_useful_bytes (8)
+#define number_of_global_useful_bytes (16)
 #endif				//The size of the global useful bytes
 
 #ifndef number_of_mac_bytes
@@ -112,7 +112,7 @@
 
 
 #ifndef insert_parameters_into_new_secure_stack_as_arrays
-#define insert_parameters_into_new_secure_stack_as_arrays 0
+#define insert_parameters_into_new_secure_stack_as_arrays 1
 #endif				//This a boolean variable that selects if we should insert the parameters of a function into the secure stack as arrays or not
 
 
@@ -122,7 +122,7 @@
 
 
 #ifndef num_of_bytes_in_code_chunk
-#define num_of_bytes_in_code_chunk 20
+#define num_of_bytes_in_code_chunk 16
 #endif				//This is the number of useful bytes that each code chunk will have
 
 
@@ -139,16 +139,16 @@
 #endif				
 
 #ifndef use_inline_code_for_delays
-#define use_inline_code_for_delays 1
+#define use_inline_code_for_delays 0
 #endif				//This is a boolean variable that determines if, for delay purposes, we should use extra code in normal functions
 
 
 #ifndef num_of_cached_blocks_of_code
-#define num_of_cached_blocks_of_code 0
+#define num_of_cached_blocks_of_code 1
 #endif				//If a code block is in the cache, it is not verified before execution. If the cache size is 0, then there is no cache!
 
 #ifndef num_of_cached_blocks_of_data
-#define num_of_cached_blocks_of_data 0
+#define num_of_cached_blocks_of_data 1
 #endif				//If a data block is in the cache, it is not verified before execution. If the cache size is 0, then there is no cache!
 
 
@@ -167,11 +167,11 @@
 #endif				//Treat the loop counters in the secure programs as registers, which means that they do not have to be secured
 
 #ifndef squeeze_keys_when_macing
-#define squeeze_keys_when_macing 0
+#define squeeze_keys_when_macing 1
 #endif				//reduces the size of the keys from 32 bytes to 16 when calculating mac
 
 #ifndef count_mac_invocations
-#define count_mac_invocations 0
+#define count_mac_invocations 1
 #endif				//counts the mac invocations in order to calculate delay due to macs
 
 #ifndef add_the_padded_nops_in_the_mac_in_fixed_size
@@ -184,18 +184,18 @@
 
 
 #ifndef use_code_cache_with_unsplit_blocks
-#define use_code_cache_with_unsplit_blocks 0
-#endif				//EXPERIMENTAL: The code blocks that are cached are cached if being unsplit
+#define use_code_cache_with_unsplit_blocks 1
+#endif				//The code blocks that are cached are cached if being unsplit
 
 
 #ifndef set_as_given_that_everything_maced_will_be_fixed_and_multiple_of_16
-#define set_as_given_that_everything_maced_will_be_fixed_and_multiple_of_16 0
+#define set_as_given_that_everything_maced_will_be_fixed_and_multiple_of_16 1
 #endif				//this means that we can disable length prepending and padding
 
 
 #ifndef when_splitting_blocks_do_not_invoke_verif_unless_on_label
 #define when_splitting_blocks_do_not_invoke_verif_unless_on_label 0
-#endif				//EXPERIMENTAL: Does not calculate the mac when splitting blocks due to label encounter and we continue normal execution. Only calcs mac when we jump to that label.
+#endif				//Does not calculate the mac when splitting blocks due to label encounter and we continue normal execution. Only calcs mac when we jump to that label.
 
 #ifndef size_of_jmp_command
 #define size_of_jmp_command 5
@@ -206,7 +206,7 @@
 #endif				//overhead of verification call per block: 7 for fixed size, 14 for variable size (obsolete)
 
 #ifndef using_large_jmps_and_code_blocks_with_3_worlds
-#define using_large_jmps_and_code_blocks_with_3_worlds 0
+#define using_large_jmps_and_code_blocks_with_3_worlds 1
 #endif				//using the new implementation which reduces the variables that we have
 
 #ifndef bytes_for_instructions_length
@@ -214,11 +214,11 @@
 #endif				//the number of bytes after the canaries that hold the size of the verifications+useful bytes+the jmp bytes
 
 #ifndef verify_everything
-#define verify_everything 0
+#define verify_everything 1
 #endif				//third world 
 
 #ifndef use_new_secure_heap
-#define use_new_secure_heap 0
+#define use_new_secure_heap 2
 #endif				 //should we use the new secure heap? 1-> use it, but do not use the secured global variables for its position/size etc. 2-> use it, with the secured global variables
 
 
