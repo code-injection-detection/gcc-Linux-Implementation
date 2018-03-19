@@ -60,6 +60,8 @@ public class Secure_Assembly_v2 {
 	static ArrayList<Integer> list_of_verification_addresses_in_this_block=new ArrayList<Integer>();
 	static ArrayList<Integer> list_of_block_info;
 	static long position_in_which_there_is_the_jmp_to_next_in_this_block=0;
+	static boolean we_just_had_verification_code_inserted=false;
+	static ArrayList<String> labels_that_need_to_be_added=new ArrayList<String>();
 	
 	public static void main(String[] args) throws Exception
 	{
@@ -204,11 +206,6 @@ public class Secure_Assembly_v2 {
 					continue;
 				}
 				
-				if (reached_end_of_function)
-				{
-					list_of_lines.add(line);
-					break;
-				}
 				
 				//reached end of function
 				if (removeSpaces(line).startsWith(".cfi_endproc"))
@@ -226,29 +223,47 @@ public class Secure_Assembly_v2 {
 					list_of_lines.add(line);
 					continue;
 				}
-
+				
 				//if it is a Label
 				//if (/*label with .L<numbers> */Pattern.compile("^[ \t]*\\.L[0123456789]+:$").matcher(line).matches())
 				if (/*starts with spaces and then label*/ Pattern.compile("^[ \t]*\\..*$").matcher(line).matches() ||  /*label*/ Pattern.compile("^\\..*$").matcher(line).matches())
 				{
-					list_of_lines.add(line);
+					
+					labels_that_need_to_be_added.add(line);
 					//consume all following empty lines or labels
+					boolean reached_cfi_directive=false;
 					while(  /*empty*/ sc.hasNext(Pattern.compile("^[ \t\n]*$")) ||  /*starts with spaces and then label*/ sc.hasNext(Pattern.compile("^[ \t]*\\..*$")) ||   /*label*/  sc.hasNext(Pattern.compile("^\\..*$")) || /*dunno why, does not work with dollar in the end*/sc.hasNext(Pattern.compile("\\..*")))
 					{
 						line = sc.next();
 						line = removeNewlines(line);
 						line_index++;
-						list_of_lines.add(line);
+						//We would normally add the label, but we won't do it right now. We save it if next command forces block split
+						labels_that_need_to_be_added.add(line);
+						if (line.contains(".cfi_"))
+						{
+							reached_cfi_directive=true;
+							if (line.trim().startsWith(".cfi_endproc")) //if we reached .cfi_endproc we leave what we are doing and add all the labels we had
+							{
+								reached_end_of_function=true;
+								break;
+							}
+						}
 					}
 
-					if (world==3)
+					if (reached_cfi_directive)
 					{
-						add_code_verification_lines(list_of_lines); //the label is suspect of being jumped on, so we add verification
+						//add the labels that we saved, with verification.
+						add_label_lines(list_of_lines,true); //the labels are suspects of being jumped on, so we add verification
+						if (reached_end_of_function) //if we reached .cfi_endproc we leave what we are doing and add all the labels we had
+						{
+							break;
+						}
 					}
 
 					continue;
 				}
-				
+
+
 				//find size of cmd, if it is a cmd. Also, determine if the secure cpu would split
 				if (removeSpaces(line).startsWith(".")==false) /*make sure it's a command*/
 				{
@@ -288,6 +303,12 @@ public class Secure_Assembly_v2 {
 
 					force_end_of_block=false;
 				}
+				else
+				{
+					//add any remaining labels that we did not add before, in case there was block split. Add them with their verification code
+					//if the list is empty then nothing is added
+					add_label_lines(list_of_lines,true);  //the labels are suspects of being jumped on, so we add verification
+				}
 
 
 				//if next command is a call command
@@ -300,6 +321,7 @@ public class Secure_Assembly_v2 {
 					num_of_actual_bytes_in_current_block+=size_of_current_cmd;
 					num_of_bytes_in_blocks_as_calced_by_cpu+=size_of_current_cmd;
 					address_of_code_that_denotes_next_cpu_block_change+=size_of_current_cmd;
+					we_just_had_verification_code_inserted=false; //although that might be immediately chainged again afterwards
 
 					if (world==3)
 					{
@@ -319,7 +341,8 @@ public class Secure_Assembly_v2 {
 						operands=parts[1];
 
 					//If that jump is a jump to register,it should have verification code before it, which checks what happens and if by using that jump we leave the current block
-					if (operands.startsWith("*%") && world==3)
+					//important! we don't insert the jump just before us he had a verification insertion!
+					if (operands.startsWith("*%") && world==3 && we_just_had_verification_code_inserted==false)
 					{
 						add_code_verification_lines(list_of_lines);
 					}
@@ -328,6 +351,7 @@ public class Secure_Assembly_v2 {
 					num_of_actual_bytes_in_current_block+=size_of_current_cmd;
 					num_of_bytes_in_blocks_as_calced_by_cpu+=size_of_current_cmd;
 					address_of_code_that_denotes_next_cpu_block_change+=size_of_current_cmd;
+					we_just_had_verification_code_inserted=false;
 					continue;
 				}
 
@@ -338,6 +362,7 @@ public class Secure_Assembly_v2 {
 					num_of_actual_bytes_in_current_block+=size_of_current_cmd;
 					num_of_bytes_in_blocks_as_calced_by_cpu+=size_of_current_cmd;
 					address_of_code_that_denotes_next_cpu_block_change+=size_of_current_cmd;
+					we_just_had_verification_code_inserted=false;
 					continue;
 				}				
 			}
@@ -510,6 +535,12 @@ public class Secure_Assembly_v2 {
 	
 	static void add_code_verification_lines(ArrayList<String> list_of_lines)
 	{
+		if (world!=3)
+		{
+			System.out.println("ERROR! Verification code to be added but world!=3  !!!!");
+			System.exit(-1);
+		}
+
 		//7 bytes overhead with fixed chunks
 		list_of_lines.add("pushfq"); //do_some_stuff() subtracts from rsp, so we save the flags
         
@@ -517,10 +548,29 @@ public class Secure_Assembly_v2 {
 
         list_of_lines.add("popfq");
 
+        we_just_had_verification_code_inserted=true;
+
         list_of_verification_addresses_in_this_block.add(address_of_code_that_denotes_next_cpu_block_change);
         address_of_code_that_denotes_next_cpu_block_change+=overhead_for_verif;
 		num_of_actual_bytes_in_current_block+=overhead_for_verif;
 		number_of_verifications_in_this_block++;
+	}
+
+	//add the saved label lines into the normal arraylist of lines
+	static void add_label_lines(ArrayList<String> list_of_lines,boolean add_verification_lines)
+	{
+		if (labels_that_need_to_be_added.isEmpty()==false)
+		{
+			for (String line:labels_that_need_to_be_added)
+			{
+				list_of_lines.add(line);
+			}
+			if (add_verification_lines && world==3)
+			{
+				add_code_verification_lines(list_of_lines);
+			}
+			labels_that_need_to_be_added=new ArrayList<String>();
+		}
 	}
 	
 	//checks if the function encountered in the assembly code is one of the secure getters/setters, so is invocation will not result in a new block
@@ -752,6 +802,15 @@ public class Secure_Assembly_v2 {
 		number_of_verifications_in_this_block=0;
 		list_of_verification_addresses_in_this_block=new ArrayList<Integer>();
 		position_in_which_there_is_the_jmp_to_next_in_this_block=0;
+
+
+		//now we will add the verification code, but before that, we may have some labels that were saved in case we had to split blocks (truly, we had)
+		if (labels_that_need_to_be_added.isEmpty()==false)
+		{
+			list_of_lines.add("#Adding the labels from the end of the previous block to this one");
+		}
+		add_label_lines(list_of_lines,false); //Add the labels WITHOUT VERIFICATION, since it will follow no matter what
+
 		//we need to verify the block in which we have just arrived!
 		if (world==3)
 		{
