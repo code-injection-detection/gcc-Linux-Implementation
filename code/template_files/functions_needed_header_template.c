@@ -180,12 +180,14 @@ void free_heap_and_stack_memory()
 	free_secure_stack_mem((unsigned char*)GET_GLOBAL_PTR(globals.entire_stack_memory_chunk));
 }
 
+
 void init_stack_canary()
 {
-	if (use_stack_canaries)
+	if (use_stack_canaries>0)
 	{
-		UPDATE_GLOBAL_VAR(globals.stack_canary_value,0x4242424242424242); //todo: use random value
+		UPDATE_GLOBAL_VAR(globals.stack_canary_value,stack_canary_value_in_global_var); //set the value of the global. Todo: use random initial value?
 	}
+
 }
 
 #include "mac_handling_functions.c"
