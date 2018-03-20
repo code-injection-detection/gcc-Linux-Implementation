@@ -296,13 +296,15 @@ echo "Compiling hash and encryption calculators, as well as the crypto initializ
 	 gcc -O3 -c mac_verification_functions.c -lcrypto #-mno-red-zone
 	 if [ "$ADD_CODE_ON_THE_FLY_VERIFICATION" -eq "1" ]; then
 		#find the number of subtractions we have to do to fetch the return address (which is in the stack) in the verifier
-         FIRST_LINES_OF_VERIF_PROCEDURE="$(objdump -d mac_verification_functions.o | grep -A 20  '<do_verify_code_on_the_fly>:')"
+		 FILE_TO_BE_CHANGED_O=crypto_functions.o #mac_verification_functions.o #todo: change it in the future
+		 FILE_TO_BE_CHANGED_C=crypto_functions.c #mac_verification_functions.o
+         FIRST_LINES_OF_VERIF_PROCEDURE="$(objdump -d $FILE_TO_BE_CHANGED_O | grep -A 20  '<do_verify_code_on_the_fly>:')"
          BYTE_DIFFERENCE=$(echo "$FIRST_LINES_OF_VERIF_PROCEDURE" | ./finder_of_stack_pointer_reduction.py)
 		 STR_FOR_SED="s/movq 0x10(%rsp),%rax;/movq ${BYTE_DIFFERENCE}(%rsp),%rax;/g" #changing the offset from %rsp to get the return address
 		 #replace and put the proper offset
-		 sed -i "$STR_FOR_SED" mac_verification_functions.c
+		 sed -i "$STR_FOR_SED" $FILE_TO_BE_CHANGED_C
 		 #and compile again
-		 gcc -O3 -c mac_verification_functions.c -lcrypto #-mno-red-zone
+		 gcc -O3 -c $FILE_TO_BE_CHANGED_C -lcrypto -Wno-div-by-zero #-mno-red-zone
 	 fi
 	 #compile the extra stuff that would be implemented in hardware
 	 gcc -O3 -c secure_stack_manipulation_functions.c -lcrypto #-mno-red-zone
