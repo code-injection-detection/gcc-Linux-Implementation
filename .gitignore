@@ -1,4 +1,5 @@
 /bin/
+.vscode/
 __pycache__/
 /code/*
 !/code/crypto_algorithms

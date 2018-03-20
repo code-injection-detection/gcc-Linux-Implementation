@@ -12,7 +12,11 @@ typedef struct info_for_a_block {
 	
 } block_info;
 
+#define safe_length_for_buffer_storage 33048
+#define len_2power128 17 //2^128-1 is 16 bytes.
+#define block_length 16
 
+#define good_enough_number_of_max_num_of_blocks 100000
 
 void init_crypto_stuctures(int print,int find_addr_of_first_code_block);
 void squeeze_bytes_in_place(unsigned char * arr,int length_of_array);

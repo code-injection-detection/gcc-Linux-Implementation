@@ -276,6 +276,7 @@ echo "Copying header files, secure getters/setters, crypto functions and initial
 	cp ./template_files/secure_stack_manipulation_functions_template.c secure_stack_manipulation_functions.c
 	cp ./template_files/heap_manager_new_unsafe_template.c heap_manager_new_unsafe.c
 	cp ./template_files/heap_manager_new_secure_template.c heap_manager_new_secure.c
+	cp ./template_files/mac_verification_functions_template.c mac_verification_functions.c
 echo "Copied these files."
 
 echo "Creating headers.h in which there are the global constants... "
@@ -292,15 +293,16 @@ echo "Compiling hash and encryption calculators, as well as the crypto initializ
 	 gcc -O3 -c sha256.c #-mno-red-zone;
 	 rm -f sha256.c sha256.h  #removing the sha stuff that we don't need.
 	 gcc -O3 -c crypto_functions.c -lcrypto -Wno-div-by-zero #-mno-red-zone
+	 gcc -O3 -c mac_verification_functions.c -lcrypto #-mno-red-zone
 	 if [ "$ADD_CODE_ON_THE_FLY_VERIFICATION" -eq "1" ]; then
 		#find the number of subtractions we have to do to fetch the return address (which is in the stack) in the verifier
-         FIRST_LINES_OF_VERIF_PROCEDURE="$(objdump -d crypto_functions.o | grep -A 20  '<do_verify_code_on_the_fly>:')"
+         FIRST_LINES_OF_VERIF_PROCEDURE="$(objdump -d mac_verification_functions.o | grep -A 20  '<do_verify_code_on_the_fly>:')"
          BYTE_DIFFERENCE=$(echo "$FIRST_LINES_OF_VERIF_PROCEDURE" | ./finder_of_stack_pointer_reduction.py)
 		 STR_FOR_SED="s/movq 0x10(%rsp),%rax;/movq ${BYTE_DIFFERENCE}(%rsp),%rax;/g" #changing the offset from %rsp to get the return address
 		 #replace and put the proper offset
-		 sed -i "$STR_FOR_SED" crypto_functions.c
+		 sed -i "$STR_FOR_SED" mac_verification_functions.c
 		 #and compile again
-		 gcc -O3 -c crypto_functions.c -lcrypto -Wno-div-by-zero #-mno-red-zone
+		 gcc -O3 -c mac_verification_functions.c -lcrypto #-mno-red-zone
 	 fi
 	 #compile the extra stuff that would be implemented in hardware
 	 gcc -O3 -c secure_stack_manipulation_functions.c -lcrypto #-mno-red-zone

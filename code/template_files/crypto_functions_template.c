@@ -1,17 +1,10 @@
 #include "headers_needed.h"
 
-#define safe_length_for_buffer_storage 33048
-#define len_2power128 17 //2^128-1 is 16 bytes.
-#define block_length 16
-
-#define good_enough_number_of_max_num_of_blocks 100000
-
-
 //the sha256 mac is implemented elsewhere
 extern void calc_and_set_mac_of_data_sha256(char * input, long length, char * output);
 
 EVP_CIPHER_CTX aes_ctx;
-//that's the aes ey for AES-CBC. It is considered known to all
+//that's the aes key for AES-CBC. It is considered known to all
 unsigned char aes_key[] = {42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57};
 AES_KEY aes_enc_key;
 unsigned char initialization_vector[]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
