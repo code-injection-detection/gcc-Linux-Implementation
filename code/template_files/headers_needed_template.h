@@ -188,6 +188,11 @@
 #endif				//The code blocks that are cached are cached if being unsplit
 
 
+#ifndef use_code_cache_with_cpu_split_blocks
+#define use_code_cache_with_cpu_split_blocks (use_code_cache_with_unsplit_blocks)  //that was the name of the define in previous version (v1)
+#endif
+
+
 #ifndef set_as_given_that_everything_maced_will_be_fixed_and_multiple_of_16
 #define set_as_given_that_everything_maced_will_be_fixed_and_multiple_of_16 1
 #endif				//this means that we can disable length prepending and padding
@@ -252,7 +257,10 @@
 #define bytes_for_num_of_padded_nops_len 2
 #endif				//the number of bytes after the canaries+bytes_for_instructions  that hold the number of padded nops
 
-#include "crypto_functions.h"
+
+
+
+#include "crypto_and_mac_verify_functions.h"
 #include "secure_getters_setters.h"
 
 

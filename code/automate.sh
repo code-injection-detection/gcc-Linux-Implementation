@@ -268,7 +268,7 @@ echo "Changed defines."
 
 echo "Copying header files, secure getters/setters, crypto functions and initializer..."
 	#copying some template files (that do not have to be changed).
-	cp ./template_files/crypto_functions_template.h crypto_functions.h
+	cp ./template_files/crypto_and_mac_verify_functions_template.h crypto_and_mac_verify_functions.h
 	cp ./template_files/secure_getters_setters_template.h secure_getters_setters.h
 	cp ./template_files/secure_getters_setters_template.c secure_getters_setters.c
 	cp ./template_files/crypto_functions_template.c crypto_functions.c
@@ -335,7 +335,7 @@ else
 	cp ./template_files/main_program_template.c main_program.c
 	cp ./template_files/memory_manager_test_suite_template.c memory_manager_test_suite.c
 	cp ./template_files/stack_manager_test_suite_template.c stack_manager_test_suite.c
-	cp ./template_files/mac_handling_functions_template.c mac_handling_functions.c
+	cp ./template_files/final_mac_checking_functions_template.c final_mac_checking_functions.c
 	echo "Copied templates"
 fi
 

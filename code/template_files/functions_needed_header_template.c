@@ -190,6 +190,6 @@ void init_stack_canary()
 
 }
 
-#include "mac_handling_functions.c"
+#include "final_mac_checking_functions.c"
 
 

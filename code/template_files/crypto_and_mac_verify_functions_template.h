@@ -1,5 +1,17 @@
-#ifndef CRYPTO_FUNCTIONS_H
-#define CRYPTO_FUNCTIONS_H
+#ifndef CRYPTO_AND_MAC_VERIFY_FUNCTIONS_H
+#define CRYPTO_AND_MAC_VERIFY_FUNCTIONS_H
+
+typedef struct info_for_a_block {
+	
+	long address_of_block_start;
+	int position_of_jmp_to_next_block;
+	int num_of_actual_bytes_in_current_block; //verifications+useful+jmp
+	int num_of_padded_nops;
+	int number_of_verifications;
+	int * verification_offsets;
+	
+} block_info;
+
 
 
 void init_crypto_stuctures(int print,int find_addr_of_first_code_block);

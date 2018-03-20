@@ -4,21 +4,7 @@
 #define len_2power128 17 //2^128-1 is 16 bytes.
 #define block_length 16
 
-#ifndef use_code_cache_with_cpu_split_blocks
-#define use_code_cache_with_cpu_split_blocks use_code_cache_with_unsplit_blocks  //that was the name of the define in previous version (v1)
-#endif
-
 #define good_enough_number_of_max_num_of_blocks 100000
-typedef struct info_for_a_block {
-	
-	long address_of_block_start;
-	int position_of_jmp_to_next_block;
-	int num_of_actual_bytes_in_current_block; //verifications+useful+jmp
-	int num_of_padded_nops;
-	int number_of_verifications;
-	int * verification_offsets;
-	
-} block_info;
 
 
 //the sha256 mac is implemented elsewhere
