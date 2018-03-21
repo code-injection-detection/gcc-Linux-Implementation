@@ -221,11 +221,7 @@ unsigned char * produce_stack_canary_optimized_part(unsigned char * keyshares_st
 	memcpy(stack_canary_aes_key,squeezed_keyshares,number_of_interleaved_keys/2);
 
 	//currently the value to encrypt is just the global stack canary
-	global_stack_canary_value=*((long*)value_to_encrypt);
-	memcpy(stack_canary_buf_to_be_encrypted,&global_stack_canary_value,sizeof(long));
-	length_of_stack_canary_buf_to_be_encrypted+=sizeof(long);
-	memcpy(stack_canary_buf_to_be_encrypted+length_of_stack_canary_buf_to_be_encrypted,stack_canary_buf_to_be_encrypted,sizeof(long));
-	length_of_stack_canary_buf_to_be_encrypted+=sizeof(long);
+	memcpy(stack_canary_buf_to_be_encrypted,value_to_encrypt,len_of_value_to_encrypt);
 
 	//set the squeezed keys as the key to AES
 	EVP_EncryptInit_ex(&stack_canary_aes_ctx, EVP_aes_128_cbc(), NULL, stack_canary_aes_key,initialization_vector);
@@ -235,7 +231,7 @@ unsigned char * produce_stack_canary_optimized_part(unsigned char * keyshares_st
 	EVP_EncryptFinal_ex(&stack_canary_aes_ctx, stack_canary_total_encryption + length_of_stack_canary_total_encryption, &stack_canary_tmplen);
 	length_of_stack_canary_total_encryption+=stack_canary_tmplen;
 
-	memcpy(stack_canary_result_opt,stack_canary_total_encryption+length_of_stack_canary_total_encryption-16,16);
+	memcpy(stack_canary_result_opt,stack_canary_total_encryption+length_of_stack_canary_total_encryption-aes_block_length,aes_block_length);
 
 	return &stack_canary_result_opt[0];
 }

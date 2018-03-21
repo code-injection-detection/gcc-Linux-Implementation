@@ -674,7 +674,8 @@ public class Secure_Assembly_v2 {
                                  "get_sheap_meta_next",
                                  "get_sheap_meta_in_use",
                                  "produce_stack_canary_unoptimized_part",
-                                 "set_stack_canary_in_stack"
+                                 "set_stack_canary_in_stack",
+                                 "check_stack_canary_in_stack"
 								};
 		
 		if (Arrays.asList(safe_functions).contains(fun_name.trim()))

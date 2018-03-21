@@ -62,7 +62,7 @@ def calculate_chunks_needed_for_a_size(size_in_bytes):
 
 size_of_stack_canary=0
 if (use_stack_canaries>0):
-	size_of_stack_canary=8
+	size_of_stack_canary=16
 	if stack_dec_num==0:
 		print("ERROR:We can't have stack canaries and the stack to grow towards increasing numbers!")
 		sys.exit(-1)
@@ -505,9 +505,9 @@ def add_the_function_header():
 	function_dict['defines']=copy.deepcopy(defines)
 	
 	#set the stack canary
-	if (use_stack_canaries==1):
+	if (use_stack_canaries>0):
 		lines_to_append.append('//set stack canary \n');
-		lines_to_append.append('set_stack_long_int_array_element('+start_of_stack_canary+',0,GET_GLOBAL_LONG(globals.stack_canary_value));\n')
+		lines_to_append.append('set_stack_canary_in_stack('+start_of_stack_canary+');\n')
 	
 	for line in lines_to_append:
 		dst_lines.append(line)
@@ -528,9 +528,9 @@ def add_the_function_footer(bool_for_undef):
 
 	lines_to_append=[]
 	#check the stack canary
-	if (use_stack_canaries==1):
+	if (use_stack_canaries>0):
 		lines_to_append.append('//check stack canary\n')
-		lines_to_append.append('if (GET_GLOBAL_LONG(globals.stack_canary_value)!=get_stack_long_int_array_element('+start_of_stack_canary+',0)) { fprintf(stderr,"ERROR in stack canary, line %d. STACK SMASHING ATTEMPT!\\n",__LINE__); exit(-1);} \n')
+		lines_to_append.append('check_stack_canary_in_stack('+start_of_stack_canary+',__LINE__);\n')
 	
 	#set the former base pointer
 	lines_to_append.append('temp_base_pointer=base_pointer_for_stack;\n')

@@ -37,6 +37,115 @@ void first_function_in_secure_program()
 }
 
 
+/******************************************************************************/
+/*************************  STACK CANARY STUFF BELOW  *************************/
+/******************************************************************************/
+
+extern EVP_CIPHER_CTX stack_canary_aes_ctx;
+void init_stack_canary()
+{
+	if (use_stack_canaries>0)
+	{
+		UPDATE_GLOBAL_VAR(globals.stack_canary_value,stack_canary_value_in_global_var); //set the value of the global. Todo: use random initial value?
+	}
+	if (use_stack_canaries>1)
+	{
+		EVP_CIPHER_CTX_init(&stack_canary_aes_ctx);
+	}
+}
+
+unsigned char stack_canary_result_unopt[aes_block_length];
+unsigned char * produce_stack_canary_unoptimized_part(unsigned char * position_of_block_in_stack, int pay_for_key_fetch)
+{
+	//This function calculates the stack canary for a given position in the stack.
+	//Calls the hardware to do the job (since it is encryption with AES), but pays for 2 MAC accesses:
+	//One for the global stack canary, and one for the keyshares.
+	//Another should be paid when setting the stac canary in that position
+	long global_stack_canary;
+	unsigned char what_should_be_encrypted[aes_block_length];
+
+	global_stack_canary=GET_GLOBAL_LONG(globals.stack_canary_value); //paying for the global get
+	if (pay_for_key_fetch)
+		get_stack_char(position_of_block_in_stack); //pay for the fetching of the keys
+	memcpy(what_should_be_encrypted,&global_stack_canary,sizeof(long));
+	memcpy(what_should_be_encrypted+sizeof(long),&global_stack_canary,sizeof(long)); //just duplicate the global canary
+	memcpy(stack_canary_result_unopt,produce_stack_canary_optimized_part(position_of_block_in_stack+stack_bytes_for_useful_data, what_should_be_encrypted,2*sizeof(long)),aes_block_length);
+
+	return (&stack_canary_result_unopt[0]);
+}
+
+void set_stack_canary_in_stack(unsigned char * position_of_block_in_stack)
+{
+	long global_stack_canary;
+	if (use_stack_canaries==1)
+	{
+		global_stack_canary=GET_GLOBAL_LONG(globals.stack_canary_value);
+		memcpy(position_of_block_in_stack,&global_stack_canary,sizeof(long));
+		set_stack_long_int_array_element(position_of_block_in_stack,1,global_stack_canary);//repeat the stack canary value and set the MAC
+	}
+	else if (use_stack_canaries==2)
+	{
+		produce_stack_canary_unoptimized_part(position_of_block_in_stack,1);
+		insert_data_into_stack_mem(aes_block_length,stack_canary_result_unopt,position_of_block_in_stack);
+	}
+	else if (use_stack_canaries==3)
+	{
+		//not implemented yet
+	}
+}
+
+void print_two_stack_canaries(unsigned char *stack_canary_in_secure_stack,unsigned char *how_stack_canary_should_be)
+{
+	int i;
+	for (i=0;i<aes_block_length;i++)
+	{
+		printf("0x%02hhx ",how_stack_canary_should_be[i]);
+	}
+	printf("\n");
+	for (i=0;i<aes_block_length;i++)
+	{
+		printf("0x%02hhx ",stack_canary_in_secure_stack[i]);
+	}
+	printf("\n");
+	printf("-------------\n");
+}
+
+void check_stack_canary_in_stack(unsigned char * position_of_block_in_stack, int line)
+{
+	long global_stack_canary;
+	unsigned char stack_canary_in_secure_stack[aes_block_length];
+	unsigned char how_stack_canary_should_be[aes_block_length];
+	if (use_stack_canaries==1)
+	{
+		global_stack_canary=GET_GLOBAL_LONG(globals.stack_canary_value);
+		get_secure_stack_data(&stack_canary_in_secure_stack[0],aes_block_length,position_of_block_in_stack,0,0);
+		memcpy(how_stack_canary_should_be,&global_stack_canary,sizeof(long));
+		memcpy(how_stack_canary_should_be+sizeof(long),&global_stack_canary,sizeof(long));
+	}
+	else if (use_stack_canaries==2)
+	{
+		produce_stack_canary_unoptimized_part(position_of_block_in_stack,0); //don't pay for the key fetch yet
+		memcpy(how_stack_canary_should_be,stack_canary_result_unopt,aes_block_length);
+		get_secure_stack_data(&stack_canary_in_secure_stack[0],aes_block_length,position_of_block_in_stack,0,0); //we pay for the key fetch here
+	}
+	else if (use_stack_canaries==3)
+	{
+		//not implemented yet
+	}
+
+	//print_two_stack_canaries(stack_canary_in_secure_stack,how_stack_canary_should_be);
+	//make the actual check
+	if (0!=memcmp(how_stack_canary_should_be,stack_canary_in_secure_stack,aes_block_length))
+	{
+		fprintf(stderr,"ERROR in stack canary, line %d. STACK SMASHING ATTEMPT!\n",line); exit(-1);
+	}
+}
+
+/******************************************************************************/
+/*************************  STACK CANARY STUFF ABOVE  *************************/
+/******************************************************************************/
+
+
 void * error_checking_malloc(long size_in_bytes, const char * fun_name,int line)
 {
 	void * ret;
@@ -180,51 +289,6 @@ void free_heap_and_stack_memory()
 	free_secure_stack_mem((unsigned char*)GET_GLOBAL_PTR(globals.entire_stack_memory_chunk));
 }
 
-extern EVP_CIPHER_CTX stack_canary_aes_ctx;
-void init_stack_canary()
-{
-	if (use_stack_canaries>0)
-	{
-		UPDATE_GLOBAL_VAR(globals.stack_canary_value,stack_canary_value_in_global_var); //set the value of the global. Todo: use random initial value?
-	}
-	if (use_stack_canaries>1)
-	{
-		EVP_CIPHER_CTX_init(&stack_canary_aes_ctx);
-	}
-}
-
-unsigned char stack_canary_result_unopt[aes_block_length];
-unsigned char * produce_stack_canary_unoptimized_part(unsigned char * position_of_block_in_stack)
-{
-	//This function calculates the stack canary for a given position in the stack.
-	//Calls the hardware to do the job (since it is encryption with AES), but pays for 2 MAC accesses:
-	//One for the global stack canary, and one for the keyshares.
-	//Another should be paid when setting the stac canary in that position
-	long global_stack_canary;
-
-	global_stack_canary=GET_GLOBAL_LONG(globals.stack_canary_value); //paying for the global get
-	get_stack_char(position_of_block_in_stack); //paying for the ftching of the keys
-	memcpy(stack_canary_result_unopt,produce_stack_canary_optimized_part(position_of_block_in_stack+stack_bytes_for_useful_data, (unsigned char*) &global_stack_canary,sizeof(long)),aes_block_length);
-
-	return (&stack_canary_result_unopt[0]);
-}
-
-void set_stack_canary_in_stack(unsigned char * position_of_block_in_stack)
-{
-	if (use_stack_canaries==1)
-	{
-		set_stack_long_int(position_of_block_in_stack,GET_GLOBAL_LONG(globals.stack_canary_value));
-	}
-	else if (use_stack_canaries==2)
-	{
-		produce_stack_canary_unoptimized_part(position_of_block_in_stack);
-		insert_data_into_stack_mem(aes_block_length,stack_canary_result_unopt,position_of_block_in_stack);
-	}
-	else if (use_stack_canaries==3)
-	{
-		//not implemented yet
-	}
-}
 
 #include "final_mac_checking_functions.c"
 
