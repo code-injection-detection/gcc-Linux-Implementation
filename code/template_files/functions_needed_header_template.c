@@ -209,6 +209,23 @@ unsigned char * produce_stack_canary_unoptimized_part(unsigned char * position_o
 	return (&stack_canary_result_unopt[0]);
 }
 
+void set_stack_canary_in_stack(unsigned char * position_of_block_in_stack)
+{
+	if (use_stack_canaries==1)
+	{
+		set_stack_long_int(position_of_block_in_stack,GET_GLOBAL_LONG(globals.stack_canary_value));
+	}
+	else if (use_stack_canaries==2)
+	{
+		produce_stack_canary_unoptimized_part(position_of_block_in_stack);
+		insert_data_into_stack_mem(aes_block_length,stack_canary_result_unopt,position_of_block_in_stack);
+	}
+	else if (use_stack_canaries==3)
+	{
+		//not implemented yet
+	}
+}
+
 #include "final_mac_checking_functions.c"
 
 
