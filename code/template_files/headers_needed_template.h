@@ -373,6 +373,8 @@ int size_of_sheap_metadata_in_chunks;
 int testinttest;
 //ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:long
 long stack_canary_value;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:long
+long place_for_keyshare_accumulator;
 }global_vars;
 
 extern global_vars globals;

@@ -4,6 +4,7 @@
 extern void calc_and_set_mac_of_data_sha256(char * input, long length, char * output);
 
 EVP_CIPHER_CTX aes_ctx;
+EVP_CIPHER_CTX stack_canary_aes_ctx;
 //that's the aes key for AES-CBC. It is considered known to all
 unsigned char aes_key[] = {42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57};
 AES_KEY aes_enc_key;
@@ -68,7 +69,10 @@ int num_of_addresses_of_cpu_split_blocks=0;
 FILE *cpu_split_block_addr_file;
 long addr_of_first_block_of_code;
 void find_addr_of_first_block_of_code();
-//end of experimental declarations
+
+//stack canaries variables
+unsigned char stack_canaries_buffer_to_be_encrypted[safe_length_for_buffer_storage];
+
 
 //called before everything else
 void init_crypto_stuctures(int print, int find_addr_of_first_code_block)
@@ -170,7 +174,7 @@ void init_crypto_stuctures(int print, int find_addr_of_first_code_block)
 				num_of_addresses_of_cpu_split_blocks++;
 				block_index++;
 	
-			}
+			}//end of experimental declarations
 			total_blocks_of_code=block_index;
 			find_addr_of_first_block_of_code();
 		}
@@ -193,6 +197,49 @@ void squeeze_bytes_in_place(unsigned char * arr,int length_of_array)
 		arr[i]=arr[2*i];
 	}
 }
+
+
+unsigned char stack_canary_result_opt[aes_block_length];
+//This function does the hardware part of the stack canary calculation
+//Encrypts what is given with the keyshares given,
+//And returns the result
+//The MAC calculations that should be paid are paid in the unopt part
+unsigned char * produce_stack_canary_optimized_part(unsigned char * keyshares_start, unsigned char * value_to_encrypt, int len_of_value_to_encrypt)
+{
+	unsigned char squeezed_keyshares[number_of_interleaved_keys];
+	unsigned char stack_canary_aes_key[number_of_interleaved_keys/2];
+	unsigned char stack_canary_total_encryption[safe_length_for_buffer_storage];
+	int length_of_stack_canary_total_encryption;
+	unsigned char stack_canary_buf_to_be_encrypted[safe_length_for_buffer_storage];
+	int length_of_stack_canary_buf_to_be_encrypted=0;
+	int stack_canary_tmplen;
+	long global_stack_canary_value;
+
+	//we will squeeze the keys	
+	memcpy(squeezed_keyshares,keyshares_start,number_of_interleaved_keys);
+	squeeze_bytes_in_place(squeezed_keyshares,number_of_interleaved_keys);
+	memcpy(stack_canary_aes_key,squeezed_keyshares,number_of_interleaved_keys/2);
+
+	//currently the value to encrypt is just the global stack canary
+	global_stack_canary_value=*((long*)value_to_encrypt);
+	memcpy(stack_canary_buf_to_be_encrypted,&global_stack_canary_value,sizeof(long));
+	length_of_stack_canary_buf_to_be_encrypted+=sizeof(long);
+	memcpy(stack_canary_buf_to_be_encrypted+length_of_stack_canary_buf_to_be_encrypted,stack_canary_buf_to_be_encrypted,sizeof(long));
+	length_of_stack_canary_buf_to_be_encrypted+=sizeof(long);
+
+	//set the squeezed keys as the key to AES
+	EVP_EncryptInit_ex(&stack_canary_aes_ctx, EVP_aes_128_cbc(), NULL, stack_canary_aes_key,initialization_vector);
+	EVP_CIPHER_CTX_set_padding(&stack_canary_aes_ctx, 0); //disable padding
+
+	EVP_EncryptUpdate(&stack_canary_aes_ctx, stack_canary_total_encryption, &length_of_stack_canary_total_encryption,stack_canary_buf_to_be_encrypted, length_of_stack_canary_buf_to_be_encrypted);
+	EVP_EncryptFinal_ex(&stack_canary_aes_ctx, stack_canary_total_encryption + length_of_stack_canary_total_encryption, &stack_canary_tmplen);
+	length_of_stack_canary_total_encryption+=stack_canary_tmplen;
+
+	memcpy(stack_canary_result_opt,stack_canary_total_encryption+length_of_stack_canary_total_encryption-16,16);
+
+	return &stack_canary_result_opt[0];
+}
+
 
 extern char __executable_start;   //in order to find limits of .text section in ELF files.
 extern char __etext;
@@ -513,15 +560,15 @@ void encrypt_aes_cbc(unsigned char *buf_to_be_encrypted,int len_of_buf)
 
 void set_mac_aes_cbc(unsigned char * output)
 {
-	int length_of_mac=block_length; //128 bits=16 bytes
+	int length_of_mac=aes_block_length; //128 bits=16 bytes
 
 	if(length_of_mac>=number_of_mac_bytes)
 		{
-			memcpy(output,encrypted_data+length_of_encrypted_data-block_length,number_of_mac_bytes);
+			memcpy(output,encrypted_data+length_of_encrypted_data-aes_block_length,number_of_mac_bytes);
 		}
 		else
 		{
-			memcpy(output,encrypted_data+length_of_encrypted_data-block_length,length_of_mac);
+			memcpy(output,encrypted_data+length_of_encrypted_data-aes_block_length,length_of_mac);
 			memset(((unsigned char*)output)+(length_of_mac),0,number_of_mac_bytes-length_of_mac);
 		}
 }
@@ -540,10 +587,10 @@ int prepend_length_aes_cbc(char * input,int length)
 		len_padded=sizeof(char);
 		memcpy(intermediate_buf_for_macing,&char_length,len_padded);
 		#if mac_algorithm==4
-			number_above_full_block=(length+sizeof(char))%block_length;
+			number_above_full_block=(length+sizeof(char))%aes_block_length;
 			if (number_above_full_block!=0)
 			{
-				num_of_zeros_to_pad_up_to_full_block=block_length-number_above_full_block;
+				num_of_zeros_to_pad_up_to_full_block=aes_block_length-number_above_full_block;
 				//pad with zeros after the length
 				memset(intermediate_buf_for_macing+len_padded,0,num_of_zeros_to_pad_up_to_full_block);
 				len_padded+=num_of_zeros_to_pad_up_to_full_block;
@@ -557,10 +604,10 @@ int prepend_length_aes_cbc(char * input,int length)
 		len_padded=sizeof(int); //prepend four bytes
 		memcpy(intermediate_buf_for_macing,&length,len_padded);
 		#if mac_algorithm==4
-			number_above_full_block=(length+sizeof(int))%block_length;
+			number_above_full_block=(length+sizeof(int))%aes_block_length;
 			if (number_above_full_block!=0)
 			{
-				num_of_zeros_to_pad_up_to_full_block=block_length-number_above_full_block;
+				num_of_zeros_to_pad_up_to_full_block=aes_block_length-number_above_full_block;
 				//pad with zeros after the length
 				memset(intermediate_buf_for_macing+len_padded,0,num_of_zeros_to_pad_up_to_full_block);
 				len_padded+=num_of_zeros_to_pad_up_to_full_block;
@@ -596,6 +643,7 @@ void calc_and_set_mac_of_data_aes_cbc(char * input, int length_of_all, char * ou
 void clear_crypto_structures()
 {
 	EVP_CIPHER_CTX_cleanup(&aes_ctx);
+	EVP_CIPHER_CTX_cleanup(&stack_canary_aes_ctx);
 	#if mac_algorithm==1
 		//are these safe?
 		/*

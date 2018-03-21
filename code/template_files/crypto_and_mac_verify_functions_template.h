@@ -14,7 +14,7 @@ typedef struct info_for_a_block {
 
 #define safe_length_for_buffer_storage 33048
 #define len_2power128 17 //2^128-1 is 16 bytes.
-#define block_length 16
+#define aes_block_length 16
 
 #define good_enough_number_of_max_num_of_blocks 100000
 
@@ -57,5 +57,9 @@ int continue_getting_data_addr(unsigned char *addr);
 void flush_data_cache_into_mem();
 
 extern char count_mac_invocations_in_this_code_part;
+
+
+unsigned char * produce_stack_canary_optimized_part(unsigned char * keyshares_start, unsigned char * value_to_encrypt, int len_of_value_to_encrypt);
+
 
 #endif

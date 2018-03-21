@@ -180,14 +180,33 @@ void free_heap_and_stack_memory()
 	free_secure_stack_mem((unsigned char*)GET_GLOBAL_PTR(globals.entire_stack_memory_chunk));
 }
 
-
+extern EVP_CIPHER_CTX stack_canary_aes_ctx;
 void init_stack_canary()
 {
 	if (use_stack_canaries>0)
 	{
 		UPDATE_GLOBAL_VAR(globals.stack_canary_value,stack_canary_value_in_global_var); //set the value of the global. Todo: use random initial value?
 	}
+	if (use_stack_canaries>1)
+	{
+		EVP_CIPHER_CTX_init(&stack_canary_aes_ctx);
+	}
+}
 
+unsigned char stack_canary_result_unopt[aes_block_length];
+unsigned char * produce_stack_canary_unoptimized_part(unsigned char * position_of_block_in_stack)
+{
+	//This function calculates the stack canary for a given position in the stack.
+	//Calls the hardware to do the job (since it is encryption with AES), but pays for 2 MAC accesses:
+	//One for the global stack canary, and one for the keyshares.
+	//Another should be paid when setting the stac canary in that position
+	long global_stack_canary;
+
+	global_stack_canary=GET_GLOBAL_LONG(globals.stack_canary_value); //paying for the global get
+	get_stack_char(position_of_block_in_stack); //paying for the ftching of the keys
+	memcpy(stack_canary_result_unopt,produce_stack_canary_optimized_part(position_of_block_in_stack+stack_bytes_for_useful_data, (unsigned char*) &global_stack_canary,sizeof(long)),aes_block_length);
+
+	return (&stack_canary_result_unopt[0]);
 }
 
 #include "final_mac_checking_functions.c"
