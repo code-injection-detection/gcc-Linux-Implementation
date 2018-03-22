@@ -77,6 +77,9 @@ unsigned char * produce_stack_canary_unoptimized_part(unsigned char * position_o
 void set_stack_canary_in_stack(unsigned char * position_of_block_in_stack)
 {
 	long global_stack_canary;
+	unsigned char previous_keyshares[number_of_interleaved_keys];
+	unsigned char new_random_keyshares[number_of_interleaved_keys];
+	int i;
 	if (use_stack_canaries==1)
 	{
 		global_stack_canary=GET_GLOBAL_LONG(globals.stack_canary_value);
@@ -90,7 +93,26 @@ void set_stack_canary_in_stack(unsigned char * position_of_block_in_stack)
 	}
 	else if (use_stack_canaries==3)
 	{
-		//not implemented yet
+		get_stack_char(position_of_block_in_stack); //pay for the fetching of the keys
+		//save the previous keyshares
+		memcpy(previous_keyshares,position_of_block_in_stack+stack_bytes_for_useful_data,number_of_interleaved_keys);
+		//set new random keyshares
+		for (i=0;i<number_of_interleaved_keys;i++)
+		{
+			new_random_keyshares[i]=rand();
+			position_of_block_in_stack[stack_bytes_for_useful_data+i]=new_random_keyshares[i];
+		}
+		//make up for the lost keyshares in the global that is there for that reason
+		for (i=0;i<number_of_interleaved_keys;i++)
+		{ 
+			*((((unsigned char*)&globals.place_for_keyshare_accumulator)+number_of_global_useful_bytes+i))^=(previous_keyshares[i]^new_random_keyshares[i]);
+		}
+		//pay for the resetting of that global mac
+		UPDATE_GLOBAL_VAR(globals.place_for_keyshare_accumulator,42);
+		//calculate the canary and set it, like type 2
+		produce_stack_canary_unoptimized_part(position_of_block_in_stack,0); //don't pay for the key fetch as we did it in the start
+		insert_data_into_stack_mem(aes_block_length,stack_canary_result_unopt,position_of_block_in_stack);
+
 	}
 }
 
