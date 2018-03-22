@@ -152,8 +152,11 @@ void check_stack_canary_in_stack(unsigned char * position_of_block_in_stack, int
 	}
 	else if (use_stack_canaries==3)
 	{
-		//not implemented yet
-	}
+		//like type 2
+		produce_stack_canary_unoptimized_part(position_of_block_in_stack,0); //don't pay for the key fetch yet
+		memcpy(how_stack_canary_should_be,stack_canary_result_unopt,aes_block_length);
+		get_secure_stack_data(&stack_canary_in_secure_stack[0],aes_block_length,position_of_block_in_stack,0,0); //we pay for the key fetch here
+	} 
 
 	//print_two_stack_canaries(stack_canary_in_secure_stack,how_stack_canary_should_be);
 	//make the actual check
