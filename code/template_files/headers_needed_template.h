@@ -241,6 +241,10 @@
 #define use_stack_canaries 0
 #endif				//1->use constant stack canaries against buffer overflows. 2-> use stack canaries different for every block in the secure stack , 3->use cryptographically distinct stack canaries (not yet supported)
 
+#ifndef size_of_stack_canaries
+#define size_of_stack_canaries 8
+#endif	
+
 #ifndef stack_canary_value_in_global_var
 #define stack_canary_value_in_global_var (0x4241403938373635)
 #endif				//that is the value that will be put in the global variable. The actual stack canary, depending on the value of <use_stack_canaries>, migth be different.

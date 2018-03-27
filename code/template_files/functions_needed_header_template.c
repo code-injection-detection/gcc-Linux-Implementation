@@ -83,13 +83,12 @@ void set_stack_canary_in_stack(unsigned char * position_of_block_in_stack)
 	if (use_stack_canaries==1)
 	{
 		global_stack_canary=GET_GLOBAL_LONG(globals.stack_canary_value);
-		memcpy(position_of_block_in_stack,&global_stack_canary,sizeof(long));
-		set_stack_long_int_array_element(position_of_block_in_stack,1,global_stack_canary);//repeat the stack canary value and set the MAC
+		set_stack_long_int_array_element(position_of_block_in_stack,0,global_stack_canary);//set the MAC
 	}
 	else if (use_stack_canaries==2)
 	{
 		produce_stack_canary_unoptimized_part(position_of_block_in_stack,1);
-		insert_data_into_stack_mem(aes_block_length,stack_canary_result_unopt,position_of_block_in_stack);
+		insert_data_into_stack_mem(size_of_stack_canaries,stack_canary_result_unopt,position_of_block_in_stack);
 	}
 	else if (use_stack_canaries==3)
 	{
@@ -111,7 +110,7 @@ void set_stack_canary_in_stack(unsigned char * position_of_block_in_stack)
 		UPDATE_GLOBAL_VAR(globals.place_for_keyshare_accumulator,42);
 		//calculate the canary and set it, like type 2
 		produce_stack_canary_unoptimized_part(position_of_block_in_stack,0); //don't pay for the key fetch as we did it in the start
-		insert_data_into_stack_mem(aes_block_length,stack_canary_result_unopt,position_of_block_in_stack);
+		insert_data_into_stack_mem(size_of_stack_canaries,stack_canary_result_unopt,position_of_block_in_stack);
 
 	}
 }
@@ -119,12 +118,12 @@ void set_stack_canary_in_stack(unsigned char * position_of_block_in_stack)
 void print_two_stack_canaries(unsigned char *stack_canary_in_secure_stack,unsigned char *how_stack_canary_should_be)
 {
 	int i;
-	for (i=0;i<aes_block_length;i++)
+	for (i=0;i<size_of_stack_canaries;i++)
 	{
 		printf("0x%02hhx ",how_stack_canary_should_be[i]);
 	}
 	printf("\n");
-	for (i=0;i<aes_block_length;i++)
+	for (i=0;i<size_of_stack_canaries;i++)
 	{
 		printf("0x%02hhx ",stack_canary_in_secure_stack[i]);
 	}
@@ -135,32 +134,31 @@ void print_two_stack_canaries(unsigned char *stack_canary_in_secure_stack,unsign
 void check_stack_canary_in_stack(unsigned char * position_of_block_in_stack, int line)
 {
 	long global_stack_canary;
-	unsigned char stack_canary_in_secure_stack[aes_block_length];
-	unsigned char how_stack_canary_should_be[aes_block_length];
+	unsigned char stack_canary_in_secure_stack[size_of_stack_canaries];
+	unsigned char how_stack_canary_should_be[size_of_stack_canaries];
 	if (use_stack_canaries==1)
 	{
 		global_stack_canary=GET_GLOBAL_LONG(globals.stack_canary_value);
-		get_secure_stack_data(&stack_canary_in_secure_stack[0],aes_block_length,position_of_block_in_stack,0,0);
-		memcpy(how_stack_canary_should_be,&global_stack_canary,sizeof(long));
-		memcpy(how_stack_canary_should_be+sizeof(long),&global_stack_canary,sizeof(long));
+		get_secure_stack_data(&stack_canary_in_secure_stack[0],size_of_stack_canaries,position_of_block_in_stack,0,0);
+		memcpy(how_stack_canary_should_be,&global_stack_canary,sizeof(long)); //normally sizeof(long)==size_of_stack_canaries
 	}
 	else if (use_stack_canaries==2)
 	{
 		produce_stack_canary_unoptimized_part(position_of_block_in_stack,0); //don't pay for the key fetch yet
-		memcpy(how_stack_canary_should_be,stack_canary_result_unopt,aes_block_length);
-		get_secure_stack_data(&stack_canary_in_secure_stack[0],aes_block_length,position_of_block_in_stack,0,0); //we pay for the key fetch here
+		memcpy(how_stack_canary_should_be,stack_canary_result_unopt,size_of_stack_canaries);
+		get_secure_stack_data(&stack_canary_in_secure_stack[0],size_of_stack_canaries,position_of_block_in_stack,0,0); //we pay for the key fetch here
 	}
 	else if (use_stack_canaries==3)
 	{
 		//like type 2
 		produce_stack_canary_unoptimized_part(position_of_block_in_stack,0); //don't pay for the key fetch yet
-		memcpy(how_stack_canary_should_be,stack_canary_result_unopt,aes_block_length);
-		get_secure_stack_data(&stack_canary_in_secure_stack[0],aes_block_length,position_of_block_in_stack,0,0); //we pay for the key fetch here
+		memcpy(how_stack_canary_should_be,stack_canary_result_unopt,size_of_stack_canaries);
+		get_secure_stack_data(&stack_canary_in_secure_stack[0],size_of_stack_canaries,position_of_block_in_stack,0,0); //we pay for the key fetch here
 	} 
 
 	//print_two_stack_canaries(stack_canary_in_secure_stack,how_stack_canary_should_be);
 	//make the actual check
-	if (0!=memcmp(how_stack_canary_should_be,stack_canary_in_secure_stack,aes_block_length))
+	if (0!=memcmp(how_stack_canary_should_be,stack_canary_in_secure_stack,size_of_stack_canaries))
 	{
 		fprintf(stderr,"ERROR in stack canary, line %d. STACK SMASHING ATTEMPT!\n",line); exit(-1);
 	}
