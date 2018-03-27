@@ -239,7 +239,7 @@
 
 #ifndef use_stack_canaries
 #define use_stack_canaries 0
-#endif				//1->use constant stack canaries against buffer overflows. 2-> use stack canaries different for every block in the secure stack , 3->use cryptographically distinct stack canaries (not yet supported)
+#endif				//1->use constant stack canaries against buffer overflows. 2-> use stack canaries different for every block in the secure stack , 3->use cryptographically distinct stack canaries
 
 #ifndef size_of_stack_canaries
 #define size_of_stack_canaries 8
