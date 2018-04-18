@@ -121,6 +121,7 @@ unsigned char * init_stack_mem()
   insert_keys_into_stack_mem(stack_mem);
 
   UPDATE_GLOBAL_VAR(globals.entire_stack_memory_chunk,stack_mem);
+  entire_stack_memory_chunk=stack_mem;
   
   #if stack_should_grow_to_decreasing_numbers==0
 	last_unused_stack_memory=stack_mem;

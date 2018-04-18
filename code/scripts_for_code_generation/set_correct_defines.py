@@ -112,7 +112,10 @@ for line in src_lines:
 		newline='#define bytes_for_num_of_padded_nops_len '+sys.argv[41]+'\n'
 	if '#define size_of_stack_canaries' in line:
 		newline='#define size_of_stack_canaries '+sys.argv[42]+'\n'
+	if '#define all_getter_setter_arguments_point_at_start_of_blocks' in line:
+		newline='#define all_getter_setter_arguments_point_at_start_of_blocks '+sys.argv[43]+'\n'
 	headers_dst.write(newline)
+
 
 headers_src.close()
 headers_dst.close()

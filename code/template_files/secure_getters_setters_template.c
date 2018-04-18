@@ -16,6 +16,32 @@ extern unsigned char get_next_stack_keyshare();
 extern void calc_and_set_mac_of_data_sha256(char * input, long length, char * output);
 
 
+
+int pointer_offset_from_start_of_block(long ptr)
+{
+#if all_getter_setter_arguments_point_at_start_of_blocks
+	return 0;
+#else
+	//Here since it's a function that is implemented in hardware, We do not get the secure heap/stack start woth a secure global fetch
+	//We assume that the CPU has their limits somewhere
+	if ((long)secure_heap<=ptr && (long)(secure_heap+total_sheap_bytes_allocated)>ptr)
+	{
+		//in secure heap
+		return ((ptr-(long)secure_heap) % (bytes_for_useful_data + bytes_used_for_keyshares+ number_of_mac_bytes))
+	}
+	else if ((long)entire_stack_memory_chunk<=ptr && (long)(entire_stack_memory_chunk+total_stack_bytes_allocated)>ptr)
+	{
+		//in secure_stack
+		return ((ptr-(long)entire_stack_memory_chunk) % (stack_bytes_for_useful_data + stack_bytes_used_for_keyshares+ number_of_mac_bytes))
+	}
+
+	return 0; //leave that as default for backwards compatibility
+#endif
+	
+}
+
+
+
 /************************************************************************************************/
 /************************************************************************************************/
 /********************************** HEAP FUNCTIONS **********************************************/
