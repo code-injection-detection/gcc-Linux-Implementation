@@ -7,7 +7,7 @@
 void insert_keys_into_mem(unsigned char * mem);
 long insert_data_into_mem(long data_size,unsigned char * data, unsigned char * mem_where_to_insert);
 void get_secure_data(void * res,long data_size, unsigned char * data_start, int isarray, long arrayindex);
-void set_secure_data(void * source,long data_size, unsigned char * data_start, int isarray, long arrayindex);
+void* set_secure_data(void * source,long data_size, unsigned char * data_start, int isarray, long arrayindex);
 
 char get_char( void * start_of_secure_data);
 int get_int( void * start_of_secure_data);
@@ -49,7 +49,7 @@ void * set_arbitrary_block_in_heap_with_offset(long data_size,void * start,long 
 void insert_keys_into_stack_mem(unsigned char * stack_mem);
 long insert_data_into_stack_mem(long data_size,unsigned char * data, unsigned char * stack_mem_where_to_insert);
 void get_secure_stack_data(void * res,long data_size, unsigned char * data_start, int isarray, long arrayindex);
-void set_secure_stack_data(void * source,long data_size, unsigned char * data_start, int isarray, long arrayindex);
+void* set_secure_stack_data(void * source,long data_size, unsigned char * data_start, int isarray, long arrayindex);
 
 char get_stack_char( void * start_of_secure_data);
 int get_stack_int( void * start_of_secure_data);

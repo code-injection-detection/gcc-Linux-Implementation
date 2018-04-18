@@ -240,12 +240,13 @@ void get_secure_data(void * res,long data_size, unsigned char * data_start, int 
 
 /*Cousin function of insert_data_into_mem(), but works with array elements as well. */
 /*Structure similar to get_secure_data(), reading data from *source*/
-void set_secure_data(void * source,long data_size, unsigned char * data_start, int isarray, long arrayindex)
+void * set_secure_data(void * source,long data_size, unsigned char * data_start, int isarray, long arrayindex)
 {
 
   unsigned char* src;
   long i,j,k;
   unsigned char * p;
+  unsigned char * retval;
   long total_data_set=0;
   long chunks_forward;
   long data_size_for_offset;
@@ -267,6 +268,7 @@ void set_secure_data(void * source,long data_size, unsigned char * data_start, i
 	if (chunks_forward*bytes_for_useful_data==(arrayindex*data_size_for_offset))
 	{
 		p+=chunks_forward*(bytes_for_useful_data + bytes_used_for_keyshares+number_of_mac_bytes); //We set p to point to the next useful area
+		retval=&p[0];
 	}
 	else
 	{
@@ -284,6 +286,7 @@ void set_secure_data(void * source,long data_size, unsigned char * data_start, i
 			data_remaining_till_end_of_chunk=bytes_for_useful_data-j;
 		}
 		
+		retval=&p[j];
 		memcpy(&p[j],&src[total_data_set],data_remaining_till_end_of_chunk);
 		//update macs
 		if (!ignore_macs_even_if_there_are_mac_bytes)
@@ -298,6 +301,10 @@ void set_secure_data(void * source,long data_size, unsigned char * data_start, i
 		p+=bytes_for_useful_data + bytes_used_for_keyshares+number_of_mac_bytes;
 		
 	}
+  }
+  else
+  {
+	  retval=&p[0];
   }
 
 
@@ -334,6 +341,7 @@ void set_secure_data(void * source,long data_size, unsigned char * data_start, i
 	i+=bytes_for_useful_data+bytes_used_for_keyshares+number_of_mac_bytes;
 
   }
+  return retval;
 
 }
 
@@ -532,8 +540,7 @@ double set_double( void * start_of_secure_data,double source)
 /*Generic set_array_element.Reads data from *source*/
 void* set_array_element(long data_size, void * start_of_array, long index, void * source)
 {
-	set_secure_data(source,data_size,start_of_array,1,index);
-    return source;
+	return set_secure_data(source,data_size,start_of_array,1,index);
 }
 
 char set_char_array_element(void * start_of_array, long index, char source)
@@ -852,12 +859,13 @@ void get_secure_stack_data(void * res,long data_size, unsigned char * data_start
 
 /*Cousin function of insert_data_into_stack_mem(), but works with array elements as well. */
 /*Structure similar to get_secure_stack_data(), reading data from *source*/
-void set_secure_stack_data(void * source,long data_size, unsigned char * data_start, int isarray, long arrayindex)
+void* set_secure_stack_data(void * source,long data_size, unsigned char * data_start, int isarray, long arrayindex)
 {
 
   unsigned char* src;
   long i,j,k;
   unsigned char * p;
+  unsigned char * retval;
   long total_data_set=0;
   long chunks_forward;
   long data_size_for_offset;
@@ -879,6 +887,7 @@ void set_secure_stack_data(void * source,long data_size, unsigned char * data_st
 	if (chunks_forward*stack_bytes_for_useful_data==(arrayindex*data_size_for_offset))
 	{
 		p+=chunks_forward*(stack_bytes_for_useful_data +  stack_bytes_used_for_keyshares+number_of_mac_bytes); //We set p to point to the next useful area
+		retval=&p[0];
 	}
 	else
 	{
@@ -896,6 +905,7 @@ void set_secure_stack_data(void * source,long data_size, unsigned char * data_st
 			data_remaining_till_end_of_chunk=stack_bytes_for_useful_data-j;
 		}
 		
+		retval=&p[j];
 		memcpy(&p[j],&src[total_data_set],data_remaining_till_end_of_chunk);
 		//update macs
 		if (!ignore_macs_even_if_there_are_mac_bytes)
@@ -910,6 +920,10 @@ void set_secure_stack_data(void * source,long data_size, unsigned char * data_st
 		p+=stack_bytes_for_useful_data + stack_bytes_used_for_keyshares+number_of_mac_bytes;
 
 	}
+  }
+  else
+  {
+	  retval=&p[0];
   }
 
 
@@ -947,6 +961,7 @@ void set_secure_stack_data(void * source,long data_size, unsigned char * data_st
 	
   }
 
+	return retval;
 }
 
 
@@ -1127,8 +1142,7 @@ double set_stack_double( void * start_of_secure_data,double source)
 /*Generic set_array_element.Reads data from *source*/
 void* set_stack_array_element(long data_size, void * start_of_array, long index, void * source)
 {
-	set_secure_stack_data(source,data_size,start_of_array,1,index);
-    return source;
+	return set_secure_stack_data(source,data_size,start_of_array,1,index);
 }
 
 char set_stack_char_array_element(void * start_of_array, long index, char source)
