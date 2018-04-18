@@ -262,8 +262,8 @@
 #endif				//the number of bytes after the canaries+bytes_for_instructions  that hold the number of padded nops
 
 #ifndef all_getter_setter_arguments_point_at_start_of_blocks
-#define all_getter_setter_arguments_point_at_start_of_blocks 0
-#endif				//Default 0. A pointer to the secure memory given to a getter or a setter may not be at the start of a block 
+#define all_getter_setter_arguments_point_at_start_of_blocks 1
+#endif				//Default 1. A pointer to the secure memory given to a getter or a setter may not be at the start of a block 
 
 
 
