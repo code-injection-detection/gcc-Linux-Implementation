@@ -393,6 +393,15 @@ void get_array_element(long data_size, void * start_of_array, long index, void *
 	get_secure_data(res,data_size,start_of_array,1,index);
 }
 
+/*Gets an array element up to 128 bits*/
+unsigned __int128 get_array_element_no_prealloc_up_to_128bits(long data_size, void * start_of_array, long index)
+{
+	unsigned __int128 res[1];
+	res[0]=0;
+	get_secure_data(res,data_size,start_of_array,1,index);
+	return res[0];
+}
+
 char get_char_array_element(void * start_of_array, long index)
 {
 	char res[1];
@@ -997,6 +1006,15 @@ double get_stack_double( void * start_of_secure_data)
 void get_stack_array_element(long data_size, void * start_of_array, long index, void * res)
 {
 	get_secure_stack_data(res,data_size,start_of_array,1,index);
+}
+
+/*Gets an array element up to 128 bits*/
+unsigned __int128 get_stack_array_element_no_prealloc_up_to_128bits(long data_size, void * start_of_array, long index)
+{
+	unsigned __int128 res[1];
+	res[0]=0;
+	get_secure_stack_data(res,data_size,start_of_array,1,index);
+	return res[0];
 }
 
 char get_stack_char_array_element(void * start_of_array, long index)
