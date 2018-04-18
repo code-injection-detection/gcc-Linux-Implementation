@@ -493,6 +493,36 @@ void get_arbitrary_block_in_heap_with_offset(long data_size,void * start,long of
 }
 
 
+unsigned char* get_address_of_sheap_array_element(long data_size, void * start_of_array, long index)
+{
+	unsigned char *retval;
+	int ptr_off;
+	long bytes_to_cover;
+	long chunks_to_go_forward;
+	
+	retval=start_of_array;
+	ptr_off=pointer_offset_from_start_of_block((long)retval);
+	
+	bytes_to_cover=data_size*index;
+	
+	if (bytes_to_cover>=bytes_for_useful_data-ptr_off)
+	{
+		retval+=(bytes_for_useful_data-ptr_off); 
+		retval+=bytes_used_for_keyshares+number_of_mac_bytes; //next block
+	}
+	else
+	{
+		retval+=bytes_to_cover;
+		return retval;
+	}
+	
+	bytes_to_cover-=(bytes_for_useful_data-ptr_off);
+	chunks_to_go_forward=bytes_to_cover/(bytes_for_useful_data+bytes_used_for_keyshares+number_of_mac_bytes);
+	retval+=chunks_to_go_forward*(bytes_for_useful_data+bytes_used_for_keyshares+number_of_mac_bytes);
+	retval+=bytes_to_cover%(bytes_for_useful_data+bytes_used_for_keyshares+number_of_mac_bytes);
+	return retval;
+}
+
 //getters of secure heap metadata
 long get_sheap_meta_size(void * meta)
 {
@@ -1112,6 +1142,36 @@ void get_arbitrary_block_in_stack(long data_size,void * start_of_block,void * re
 void get_arbitrary_block_in_stack_with_offset(long data_size,void * start,long offset,void * res)
 {
 	get_secure_stack_data(res,data_size, start,2,offset);
+}
+
+unsigned char* get_address_of_stack_array_element(long data_size, void * start_of_array, long index)
+{
+	unsigned char *retval;
+	int ptr_off;
+	long bytes_to_cover;
+	long chunks_to_go_forward;
+	
+	retval=start_of_array;
+	ptr_off=pointer_offset_from_start_of_block((long)retval);
+	
+	bytes_to_cover=data_size*index;
+	
+	if (bytes_to_cover>=stack_bytes_for_useful_data-ptr_off)
+	{
+		retval+=(stack_bytes_for_useful_data-ptr_off); 
+		retval+=stack_bytes_used_for_keyshares+number_of_mac_bytes; //next block
+	}
+	else
+	{
+		retval+=bytes_to_cover;
+		return retval;
+	}
+	
+	bytes_to_cover-=(stack_bytes_for_useful_data-ptr_off);
+	chunks_to_go_forward=bytes_to_cover/(stack_bytes_for_useful_data+stack_bytes_used_for_keyshares+number_of_mac_bytes);
+	retval+=chunks_to_go_forward*(stack_bytes_for_useful_data+stack_bytes_used_for_keyshares+number_of_mac_bytes);
+	retval+=bytes_to_cover%(stack_bytes_for_useful_data+stack_bytes_used_for_keyshares+number_of_mac_bytes);
+	return retval;
 }
 
 
