@@ -376,50 +376,26 @@ void * set_secure_data(void * source,long data_size, unsigned char * data_start,
 /********************************SECURE HEAP GETTERS START***************************************/
 /************************************************************************************************/
 
-/*Returns the value of a securely allocated char. Of course secure_malloc must have been called before*/
-char get_char( void * start_of_secure_data)
-{
-	char res[1];
-	get_secure_data(res,sizeof(char),start_of_secure_data,0,0);
-	return (res[0]);
-}
-
-
-int get_int( void * start_of_secure_data)
-{
-	int res[1];
-	get_secure_data(res,sizeof(int),start_of_secure_data,0,0);
-	return (res[0]);
-}
-
-long int get_long_int( void * start_of_secure_data)
-{
-	long int res[1];
-	get_secure_data(res,sizeof(long int),start_of_secure_data,0,0);
-	return res[0];
-}
-
-//pay attention to the type of the pointer when calling
-void * get_pointer(void * start_of_secure_data)
-{
-	void * res[1];
-	get_secure_data(res,sizeof(void *),start_of_secure_data,0,0);
-	return res[0];
-}
-
-float get_float( void * start_of_secure_data)
-{
-	float res[1];
-	get_secure_data(res,sizeof(float),start_of_secure_data,0,0);
-	return res[0];
-}
-
-double get_double( void * start_of_secure_data)
-{
-	double res[1];
-	get_secure_data(res,sizeof(double),start_of_secure_data,0,0);
-	return res[0];
-}
+//Macros for simple variable heap getters
+/*Return the value of a securely allocated variable. Of course secure_malloc must have been called before*/
+#define create_heap_getter( vartype, ourtype) \
+                   vartype get_##ourtype (void * start_of_secure_data) \
+                   { \
+                    vartype res[1]; \
+                    get_secure_data(res,sizeof( vartype ),start_of_secure_data,0,0);\
+                    return (res[0]);\
+                   }
+                   
+#define LOOP_ACROSS_HEAP_GETTERS create_heap_getter( char,char );\
+                                   create_heap_getter( int,int );\
+                                   create_heap_getter( long int,long_int );\
+                                   /*pay attention to the type of the pointer when calling*/ \
+                                   create_heap_getter( void*,pointer );\
+                                   create_heap_getter( float,float );\
+                                   create_heap_getter( double,double );\
+                                   
+LOOP_ACROSS_HEAP_GETTERS
+;
 
 /*Generic get array element. Writes result to *res, which must have been preallocated*/
 void get_array_element(long data_size, void * start_of_array, long index, void * res)
@@ -436,48 +412,25 @@ unsigned __int128 get_array_element_no_prealloc_up_to_128bits(long data_size, vo
 	return res[0];
 }
 
-char get_char_array_element(void * start_of_array, long index)
-{
-	char res[1];
-	get_secure_data(res,sizeof(char),start_of_array,1,index);
-	return res[0];
-}
-
-int get_int_array_element(void * start_of_array, long index)
-{
-	int res[1];
-	get_secure_data(res,sizeof(int),start_of_array,1,index);
-	return res[0];
-}
-
-long int get_long_int_array_element(void * start_of_array, long index)
-{
-	long int res[1];
-	get_secure_data(res,sizeof(long int),start_of_array,1,index);
-	return res[0];
-}
-
-//pay attention to the type of the pointer when calling
-void * get_pointer_array_element(void * start_of_array, long index)
-{
-	void * res[1];
-	get_secure_data(res,sizeof(void *),start_of_array,1,index);
-	return res[0];
-}
-
-float get_float_array_element(void * start_of_array, long index)
-{
-	float res[1];
-	get_secure_data(res,sizeof(float),start_of_array,1,index);
-	return res[0];
-}
-
-double get_double_array_element(void * start_of_array, long index)
-{
-	double res[1];
-	get_secure_data(res,sizeof(double),start_of_array,1,index);
-	return res[0];
-}
+//Macro for the simple variable heap array getters
+#define create_heap_array_getter( vartype, ourtype) \
+                   vartype get_##ourtype##_array_element (void * start_of_array, long index) \
+                   { \
+                    vartype res[1]; \
+                    get_secure_data(res,sizeof( vartype ),start_of_array,1,index);\
+                    return (res[0]);\
+                   }
+                   
+#define LOOP_ACROSS_HEAP_ARRAY_GETTERS create_heap_array_getter( char,char );\
+                                   create_heap_array_getter( int,int );\
+                                   create_heap_array_getter( long int,long_int );\
+                                   /*pay attention to the type of the pointer when calling*/ \
+                                   create_heap_array_getter( void*,pointer );\
+                                   create_heap_array_getter( float,float );\
+                                   create_heap_array_getter( double,double );\
+                                   
+LOOP_ACROSS_HEAP_ARRAY_GETTERS
+;                                   
 
 //gets a block of data from the secure heap. Writes to *res, which must have been preallocated
 void get_arbitrary_block_in_heap(long data_size,void * start_of_block,void * res)
@@ -554,44 +507,26 @@ long get_sheap_meta_in_use(void * meta)
 /********************************SECURE HEAP SETTERS START***************************************/
 /************************************************************************************************/
 
-/*Sets a securely allocated char. Of course secure_malloc must have been called before*/
-/*The function reads from source */
-char set_char( void * start_of_secure_data,char source)
-{
-  insert_data_into_mem(sizeof(char),(unsigned char *)&source,(unsigned char *)start_of_secure_data);
-  return source;
-}
+/*Set a securely allocated variable. Of course secure_malloc must have been called before*/
+/*These functions reads from source */
 
-int set_int( void * start_of_secure_data,int source)
-{
-  insert_data_into_mem(sizeof(int),(unsigned char *)&source,(unsigned char *)start_of_secure_data);
-  return source;
-}
-
-long set_long_int( void * start_of_secure_data,long int source)
-{
-  insert_data_into_mem(sizeof(long int),(unsigned char *)&source,(unsigned char *)start_of_secure_data);
-  return source;
-}
-
-//pay attention to the type of the pointer when calling
-void* set_pointer( void * start_of_secure_data,void * source)
-{
-  insert_data_into_mem(sizeof(void *),(unsigned char *)&source,(unsigned char *)start_of_secure_data);
-  return source;
-}
-
-float set_float( void * start_of_secure_data,float source)
-{
-  insert_data_into_mem(sizeof(float),(unsigned char *)&source,(unsigned char *)start_of_secure_data);
-  return source;
-}
-
-double set_double( void * start_of_secure_data,double source)
-{
-  insert_data_into_mem(sizeof(double),(unsigned char *)&source,(unsigned char *)start_of_secure_data);
-  return source;
-}
+#define create_heap_setter( vartype, ourtype) \
+                   vartype set_##ourtype (void * start_of_secure_data,vartype source) \
+                   { \
+                    insert_data_into_mem(sizeof( vartype ),(unsigned char *)&source,(unsigned char *)start_of_secure_data);\
+                    return source;\
+                   }
+                   
+#define LOOP_ACROSS_HEAP_SETTERS create_heap_setter( char,char );\
+                                   create_heap_setter( int,int );\
+                                   create_heap_setter( long int,long_int );\
+                                   /*pay attention to the type of the pointer when calling*/ \
+                                   create_heap_setter( void*,pointer );\
+                                   create_heap_setter( float,float );\
+                                   create_heap_setter( double,double );\
+                                   
+LOOP_ACROSS_HEAP_SETTERS
+;
 
 /*Generic set_array_element.Reads data from *source*/
 void* set_array_element(long data_size, void * start_of_array, long index, void * source)
@@ -599,49 +534,24 @@ void* set_array_element(long data_size, void * start_of_array, long index, void 
 	return set_secure_data(source,data_size,start_of_array,1,index);
 }
 
-char set_char_array_element(void * start_of_array, long index, char source)
-{
-	char src=source;
-	set_secure_data(&src,sizeof(char),start_of_array,1,index);
-    return source;
-}
-
-int set_int_array_element(void * start_of_array, long index, int source)
-{
-	int src=source;
-	set_secure_data(&src,sizeof(int),start_of_array,1,index);
-    return source;
-}
-
-long set_long_int_array_element(void * start_of_array, long index, long int source)
-{
-	long int src=source;
-	set_secure_data(&src,sizeof(long int),start_of_array,1,index);
-    return source;
-}
-
-//pay attention to the type of the pointer when calling
-void* set_pointer_array_element(void * start_of_array, long index, void * source)
-{
-	unsigned char * src=source;
-	set_secure_data(&src,sizeof(void *),start_of_array,1,index);
-    return source;
-}
-
-
-float set_float_array_element(void * start_of_array, long index, float source)
-{
-	float src=source;
-	set_secure_data(&src,sizeof(float),start_of_array,1,index);
-    return source;
-}
-
-double set_double_array_element(void * start_of_array, long index, double source)
-{
-	double src=source;
-	set_secure_data(&src,sizeof(double),start_of_array,1,index);
-    return source;
-}
+#define create_heap_array_setter( vartype, ourtype) \
+                   vartype set_##ourtype##_array_element (void * start_of_array, long index, vartype source) \
+                   { \
+                    vartype src=source;\
+                    set_secure_data(&src,sizeof( vartype ),start_of_array,1,index); \
+                    return source; \
+                   }
+                   
+#define LOOP_ACROSS_HEAP_ARRAY_SETTERS create_heap_array_setter( char,char );\
+                                   create_heap_array_setter( int,int );\
+                                   create_heap_array_setter( long int,long_int );\
+                                   /*pay attention to the type of the pointer when calling*/ \
+                                   create_heap_array_setter( void*,pointer );\
+                                   create_heap_array_setter( float,float );\
+                                   create_heap_array_setter( double,double );\
+                                   
+LOOP_ACROSS_HEAP_ARRAY_SETTERS
+;                                   
 
 //sets a block of data to the secure heap. reads from *src, which must have been preallocated
 void* set_arbitrary_block_in_heap(long data_size,void * start_of_block,void * src)
