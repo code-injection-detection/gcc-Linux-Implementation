@@ -938,50 +938,25 @@ void* set_secure_stack_data(void * source,long data_size, unsigned char * data_s
 /********************************SECURE STACK GETTERS START**************************************/
 /************************************************************************************************/
 
-/*Returns the value of a securely allocated char in the stack.*/
-char get_stack_char( void * start_of_secure_data)
-{
-	char res[1];
-	get_secure_stack_data(res,sizeof(char),start_of_secure_data,0,0);
-	return (res[0]);
-}
-
-
-int get_stack_int( void * start_of_secure_data)
-{
-	int res[1];
-	get_secure_stack_data(res,sizeof(int),start_of_secure_data,0,0);
-	return (res[0]);
-}
-
-long int get_stack_long_int( void * start_of_secure_data)
-{
-	long int res[1];
-	get_secure_stack_data(res,sizeof(long int),start_of_secure_data,0,0);
-	return res[0];
-}
-
-//pay attention to the type of the pointer when calling
-void * get_stack_pointer(void * start_of_secure_data)
-{
-	void * res[1];
-	get_secure_stack_data(res,sizeof(void *),start_of_secure_data,0,0);
-	return res[0];
-}
-
-float get_stack_float( void * start_of_secure_data)
-{
-	float res[1];
-	get_secure_stack_data(res,sizeof(float),start_of_secure_data,0,0);
-	return res[0];
-}
-
-double get_stack_double( void * start_of_secure_data)
-{
-	double res[1];
-	get_secure_stack_data(res,sizeof(double),start_of_secure_data,0,0);
-	return res[0];
-}
+#define create_stack_getter( vartype, ourtype) \
+                   vartype get_stack_##ourtype (void * start_of_secure_data) \
+                   { \
+                    vartype res[1]; \
+                    get_secure_stack_data(res,sizeof( vartype ),start_of_secure_data,0,0);\
+                    return (res[0]);\
+                   }
+                   
+#define LOOP_ACROSS_STACK_GETTERS create_stack_getter( char,char );\
+                                   create_stack_getter( int,int );\
+                                   create_stack_getter( long int,long_int );\
+                                   /*pay attention to the type of the pointer when calling*/ \
+                                   create_stack_getter( void*,pointer );\
+                                   create_stack_getter( float,float );\
+                                   create_stack_getter( double,double );\
+                                   
+                                   
+LOOP_ACROSS_STACK_GETTERS
+;                                                     
 
 /*Generic get array element. Writes result to *res, which must have been preallocated*/
 void get_stack_array_element(long data_size, void * start_of_array, long index, void * res)
@@ -998,48 +973,28 @@ unsigned __int128 get_stack_array_element_no_prealloc_up_to_128bits(long data_si
 	return res[0];
 }
 
-char get_stack_char_array_element(void * start_of_array, long index)
-{
-	char res[1];
-	get_secure_stack_data(res,sizeof(char),start_of_array,1,index);
-	return res[0];
-}
+#define create_stack_array_getter( vartype, ourtype) \
+                   vartype get_stack_##ourtype##_array_element (void * start_of_array, long index) \
+                   { \
+                    vartype res[1]; \
+                    get_secure_stack_data(res,sizeof( vartype ),start_of_array,1,index);\
+                    return (res[0]);\
+                   }
+                   
+                   
+                   
+#define LOOP_ACROSS_STACK_ARRAY_GETTERS create_stack_array_getter( char,char );\
+                                   create_stack_array_getter( int,int );\
+                                   create_stack_array_getter( long int,long_int );\
+                                   /*pay attention to the type of the pointer when calling*/ \
+                                   create_stack_array_getter( void*,pointer );\
+                                   create_stack_array_getter( float,float );\
+                                   create_stack_array_getter( double,double );\
 
-int get_stack_int_array_element(void * start_of_array, long index)
-{
-	int res[1];
-	get_secure_stack_data(res,sizeof(int),start_of_array,1,index);
-	return res[0];
-}
 
-long int get_stack_long_int_array_element(void * start_of_array, long index)
-{
-	long int res[1];
-	get_secure_stack_data(res,sizeof(long int),start_of_array,1,index);
-	return res[0];
-}
 
-//pay attention to the type of the pointer when calling
-void * get_stack_pointer_array_element(void * start_of_array, long index)
-{
-	void * res[1];
-	get_secure_stack_data(res,sizeof(void *),start_of_array,1,index);
-	return res[0];
-}
-
-float get_stack_float_array_element(void * start_of_array, long index)
-{
-	float res[1];
-	get_secure_stack_data(res,sizeof(float),start_of_array,1,index);
-	return res[0];
-}
-
-double get_stack_double_array_element(void * start_of_array, long index)
-{
-	double res[1];
-	get_secure_stack_data(res,sizeof(double),start_of_array,1,index);
-	return res[0];
-}
+LOOP_ACROSS_STACK_ARRAY_GETTERS
+;
 
 //gets a block of data from the secure stack. Writes to *res, which must have been preallocated
 void get_arbitrary_block_in_stack(long data_size,void * start_of_block,void * res)
@@ -1094,46 +1049,27 @@ unsigned char* get_address_of_stack_array_element(long data_size, void * start_o
 /********************************SECURE STACK SETTERS START**************************************/
 /************************************************************************************************/
 
-/*Sets a securely allocated char. Of course secure_malloc must have been called before*/
-/*The function reads from source */
-char set_stack_char( void * start_of_secure_data,char source)
-{
-  insert_data_into_stack_mem(sizeof(char),(unsigned char *)&source,(unsigned char *)start_of_secure_data);
-  return source;
-}
-
-int set_stack_int( void * start_of_secure_data,int source)
-{
-  insert_data_into_stack_mem(sizeof(int),(unsigned char *)&source,(unsigned char *)start_of_secure_data);
-  return source;
-}
-
-long set_stack_long_int( void * start_of_secure_data,long int source)
-{
-  insert_data_into_stack_mem(sizeof(long int),(unsigned char *)&source,(unsigned char *)start_of_secure_data);
-  return source;
-}
-
-//pay attention to the type of the pointer when calling
-//Attention! We set the value of a pointer allocated in the secure stack here!
-//We do not change the pointer which points to the top of the stack (stack pointer)! 
-void* set_stack_pointer( void * start_of_secure_data,void * source)
-{
-  insert_data_into_stack_mem(sizeof(void *),(unsigned char *)&source,(unsigned char *)start_of_secure_data);
-  return source;
-}
-
-float set_stack_float( void * start_of_secure_data,float source)
-{
-  insert_data_into_stack_mem(sizeof(float),(unsigned char *)&source,(unsigned char *)start_of_secure_data);
-  return source;
-}
-
-double set_stack_double( void * start_of_secure_data,double source)
-{
-  insert_data_into_stack_mem(sizeof(double),(unsigned char *)&source,(unsigned char *)start_of_secure_data);
-  return source;
-}
+#define create_stack_setter( vartype, ourtype) \
+                   vartype set_stack_##ourtype (void * start_of_secure_data, vartype source) \
+                   { \
+                    insert_data_into_stack_mem(sizeof( vartype ),(unsigned char *)&source,(unsigned char *)start_of_secure_data);\
+                    return source;\
+                   }
+                   
+                   
+#define LOOP_ACROSS_STACK_SETTERS create_stack_setter( char,char );\
+                                   create_stack_setter( int,int );\
+                                   create_stack_setter( long int,long_int );\
+                                   /*pay attention to the type of the pointer when calling*/ \
+                                   /*Attention! We set the value of a pointer allocated in the secure stack here! */ \
+                                   /*We do not change the pointer which points to the top of the stack (stack pointer)! */ \
+                                   create_stack_setter( void*,pointer );\
+                                   create_stack_setter( float,float );\
+                                   create_stack_setter( double,double );\
+                                   
+                                   
+LOOP_ACROSS_STACK_SETTERS
+;
 
 /*Generic set_array_element.Reads data from *source*/
 void* set_stack_array_element(long data_size, void * start_of_array, long index, void * source)
@@ -1141,49 +1077,24 @@ void* set_stack_array_element(long data_size, void * start_of_array, long index,
 	return set_secure_stack_data(source,data_size,start_of_array,1,index);
 }
 
-char set_stack_char_array_element(void * start_of_array, long index, char source)
-{
-	char src=source;
-	set_secure_stack_data(&src,sizeof(char),start_of_array,1,index);
-    return source;
-}
-
-int set_stack_int_array_element(void * start_of_array, long index, int source)
-{
-	int src=source;
-	set_secure_stack_data(&src,sizeof(int),start_of_array,1,index);
-    return source;
-}
-
-long set_stack_long_int_array_element(void * start_of_array, long index, long int source)
-{
-	long int src=source;
-	set_secure_stack_data(&src,sizeof(long int),start_of_array,1,index);
-    return source;
-}
-
-//pay attention to the type of the pointer when calling
-void* set_stack_pointer_array_element(void * start_of_array, long index, void * source)
-{
-	unsigned char * src=source;
-	set_secure_stack_data(&src,sizeof(void *),start_of_array,1,index);
-    return source;
-}
-
-
-float set_stack_float_array_element(void * start_of_array, long index, float source)
-{
-	float src=source;
-	set_secure_stack_data(&src,sizeof(float),start_of_array,1,index);
-    return source;
-}
-
-double set_stack_double_array_element(void * start_of_array, long index, double source)
-{
-	double src=source;
-	set_secure_stack_data(&src,sizeof(double),start_of_array,1,index);
-    return source;
-}
+#define create_stack_array_setter( vartype, ourtype) \
+                   vartype set_stack_##ourtype##_array_element (void * start_of_array, long index, vartype source) \
+                   { \
+	                vartype src=source; \
+	                set_secure_stack_data(&src,sizeof( vartype ),start_of_array,1,index);\
+                    return source;\
+                   }
+                   
+#define LOOP_ACROSS_STACK_ARRAY_SETTERS create_stack_array_setter( char,char );\
+                                   create_stack_array_setter( int,int );\
+                                   create_stack_array_setter( long int,long_int );\
+                                   /*pay attention to the type of the pointer when calling*/ \
+                                   create_stack_array_setter( void*,pointer );\
+                                   create_stack_array_setter( float,float );\
+                                   create_stack_array_setter( double,double );\
+                                   
+LOOP_ACROSS_STACK_ARRAY_SETTERS
+;                             
 
 //sets a block of data to the secure stack. reads from *src, which must have been preallocated
 void* set_arbitrary_block_in_stack(long data_size,void * start_of_block,void * src)
