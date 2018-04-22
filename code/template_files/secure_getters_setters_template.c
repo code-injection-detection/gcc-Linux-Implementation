@@ -446,6 +446,31 @@ void get_arbitrary_block_in_heap_with_offset(long data_size,void * start,long of
 }
 
 
+#define create_heap_getter_from_arb_place( vartype, ourtype) \
+                vartype get_##ourtype##_from_arb_memory_position(void * start,long offset_bytes) \
+                {\
+                vartype res[1];\
+                get_arbitrary_block_in_heap_with_offset(sizeof( vartype ),start,offset_bytes,&res[0]);\
+                return res[0];\
+                }
+
+
+#define LOOP_ACROSS_HEAP_ARB_ACCESS_GET create_heap_getter_from_arb_place( char,char );\
+                                   create_heap_getter_from_arb_place( int,int );\
+                                   create_heap_getter_from_arb_place( long int,long_int );\
+                                   /*pay attention to the type of the pointer when calling*/ \
+                                   create_heap_getter_from_arb_place( void*,pointer );\
+                                   create_heap_getter_from_arb_place( float,float );\
+                                   create_heap_getter_from_arb_place( double,double );\
+
+
+
+
+
+//Functions that get a simple variable from an arbitraty position from the memory
+LOOP_ACROSS_HEAP_ARB_ACCESS_GET
+;
+
 unsigned char* get_address_of_sheap_array_element(long data_size, void * start_of_array, long index)
 {
 	unsigned char *retval;
@@ -566,6 +591,33 @@ void* set_arbitrary_block_in_heap_with_offset(long data_size,void * start,long o
 	set_secure_data(src,data_size, start,2,offset);
     return src;
 }
+
+#define create_heap_setter_from_arb_place( vartype, ourtype) \
+                vartype set_##ourtype##_from_arb_memory_position(void * start,long offset_bytes, vartype source) \
+                {\
+                vartype src=source;\
+                set_arbitrary_block_in_heap_with_offset(sizeof( vartype ),start,offset_bytes ,&src); \
+                return src;\
+                }
+
+
+#define LOOP_ACROSS_HEAP_ARB_ACCESS_SET create_heap_setter_from_arb_place( char,char );\
+                                   create_heap_setter_from_arb_place( int,int );\
+                                   create_heap_setter_from_arb_place( long int,long_int );\
+                                   /*pay attention to the type of the pointer when calling*/ \
+                                   create_heap_setter_from_arb_place( void*,pointer );\
+                                   create_heap_setter_from_arb_place( float,float );\
+                                   create_heap_setter_from_arb_place( double,double );\
+
+
+
+
+
+//Functions that set a simple variable in an arbitraty position from the memory
+LOOP_ACROSS_HEAP_ARB_ACCESS_SET
+;
+
+
 
 
 //setters of secure heap metadata
