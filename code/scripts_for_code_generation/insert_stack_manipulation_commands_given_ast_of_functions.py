@@ -10,16 +10,11 @@ import string
 
 '''
 This script inserts the commands that implement the secure stack.
-It parses the function annotations in tests_with_new_stack_template.c
-which describe the parameters, local vars, where the function is being called etc
-
-Its sister file, insert_new_stack_commands.py can be used as well, but it will soon be unsupported. Prefer this one.
+It parses the function annotations in tests_for_stack_commands_supporting_ast_parsing.c
+It also reads the ast created by our extensions to pycparser, that target the same file.
 '''
 
-
-#stack frame: args (arg(1), arg(2)...) , return value, return address, base pointer, (stack canary), local vars
-
-#for the stack that grows downwards:
+#for the stack:
 '''
  <former stack frame>
  args
@@ -30,29 +25,33 @@ Its sister file, insert_new_stack_commands.py can be used as well, but it will s
  local vars  <---stack pointer
 ''' 
 
-tests_src=open('tests_with_new_stack.c','r')
+tests_src=open('tests_for_stack_commands_supporting_ast_parsing.c','r')
 
 src_lines= tests_src.readlines()
 src_lines = [x for x in src_lines if not "PYTHON IGNORE" in x]
 dst_lines=[]
 
 tests_src.close()
-tests_dst=open('tests_with_new_stack.c','w')
+tests_dst=open('tests_for_stack_commands_supporting_ast_parsing.c','w')
 
 number_of_stack_key_bytes=int(sys.argv[1])
 number_of_stack_useful_data_bytes=int(sys.argv[2])
 number_of_mac_bytes=int(sys.argv[3])
-stack_grows_by_decreasing_numbers=int(sys.argv[4])
-use_stack_canaries=int(sys.argv[5])
+use_stack_canaries=int(sys.argv[4])
 
-stack_dec_num=0
-if (stack_grows_by_decreasing_numbers==1):
-	stack_dec_num=1
-	
-op_to_move_in_stack='+'
-if stack_dec_num==1:
-	op_to_move_in_stack='-'
 
+stack_dec_num=1
+op_to_move_in_stack='-'
+
+functions_dict_with_our_info={}
+
+with open('semantic_data', 'rb') as f:
+	semantic_dict=pickle.load(f)
+	all_functions_dict=semantic_dict['functions']
+	typedefs=semantic_dict['typedefs']
+	global_decls=semantic_dict['global_decls']
+	all_structs=semantic_dict['all_structs']
+	global_decl_names=semantic_dict['global_decl_names']
 
 def calculate_chunks_needed_for_a_size(size_in_bytes):
 	chunks_num=(size_in_bytes//number_of_stack_useful_data_bytes)
@@ -62,114 +61,158 @@ def calculate_chunks_needed_for_a_size(size_in_bytes):
 
 size_of_stack_canary=0
 if (use_stack_canaries>0):
-	size_of_stack_canary=16
-	if stack_dec_num==0:
-		print("ERROR:We can't have stack canaries and the stack to grow towards increasing numbers!")
-		sys.exit(-1)
+	size_of_stack_canary=8
 chunks_for_stack_canary=str(calculate_chunks_needed_for_a_size(size_of_stack_canary))
 
 
-def process_var_size(var_size): #This has to be improved in the future
-	if var_size=='int':
-		return 4
-	if var_size=='char':
-		return 1
-	if var_size=='long' or var_size=='ptr':
-		if ('64' in platform.architecture()[0]):
-			return 8
-		else:
-			return 4
-	if var_size=='double':
-		return 8
-	if var_size=='float':
-		return 4
-	if var_size.lower()=='none' or var_size.lower()=='null':
-		return 0
+def get_size_of_type(type_of_var):
+	if type_of_var=="pointer" or type_of_var=="ptr" return 8;
+	list_of_supported_types=['void','float','double','long','long int','int','char','long double']
+	type_of_var_without_unsigned=''.join(type_of_var.split("unsigned ",1))
+	if type_of_var in typedefs:
+		(tpdf,sz)=typedefs[type_of_var]
+		return sz
+	elif type_of_var_without_unsigned in list_of_supported_types:
+		sz= {
+			'void': 0,
+			'float': 4,
+			'double': 8,
+			'long':8, 
+			'long int':8,
+			'int': 4,
+			'char': 1,
+			'long double':16 #careful: not supported yet
+			}[type_of_var_without_unsigned]
+		return sz
 	else:
-		print("UNKNOWN VARIABLE SIZE:",var_size)
+		print("ERROR IN SIZE CALC")
+		print(type_of_var)
+		sys.exit(-1)
 
 
-
-def type_of_var_in_declaration(index):
-	if (index==0):
-		return 'char'
-	if (index==1):
-		return 'int'
-	if (index==2):
-		return 'long'
-	if (index==3):
-		return 'float'
-	if (index==4):
-		return 'double'
-	if (index==5):
-		return 'ptr'
-	if (index==6):
-		return 'arb_ptr'
+def return_simple_type_of_var(type_of_var_full):
+	type_of_var=''.join(type_of_var_full.split("unsigned ",1)) #remove unsigned
+	if type_of_var in ['void','float','double','long','long int','int','char','long double','pointer']:
+		return type_of_var
+	else:
+		return 'not_simple_type'
 
 
-#parses the local parameters and puts them into the dictionary
-#eg
+#for a function, creates a list of the parameters and local variables, in the order that they will be put into the stack
 '''
-NUM_OF_PARAMETERS: 5
-		chars: 0 
-		ints: 2 | names: X,Y
-		longs: 0
-		floats: 0
-		doubles: 0
-		pointers: 1 | names: TEST_PTR | size_of_pointed_elements:10 
-		arb_pointers: 2 | names: STUFF,STUFF2 | size_of_objects:5,7
-'''
-def process_params_locals(type_of_vars):
-	global params_locals_lines
-	global function_dict
+doubles
+floats
+pointers
+longs
+ints
+chars
+<arrays here>
+
+''' 
+def split_params_locals_of_a_fun_per_type(function_name):
+	global functions_dict_with_our_info
 	
-	if (type_of_vars=='params'):
-		function_dict['params']={}
-	if (type_of_vars=='locals'):
-		function_dict['locals']={}
+	function_dict=all_functions_dict[function_name]
+	
+	if function_name not in functions_dict_with_our_info:
+		functions_dict_with_our_info[function_name]={}
+	
+	fun_params=function_dict["fun_decl"][0][1]['list_of_arguments']
+	fun_locals=function_dict["fun_locals"]
+	
+	params_in_stack={}
+	locals_in_stack={}
+	
+	#find the variables with unknown size
+	params_with_unknown_size=[]
+	locals_with_unknown_size=[]
+	for i,param in enumerate(fun_params):
+		if param[1]<0:
+			params_with_unknown_size.append(param)
+			fun_params.pop(i) #remove that element
+			sys.stderr.write('ERROR!!!!!!. Variable size parameters not supported!\n')
+			sys.stderr.write(param)
+			sys.exit(-1)
+			
+	for i,local_var in enumerate(fun_locals):
+		if local_var[1]<0:
+			locals_with_unknown_size.append(local_var)
+			fun_locals.pop(i)
+	
+	
+	#simple params
+	total_chunks_needed_for_simple_params=0
+	total_chunks_needed_for_simple_locals=0
+	for type_of_var in ['char','int','long','pointer','float','double']:
+		params_in_stack[type_of_var]={} ;locals_in_stack[type_of_var]={}
+		params_in_stack[type_of_var]['dicts']=[] ;locals_in_stack[type_of_var]['dicts']=[]
+		params_in_stack[type_of_var]['sizes']=[] ;locals_in_stack[type_of_var]['sizes']=[]
+		params_in_stack[type_of_var]['total_size']=0 ; locals_in_stack[type_of_var]['total_size']=0
 		
-	for i,line in enumerate(params_locals_lines):
-		name_of_type=type_of_var_in_declaration(i)
-		parts_of_line=line.strip().split('|')
-		num_of_type=parts_of_line[0].split(':')[1].strip()
-		function_dict[type_of_vars][name_of_type]={}
-		function_dict[type_of_vars][name_of_type]['number']=num_of_type
-		num_of_type_int=int(num_of_type)
-		if (num_of_type_int>0):
-			names=parts_of_line[1].split(':')[1].strip().split(',')
-			function_dict[type_of_vars][name_of_type]['names']=[]
-			for x in names:
-				function_dict[type_of_vars][name_of_type]['names'].append(x.strip())
-				
-			if ((type_of_var_in_declaration(i)=='ptr') or (type_of_var_in_declaration(i)=='arb_ptr')):
-				if (len(parts_of_line)>2 or (type_of_var_in_declaration(i)!='ptr')): #having a size for pointers should not be necessary
-					sizes=parts_of_line[2].split(':')[1].strip().split(',')
-					function_dict[type_of_vars][name_of_type]['sizes']=[]
-					for x in sizes:
-						function_dict[type_of_vars][name_of_type]['sizes'].append(x.strip())
+		for i,param in enumerate(fun_params):
+			if return_simple_type_of_var(param[0][0])==type_of_var:
+				params_in_stack[type_of_var]['dicts'].append(copy.deepcopy(param))
+				params_in_stack[type_of_var]['sizes'].append(param[1])
+				params_in_stack[type_of_var]['total_size']+=param[1]
+		
+		for i,local_var in enumerate(fun_locals):
+			if return_simple_type_of_var(local[0][0])==type_of_var:
+				locals_in_stack[type_of_var]['dicts'].append(copy.deepcopy(local_var))
+				locals_in_stack[type_of_var]['sizes'].append(local_var[1])
+				locals_in_stack[type_of_var]['total_size']+=local_var[1]
+	
+		params_in_stack[type_of_var]['chunks_needed']=calculate_chunks_needed_for_a_size(params_in_stack[type_of_var]['total_size'])
+		locals_in_stack[type_of_var]['chunks_needed']=calculate_chunks_needed_for_a_size(locals_in_stack[type_of_var]['total_size'])
+		
+		total_chunks_needed_for_simple_params+=params_in_stack[type_of_var]['chunks_needed']
+		total_chunks_needed_for_simple_locals+=locals_in_stack[type_of_var]['chunks_needed']
+		
+	params_in_stack['total_chunks_needed_for_simple_params']=total_chunks_needed_for_simple_params
+	locals_in_stack['total_chunks_needed_for_simple_locals']=total_chunks_needed_for_simple_locals
+	
+	#other params
+	params_in_stack['other_params']={}; locals_in_stack['other_params']={}
+	params_in_stack['other_params']['dicts']=[] ;locals_in_stack['other_params']['dicts']=[]
+	params_in_stack['other_params']['sizes']=[] ;locals_in_stack['other_params']['sizes']=[]
+	
+	total_chunks_needed_for_other_params=0
+	total_chunks_needed_for_other_locals=0
+	for i,param in enumerate(fun_params):
+		if param[0][0] not in ['char','int','long','pointer','float','double']:
+			params_in_stack['other_params']['dicts'].append(copy.deepcopy(param))
+			params_in_stack['other_params']['sizes'].append(param[1])
+			total_chunks_needed_for_other_params+=calculate_chunks_needed_for_a_size(param[1])
+	
+	for i,local_var in enumerate(fun_locals):
+		if local_var[0][0] not in ['char','int','long','pointer','float','double']:
+			locals_in_stack['other_params']['dicts'].append(copy.deepcopy(local_var))
+			locals_in_stack['other_params']['sizes'].append(local_var[1])
+			total_chunks_needed_for_other_locals+=calculate_chunks_needed_for_a_size(local_var[1])
+			
+	params_in_stack['total_chunks_needed_for_other_params']=total_chunks_needed_for_other_params
+	locals_in_stack['total_chunks_needed_for_other_locals']=total_chunks_needed_for_other_locals
+	
+	params_in_stack['total_chunks_needed']=params_in_stack['total_chunks_needed_for_other_params'] + params_in_stack['total_chunks_needed_for_simple_params']
+	locals_in_stack['total_chunks_needed']=locals_in_stack['total_chunks_needed_for_other_locals'] + locals_in_stack['total_chunks_needed_for_simple_locals']
+	
+	#return value
+	return_value_dict=copy.deepcopy(function_dict["fun_decl"][0][1]['return_value'])
+	retval={}
+	retval['dict']=return_value_dict
+	retval['size']=return_value_dict[1]
+	retval['total_chunks_needed']=calculate_chunks_needed_for_a_size(retval['size'])
+	
+	functions_dict_with_our_info[function_name]['params_in_stack']=params_in_stack
+	functions_dict_with_our_info[function_name]['locals_in_stack']=locals_in_stack
+	functions_dict_with_our_info[function_name]['params_with_unknown_size']=params_with_unknown_size
+	functions_dict_with_our_info[function_name]['locals_with_unknown_size']=locals_with_unknown_size
+	functions_dict_with_our_info[function_name]['return_value']=retval
+	
+	return (params_in_stack,locals_in_stack,params_with_unknown_size,locals_with_unknown_size,retval)
 
 			
 	
-#how many chunks (blocks) the local variables are going to take. Their amounts are read from the dictionary.
-def calculate_chunks_for_params_locals(type_of_vars):
-	global function_dict
-	
-	chunks_needed=0
-	for type_of_var in function_dict[type_of_vars]:
-		num_of_var=int(function_dict[type_of_vars][type_of_var]['number'])
-		if type_of_var!='arb_ptr':
-			size_of_var=process_var_size(type_of_var)
-			new_chunks_num=calculate_chunks_needed_for_a_size(size_of_var*num_of_var)
-			chunks_needed+=new_chunks_num
-		else:
-			if (num_of_var>0):
-				for sz in function_dict[type_of_vars][type_of_var]['sizes']:
-					size_of_var=int(sz)
-					new_chunks_num=calculate_chunks_needed_for_a_size(size_of_var)
-					chunks_needed+=new_chunks_num
-	
-	return chunks_needed
-		
+
 		
 		
 def find_name_of_getter(type_of_var,use_array=1):
@@ -226,123 +269,22 @@ def find_type_of_var_in_C(type_of_var):
 
 
 #calulcates the size of the function frame
-def calc_size_of_fun_in_stack():
-	global function_dict
+def calc_size_of_fun_in_stack(function_name):
+	global functions_dict_with_our_info
 	
+	function_dict=all_functions_dict[function_name]
+	our_function_dict=functions_dict_with_our_info[function_name]
+		
 	#calculate the chunks needed in secure stack
-	chunks_for_params=calculate_chunks_for_params_locals('params')
-	chunks_for_local_vars=calculate_chunks_for_params_locals('locals')
-	chunks_for_return_value=calculate_chunks_needed_for_a_size(int(function_dict['return_value_size']))
-	chunks_for_base_pointer=calculate_chunks_needed_for_a_size(process_var_size('ptr'))
-	chunks_for_return_address=calculate_chunks_needed_for_a_size(process_var_size('ptr'))
-	total_chunks_needed=chunks_for_params+chunks_for_local_vars+chunks_for_return_value+chunks_for_base_pointer+chunks_for_return_address+int(chunks_for_stack_canary)
-	function_dict['chunks_in_stack']=str(total_chunks_needed)
-	function_dict['chunks_for_params']=str(chunks_for_params)
-	function_dict['chunks_for_local_vars']=str(chunks_for_local_vars)
-	function_dict['chunks_for_return_value']=str(chunks_for_return_value)
-	function_dict['chunks_for_base_pointer']=str(chunks_for_base_pointer)
-	function_dict['chunks_for_return_address']=str(chunks_for_return_address)
-	function_dict['chunks_for_stack_canary']=str(chunks_for_stack_canary)
-	for type_of_var in ['char','int','long','float','double','ptr']:
-		num_of_var=int(function_dict['params'][type_of_var]['number'])
-		chunks_for_type=calculate_chunks_needed_for_a_size(num_of_var*process_var_size(type_of_var))
-		function_dict['chunks_for_'+type_of_var+'_params']=str(chunks_for_type)
-	for type_of_var in ['char','int','long','float','double','ptr']:
-		num_of_var=int(function_dict['locals'][type_of_var]['number'])
-		chunks_for_type=calculate_chunks_needed_for_a_size(num_of_var*process_var_size(type_of_var))
-		function_dict['chunks_for_'+type_of_var+'_locals']=str(chunks_for_type)
-	
-	
-	
-def add_code_for_function_calling(fun_name,write_to,params,use_secure_stack_setter_for_result,given_setter_to_use_to_write_retval):
-	global all_functions_dict
-	
-	fun_dict=all_functions_dict[fun_name]
-	chunks_for_params=fun_dict['chunks_for_params']
-	chunks_for_local_vars=fun_dict['chunks_for_local_vars']
-	chunks_for_return_value=fun_dict['chunks_for_return_value']
-	chunks_for_base_pointer=fun_dict['chunks_for_base_pointer']
-	chunks_for_return_address=fun_dict['chunks_for_return_address']
-	fun_dict['num_of_times_called_in_code']=str(int(fun_dict['num_of_times_called_in_code'])+1)
-	num_of_times_called_in_code=fun_dict['num_of_times_called_in_code']
-	params_cnt=0
-	offset_for_params_in_chunks=0
-	all_chunks_of_fun=str(int(chunks_for_params)+int(chunks_for_local_vars)+int(chunks_for_return_value)+int(chunks_for_base_pointer)+int(chunks_for_return_address)+int(chunks_for_stack_canary))
-	
+	chunks_for_params=our_function_dict['params_in_stack']['total_chunks_needed']
+	chunks_for_local_vars=our_function_dict['locals_in_stack']['total_chunks_needed']
+	chunks_for_return_value=our_function_dict['return_value']['total_chunks_needed']
+	chunks_for_base_pointer_and_retaddr=calculate_chunks_needed_for_a_size(get_size_of_type('ptr')*2)
+	total_chunks_needed=chunks_for_params+chunks_for_local_vars+chunks_for_return_value+chunks_for_base_pointer_and_retaddr+int(chunks_for_stack_canary)
 
-	lines_to_append=[]
-	#allocate mem in secure stack
-	lines_to_append.append('returned_addr_after_allocating=allocate_mem_into_secure_stack_in_chunks('+fun_dict['chunks_in_stack']+');\n')
-	lines_to_append.append('if (returned_addr_after_allocating==NULL) {printf("ERROR! no stack mem left -> line %d\\n",__LINE__);exit(8);}\n')
+	return total_chunks_needed
 	
-	#initialize parameters
-	lines_to_append.append(' \n')
-	#return address
-	if stack_dec_num==0:
-		lines_to_append.append('set_stack_pointer(returned_addr_after_allocating+('+chunks_for_params+'+'+chunks_for_return_value+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data), &&return_label_'+fun_name+'_no_'+num_of_times_called_in_code+');\n')
-	else:
-		lines_to_append.append('set_stack_pointer(returned_addr_after_allocating-('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_return_address+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data), &&return_label_'+fun_name+'_no_'+num_of_times_called_in_code+');\n')
-	#set value to the parameters
-	for type_of_var in ['char','int','long','float','double','ptr']: #in that order!
-		num_of_var=int(fun_dict['params'][type_of_var]['number'])
-		if (num_of_var>0):
-			lines_to_append.append('size_of_array_for_array_fun_parameters='+str(num_of_var)+'*'+str(process_var_size(type_of_var))+';\n')
-			for i in range(num_of_var):
-				value_of_var=params[params_cnt]
-				params_cnt+=1
-				if(value_of_var.lower()=='null'):
-					value_of_var='0'
-				lines_to_append.append('array_for_'+type_of_var+'_fun_'+fun_name+'_params['+str(i)+']='+value_of_var+';\n')
-			if stack_dec_num==0:
-				lines_to_append.append('insert_data_into_stack_mem(size_of_array_for_array_fun_parameters,(unsigned char*)array_for_'+type_of_var+'_fun_'+fun_name+'_params,(unsigned char*)returned_addr_after_allocating+('+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
-			else:
-				lines_to_append.append('insert_data_into_stack_mem(size_of_array_for_array_fun_parameters,(unsigned char*)array_for_'+type_of_var+'_fun_'+fun_name+'_params,(unsigned char*)returned_addr_after_allocating-('+chunks_for_params+'-'+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
-		offset_for_params_in_chunks+=int(fun_dict['chunks_for_'+type_of_var+'_params'])
-
-	#same for the arbitrary pointers
-	num_of_var=int(fun_dict['params']['arb_ptr']['number'])
-	for i in range(num_of_var):
-		size_of_arb_ptr_data=fun_dict['params']['arb_ptr']['sizes'][i] #has to be an int, python doesn't know "sizeof()"
-		if (params[params_cnt]!='NULL' and params[params_cnt]!='0'):
-			if stack_dec_num==0:
-				lines_to_append.append('insert_data_into_stack_mem('+size_of_arb_ptr_data+','+params[params_cnt]+',returned_addr_after_allocating+('+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
-			else:
-				lines_to_append.append('insert_data_into_stack_mem('+size_of_arb_ptr_data+','+params[params_cnt]+',returned_addr_after_allocating-('+chunks_for_params+'-'+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
-		params_cnt+=1
-		offset_for_params_in_chunks+=calculate_chunks_needed_for_a_size(int(size_of_arb_ptr_data))
-	#base pointer
-	if stack_dec_num==0:
-		lines_to_append.append('set_stack_pointer(returned_addr_after_allocating+('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_return_address+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data),base_pointer_for_stack);\n')
-		lines_to_append.append('base_pointer_for_stack=returned_addr_after_allocating+('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_return_address+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data);\n')
-	else:
-		lines_to_append.append('set_stack_pointer(returned_addr_after_allocating-('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_return_address+'+'+chunks_for_base_pointer+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data),base_pointer_for_stack);\n')
-		lines_to_append.append('base_pointer_for_stack=returned_addr_after_allocating-('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_return_address+'+'+chunks_for_base_pointer+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data);\n')
-
 	
-	#add goto to the function code
-	lines_to_append.append('goto '+fun_name+'_start_label;\n')
-	#add return label
-	lines_to_append.append('return_label_'+fun_name+'_no_'+num_of_times_called_in_code+':\n')
-	#write result to
-	if (fun_dict['return_value_type']!='' and fun_dict['return_value_type'].lower()!='none' and fun_dict['return_value_type'].lower!='null'):
-		name_of_getter=find_name_of_getter(fun_dict['return_value_type'],0)
-		if (use_secure_stack_setter_for_result):
-			name_of_setter=given_setter_to_use_to_write_retval
-			if (stack_grows_by_decreasing_numbers==0):
-				lines_to_append.append(name_of_setter+'('+write_to+','+name_of_getter+'(last_unused_stack_memory+('+chunks_for_params+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)));\n')
-			else:
-				#now last_unused_stack_memory is above the position we need to access
-				lines_to_append.append(name_of_setter+'('+write_to+','+name_of_getter+'(last_unused_stack_memory-('+chunks_for_params+'+'+chunks_for_return_value+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)));\n')
-		else:	
-			#now using last_unused_stack_memory (the stack pointer), and not returned_addr_after_allocating, since it might have changed after the call
-			if (stack_grows_by_decreasing_numbers==0):
-				lines_to_append.append(write_to+'='+name_of_getter+'(last_unused_stack_memory+('+chunks_for_params+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
-			else:
-				lines_to_append.append(write_to+'='+name_of_getter+'(last_unused_stack_memory-('+chunks_for_params+'+'+chunks_for_return_value+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
-	for line in lines_to_append:
-		dst_lines.append(line)
-
-
 
 def add_code_for_function_calling_new_template(function_name,helping_args_for_fun_call_dict,params):
 	#puts everything in a block of ({ .... }), which is treated as one command
@@ -351,17 +293,21 @@ def add_code_for_function_calling_new_template(function_name,helping_args_for_fu
 	global sz_of_array_fun_params_ctr
 	global array_of_params_ctr
 	
-	fun_dict=all_functions_dict[fun_name]
-	chunks_for_params=fun_dict['chunks_for_params']
-	chunks_for_local_vars=fun_dict['chunks_for_local_vars']
-	chunks_for_return_value=fun_dict['chunks_for_return_value']
-	chunks_for_base_pointer=fun_dict['chunks_for_base_pointer']
-	chunks_for_return_address=fun_dict['chunks_for_return_address']
-	fun_dict['num_of_times_called_in_code']=str(int(fun_dict['num_of_times_called_in_code'])+1)
-	num_of_times_called_in_code=fun_dict['num_of_times_called_in_code']
+	global functions_dict_with_our_info
+	
+	function_dict=all_functions_dict[fun_name]
+	our_function_dict=functions_dict_with_our_info[fun_name]
+		
+	chunks_for_params=str(our_function_dict['params_in_stack']['total_chunks_needed']))
+	chunks_for_local_vars=str(our_function_dict['locals_in_stack']['total_chunks_needed'])
+	chunks_for_return_value=str(our_function_dict['return_value']['total_chunks_needed'])
+	chunks_for_base_pointer_and_retaddr=str(calculate_chunks_needed_for_a_size(get_size_of_type('ptr')*2))
+
+	our_function_dict['num_of_times_called_in_code']=str(int(our_function_dict['num_of_times_called_in_code'])+1)
+	num_of_times_called_in_code=our_function_dict['num_of_times_called_in_code']
 	params_cnt=0
-	offset_for_params_in_chunks=0
-	all_chunks_of_fun=str(int(chunks_for_params)+int(chunks_for_local_vars)+int(chunks_for_return_value)+int(chunks_for_base_pointer)+int(chunks_for_return_address)+int(chunks_for_stack_canary))
+	offset_for_params_in_chunks=our_function_dict['params_in_stack']['total_chunks_needed_for_simple_params']
+	all_chunks_of_fun=str(int(chunks_for_params)+int(chunks_for_local_vars)+int(chunks_for_return_value)+int(chunks_for_base_pointer_and_retaddr)+int(chunks_for_stack_canary))
 	
 	#every variable must be different, since we might nest function calls
 	return_addr_for_allocation_ctr+=1
@@ -369,43 +315,44 @@ def add_code_for_function_calling_new_template(function_name,helping_args_for_fu
 
 	lines_to_append=[]
 	#allocate mem in secure stack
-	lines_to_append.append('({ void *'+ret_addr_alloc+'=allocate_mem_into_secure_stack_in_chunks('+fun_dict['chunks_in_stack']+');\n')
+	lines_to_append.append('({ void *'+ret_addr_alloc+'=allocate_mem_into_secure_stack_in_chunks('+all_chunks_of_fun+');\n')
 	lines_to_append.append('if ('+ret_addr_alloc+'==NULL) {printf("ERROR! no stack mem left -> line %d\\n",__LINE__);exit(8);}\n')
 	
-	#initialize parameters
 	lines_to_append.append(' \n')
 	#return address
-	if stack_dec_num==0:
-		lines_to_append.append('set_stack_pointer('+ret_addr_alloc+'+('+chunks_for_params+'+'+chunks_for_return_value+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data), &&return_label_'+fun_name+'_no_'+num_of_times_called_in_code+');\n')
-	else:
-		lines_to_append.append('set_stack_pointer('+ret_addr_alloc+'-('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_return_address+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data), &&return_label_'+fun_name+'_no_'+num_of_times_called_in_code+');\n')
+	lines_to_append.append('set_stack_pointer_array_element('+ret_addr_alloc+'-('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_base_pointer_and_retaddr+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data),1, &&return_label_'+fun_name+'_no_'+num_of_times_called_in_code+');\n')
 	#set value to the parameters
-	for type_of_var in ['char','int','long','float','double','ptr']: #in that order!
-		num_of_var=int(fun_dict['params'][type_of_var]['number'])
+	for type_of_var in ['char','int','long','float','double','pointer']:
+		dict_to_look=our_function_dict['params_in_stack'][type_of_var]
+		num_of_var=len(dict_to_look[sizes])
+		
 		if (num_of_var>0):
+			#create the array with the initial variables
 			sz_of_array_fun_params_ctr+=1
 			size_of_array_for_array_fun_params='size_of_array_for_array_fun_parameters_'+str(sz_of_array_fun_params_ctr)
 			array_of_params_ctr+=1
 			array_of_params_for_type_and_fun_name='array_for_'+type_of_var+'_fun_'+fun_name+'_params_'+str(array_of_params_ctr)
-			lines_to_append.append('long '+size_of_array_for_array_fun_params+'='+str(num_of_var)+'*'+str(process_var_size(type_of_var))+';\n')
-			if (type_of_var=='ptr'):
+			lines_to_append.append('long '+size_of_array_for_array_fun_params+'='+str(num_of_var)+'*'+str(get_size_of_type(type_of_var))+';\n')
+			if (type_of_var=='pointer'):
 				type_of_var_in_c='void *'
 			else:
 				type_of_var_in_c=type_of_var
 			lines_to_append.append(type_of_var_in_c+' '+array_of_params_for_type_and_fun_name+'['+str(num_of_var)+'];\n')
-			for i in range(num_of_var):
-				value_of_var=params[params_cnt]
-				params_cnt+=1
-				if(value_of_var.lower()=='null'):
-					value_of_var='0'
-				lines_to_append.append(''+array_of_params_for_type_and_fun_name+'['+str(i)+']='+value_of_var+';\n')
-			if stack_dec_num==0:
-				lines_to_append.append('insert_data_into_stack_mem('+size_of_array_for_array_fun_params+',(unsigned char*)'+array_of_params_for_type_and_fun_name+',(unsigned char*)'+ret_addr_alloc+'+('+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
-			else:
-				lines_to_append.append('insert_data_into_stack_mem('+size_of_array_for_array_fun_params+',(unsigned char*)'+array_of_params_for_type_and_fun_name+',(unsigned char*)'+ret_addr_alloc+'-('+chunks_for_params+'-'+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
-		offset_for_params_in_chunks+=int(fun_dict['chunks_for_'+type_of_var+'_params'])
+			
+			#iterate over the params, and set the value
+			for j,param in enumerate(function_dict["fun_decl"][0][1]['list_of_arguments']):
+				if type_of_var==return_simple_type_of_var(param[0][0]):
+					value_of_var=params[j]
+					if(value_of_var.lower()=='null'):
+						value_of_var='0'
+					lines_to_append.append(''+array_of_params_for_type_and_fun_name+'['+str(i)+']='+value_of_var+';\n')
+					
+			lines_to_append.append('insert_data_into_stack_mem('+size_of_array_for_array_fun_params+',(unsigned char*)'+array_of_params_for_type_and_fun_name+',(unsigned char*)'+ret_addr_alloc+'-('+chunks_for_params+'-'+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
+		offset_for_params_in_chunks+=int(dict_to_look['chunks_needed'])
 
-	#same for the arbitrary pointers
+	!!!1 here u are
+	#same for the other parameters (structs etc)
+	dict_to_look=our_function_dict['params_in_stack']['other_params']
 	num_of_var=int(fun_dict['params']['arb_ptr']['number'])
 	for i in range(num_of_var):
 		size_of_arb_ptr_data=fun_dict['params']['arb_ptr']['sizes'][i] #has to be an int, python doesn't know "sizeof()"
@@ -621,25 +568,19 @@ def custom_split_of_str(string,char_to_split):
 def get_random_string(size):
 	return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(size))
 
-new_function_str='PLEASE PYTHON INIT A FUNCTION HERE'
-call_of_function_str='HEY PYTHON CALLING FUNCTION'
+
+
 call_of_function_new_str='HEY PYTHON CALL FUNCTION WITH NEW TEMPLATE'
 start_of_function_str='START_OF_FUNCTION'
 end_of_function_str='END_OF_FUNCTION'
 return_point_of_function_str='RETURN_POINT_OF_FUNCTION'
-name_of_function_str='NAME_OF_FUNCTION'
-return_value_size_str='RETURN_VALUE_SIZE'
-num_of_parameters_str='NUM_OF_PARAMETERS'
-num_of_local_variables_str='NUM_OF_LOCAL_VARIABLES'
-end_of_parameters_str='END_OF_PARAMETERS'
-end_of_local_variables_str='END_OF_LOCAL_VARIABLES'
 return_expression_str='RETURN_EXPRESSION'
 write_result_to_str='WRITE RESULT TO'
 parameters_for_calling_str='PARAMETERS TO CALL WITH'
 helping_args_for_fun_call_str='HELPING ARGS FOR FUN CALL'
 allocate_in_secure_stack_a_block_str='ALLOCATE STACK DATA OF SIZE'
 
-all_functions_dict={}
+
 function_dict={}
 fun_name=""
 in_function_declaration=0
@@ -662,30 +603,20 @@ array_of_params_ctr=0;
 
 for line in src_lines:
 	
-	#parse the lines and populate the dictionary
-	if ((in_parameters) or (in_local_variables)) and (cnt_params_locals_lines<7): #7, each for every type of parameter or local variable
-		cnt_params_locals_lines+=1
-		params_locals_lines.append(line)
-		continue
-		
-	if (in_parameters):
-		process_params_locals('params')
-	if (in_local_variables):
-		process_params_locals('locals')
 	
-	if new_function_str in line:
-		function_dict={}
-		in_function_declaration=1
 	if start_of_function_str in line:
 		in_function_code=1
-		calc_size_of_fun_in_stack()
-		function_dict['num_of_times_called_in_code']='0'
-		fun_name=function_dict['name']
-		function_dict['use_of_explicit_stack_allocation']='0'
-		all_functions_dict[fun_name]=copy.deepcopy(function_dict) #we might need it inside the function, so save it
+		fun_name=line.split(":")[1].strip()
+		functions_dict_with_our_info[fun_name]={}
+		functions_dict_with_our_info[fun_name]['num_of_times_called_in_code']='0'
+		functions_dict_with_our_info[fun_name]['use_of_explicit_stack_allocation']='0'
+		split_params_locals_of_a_fun_per_type(fun_name)
+		dst_lines.append('/* FUNCTION '+fun_name+ ' BEGINNING:*/\n') 
 		dst_lines.append(function_dict['name']+"_start_label:\n")
-		add_the_function_header()
+		add_the_function_header(fun_name)
 		continue
+		
+	
 	if end_of_function_str in line:
 		in_function_declaration=0
 		in_function_code=0
@@ -704,60 +635,7 @@ for line in src_lines:
 		else:
 			dst_lines.append(setter_for_data+'allocate_mem_into_secure_stack_return_ptr_only_after_alloc('+ expression_of_size_in_bytes+'));\n')
 		continue
-	if (name_of_function_str in line) and (in_function_declaration):
-		fun_name=line.strip().split(':')[1].strip()
-		function_dict['name']=fun_name
-	if (return_value_size_str in line) and (in_function_declaration):
-		needed_part_of_str=line.strip().split(':')[1].strip()
-		ret_val_size=process_var_size(needed_part_of_str)
-		function_dict['return_value_size']=str(ret_val_size)
-		function_dict['return_value_type']=needed_part_of_str
-	if (num_of_parameters_str in line) and (in_function_declaration):
-		needed_part_of_str=line.strip().split(':')[1].strip()
-		function_dict['num_of_parameters']=needed_part_of_str
-		in_parameters=1
-		params_locals_lines=[]
-		cnt_params_locals_lines=0
-	if (end_of_parameters_str in line) and (in_function_declaration) and (in_parameters):
-		in_parameters=0
-	if (num_of_local_variables_str in line) and (in_function_declaration):
-		needed_part_of_str=line.strip().split(':')[1].strip()
-		function_dict['num_of_local_variables']=needed_part_of_str
-		in_local_variables=1
-		params_locals_lines=[]
-		cnt_params_locals_lines=0
-	if (end_of_local_variables_str in line) and (in_function_declaration) and (in_local_variables):
-		in_local_variables=0
-	if (return_expression_str in line) and (in_function_declaration):
-		needed_part_of_str=line.strip().split(':')[1].strip()
-		function_dict['return_expression']=needed_part_of_str
-	
-	#for calling a function
-	if (call_of_function_str) in line:
-		function_name=line.split('|')[0].strip().split(':')[1].strip()
-		num_of_params=int(all_functions_dict[function_name]['num_of_parameters'])
-		put_result_var_in_secure_stack=0
-		given_setter_to_use_to_write_retval=''
-		if (write_result_to_str in line):
-			write_result_to_currently_called=line.split('|')[1].strip().split(':')[1].strip()
-			if ('__securevar_' in write_result_to_currently_called):
-				put_result_var_in_secure_stack=1
-				given_setter_to_use_to_write_retval=write_result_to_currently_called.split('__securevar_')[1].strip()
-				write_result_to_currently_called=write_result_to_currently_called.split('__securevar_')[0].strip()
-			if (parameters_for_calling_str in line):
-				list_of_params_currently_called=line.split('|')[2].strip().split(':')[1].strip().split(',')
-		else:
-			if (parameters_for_calling_str in line):
-				list_of_params_currently_called=line.split('|')[1].strip().split(':')[1].strip().split(',')
-		dst_lines.append(line)
-		#@'s are used in place of commas
-		list_of_params_currently_called=[x.replace('@',',') for x in list_of_params_currently_called]
-		add_code_for_function_calling(function_name,write_result_to_currently_called,list_of_params_currently_called,put_result_var_in_secure_stack,given_setter_to_use_to_write_retval)
-		if (function_name==function_dict['name']):
-			function_dict['num_of_times_called_in_code']=str(int(function_dict['num_of_times_called_in_code'])+1)
-		else:
-			all_functions_dict[function_name]['num_of_times_called_in_code']=str(int(all_functions_dict[function_name]['num_of_times_called_in_code'])+1)
-		continue
+
 		
 	#for calling a function using the new template
 	#{{{HEY PYTHON CALL FUNCTION WITH NEW TEMPLATE: <name_of_fun> | HELPING ARGS FOR FUN CALL: arg1="value1",arg2="value2",.. |PARAMETERS TO CALL WITH : param1,param2 ... }}}
@@ -770,21 +648,20 @@ for line in src_lines:
 		code_for_fun=substring_for_fun_call
 		substring_for_fun_call=substring_for_fun_call[3:-3] #remove {{{ and }}}
 		function_name=custom_split_of_str(custom_split_of_str(substring_for_fun_call,'|')[0].strip(),':')[1].strip()
-		num_of_params=int(all_functions_dict[function_name]['num_of_parameters'])
+		num_of_params=len(all_functions_dict[function_name]["fun_decl"][0][1]['list_of_arguments'])
 		helping_args_for_fun_call=custom_split_of_str(custom_split_of_str(substring_for_fun_call,'|')[1].strip(),':')[1].strip() #split by '|', split by ':' and strip
 		helping_args_for_fun_call_dict={}
 		#create the dict of the arguments
 		for item in custom_split_of_str(helping_args_for_fun_call,','):
 			if len(custom_split_of_str(item,'='))>1:
 				helping_args_for_fun_call_dict[custom_split_of_str(item,'=')[0].strip()]=custom_split_of_str(item,'=')[1].strip()
+		list_of_params_currently_called=[]
 		if (parameters_for_calling_str in substring_for_fun_call):
 			list_of_params_currently_called=custom_split_of_str(custom_split_of_str(custom_split_of_str(substring_for_fun_call,'|')[2].strip(),':')[1].strip(),',') #split by '|', split by ':', split by ','
-		list_of_params_currently_called=[x.replace('@',',') for x in list_of_params_currently_called] #if the param has "@"'s in it, it means that it wanted to put ","'s in these places. It used "@" because of splitting.
+		#list_of_params_currently_called=[x.replace('@',',') for x in list_of_params_currently_called] #if the param has "@"'s in it, it means that it wanted to put ","'s in these places. It used "@" because of splitting.
 		code_for_replacing_fun=add_code_for_function_calling_new_template(function_name,helping_args_for_fun_call_dict,list_of_params_currently_called)
-		if (function_name==function_dict['name']):
-			function_dict['num_of_times_called_in_code']=str(int(function_dict['num_of_times_called_in_code'])+1)
-		else:
-			all_functions_dict[function_name]['num_of_times_called_in_code']=str(int(all_functions_dict[function_name]['num_of_times_called_in_code'])+1)
+		functions_dict_with_our_info[function_name]['num_of_times_called_in_code']=str(int(functions_dict_with_our_info[function_name]['num_of_times_called_in_code'])+1)
+		
 		line_temp= line_temp.replace(code_for_fun, code_for_replacing_fun, 1)
 		#let's make line_temp to be one line, because multiple invocations of a function may have turned it into multiple lines
 		line_temp=line_temp.replace('\n', ' ').replace('\r', '')
@@ -797,8 +674,8 @@ for line in src_lines:
 		add_the_function_footer(0) #don't undef!
 		continue
 
-	if (in_function_declaration==0) or (in_function_code==1):
-		dst_lines.append(line)
+	#if nothing is done
+	dst_lines.append(line)
 
 
 #print(all_functions_dict)
