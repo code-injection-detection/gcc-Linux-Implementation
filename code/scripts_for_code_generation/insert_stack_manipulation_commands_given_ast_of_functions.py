@@ -7,6 +7,7 @@ import gc
 import re
 import random
 import string
+import pickle
 
 '''
 This script inserts the commands that implement the secure stack.
@@ -66,7 +67,7 @@ chunks_for_stack_canary=str(calculate_chunks_needed_for_a_size(size_of_stack_can
 
 
 def get_size_of_type(type_of_var):
-	if type_of_var=="pointer" or type_of_var=="ptr" return 8;
+	if type_of_var=="pointer" or type_of_var=="ptr": return 8;
 	list_of_supported_types=['void','float','double','long','long int','int','char','long double']
 	type_of_var_without_unsigned=''.join(type_of_var.split("unsigned ",1))
 	if type_of_var in typedefs:
@@ -156,7 +157,7 @@ def split_params_locals_of_a_fun_per_type(function_name):
 				params_in_stack[type_of_var]['total_size']+=param[1]
 		
 		for i,local_var in enumerate(fun_locals):
-			if return_simple_type_of_var(local[0][0])==type_of_var:
+			if return_simple_type_of_var(local_var[0][0])==type_of_var:
 				locals_in_stack[type_of_var]['dicts'].append(copy.deepcopy(local_var))
 				locals_in_stack[type_of_var]['sizes'].append(local_var[1])
 				locals_in_stack[type_of_var]['total_size']+=local_var[1]
@@ -211,11 +212,11 @@ def split_params_locals_of_a_fun_per_type(function_name):
 	return (params_in_stack,locals_in_stack,params_with_unknown_size,locals_with_unknown_size,retval)
 
 			
-	
 
 		
 		
-def find_name_of_getter(type_of_var,use_array=1):
+def find_name_of_getter(type_of_var_full,use_array=1):
+	type_of_var=''.join(type_of_var_full.split("unsigned ",1)) #remove unsigned
 	name_of_getter='get_stack_'
 	if( type_of_var=='long' or type_of_var=='long int'):
 		name_of_getter+='long_int'
@@ -229,7 +230,8 @@ def find_name_of_getter(type_of_var,use_array=1):
 	
 	
 	
-def find_name_of_setter(type_of_var,use_array=1):
+def find_name_of_setter(type_of_var_full,use_array=1):
+	type_of_var=''.join(type_of_var_full.split("unsigned ",1)) #remove unsigned
 	name_of_setter='set_stack_'
 	if( type_of_var=='long' or type_of_var=='long int'):
 		name_of_setter+='long_int'
@@ -241,7 +243,8 @@ def find_name_of_setter(type_of_var,use_array=1):
 		name_of_setter+='_array_element'
 	return name_of_setter
 	
-def find_name_of_stack_setter_in_caps(type_of_var):
+def find_name_of_stack_setter_in_caps(type_of_var_full):
+	type_of_var=''.join(type_of_var_full.split("unsigned ",1)) #remove unsigned
 	name_of_setter='SET_STACK_'
 	if( type_of_var=='long' or type_of_var=='long int'):
 		name_of_setter+='LONG'
@@ -282,6 +285,8 @@ def calc_size_of_fun_in_stack(function_name):
 	chunks_for_base_pointer_and_retaddr=calculate_chunks_needed_for_a_size(get_size_of_type('ptr')*2)
 	total_chunks_needed=chunks_for_params+chunks_for_local_vars+chunks_for_return_value+chunks_for_base_pointer_and_retaddr+int(chunks_for_stack_canary)
 
+	our_function_dict['chunks_in_stack']=total_chunks_needed
+
 	return total_chunks_needed
 	
 	
@@ -295,10 +300,11 @@ def add_code_for_function_calling_new_template(function_name,helping_args_for_fu
 	
 	global functions_dict_with_our_info
 	
+	fun_name=function_name
 	function_dict=all_functions_dict[fun_name]
 	our_function_dict=functions_dict_with_our_info[fun_name]
 		
-	chunks_for_params=str(our_function_dict['params_in_stack']['total_chunks_needed']))
+	chunks_for_params=str(our_function_dict['params_in_stack']['total_chunks_needed'])
 	chunks_for_local_vars=str(our_function_dict['locals_in_stack']['total_chunks_needed'])
 	chunks_for_return_value=str(our_function_dict['return_value']['total_chunks_needed'])
 	chunks_for_base_pointer_and_retaddr=str(calculate_chunks_needed_for_a_size(get_size_of_type('ptr')*2))
@@ -306,7 +312,7 @@ def add_code_for_function_calling_new_template(function_name,helping_args_for_fu
 	our_function_dict['num_of_times_called_in_code']=str(int(our_function_dict['num_of_times_called_in_code'])+1)
 	num_of_times_called_in_code=our_function_dict['num_of_times_called_in_code']
 	params_cnt=0
-	offset_for_params_in_chunks=our_function_dict['params_in_stack']['total_chunks_needed_for_simple_params']
+	offset_for_params_in_chunks=our_function_dict['params_in_stack']['total_chunks_needed_for_other_params']
 	all_chunks_of_fun=str(int(chunks_for_params)+int(chunks_for_local_vars)+int(chunks_for_return_value)+int(chunks_for_base_pointer_and_retaddr)+int(chunks_for_stack_canary))
 	
 	#every variable must be different, since we might nest function calls
@@ -324,7 +330,7 @@ def add_code_for_function_calling_new_template(function_name,helping_args_for_fu
 	#set value to the parameters
 	for type_of_var in ['char','int','long','float','double','pointer']:
 		dict_to_look=our_function_dict['params_in_stack'][type_of_var]
-		num_of_var=len(dict_to_look[sizes])
+		num_of_var=len(dict_to_look['sizes'])
 		
 		if (num_of_var>0):
 			#create the array with the initial variables
@@ -340,47 +346,44 @@ def add_code_for_function_calling_new_template(function_name,helping_args_for_fu
 			lines_to_append.append(type_of_var_in_c+' '+array_of_params_for_type_and_fun_name+'['+str(num_of_var)+'];\n')
 			
 			#iterate over the params, and set the value
+			cnt_for_type_of_var=0
 			for j,param in enumerate(function_dict["fun_decl"][0][1]['list_of_arguments']):
 				if type_of_var==return_simple_type_of_var(param[0][0]):
+					cnt_for_type_of_var+=1
 					value_of_var=params[j]
 					if(value_of_var.lower()=='null'):
 						value_of_var='0'
-					lines_to_append.append(''+array_of_params_for_type_and_fun_name+'['+str(i)+']='+value_of_var+';\n')
-					
+					lines_to_append.append(''+array_of_params_for_type_and_fun_name+'['+str(cnt_for_type_of_var)+']='+value_of_var+';\n')
+
 			lines_to_append.append('insert_data_into_stack_mem('+size_of_array_for_array_fun_params+',(unsigned char*)'+array_of_params_for_type_and_fun_name+',(unsigned char*)'+ret_addr_alloc+'-('+chunks_for_params+'-'+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
 		offset_for_params_in_chunks+=int(dict_to_look['chunks_needed'])
 
-	!!!1 here u are
+	offset_for_params_in_chunks=0 #the simple vars were put first (above) into the stack
 	#same for the other parameters (structs etc)
 	dict_to_look=our_function_dict['params_in_stack']['other_params']
-	num_of_var=int(fun_dict['params']['arb_ptr']['number'])
-	for i in range(num_of_var):
-		size_of_arb_ptr_data=fun_dict['params']['arb_ptr']['sizes'][i] #has to be an int, python doesn't know "sizeof()"
-		if (params[params_cnt]!='NULL' and params[params_cnt]!='0'):
-			if stack_dec_num==0:
-				lines_to_append.append('insert_data_into_stack_mem('+size_of_arb_ptr_data+','+params[params_cnt]+','+ret_addr_alloc+'+('+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
-			else:
-				lines_to_append.append('insert_data_into_stack_mem('+size_of_arb_ptr_data+','+params[params_cnt]+','+ret_addr_alloc+'-('+chunks_for_params+'-'+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
-		params_cnt+=1
-		offset_for_params_in_chunks+=calculate_chunks_needed_for_a_size(int(size_of_arb_ptr_data))
+	num_of_var=len(dict_to_look['sizes'])
+	cnt_for_other_param=0
+	for j,param in enumerate(function_dict["fun_decl"][0][1]['list_of_arguments']):
+		if return_simple_type_of_var(param[0][0])=='not_simple_type':
+			#we have the next param that classifies as "other params"
+			cnt_for_other_param+=1
+			size_of_arb_ptr_data=dict_to_look['sizes'][cnt_for_other_param]
+			value_of_var=params[j]
+			lines_to_append.append('insert_data_into_stack_mem('+size_of_arb_ptr_data+','+value_of_var+','+ret_addr_alloc+'-('+chunks_for_params+'-'+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
+
+			offset_for_params_in_chunks+=calculate_chunks_needed_for_a_size(int(size_of_arb_ptr_data))
 	#base pointer
-	if stack_dec_num==0:
-		lines_to_append.append('set_stack_pointer('+ret_addr_alloc+'+('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_return_address+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data),base_pointer_for_stack);\n')
-		lines_to_append.append('base_pointer_for_stack='+ret_addr_alloc+'+('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_return_address+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data);\n')
-	else:
-		lines_to_append.append('set_stack_pointer('+ret_addr_alloc+'-('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_return_address+'+'+chunks_for_base_pointer+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data),base_pointer_for_stack);\n')
-		lines_to_append.append('base_pointer_for_stack='+ret_addr_alloc+'-('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_return_address+'+'+chunks_for_base_pointer+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data);\n')	
+	lines_to_append.append('set_stack_pointer('+ret_addr_alloc+'-('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_base_pointer_and_retaddr+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data),base_pointer_for_stack);\n')
+	lines_to_append.append('base_pointer_for_stack='+ret_addr_alloc+'-('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_base_pointer_and_retaddr+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data);\n')	
 	#add goto to the function code
 	lines_to_append.append('goto '+fun_name+'_start_label;\n')
 	#add return label
 	lines_to_append.append('return_label_'+fun_name+'_no_'+num_of_times_called_in_code+':\n ;')
 	#return value
-	if (stack_grows_by_decreasing_numbers==0):
-		start_of_return_place='last_unused_stack_memory+('+chunks_for_params+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
-	else: 
-		start_of_return_place='last_unused_stack_memory-('+chunks_for_params+'+'+chunks_for_return_value+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
-	if (fun_dict['return_value_type']!='' and fun_dict['return_value_type'].lower()!='none' and fun_dict['return_value_type'].lower!='null'):
-		getter_name=find_name_of_getter(fun_dict['return_value_type'],0)
+	start_of_return_place='last_unused_stack_memory-('+chunks_for_params+'+'+chunks_for_return_value+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
+	retval_dict=functions_dict_with_our_info[function_name]['return_value']['dict']
+	if retval_dict[0][0]!='void':
+		getter_name=find_name_of_getter(retval_dict[0][0],0)
 		lines_to_append.append(getter_name+'(('+start_of_return_place+'));\n')
 	lines_to_append.append('})')
 	ret_str=''
@@ -390,28 +393,34 @@ def add_code_for_function_calling_new_template(function_name,helping_args_for_fu
 	
 	
 #these are the lines that are put at the start of each function (eg definitions of local var and param macros, setting of base pointer etc)
-def add_the_function_header():
-	global function_dict
+def add_the_function_header(function_name):
+
+	global all_functions_dict
+	global functions_dict_with_our_info
 	
-	chunks_for_params=function_dict['chunks_for_params']
-	chunks_for_local_vars=function_dict['chunks_for_local_vars']
-	chunks_for_return_value=function_dict['chunks_for_return_value']
-	chunks_for_base_pointer=function_dict['chunks_for_base_pointer']
-	chunks_for_return_address=function_dict['chunks_for_return_address']	
+	fun_name=function_name
+	function_dict=all_functions_dict[fun_name]
+	our_function_dict=functions_dict_with_our_info[fun_name]
+	
+	chunks_for_params=str(our_function_dict['params_in_stack']['total_chunks_needed'])
+	chunks_for_local_vars=str(our_function_dict['locals_in_stack']['total_chunks_needed'])
+	chunks_for_return_value=str(our_function_dict['return_value']['total_chunks_needed'])
+	chunks_for_base_pointer_and_retaddr=str(calculate_chunks_needed_for_a_size(get_size_of_type('ptr')*2))
+	
 	defines=[]
-	offset_in_chunks=0
+	offset_in_chunks=our_function_dict['params_in_stack']['total_chunks_needed_for_other_params']
 	lines_to_append=[]
 	
 	start_of_stack_canary='base_pointer_for_stack-('+str(int(chunks_for_stack_canary))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
 
 		
 	#create the proper defines. Practically the addresses relevant to the base pointer
-	start_of_parameters='base_pointer_for_stack-('+str(int(chunks_for_return_address)+int(chunks_for_return_value)+int(chunks_for_params))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
-	if stack_dec_num==1:
-		start_of_parameters='base_pointer_for_stack+('+str(int(chunks_for_return_address)+int(chunks_for_return_value)+int(chunks_for_base_pointer))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
+	start_of_parameters='base_pointer_for_stack+('+str(int(chunks_for_return_address)+int(chunks_for_return_value)+int(chunks_for_base_pointer))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
 	#params
-	for type_of_var in ['char','int','long','float','double','ptr']: #in that order!
-		num_of_var=int(function_dict['params'][type_of_var]['number'])
+	for type_of_var in ['char','int','long','float','double','pointer']: #in that order!
+		dict_to_look=our_function_dict['params_in_stack'][type_of_var]
+		num_of_var=len(dict_to_look['sizes'])
+		!!!! here you are
 		for i in range(num_of_var):
 			name_of_var=function_dict['params'][type_of_var]['names'][i]
 			lines_to_append.append('#define '+name_of_var+' '+start_of_parameters+'+'+str(offset_in_chunks)+'*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data),'+str(i)+' \n')
@@ -463,12 +472,20 @@ def add_the_function_header():
 	
 	
 #the code at the end of each function
-def add_the_function_footer(bool_for_undef):
-	global function_dict
+def add_the_function_footer(bool_for_undef,function_name):
+
+	global all_functions_dict
+	global functions_dict_with_our_info
 	
-	chunks_for_return_address=function_dict['chunks_for_return_address']	
-	chunks_for_base_pointer=function_dict['chunks_for_base_pointer']
-	chunks_for_local_vars=function_dict['chunks_for_local_vars']
+	fun_name=function_name
+	function_dict=all_functions_dict[fun_name]
+	our_function_dict=functions_dict_with_our_info[fun_name]
+	
+	chunks_for_params=str(our_function_dict['params_in_stack']['total_chunks_needed'])
+	chunks_for_local_vars=str(our_function_dict['locals_in_stack']['total_chunks_needed'])
+	chunks_for_return_value=str(our_function_dict['return_value']['total_chunks_needed'])
+	chunks_for_base_pointer_and_retaddr=str(calculate_chunks_needed_for_a_size(get_size_of_type('ptr')*2))
+	
 
 	start_of_stack_canary='base_pointer_for_stack-('+str(int(chunks_for_stack_canary))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
 
@@ -476,32 +493,26 @@ def add_the_function_footer(bool_for_undef):
 	lines_to_append=[]
 	#check the stack canary
 	if (use_stack_canaries>0):
-		lines_to_append.append('//check stack canary\n')
+		lines_to_append.append('/*check stack canary*/\n')
 		lines_to_append.append('check_stack_canary_in_stack('+start_of_stack_canary+',__LINE__);\n')
 	
 	#set the former base pointer
 	lines_to_append.append('temp_base_pointer=base_pointer_for_stack;\n')
 	lines_to_append.append('base_pointer_for_stack=get_stack_pointer(base_pointer_for_stack);\n')
 	#pop the stack frame
-	if (function_dict['use_of_explicit_stack_allocation']=='0'):
-		lines_to_append.append('free_mem_from_secure_stack_in_chunks('+function_dict['chunks_in_stack']+');\n')
+	if (our_function_dict['use_of_explicit_stack_allocation']=='0'):
+		lines_to_append.append('free_mem_from_secure_stack_in_chunks('+str(calc_size_of_fun_in_stack(fun_name))+');\n')
 	else:
 		#place the stack pointer into its position right after the local vars
-		if (stack_grows_by_decreasing_numbers==0):
-			lines_to_append.append('last_unused_stack_memory=temp_base_pointer+('+str(int(chunks_for_base_pointer)+int(chunks_for_local_vars))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data);\n')
-		else:
-			lines_to_append.append('last_unused_stack_memory=temp_base_pointer-('+str(int(chunks_for_local_vars)+int(chunks_for_stack_canary))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data);\n')
-		lines_to_append.append('free_mem_from_secure_stack_in_chunks('+function_dict['chunks_in_stack']+');\n')
+		lines_to_append.append('last_unused_stack_memory=temp_base_pointer-('+str(int(chunks_for_local_vars)+int(chunks_for_stack_canary))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data);\n')
+		lines_to_append.append('free_mem_from_secure_stack_in_chunks('+str(calc_size_of_fun_in_stack(fun_name))+');\n')
 	if(bool_for_undef):
 		#undef
-		for i in function_dict['defines']:
+		for i in our_function_dict['defines']:
 			lines_to_append.append('#undef '+i+'\n')
 	#lines_to_append.append('printf("address_of_ret_lab2=%ld\\n",(long)(*(long*)(get_stack_pointer(temp_base_pointer-('+str(int(chunks_for_return_address))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)))));')
 	#add goto return address
-	if stack_dec_num==0:
-		lines_to_append.append('goto *(get_stack_pointer(temp_base_pointer-('+str(int(chunks_for_return_address))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)));\n')
-	else:
-		lines_to_append.append('goto *(get_stack_pointer(temp_base_pointer+('+str(int(chunks_for_base_pointer))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)));\n')
+	lines_to_append.append('goto *(get_stack_pointer_array_element(temp_base_pointer,1));\n')
 	#writing of the return value is done where the function is being called
 	for line in lines_to_append:
 		dst_lines.append(line)
@@ -510,27 +521,31 @@ def add_the_function_footer(bool_for_undef):
 str_for_new_ret_exp="PYTHON PLEASE USE THIS RETURN EXPRESSION:"	
 		
 #set the return value
-def copy_result_to_return_space(line_of_return):
-	global function_dict
+def copy_result_to_return_space(line_of_return,function_name):
+	global all_functions_dict
+	global functions_dict_with_our_info
 	
-	chunks_for_params=function_dict['chunks_for_params']
-	chunks_for_local_vars=function_dict['chunks_for_local_vars']
-	chunks_for_return_value=function_dict['chunks_for_return_value']
-	chunks_for_base_pointer=function_dict['chunks_for_base_pointer']
-	chunks_for_return_address=function_dict['chunks_for_return_address']
+	fun_name=function_name
+	function_dict=all_functions_dict[fun_name]
+	our_function_dict=functions_dict_with_our_info[fun_name]
+	
+	chunks_for_params=str(our_function_dict['params_in_stack']['total_chunks_needed'])
+	chunks_for_local_vars=str(our_function_dict['locals_in_stack']['total_chunks_needed'])
+	chunks_for_return_value=str(our_function_dict['return_value']['total_chunks_needed'])
+	chunks_for_base_pointer_and_retaddr=str(calculate_chunks_needed_for_a_size(get_size_of_type('ptr')*2))
 	
 	lines_to_append=[]
-	if stack_dec_num==0:
-		start_of_return_place='base_pointer_for_stack-('+str(int(chunks_for_return_address)+int(chunks_for_return_value))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
-	else:
-		start_of_return_place='base_pointer_for_stack+('+str(int(chunks_for_return_address)+int(chunks_for_base_pointer))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
-	if (function_dict['return_value_type']!='' and function_dict['return_value_type'].lower()!='none' and function_dict['return_value_type'].lower!='null'):
-		setter_name=find_name_of_setter(function_dict['return_value_type'],0)
+	start_of_return_place='base_pointer_for_stack+('+str(int(chunks_for_base_pointer_and_retaddr))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
+	retval_dict=our_function_dict['return_value']['dict']
+	if retval_dict[0][0]!='void':
+		setter_name=find_name_of_setter(retval_dict[0][0],0)
 		if (str_for_new_ret_exp in line_of_return):
 			new_return_expression=line_of_return.split('|')[1].strip().split(str_for_new_ret_exp)[1].strip()
 			lines_to_append.append(setter_name+'(('+start_of_return_place+'),'+new_return_expression+');\n')
 		else:	
-			lines_to_append.append(setter_name+'(('+start_of_return_place+'),'+function_dict['return_expression']+');\n')
+			sys.stderr.write("ERROR! Return expression not found!\n")
+			sys.stderr.write(line_of_return)
+			sys.exit(-1)
 	for line in lines_to_append:
 		dst_lines.append(line)
 
@@ -581,14 +596,9 @@ helping_args_for_fun_call_str='HELPING ARGS FOR FUN CALL'
 allocate_in_secure_stack_a_block_str='ALLOCATE STACK DATA OF SIZE'
 
 
-function_dict={}
+
 fun_name=""
-in_function_declaration=0
-in_parameters=0
-in_local_variables=0
-ret_val_size=0
 needed_part_of_str=''
-params_locals_lines=[]
 cnt_params_locals_lines=0
 in_function_code=0
 list_of_params_currently_called=[]
@@ -610,30 +620,27 @@ for line in src_lines:
 		functions_dict_with_our_info[fun_name]={}
 		functions_dict_with_our_info[fun_name]['num_of_times_called_in_code']='0'
 		functions_dict_with_our_info[fun_name]['use_of_explicit_stack_allocation']='0'
+		functions_dict_with_our_info[fun_name]['defines']=[]
 		split_params_locals_of_a_fun_per_type(fun_name)
 		dst_lines.append('/* FUNCTION '+fun_name+ ' BEGINNING:*/\n') 
-		dst_lines.append(function_dict['name']+"_start_label:\n")
+		dst_lines.append(fun_name+"_start_label:\n")
 		add_the_function_header(fun_name)
 		continue
 		
 	
 	if end_of_function_str in line:
-		in_function_declaration=0
 		in_function_code=0
-		add_the_function_footer(1)
-		dst_lines.append(function_dict['name']+"_end_label:\n")
-		all_functions_dict[fun_name]=copy.deepcopy(function_dict) #do it a second time to have it as a whole
-		gc.collect()
+		add_the_function_footer(1,fun_name)
+		dst_lines.append(fun_name+"_end_label:\n")
+		dst_lines.append('/* FUNCTION '+fun_name+ ' END.*/\n')
 		continue
+
 	if (allocate_in_secure_stack_a_block_str in line) and (in_function_code):
 		#ALLOCATE STACK DATA OF SIZE: 500 | SETTER FOR THEM AND VAR : SET_STACK_PTR(X,
 		expression_of_size_in_bytes=line.split('|')[0].split(':')[1].strip()
 		setter_for_data=line.split('|')[1].split(':')[1].strip()
-		function_dict['use_of_explicit_stack_allocation']='1'
-		if stack_dec_num==0:
-			dst_lines.append(setter_for_data+'allocate_mem_into_secure_stack_return_ptr_only('+ expression_of_size_in_bytes+'));\n')
-		else:
-			dst_lines.append(setter_for_data+'allocate_mem_into_secure_stack_return_ptr_only_after_alloc('+ expression_of_size_in_bytes+'));\n')
+		functions_dict_with_our_info[fun_name]['use_of_explicit_stack_allocation']='1'
+		dst_lines.append(setter_for_data+'allocate_mem_into_secure_stack_return_ptr_only_after_alloc('+ expression_of_size_in_bytes+'));\n')
 		continue
 
 		
@@ -670,8 +677,8 @@ for line in src_lines:
 		continue
 	
 	if (return_point_of_function_str in line) and (in_function_code==1):
-		copy_result_to_return_space(line)
-		add_the_function_footer(0) #don't undef!
+		copy_result_to_return_space(line,fun_name)
+		add_the_function_footer(0,fun_name) #don't undef!
 		continue
 
 	#if nothing is done
