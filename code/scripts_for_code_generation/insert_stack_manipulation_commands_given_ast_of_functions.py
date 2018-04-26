@@ -33,6 +33,8 @@ src_lines= tests_src.readlines()
 src_lines = [x for x in src_lines if not "PYTHON IGNORE" in x]
 dst_lines=[]
 
+print_output=True
+
 tests_src.close()
 if print_output:
 	tests_dst=open('tests_for_stack_commands_supporting_ast_parsing.c','w')
@@ -42,7 +44,6 @@ number_of_stack_useful_data_bytes=int(sys.argv[2])
 number_of_mac_bytes=int(sys.argv[3])
 use_stack_canaries=int(sys.argv[4])
 
-print_output=True
 stack_dec_num=1
 op_to_move_in_stack='-'
 
@@ -667,6 +668,15 @@ for line in src_lines:
 		code_for_fun=substring_for_fun_call
 		substring_for_fun_call=substring_for_fun_call[3:-3] #remove {{{ and }}}
 		function_name=custom_split_of_str(custom_split_of_str(substring_for_fun_call,'|')[0].strip(),':')[1].strip()
+		if function_name not in all_functions_dict:
+			#function not found.... should be though
+			if (parameters_for_calling_str in substring_for_fun_call):
+				params_to_call=substring_for_fun_call.split(parameters_for_calling_str)[1].split(":")[1]
+			else:
+				params_to_call=""
+			line_temp= line_temp.replace(code_for_fun, '/*IMPORTANT! FUNCTION NAME NOT FOUND!*/ '+function_name+'('+params_to_call+')', 1)
+			line_temp=line_temp.replace('\n', ' ').replace('\r', '')
+			continue
 		num_of_params=len(all_functions_dict[function_name]["fun_decl"][0][1]['list_of_arguments'])
 		helping_args_for_fun_call=custom_split_of_str(custom_split_of_str(substring_for_fun_call,'|')[1].strip(),':')[1].strip() #split by '|', split by ':' and strip
 		helping_args_for_fun_call_dict={}
