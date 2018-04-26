@@ -13,6 +13,7 @@ import pickle
 This script inserts the commands that implement the secure stack.
 It parses the function annotations in tests_for_stack_commands_supporting_ast_parsing.c
 It also reads the ast created by our extensions to pycparser, that target the same file.
+The parameters and local variables are grouped into arrays per variable type (chars in an array, ints in an array, etc)
 '''
 
 #for the stack:
@@ -373,7 +374,7 @@ def add_code_for_function_calling_new_template(function_name,helping_args_for_fu
 
 			offset_for_params_in_chunks+=calculate_chunks_needed_for_a_size(int(size_of_arb_ptr_data))
 	#base pointer
-	lines_to_append.append('set_stack_pointer('+ret_addr_alloc+'-('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_base_pointer_and_retaddr+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data),base_pointer_for_stack);\n')
+	lines_to_append.append('set_stack_pointer_array_element('+ret_addr_alloc+'-('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_base_pointer_and_retaddr+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data),0,base_pointer_for_stack);\n')
 	lines_to_append.append('base_pointer_for_stack='+ret_addr_alloc+'-('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_base_pointer_and_retaddr+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data);\n')	
 	#add goto to the function code
 	lines_to_append.append('goto '+fun_name+'_start_label;\n')
@@ -415,54 +416,60 @@ def add_the_function_header(function_name):
 
 		
 	#create the proper defines. Practically the addresses relevant to the base pointer
-	start_of_parameters='base_pointer_for_stack+('+str(int(chunks_for_return_address)+int(chunks_for_return_value)+int(chunks_for_base_pointer))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
+	start_of_parameters='base_pointer_for_stack+('+str(int(chunks_for_return_value)+int(chunks_for_base_pointer_and_retaddr))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
 	#params
 	for type_of_var in ['char','int','long','float','double','pointer']: #in that order!
 		dict_to_look=our_function_dict['params_in_stack'][type_of_var]
 		num_of_var=len(dict_to_look['sizes'])
-		!!!! here you are
 		for i in range(num_of_var):
-			name_of_var=function_dict['params'][type_of_var]['names'][i]
+			name_of_var=dict_to_look['dicts'][i][0][1]['name']
 			lines_to_append.append('#define '+name_of_var+' '+start_of_parameters+'+'+str(offset_in_chunks)+'*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data),'+str(i)+' \n')
 			defines.append(name_of_var)
 		if (num_of_var>0):
 			lines_to_append.append(';'+find_type_of_var_in_C(type_of_var)+' array_for_'+type_of_var+'_fun_'+fun_name+'_params['+str(num_of_var)+'];\n')
-		offset_in_chunks+=int(function_dict['chunks_for_'+type_of_var+'_params'])
-	#arb_ptrs
-	num_of_var=int(function_dict['params']['arb_ptr']['number'])
+		offset_in_chunks+=int(dict_to_look['chunks_needed'])
+	offset_in_chunks=0
+	#param non simple vars
+	dict_to_look=our_function_dict['params_in_stack']['other_params']
+	num_of_var=len(dict_to_look['sizes'])
 	for i in range(num_of_var):
-		size_of_arb_ptr_data=function_dict['params']['arb_ptr']['sizes'][i] #has to be an int, python doesn't know "sizeof()"
-		name_of_var=function_dict['params']['arb_ptr']['names'][i]
+		size_of_arb_ptr_data=dict_to_look['sizes'][i] #has to be an int, python doesn't know "sizeof()"
+		name_of_var=dict_to_look['dicts'][i][0][1]['name']
+		if dict_to_look['dicts'][i][0][0]=='struct':
+			name_of_var=dict_to_look['dicts'][i][0][1]["name_of_struct_variable"]
 		lines_to_append.append('#define '+name_of_var+' ('+start_of_parameters+'+'+str(offset_in_chunks)+'*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)) \n')
 		defines.append(name_of_var)
 		offset_in_chunks+=calculate_chunks_needed_for_a_size(int(size_of_arb_ptr_data))
 
-	start_of_local_vars='base_pointer_for_stack+('+str(int(chunks_for_base_pointer))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
-	if stack_dec_num==1:
-		start_of_local_vars='base_pointer_for_stack-('+str(int(chunks_for_stack_canary)+int(chunks_for_local_vars))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
-	offset_in_chunks=0
+	start_of_local_vars='base_pointer_for_stack-('+str(int(chunks_for_stack_canary)+int(chunks_for_local_vars))+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)'
+	offset_in_chunks=our_function_dict['locals_in_stack']['total_chunks_needed_for_other_locals']
 	#local vars
-	for type_of_var in ['char','int','long','float','double','ptr']: #in that order!
-		num_of_var=int(function_dict['locals'][type_of_var]['number'])
+	for type_of_var in ['char','int','long','float','double','pointer']: #in that order!
+		dict_to_look=our_function_dict['locals_in_stack'][type_of_var]
+		num_of_var=len(dict_to_look['sizes'])
 		for i in range(num_of_var):
-			name_of_var=function_dict['locals'][type_of_var]['names'][i]
+			name_of_var=dict_to_look['dicts'][i][0][1]['name']
 			lines_to_append.append('#define '+name_of_var+' '+start_of_local_vars+'+'+str(offset_in_chunks)+'*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data),'+str(i)+' \n')
 			defines.append(name_of_var)
-		offset_in_chunks+=int(function_dict['chunks_for_'+type_of_var+'_locals'])
-	#arb_ptrs
-	num_of_var=int(function_dict['locals']['arb_ptr']['number'])
+		offset_in_chunks+=int(dict_to_look['chunks_needed'])
+	#local non simple vars
+	offset_in_chunks=0
+	dict_to_look=our_function_dict['locals_in_stack']['other_params']
+	num_of_var=len(dict_to_look['sizes'])
 	for i in range(num_of_var):
-		size_of_arb_ptr_data=function_dict['locals']['arb_ptr']['sizes'][i] #has to be an int, python doesn't know "sizeof()"
-		name_of_var=function_dict['locals']['arb_ptr']['names'][i]
+		size_of_arb_ptr_data=dict_to_look['sizes'][i] #has to be an int, python doesn't know "sizeof()"
+		name_of_var=dict_to_look['dicts'][i][0][1]['name']
+		if dict_to_look['dicts'][i][0][0]=='struct':
+			name_of_var=dict_to_look['dicts'][i][0][1]["name_of_struct_variable"]
 		lines_to_append.append('#define '+name_of_var+' ('+start_of_local_vars+'+'+str(offset_in_chunks)+'*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)) \n')
 		defines.append(name_of_var)
 		offset_in_chunks+=calculate_chunks_needed_for_a_size(int(size_of_arb_ptr_data))
 			
-	function_dict['defines']=copy.deepcopy(defines)
+	our_function_dict['defines']=copy.deepcopy(defines)
 	
 	#set the stack canary
 	if (use_stack_canaries>0):
-		lines_to_append.append('//set stack canary \n');
+		lines_to_append.append('/*set stack canary*/ \n');
 		lines_to_append.append('set_stack_canary_in_stack('+start_of_stack_canary+');\n')
 	
 	for line in lines_to_append:
