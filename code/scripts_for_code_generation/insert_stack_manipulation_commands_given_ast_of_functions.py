@@ -133,7 +133,7 @@ def split_params_locals_of_a_fun_per_type(function_name):
 			params_with_unknown_size.append(param)
 			fun_params.pop(i) #remove that element
 			sys.stderr.write('ERROR!!!!!!. Variable size parameters not supported!\n')
-			sys.stderr.write(param)
+			print(param)
 			sys.exit(-1)
 			
 	for i,local_var in enumerate(fun_locals):
