@@ -376,6 +376,17 @@ void * set_secure_data(void * source,long data_size, unsigned char * data_start,
 /********************************SECURE HEAP GETTERS START***************************************/
 /************************************************************************************************/
 
+/* Calculates how many bytes are needed in the secure structures for an equivalent offset in the normal memory*/
+long secure_bytes_to_move_forward_for_unsecure_byte_offset(long offset_from_chunk_start_in_secure_mem,long unsecure_byte_offset)
+{
+	long remove_bytes_till_end_of_block=unsecure_byte_offset -(bytes_for_useful_data-offset_from_chunk_start_in_secure_mem);
+	long bytes_in_many_blocks=(remove_bytes_till_end_of_block/(bytes_used_for_keyshares+number_of_mac_bytes+bytes_for_useful_data))*
+							  (bytes_used_for_keyshares+number_of_mac_bytes+bytes_for_useful_data);
+	long bytes_left=remove_bytes_till_end_of_block%(bytes_used_for_keyshares+number_of_mac_bytes+bytes_for_useful_data);
+	return (remove_bytes_till_end_of_block+bytes_in_many_blocks+bytes_left);
+}
+
+
 //Macros for simple variable heap getters
 /*Return the value of a securely allocated variable. Of course secure_malloc must have been called before*/
 #define create_heap_getter( vartype, ourtype) \

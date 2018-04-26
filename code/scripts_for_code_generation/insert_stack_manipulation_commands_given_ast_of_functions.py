@@ -424,7 +424,9 @@ def add_the_function_header(function_name):
 		for i in range(num_of_var):
 			name_of_var=dict_to_look['dicts'][i][0][1]['name']
 			lines_to_append.append('#define '+name_of_var+' '+start_of_parameters+'+'+str(offset_in_chunks)+'*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data),'+str(i)+' \n')
+			lines_to_append.append('#define '+name_of_var+'_as_address ('+start_of_parameters+'+'+str(offset_in_chunks)+'*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)+secure_bytes_to_move_forward_for_unsecure_byte_offset(0,'+str(i)+'*sizeof('+find_type_of_var_in_C(type_of_var)+'))) \n')
 			defines.append(name_of_var)
+			defines.append(name_of_var+'_as_address')
 		if (num_of_var>0):
 			lines_to_append.append(';'+find_type_of_var_in_C(type_of_var)+' array_for_'+type_of_var+'_fun_'+fun_name+'_params['+str(num_of_var)+'];\n')
 		offset_in_chunks+=int(dict_to_look['chunks_needed'])
@@ -450,7 +452,9 @@ def add_the_function_header(function_name):
 		for i in range(num_of_var):
 			name_of_var=dict_to_look['dicts'][i][0][1]['name']
 			lines_to_append.append('#define '+name_of_var+' '+start_of_local_vars+'+'+str(offset_in_chunks)+'*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data),'+str(i)+' \n')
+			lines_to_append.append('#define '+name_of_var+'_as_address ('+start_of_local_vars+'+'+str(offset_in_chunks)+'*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data)+secure_bytes_to_move_forward_for_unsecure_byte_offset(0,'+str(i)+'*sizeof('+find_type_of_var_in_C(type_of_var)+'))) \n')
 			defines.append(name_of_var)
+			defines.append(name_of_var+'_as_address')
 		offset_in_chunks+=int(dict_to_look['chunks_needed'])
 	#local non simple vars
 	offset_in_chunks=0

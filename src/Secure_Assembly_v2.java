@@ -691,7 +691,8 @@ public class Secure_Assembly_v2 {
 								 "set_long_int_from_arb_memory_position",
                                  "produce_stack_canary_unoptimized_part",
                                  "set_stack_canary_in_stack",
-                                 "check_stack_canary_in_stack"
+                                 "check_stack_canary_in_stack",
+								 "secure_bytes_to_move_forward_for_unsecure_byte_offset"
 								};
 		
 		if (Arrays.asList(safe_functions).contains(fun_name.trim()))
