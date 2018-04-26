@@ -598,7 +598,7 @@ def get_random_string(size):
 
 
 
-call_of_function_new_str='HEY PYTHON CALL FUNCTION WITH NEW TEMPLATE'
+call_of_function_new_str='HEY PYTHON CALL FUNCTION WITH NEWER TEMPLATE'
 start_of_function_str='START_OF_FUNCTION'
 end_of_function_str='END_OF_FUNCTION'
 return_point_of_function_str='RETURN_POINT_OF_FUNCTION'
