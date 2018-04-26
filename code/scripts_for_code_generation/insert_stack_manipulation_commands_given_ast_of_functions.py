@@ -34,14 +34,15 @@ src_lines = [x for x in src_lines if not "PYTHON IGNORE" in x]
 dst_lines=[]
 
 tests_src.close()
-tests_dst=open('tests_for_stack_commands_supporting_ast_parsing.c','w')
+if print_output:
+	tests_dst=open('tests_for_stack_commands_supporting_ast_parsing.c','w')
 
 number_of_stack_key_bytes=int(sys.argv[1])
 number_of_stack_useful_data_bytes=int(sys.argv[2])
 number_of_mac_bytes=int(sys.argv[3])
 use_stack_canaries=int(sys.argv[4])
 
-
+print_output=True
 stack_dec_num=1
 op_to_move_in_stack='-'
 
@@ -180,13 +181,13 @@ def split_params_locals_of_a_fun_per_type(function_name):
 	total_chunks_needed_for_other_params=0
 	total_chunks_needed_for_other_locals=0
 	for i,param in enumerate(fun_params):
-		if param[0][0] not in ['char','int','long','pointer','float','double']:
+		if return_simple_type_of_var(param[0][0]) not in ['char','int','long','pointer','float','double']:
 			params_in_stack['other_params']['dicts'].append(copy.deepcopy(param))
 			params_in_stack['other_params']['sizes'].append(param[1])
 			total_chunks_needed_for_other_params+=calculate_chunks_needed_for_a_size(param[1])
 	
 	for i,local_var in enumerate(fun_locals):
-		if local_var[0][0] not in ['char','int','long','pointer','float','double']:
+		if return_simple_type_of_var(local_var[0][0]) not in ['char','int','long','pointer','float','double']:
 			locals_in_stack['other_params']['dicts'].append(copy.deepcopy(local_var))
 			locals_in_stack['other_params']['sizes'].append(local_var[1])
 			total_chunks_needed_for_other_locals+=calculate_chunks_needed_for_a_size(local_var[1])
@@ -509,7 +510,7 @@ def add_the_function_footer(bool_for_undef,function_name):
 	
 	#set the former base pointer
 	lines_to_append.append('temp_base_pointer=base_pointer_for_stack;\n')
-	lines_to_append.append('base_pointer_for_stack=get_stack_pointer(base_pointer_for_stack);\n')
+	lines_to_append.append('base_pointer_for_stack=get_stack_pointer_array_element(base_pointer_for_stack,0);\n')
 	#pop the stack frame
 	if (our_function_dict['use_of_explicit_stack_allocation']=='0'):
 		lines_to_append.append('free_mem_from_secure_stack_in_chunks('+str(calc_size_of_fun_in_stack(fun_name))+');\n')
@@ -643,7 +644,7 @@ for line in src_lines:
 		in_function_code=0
 		add_the_function_footer(1,fun_name)
 		dst_lines.append(fun_name+"_end_label:\n")
-		dst_lines.append('/* FUNCTION '+fun_name+ ' END.*/\n')
+		dst_lines.append('/* FUNCTION '+fun_name+ ' END.*/\n\n')
 		continue
 
 	if (allocate_in_secure_stack_a_block_str in line) and (in_function_code):
@@ -688,6 +689,12 @@ for line in src_lines:
 		continue
 	
 	if (return_point_of_function_str in line) and (in_function_code==1):
+		#add a nice comment
+		if (str_for_new_ret_exp in line):
+			new_return_expression=line.split('|')[1].strip().split(str_for_new_ret_exp)[1].strip()
+			dst_lines.append('/*Return point of function '+fun_name+' , with return expression: '+ new_return_expression +'*/\n')
+		else:
+			dst_lines.append('/*Return point of function '+fun_name+'*/\n')
 		copy_result_to_return_space(line,fun_name)
 		add_the_function_footer(0,fun_name) #don't undef!
 		continue
@@ -695,8 +702,21 @@ for line in src_lines:
 	#if nothing is done
 	dst_lines.append(line)
 
-
-#print(all_functions_dict)
-for line in dst_lines:
-	tests_dst.write(line)
-tests_dst.close()
+if print_output:
+	for fun in functions_dict_with_our_info:
+		print(fun," : ")
+		print('\tlocals_with_unknown_size:',functions_dict_with_our_info[fun]['locals_with_unknown_size'])
+		print('\tparams_with_unknown_size:',functions_dict_with_our_info[fun]['params_with_unknown_size'])
+		print('\treturn_value:',functions_dict_with_our_info[fun]['return_value'])
+		print('\tlocals_in_stack:')
+		for loc in functions_dict_with_our_info[fun]['locals_in_stack']:
+			print('\t\t'+loc+':',functions_dict_with_our_info[fun]['locals_in_stack'][loc])
+		print('\tparams_in_stack:')
+		for par in functions_dict_with_our_info[fun]['params_in_stack']:
+			print('\t\t'+par+':',functions_dict_with_our_info[fun]['params_in_stack'][par])
+	for line in dst_lines:
+		sys.stdout.write(line)
+else:
+	for line in dst_lines:
+		tests_dst.write(line)
+	tests_dst.close()
