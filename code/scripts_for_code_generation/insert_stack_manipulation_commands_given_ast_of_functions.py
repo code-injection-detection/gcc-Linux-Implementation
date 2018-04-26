@@ -643,7 +643,7 @@ for line in src_lines:
 	if end_of_function_str in line:
 		in_function_code=0
 		add_the_function_footer(1,fun_name)
-		dst_lines.append(fun_name+"_end_label:\n")
+		dst_lines.append(fun_name+"_end_label: ;\n")
 		dst_lines.append('/* FUNCTION '+fun_name+ ' END.*/\n\n')
 		continue
 
