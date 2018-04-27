@@ -482,6 +482,41 @@ void get_arbitrary_block_in_heap_with_offset(long data_size,void * start,long of
 LOOP_ACROSS_HEAP_ARB_ACCESS_GET
 ;
 
+
+#define create_heap_getter_from_arb_address_no_offset( vartype, ourtype) \
+                vartype get_##ourtype##_from_arb_address_no_offset(void * address) \
+                {\
+		            vartype res[1];\
+					int offset;\
+					if (all_getter_setter_arguments_point_at_start_of_blocks) \
+					{ \
+						return get_##ourtype (address);\
+					}\
+					else\
+					{\
+						offset=pointer_offset_from_start_of_block((long)address);\
+						get_arbitrary_block_in_heap_with_offset(sizeof( vartype ),(unsigned char*) address-offset, offset,&res[0]);\
+						return res[0];\
+					}\
+                }
+
+
+#define LOOP_ACROSS_HEAP_ARB_ACCESS_ADDR_NO_OFFSET_GET create_heap_getter_from_arb_address_no_offset( char,char );\
+                                   create_heap_getter_from_arb_address_no_offset( int,int );\
+                                   create_heap_getter_from_arb_address_no_offset( long int,long_int );\
+                                   /*pay attention to the type of the pointer when calling*/ \
+                                   create_heap_getter_from_arb_address_no_offset( void*,pointer );\
+                                   create_heap_getter_from_arb_address_no_offset( float,float );\
+                                   create_heap_getter_from_arb_address_no_offset( double,double );\
+
+
+
+
+
+//Functions that get a simple variable from an arbitraty address, with only the address given
+LOOP_ACROSS_HEAP_ARB_ACCESS_ADDR_NO_OFFSET_GET
+;
+
 unsigned char* get_address_of_sheap_array_element(long data_size, void * start_of_array, long index)
 {
 	unsigned char *retval;
@@ -629,6 +664,40 @@ LOOP_ACROSS_HEAP_ARB_ACCESS_SET
 ;
 
 
+
+#define create_heap_setter_from_arb_address_no_offset( vartype, ourtype) \
+                vartype set_##ourtype##_from_arb_address_no_offset(void * address, vartype source) \
+                {\
+                vartype src=source;\
+				int offset;\
+				if (all_getter_setter_arguments_point_at_start_of_blocks) \
+					{ \
+						return set_##ourtype (address,source);\
+					}\
+					else\
+					{\
+						offset=pointer_offset_from_start_of_block((long)address);\
+						set_arbitrary_block_in_heap_with_offset(sizeof( vartype ),(unsigned char*) address-offset, offset,&src);\
+						return src;\
+					}\
+                }
+
+
+#define LOOP_ACROSS_HEAP_ARB_ACCESS_ADDR_NO_OFFSET_SET create_heap_setter_from_arb_address_no_offset( char,char );\
+                                   create_heap_setter_from_arb_address_no_offset( int,int );\
+                                   create_heap_setter_from_arb_address_no_offset( long int,long_int );\
+                                   /*pay attention to the type of the pointer when calling*/ \
+                                   create_heap_setter_from_arb_address_no_offset( void*,pointer );\
+                                   create_heap_setter_from_arb_address_no_offset( float,float );\
+                                   create_heap_setter_from_arb_address_no_offset( double,double );\
+
+
+
+
+
+//Functions that set a simple variable in an arbitraty address, with only the address given
+LOOP_ACROSS_HEAP_ARB_ACCESS_ADDR_NO_OFFSET_SET
+;
 
 
 //setters of secure heap metadata
