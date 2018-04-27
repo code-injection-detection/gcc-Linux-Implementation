@@ -258,9 +258,6 @@ echo "Inserting secure heap manager + more tests into the great function that co
 	cp ./template_files/tests_with_new_stack_template.c tests_with_new_stack.c
 	cp ./template_files/more_tests_that_use_new_stack_template.c more_tests_that_use_new_stack.c
 	cp ./template_files/tests_for_stack_commands_supporting_ast_parsing_template.c tests_for_stack_commands_supporting_ast_parsing.c
-	#now put all the things from heap_manager_functions_that_use_secure_stack.c inside tests_with_new_stack.c where it says "BASH PLEASE PLACE THE HEAP MANAGER FUNCTIONS HERE"
-	sed -i -e '/BASH PLEASE PLACE THE HEAP MANAGER FUNCTIONS HERE/r./heap_manager_functions_that_use_secure_stack.c' tests_with_new_stack.c 
-	sed -i -e '/BASH PLEASE PLACE MORE_TESTS_THAT_USE_NEW_STACK.c HERE/r./more_tests_that_use_new_stack.c' tests_with_new_stack.c 
 
 	#Transform C->secure C in the tests that benefit from pycparser
 	if [ "0" -eq "1" ]; then
@@ -279,6 +276,11 @@ echo "Inserting secure heap manager + more tests into the great function that co
 		STR_THAT_GOES_TO_TESTS_THAT_USE_AST_AND_BACK="\/\/goto the tests that use the pycarser ast and come back \ngoto label_for_tests_that_use_pycparser_ast; \n	label_for_return_from_tests_that_use_pycparser_ast: \n	;"
 		sed  -i "/\/\/BASH PLEASE PLACE THE JUMP TO THE TESTS THAT USE PYCPARSER HERE/a ${STR_THAT_GOES_TO_TESTS_THAT_USE_AST_AND_BACK}" tests_with_new_stack.c 
 	fi
+	
+	#now put all the things from heap_manager_functions_that_use_secure_stack.c inside tests_with_new_stack.c where it says "BASH PLEASE PLACE THE HEAP MANAGER FUNCTIONS HERE"
+	sed -i -e '/BASH PLEASE PLACE THE HEAP MANAGER FUNCTIONS HERE/r./heap_manager_functions_that_use_secure_stack.c' tests_with_new_stack.c 
+	sed -i -e '/BASH PLEASE PLACE MORE_TESTS_THAT_USE_NEW_STACK.c HERE/r./more_tests_that_use_new_stack.c' tests_with_new_stack.c 
+
 echo "Inserted secure heap manager + more tests into the great function that contains the secure functions."
 
 
