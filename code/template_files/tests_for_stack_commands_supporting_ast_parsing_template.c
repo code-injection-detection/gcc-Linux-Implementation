@@ -5,14 +5,14 @@ void set_elem_to_42(int * p)
 	*p=42;
 }
 
-int add_1(int inp)
+int add_1_to_int(int inp)
 {
 	int outp=inp+1;
 	return outp;
 }
 
 
-void check_array()
+void check_array_test()
 {
 	int arr[10];
 	int i;
@@ -23,7 +23,7 @@ void check_array()
 
 	set_elem_to_42(&arr[3]);
 
-	printf("%d\n",add_1(add_1(2)));
+	printf("%d\n",add_1_to_int(add_1_to_int(2)));
 
 	for (i=0;i<10;i++)
 	{
@@ -33,8 +33,3 @@ void check_array()
 
 }
 
-int main()
-{
-	check_array();
-	return 0;
-}

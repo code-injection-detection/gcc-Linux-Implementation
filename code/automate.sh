@@ -261,6 +261,21 @@ echo "Inserting secure heap manager + more tests into the great function that co
 	#now put all the things from heap_manager_functions_that_use_secure_stack.c inside tests_with_new_stack.c where it says "BASH PLEASE PLACE THE HEAP MANAGER FUNCTIONS HERE"
 	sed -i -e '/BASH PLEASE PLACE THE HEAP MANAGER FUNCTIONS HERE/r./heap_manager_functions_that_use_secure_stack.c' tests_with_new_stack.c 
 	sed -i -e '/BASH PLEASE PLACE MORE_TESTS_THAT_USE_NEW_STACK.c HERE/r./more_tests_that_use_new_stack.c' tests_with_new_stack.c 
+
+	#Transform C->secure C in the tests that benefit from pycparser
+	if [ "0" -eq "1" ]; then
+		CURRENT_PATH=`pwd`
+		PATH_TO_C_RECONSTRUCTOR=""
+		cp tests_for_stack_commands_supporting_ast_parsing.c ${PATH_TO_C_RECONSTRUCTOR}/
+		cd ${PATH_TO_C_RECONSTRUCTOR}
+		./custom_c_generator.py ./tests_for_stack_commands_supporting_ast_parsing.c > 1st_pass_of_C_reconstruction_of_tests.c
+		cd ${CURRENT_PATH}
+		cp ${PATH_TO_C_RECONSTRUCTOR}/1st_pass_of_C_reconstruction_of_tests.c ./1st_pass_of_C_reconstruction_of_tests.c
+		cp ${PATH_TO_C_RECONSTRUCTOR}/semantic_data ./semantic_data
+		STR_FOR_CALLING_TESTS_THAT_USE_AST="{{{HEY PYTHON CALL FUNCTION WITH NEWER TEMPLATE: check_array_test | HELPING ARGS FOR FUN CALL: |PARAMETERS TO CALL WITH: }}}"
+		echo $STR_FOR_CALLING_TESTS_THAT_USE_AST >> ./1st_pass_of_C_reconstruction_of_tests.c
+		./insert_stack_manipulation_commands_given_ast_of_functions.py ${NUM_OF_INTERLEAVED_KEYS} ${NUM_OF_GROUPED_USEFUL_STACK_BYTES} ${NUM_OF_MAC_BYTES} ${USE_STACK_CANARIES}
+	fi
 echo "Inserted secure heap manager + more tests into the great function that contains the secure functions."
 
 

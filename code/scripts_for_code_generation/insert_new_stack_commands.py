@@ -590,7 +590,7 @@ for line in src_lines:
 	if new_function_str in line:
 		function_dict={}
 		in_function_declaration=1
-	if start_of_function_str in line:
+	if start_of_function_str in line and in_function_declaration==1:
 		in_function_code=1
 		calc_size_of_fun_in_stack()
 		function_dict['num_of_times_called_in_code']='0'
@@ -600,7 +600,7 @@ for line in src_lines:
 		dst_lines.append(function_dict['name']+"_start_label:\n")
 		add_the_function_header()
 		continue
-	if end_of_function_str in line:
+	if end_of_function_str in line and in_function_code==1:
 		in_function_declaration=0
 		in_function_code=0
 		add_the_function_footer(1)

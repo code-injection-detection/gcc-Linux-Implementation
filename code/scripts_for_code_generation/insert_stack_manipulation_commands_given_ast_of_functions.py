@@ -27,17 +27,17 @@ The parameters and local variables are grouped into arrays per variable type (ch
  local vars  <---stack pointer
 ''' 
 
-tests_src=open('tests_for_stack_commands_supporting_ast_parsing.c','r')
+tests_src=open('1st_pass_of_C_reconstruction_of_tests.c','r')
 
 src_lines= tests_src.readlines()
 src_lines = [x for x in src_lines if not "PYTHON IGNORE" in x]
 dst_lines=[]
 
-print_output=True
+print_output=False
 
 tests_src.close()
-if print_output:
-	tests_dst=open('tests_for_stack_commands_supporting_ast_parsing.c','w')
+if print_output==False:
+	tests_dst=open('2nd_pass_of_C_reconstruction_of_tests.c','w')
 
 number_of_stack_key_bytes=int(sys.argv[1])
 number_of_stack_useful_data_bytes=int(sys.argv[2])
@@ -619,9 +619,10 @@ write_result_to_currently_called=''
 #variables to distinguish between different calls to a function. 
 #We use a different one every time, since we might have nested calls (fun1(fun2(a)))
 #and if we use the same ones, they get clobbered
-return_addr_for_allocation_ctr=0
-sz_of_array_fun_params_ctr=0
-array_of_params_ctr=0;
+#since we would like to support the older code that uses same logic, we start the counters from 1000
+return_addr_for_allocation_ctr=1000
+sz_of_array_fun_params_ctr=1000
+array_of_params_ctr=1000;
 
 
 for line in src_lines:
@@ -641,7 +642,7 @@ for line in src_lines:
 		continue
 		
 	
-	if end_of_function_str in line:
+	if end_of_function_str in line and in_function_code==1:
 		in_function_code=0
 		add_the_function_footer(1,fun_name)
 		dst_lines.append(fun_name+"_end_label: ;\n")
