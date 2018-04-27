@@ -1,5 +1,4 @@
 
-
 void set_elem_to_42(int * p)
 {
 	*p=42;
@@ -21,15 +20,23 @@ void check_array_test()
 		arr[i]=i;
 	}
 
+    printf("\n");
+
+    for (i=0;i<10;i++)
+	{
+		printf("%d ",arr[i]);
+	}
+    printf("\n");
+
 	set_elem_to_42(&arr[3]);
 
-	printf("%d\n",add_1_to_int(add_1_to_int(2)));
+	printf("2+1+1=%d\n",add_1_to_int(add_1_to_int(2)));
 
 	for (i=0;i<10;i++)
 	{
 		printf("%d ",arr[i]);
 	}
 	printf("\n");
+    printf("\n");
 
 }
-

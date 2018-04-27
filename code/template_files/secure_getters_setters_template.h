@@ -2,6 +2,9 @@
 #define SECURE_GETTERS_SETTERS_H
 
 
+
+int pointer_offset_from_start_of_block(long ptr);
+
 /*FOR THE HEAP*/
 
 void insert_keys_into_mem(unsigned char * mem);
@@ -42,6 +45,37 @@ void * set_arbitrary_block_in_heap(long data_size,void * start_of_block,void * s
 void * set_arbitrary_block_in_heap_with_offset(long data_size,void * start,long offset,void * src);
 
 
+
+long secure_bytes_to_move_forward_for_unsecure_byte_offset(long offset_from_chunk_start_in_secure_mem,long unsecure_byte_offset);
+unsigned __int128 get_array_element_no_prealloc_up_to_128bits(long data_size, void * start_of_array, long index);
+
+char get_char_from_arb_memory_position(void * start,long offset_bytes);
+int get_int_from_arb_memory_position(void * start,long offset_bytes);
+long int get_long_int_from_arb_memory_position(void * start,long offset_bytes);
+void * get_pointer_from_arb_memory_position(void * start,long offset_bytes);
+float get_float_from_arb_memory_position(void * start,long offset_bytes);
+double get_double_from_arb_memory_position(void * start,long offset_bytes);
+char get_char_from_arb_address_no_offset(void * address);
+int get_int_from_arb_address_no_offset(void * address);
+long int get_long_int_from_arb_address_no_offset(void * address);
+void * get_pointer_from_arb_address_no_offset(void * address);
+float get_float_from_arb_address_no_offset(void * address);
+double get_double_from_arb_address_no_offset(void * address);
+
+unsigned char* get_address_of_sheap_array_element(long data_size, void * start_of_array, long index);
+
+char set_char_from_arb_memory_position(void * start,long offset_bytes, char source);
+int set_int_from_arb_memory_position(void * start,long offset_bytes, int source);
+long int set_long_int_from_arb_memory_position(void * start,long offset_bytes, long source);
+void * set_pointer_from_arb_memory_position(void * start,long offset_bytes, void* source);
+float set_float_from_arb_memory_position(void * start,long offset_bytes, float source);
+double set_double_from_arb_memory_position(void * start,long offset_bytes, double source);
+char set_char_from_arb_address_no_offset(void * address, char source);
+int set_int_from_arb_address_no_offset(void * address, int source);
+long int set_long_int_from_arb_address_no_offset(void * address, long source);
+void * set_pointer_from_arb_address_no_offset(void * address, void* source);
+float set_float_from_arb_address_no_offset(void * address, float source);
+double set_double_from_arb_address_no_offset(void * address, double source);
 
 
 /*FOR THE STACK*/
@@ -84,7 +118,8 @@ void* set_arbitrary_block_in_stack(long data_size,void * start_of_block,void * s
 void* set_arbitrary_block_in_stack_with_offset(long data_size,void * start,long offset,void * src);
 
 
-
+unsigned __int128 get_stack_array_element_no_prealloc_up_to_128bits(long data_size, void * start_of_array, long index);
+unsigned char* get_address_of_stack_array_element(long data_size, void * start_of_array, long index);
 
 /*definitions for user friendliness*/
 #define STACK_CHAR_PARAMS(param_var) ((param_var)->elem_params->char_params)

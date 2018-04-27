@@ -567,12 +567,14 @@ def custom_split_of_str(string,char_to_split):
 	#makes sure that we split when we are NOT between a ({ and a }) (blocked expression in C)
 	#and NOT between a " and a " (string) <- this might be an argument, that's why
 	#and NOT between a { and } (possible array definition)
+	#and NOT between a ( and ) (possible function arguments)
 	ret_list=[]
 	current_part=""
 	num_of_paren_block1=0
 	num_of_paren_block2=0
 	num_of_double_quotes=0
 	num_of_braces=0
+	num_of_parentheses=0
 	for i,char in enumerate(string):
 		if ( string[i]=='(' and len(string)>i-1 and string[i+1]=='{' and num_of_double_quotes%2==0):
 			num_of_paren_block1+=1
@@ -584,7 +586,11 @@ def custom_split_of_str(string,char_to_split):
 			num_of_braces+=1
 		if (string[i]=="}" and num_of_double_quotes%2==0):
 			num_of_braces-=1
-		if (string[i]==char_to_split and num_of_paren_block1==num_of_paren_block2 and num_of_double_quotes%2==0 and num_of_braces==0):
+		if (string[i]=="(" and num_of_double_quotes%2==0):
+			num_of_parentheses+=1
+		if (string[i]==")" and num_of_double_quotes%2==0):
+			num_of_parentheses-=1
+		if (string[i]==char_to_split and num_of_paren_block1==num_of_paren_block2 and num_of_double_quotes%2==0 and num_of_braces==0 and num_of_parentheses==0):
 			ret_list.append(current_part)
 			current_part=""
 		else:

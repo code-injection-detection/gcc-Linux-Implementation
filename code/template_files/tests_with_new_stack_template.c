@@ -23,6 +23,10 @@ void great_function_that_wraps_the_tests()
 	//BASH PLEASE PLACE THE HEAP MANAGER FUNCTIONS HERE
 
 
+
+	//BASH PLEASE PLACE THE TESTS_FOR_STACK_COMMANDS_SUPPORTING_AST_PARSING.c HERE
+	
+	
 	
 	/****************************test_custom_function_sum*****************************/
 	
@@ -684,7 +688,7 @@ void great_function_that_wraps_the_tests()
 	#endif
 	
 	
-	//BASH PLEASE PLACE THE TESTS_FOR_STACK_COMMANDS_SUPPORTING_AST_PARSING.c HERE
+	//BASH PLEASE PLACE THE JUMP TO THE TESTS THAT USE PYCPARSER HERE
 
 	
 	long result_of_two_dets={{{HEY PYTHON CALL FUNCTION WITH NEW TEMPLATE: calc_determinant_sec | HELPING ARGS FOR FUN CALL: aaa="ooo" |PARAMETERS TO CALL WITH : 4852788+7- {{{HEY PYTHON CALL FUNCTION WITH NEW TEMPLATE: calc_determinant_sec | HELPING ARGS FOR FUN CALL: aaa="ooo" |PARAMETERS TO CALL WITH : size_of_matrix_for_det,matrix_for_det_secure }}},matrix_for_det_secure }}} + {{{HEY PYTHON CALL FUNCTION WITH NEW TEMPLATE: calc_determinant_sec | HELPING ARGS FOR FUN CALL: aaa="ooo" |PARAMETERS TO CALL WITH : size_of_matrix_for_det,matrix_for_det_secure }}};
