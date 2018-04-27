@@ -31,7 +31,7 @@ STACK_SHOULD_GROW_TO_DECREASING_NUMBERS=1 #IMPORTANT: 1 ONLY WORKS WHEN INSERT_P
 USE_STACK_CANARIES=0 # IMPORTANT: ONLY WORKS WHEN STACK_SHOULD_GROW_TO_DECREASING_NUMBERS=1. Inserts a stack canary on top of the local variables of a function, in order to protect from buffer overflows. 1->use constant static stack canaries, 2-> use stack canaries different for every block in the secure stack , 3->use cryptographically distinct stack canaries
 SIZE_OF_STACK_CANARIES=8
 WORLD_IN_WHICH_WE_ARE=3 # 1->No MACs no verification. 2-> Put MACs but ignore them (no verification), 3-> everything calculated world .  NOPs are padded in ALL worlds.
-ALL_GETTER_SETTER_ARGUMENTS_POINT_AT_START_OF_BLOCKS=1 #Default 1. IMPORTANT: 0 NOT IMPLEMENTED YET! A pointer to the secure memory given to a getter or a setter may not be at the start of a block 
+ALL_GETTER_SETTER_ARGUMENTS_POINT_AT_START_OF_BLOCKS=0 #Default 0. A pointer to the secure memory given to a getter or a setter may not be at the start of a block 
 
 #SEMI_OBSOLETE FLAG BELOW
 COUNT_MAC_INVOCATIONS=0 #Ignores mac correctness and reports mac invocations. Default 1. That is the third world. This is the only flag that we would like to change once in a while for correctnes check
