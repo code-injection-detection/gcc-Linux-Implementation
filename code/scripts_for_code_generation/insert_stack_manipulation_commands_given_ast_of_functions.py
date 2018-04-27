@@ -352,11 +352,11 @@ def add_code_for_function_calling_new_template(function_name,helping_args_for_fu
 			cnt_for_type_of_var=0
 			for j,param in enumerate(function_dict["fun_decl"][0][1]['list_of_arguments']):
 				if type_of_var==return_simple_type_of_var(param[0][0]):
-					cnt_for_type_of_var+=1
 					value_of_var=params[j]
 					if(value_of_var.lower()=='null'):
 						value_of_var='0'
 					lines_to_append.append(''+array_of_params_for_type_and_fun_name+'['+str(cnt_for_type_of_var)+']='+value_of_var+';\n')
+					cnt_for_type_of_var+=1
 
 			lines_to_append.append('insert_data_into_stack_mem('+size_of_array_for_array_fun_params+',(unsigned char*)'+array_of_params_for_type_and_fun_name+',(unsigned char*)'+ret_addr_alloc+'-('+chunks_for_params+'-'+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
 		offset_for_params_in_chunks+=int(dict_to_look['chunks_needed'])
@@ -369,11 +369,10 @@ def add_code_for_function_calling_new_template(function_name,helping_args_for_fu
 	for j,param in enumerate(function_dict["fun_decl"][0][1]['list_of_arguments']):
 		if return_simple_type_of_var(param[0][0])=='not_simple_type':
 			#we have the next param that classifies as "other params"
-			cnt_for_other_param+=1
 			size_of_arb_ptr_data=dict_to_look['sizes'][cnt_for_other_param]
 			value_of_var=params[j]
 			lines_to_append.append('insert_data_into_stack_mem('+size_of_arb_ptr_data+','+value_of_var+','+ret_addr_alloc+'-('+chunks_for_params+'-'+str(offset_for_params_in_chunks)+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data));\n')
-
+			cnt_for_other_param+=1
 			offset_for_params_in_chunks+=calculate_chunks_needed_for_a_size(int(size_of_arb_ptr_data))
 	#base pointer
 	lines_to_append.append('set_stack_pointer_array_element('+ret_addr_alloc+'-('+chunks_for_params+'+'+chunks_for_return_value+'+'+chunks_for_base_pointer_and_retaddr+')*(stack_bytes_used_for_keyshares+number_of_mac_bytes+stack_bytes_for_useful_data),0,base_pointer_for_stack);\n')
