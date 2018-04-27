@@ -34,6 +34,11 @@ int pointer_offset_from_start_of_block(long ptr)
 		//in secure_stack
 		return ((ptr-(long)entire_stack_memory_chunk) % (stack_bytes_for_useful_data + stack_bytes_used_for_keyshares+ number_of_mac_bytes));
 	}
+	if (((long)&globals)<=ptr && (long)(((unsigned char*)&globals)+sizeof(globals))>ptr)
+	{
+		//in globals
+		return ((ptr-(long)&globals) % (bytes_for_useful_data + bytes_used_for_keyshares+ number_of_mac_bytes));
+	}
 
 	return 0; //leave that as default for backwards compatibility
 #endif
