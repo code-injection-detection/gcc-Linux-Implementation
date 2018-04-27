@@ -17,27 +17,27 @@ extern void calc_and_set_mac_of_data_sha256(char * input, long length, char * ou
 
 
 
-int pointer_offset_from_start_of_block(long ptr)
+int pointer_offset_from_start_of_block(unsigned long ptr)
 {
 #if all_getter_setter_arguments_point_at_start_of_blocks
 	return 0;
 #else
 	//Here since it's a function that is implemented in hardware, We do not get the secure heap/stack start woth a secure global fetch
 	//We assume that the CPU has their limits somewhere
-	if ((long)secure_heap<=ptr && (long)(secure_heap+total_sheap_bytes_allocated)>ptr)
+	if ((unsigned long)secure_heap<=ptr && (unsigned long)(secure_heap+total_sheap_bytes_allocated)>ptr)
 	{
 		//in secure heap
-		return ((ptr-(long)secure_heap) % (bytes_for_useful_data + bytes_used_for_keyshares+ number_of_mac_bytes));
+		return ((ptr-(unsigned long)secure_heap) % (bytes_for_useful_data + bytes_used_for_keyshares+ number_of_mac_bytes));
 	}
-	else if ((long)entire_stack_memory_chunk<=ptr && (long)(entire_stack_memory_chunk+total_stack_bytes_allocated)>ptr)
+	else if ((unsigned long)entire_stack_memory_chunk<=ptr && (unsigned long)(entire_stack_memory_chunk+total_stack_bytes_allocated)>ptr)
 	{
 		//in secure_stack
-		return ((ptr-(long)entire_stack_memory_chunk) % (stack_bytes_for_useful_data + stack_bytes_used_for_keyshares+ number_of_mac_bytes));
+		return ((ptr-(unsigned long)entire_stack_memory_chunk) % (stack_bytes_for_useful_data + stack_bytes_used_for_keyshares+ number_of_mac_bytes));
 	}
-	if (((long)&globals)<=ptr && (long)(((unsigned char*)&globals)+sizeof(globals))>ptr)
+	if (((unsigned long)&globals)<=ptr && (unsigned long)(((unsigned char*)&globals)+sizeof(globals))>ptr)
 	{
 		//in globals
-		return ((ptr-(long)&globals) % (bytes_for_useful_data + bytes_used_for_keyshares+ number_of_mac_bytes));
+		return ((ptr-(unsigned long)&globals) % (bytes_for_useful_data + bytes_used_for_keyshares+ number_of_mac_bytes));
 	}
 
 	return 0; //leave that as default for backwards compatibility
@@ -499,7 +499,7 @@ LOOP_ACROSS_HEAP_ARB_ACCESS_GET
 					}\
 					else\
 					{\
-						offset=pointer_offset_from_start_of_block((long)address);\
+						offset=pointer_offset_from_start_of_block((unsigned long)address);\
 						get_arbitrary_block_in_heap_with_offset(sizeof( vartype ),(unsigned char*) address-offset, offset,&res[0]);\
 						return res[0];\
 					}\
@@ -530,7 +530,7 @@ unsigned char* get_address_of_sheap_array_element(long data_size, void * start_o
 	long chunks_to_go_forward;
 	
 	retval=start_of_array;
-	ptr_off=pointer_offset_from_start_of_block((long)retval);
+	ptr_off=pointer_offset_from_start_of_block((unsigned long)retval);
 	
 	bytes_to_cover=data_size*index;
 	
@@ -681,7 +681,7 @@ LOOP_ACROSS_HEAP_ARB_ACCESS_SET
 					}\
 					else\
 					{\
-						offset=pointer_offset_from_start_of_block((long)address);\
+						offset=pointer_offset_from_start_of_block((unsigned long)address);\
 						set_arbitrary_block_in_heap_with_offset(sizeof( vartype ),(unsigned char*) address-offset, offset,&src);\
 						return src;\
 					}\
@@ -1154,7 +1154,7 @@ unsigned char* get_address_of_stack_array_element(long data_size, void * start_o
 	long chunks_to_go_forward;
 	
 	retval=start_of_array;
-	ptr_off=pointer_offset_from_start_of_block((long)retval);
+	ptr_off=pointer_offset_from_start_of_block((unsigned long)retval);
 	
 	bytes_to_cover=data_size*index;
 	

@@ -3,7 +3,7 @@
 
 
 
-int pointer_offset_from_start_of_block(long ptr);
+int pointer_offset_from_start_of_block(unsigned long ptr);
 
 /*FOR THE HEAP*/
 
