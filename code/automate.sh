@@ -260,9 +260,9 @@ echo "Inserting secure heap manager + more tests into the great function that co
 	cp ./template_files/tests_for_stack_commands_supporting_ast_parsing_template.c tests_for_stack_commands_supporting_ast_parsing.c
 
 	#Transform C->secure C in the tests that benefit from pycparser
-	if [ "0" -eq "1" ]; then
+	if [ "0" -eq "0" ]; then
 		CURRENT_PATH=`pwd`
-		PATH_TO_C_RECONSTRUCTOR=""
+		PATH_TO_C_RECONSTRUCTOR="../../pycparser_demo/"
 		cp tests_for_stack_commands_supporting_ast_parsing.c ${PATH_TO_C_RECONSTRUCTOR}/
 		cd ${PATH_TO_C_RECONSTRUCTOR}
 		./custom_c_generator.py ./tests_for_stack_commands_supporting_ast_parsing.c > 1st_pass_of_C_reconstruction_of_tests.c
