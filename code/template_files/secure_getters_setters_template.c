@@ -385,9 +385,9 @@ void * set_secure_data(void * source,long data_size, unsigned char * data_start,
 long secure_bytes_to_move_forward_for_unsecure_byte_offset(long offset_from_chunk_start_in_secure_mem,long unsecure_byte_offset)
 {
 	long remove_bytes_till_end_of_block=unsecure_byte_offset -(bytes_for_useful_data-offset_from_chunk_start_in_secure_mem);
-	long bytes_in_many_blocks=(remove_bytes_till_end_of_block/(bytes_used_for_keyshares+number_of_mac_bytes+bytes_for_useful_data))*
+	long bytes_in_many_blocks=(remove_bytes_till_end_of_block/(bytes_for_useful_data))*
 							  (bytes_used_for_keyshares+number_of_mac_bytes+bytes_for_useful_data);
-	long bytes_left=remove_bytes_till_end_of_block%(bytes_used_for_keyshares+number_of_mac_bytes+bytes_for_useful_data);
+	long bytes_left=remove_bytes_till_end_of_block%(bytes_for_useful_data);
 	return (remove_bytes_till_end_of_block+bytes_in_many_blocks+bytes_left);
 }
 
@@ -546,9 +546,9 @@ unsigned char* get_address_of_sheap_array_element(long data_size, void * start_o
 	}
 	
 	bytes_to_cover-=(bytes_for_useful_data-ptr_off);
-	chunks_to_go_forward=bytes_to_cover/(bytes_for_useful_data+bytes_used_for_keyshares+number_of_mac_bytes);
+	chunks_to_go_forward=bytes_to_cover/bytes_for_useful_data;
 	retval+=chunks_to_go_forward*(bytes_for_useful_data+bytes_used_for_keyshares+number_of_mac_bytes);
-	retval+=bytes_to_cover%(bytes_for_useful_data+bytes_used_for_keyshares+number_of_mac_bytes);
+	retval+=bytes_to_cover%(bytes_for_useful_data);
 	return retval;
 }
 
@@ -1170,9 +1170,9 @@ unsigned char* get_address_of_stack_array_element(long data_size, void * start_o
 	}
 	
 	bytes_to_cover-=(stack_bytes_for_useful_data-ptr_off);
-	chunks_to_go_forward=bytes_to_cover/(stack_bytes_for_useful_data+stack_bytes_used_for_keyshares+number_of_mac_bytes);
+	chunks_to_go_forward=bytes_to_cover/(stack_bytes_for_useful_data);
 	retval+=chunks_to_go_forward*(stack_bytes_for_useful_data+stack_bytes_used_for_keyshares+number_of_mac_bytes);
-	retval+=bytes_to_cover%(stack_bytes_for_useful_data+stack_bytes_used_for_keyshares+number_of_mac_bytes);
+	retval+=bytes_to_cover%(stack_bytes_for_useful_data);
 	return retval;
 }
 
