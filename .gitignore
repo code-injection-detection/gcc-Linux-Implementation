@@ -11,6 +11,7 @@ __pycache__/
 !/code/other_foo_tests
 !/code/scripts_for_code_generation
 !/code/some_benchmarks
+!/code/pycparser_scripts
 *.o
 aes
 sha256

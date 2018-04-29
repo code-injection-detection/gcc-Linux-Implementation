@@ -37,7 +37,6 @@ void mh_combine(double *min_heap,int index, int num_of_elements)
 		ind_in_question = left;
 	if ((right <= num_of_elements) && (min_heap[right] < min_heap[ind_in_question]))
 		ind_in_question = right;
-		//printf("in combine, index=%d, ind_in_question=%d,left=%d,right=%d,min_heap[left]=%lg,min_heap[right]=%lg, min_heap[ind_in_question]=%lg, min_heap[index]=%lg\n",index,ind_in_question,left,right,min_heap[left],min_heap[right],min_heap[ind_in_question],min_heap[index]);
 	if (ind_in_question != index) 
 	{
 		mh_swap(&min_heap[index],  &min_heap[ind_in_question]);
@@ -67,8 +66,6 @@ void mh_constructheap(double *min_heap, int sz)
 	for (i=sz/2;i>0;i--)
 	{
 		mh_combine(min_heap,i,sz);
-		/*printf("combine %d:\n",i);
-		mh_print_heap(min_heap,sz);*/
 	}
 }
 
@@ -93,18 +90,20 @@ double mh_fetch_and_delete_min(double *min_heap, int* num_of_elements)
 
 int main()
 {
-	double min_heap[MAX_SZ_OF_HEAP];
-	int size_of_heap=10000;
 	int i;
+	double min_heap[MAX_SZ_OF_HEAP];
 	
 	for (i=1;i<=SZ_OF_CURRENT_HEAP;i++)
 		min_heap[i]=SZ_OF_CURRENT_HEAP-i; 
 
+	printf("Array in the beginning:\n");
 	mh_print_heap(&min_heap[0],SZ_OF_CURRENT_HEAP);
 	mh_constructheap(&min_heap[0], SZ_OF_CURRENT_HEAP);
+	printf("Array after being converted into a min heap:\n");
 	mh_print_heap(&min_heap[0],SZ_OF_CURRENT_HEAP);
 
 	int temp_sz=SZ_OF_CURRENT_HEAP;
+	printf("Array after fetching all the elements (i.e. sorted):\n");
 	for (i=1;i<=SZ_OF_CURRENT_HEAP;i++)
 		printf("%lg ",mh_fetch_and_delete_min(&min_heap[0],&temp_sz));
 	printf("\n\n");
