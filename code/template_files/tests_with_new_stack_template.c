@@ -92,7 +92,7 @@ void great_function_that_wraps_the_tests()
 			
 		}
 		//set_stack_long_int_array_element(buf_start,22,GET_GLOBAL_LONG(globals.stack_canary_value)); //write the EXACT position of thecanary in the stack with the proper value
-		*/	
+		*/
 	
 		printf("\n");
 
