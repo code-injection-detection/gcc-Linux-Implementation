@@ -105,7 +105,7 @@ int main()
 	}
 	else //if we are sure that the only possible macs would have a length of a muptiple of 16
 	{
-		for (k=1;k<70;k++) //from 16 to 70*16 (=1120)
+		for (k=1;k<30;k++) //from 16 to 30*16 (=480)
 		{	
 			i=k*16;
 			start=clock();
