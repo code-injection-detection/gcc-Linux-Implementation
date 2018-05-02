@@ -200,6 +200,7 @@ class CustomCGenerator(object):
 				left_array_ind=self.visit(n.name.subscript)
 				right_array_ind=self.visit(n.subscript)
 				type_of_array_var=innermost_type_dict[0][0]
+				size_of_array_var=get_size_of_type(type_of_array_var,self.typedefs) #only simple types supported
 				C_code_for_type_of_array_var=get_type_of_ast_dict(innermost_type_dict)
 				#add indent for clearer (sort of) code
 				if True:
@@ -212,11 +213,11 @@ class CustomCGenerator(object):
 										if (is_global==0):
 											#isarray==1
 											getter="get_address_of_stack_array_element"
-											return "(%s*)%s(%s,%s,%s*%s+%s)" % (C_code_for_type_of_array_var,getter,str(size_of_array_var),name_of_array,left_array_ind,size_of_inner_array,right_array_ind)
+											return "(%s*)%s(%s,%s,%s*%s+%s)" % (C_code_for_type_of_array_var,getter,str(size_of_array_var),name_of_array,left_array_ind,size_of_inner_array/size_of_array_var,right_array_ind)
 										else:
 											#it is a global array, therefore it is replaced with a pointer with the same name
 											getter="get_address_of_sheap_array_element"
-											return "(%s*)%s(%s,GET_GLOBAL_PTR(globals.%s),%s*%s+%s)" % (C_code_for_type_of_array_var,getter,str(size_of_array_var),name_of_array,left_array_ind,size_of_inner_array,right_array_ind)
+											return "(%s*)%s(%s,GET_GLOBAL_PTR(globals.%s),%s*%s+%s)" % (C_code_for_type_of_array_var,getter,str(size_of_array_var),name_of_array,left_array_ind,size_of_inner_array/size_of_array_var,right_array_ind)
 
 
 
@@ -224,21 +225,21 @@ class CustomCGenerator(object):
 										if (is_global==0):
 											setter=find_name_of_stack_array_setter(type_of_array_var)
 											#pay attention that we need an extra parenthesis
-											return "(%s)%s( %s , %s*%s+%s " % (C_code_for_type_of_array_var,setter,name_of_array,left_array_ind,size_of_inner_array,right_array_ind)
+											return "(%s)%s( %s , %s*%s+%s " % (C_code_for_type_of_array_var,setter,name_of_array,left_array_ind,size_of_inner_array/size_of_array_var,right_array_ind)
 										else:
 											#it is a global array, therefore it is replaced with a pointer with the same name
 											#pay attention that we need an extra parenthesis
 											setter=find_name_of_sheap_array_setter(type_of_array_var)
-											return "(%s)%s( GET_GLOBAL_PTR(globals.%s) , %s*%s+%s " % (C_code_for_type_of_array_var,setter,name_of_array,left_array_ind,size_of_inner_array,right_array_ind)
+											return "(%s)%s( GET_GLOBAL_PTR(globals.%s) , %s*%s+%s " % (C_code_for_type_of_array_var,setter,name_of_array,left_array_ind,size_of_inner_array/size_of_array_var,right_array_ind)
 									else:
 										#getter
 										if (is_global==1):
 											#it is a global array, therefore it is replaced with a pointer with the same name
 											getter=find_name_of_sheap_array_getter(type_of_array_var)
-											return "(%s)%s( GET_GLOBAL_PTR(globals.%s) , %s*%s+%s )" % (C_code_for_type_of_array_var,getter,name_of_array,left_array_ind,size_of_inner_array,right_array_ind)
+											return "(%s)%s( GET_GLOBAL_PTR(globals.%s) , %s*%s+%s )" % (C_code_for_type_of_array_var,getter,name_of_array,left_array_ind,size_of_inner_array/size_of_array_var,right_array_ind)
 										else:
 											getter=find_name_of_stack_array_getter(type_of_array_var)
-											return "(%s)%s( %s , %s*%s+%s )" % (C_code_for_type_of_array_var,getter,name_of_array,left_array_ind,size_of_inner_array,right_array_ind)
+											return "(%s)%s( %s , %s*%s+%s )" % (C_code_for_type_of_array_var,getter,name_of_array,left_array_ind,size_of_inner_array/size_of_array_var,right_array_ind)
 
 
 

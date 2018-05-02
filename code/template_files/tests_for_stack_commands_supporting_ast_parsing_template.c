@@ -116,6 +116,77 @@ void minheap_test()
 
 /*************** END OF MIN HEAP ***************/
 
+
+/*************** START OF MATRIX MULTIPLICATION ***************/
+
+void matrix_multiplication(int maxnum,int should_print)
+{
+	int i,j,k,l,sum;
+	int a[10][10],b[10][10],matrix_res[10][10];
+	int size=3;
+	int randval;
+	
+	srand(42);
+	for (i=0;i<size;i++)
+		for (j=0;j<size;j++)
+		{
+			randval=rand()%maxnum;
+			a[i][j]=randval;
+			randval=rand()%maxnum;
+			b[i][j]=randval;
+		}
+		
+	for (i=0;i<size;i++)
+		for (j=0;j<size;j++)
+		{
+			sum=0;
+			for (k=0;k<size;k++)
+				{
+					sum+=a[i][k]*b[k][j];
+				}
+			matrix_res[i][j]=sum;
+		}
+		
+	if (should_print)
+	{
+		printf("\n\nMatrices:\n\n");
+		printf("a:\n");
+		for (i=0;i<size;i++)
+		{
+			for (j=0;j<size;j++)
+			{
+				printf("%d ",a[i][j]);
+			}
+			printf("\n");
+		}
+		printf("\n");
+		printf("b:\n");
+		for (i=0;i<size;i++)
+		{
+			for (j=0;j<size;j++)
+			{
+				printf("%d ",b[i][j]);
+			}
+			printf("\n");
+		}
+		printf("\n");
+		printf("matrix_res:\n");
+		for (i=0;i<size;i++)
+		{
+			for (j=0;j<size;j++)
+			{
+				printf("%d ",matrix_res[i][j]);
+			}
+			printf("\n");
+		}
+		printf("\n");
+	}
+	
+}		
+
+/*************** END OF MATRIX MULTIPLICATION ***************/
+
+
 /*************** START OF SIMPLE TESTS ***************/
 
 void set_elem_to_42(int * p)
@@ -168,5 +239,6 @@ void tests_that_use_pycparser_ast_main()
 {
 	check_array_test();
 	minheap_test();
+	matrix_multiplication(100,1);
 
 }

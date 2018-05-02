@@ -73,9 +73,11 @@ int main_program_function()
 								towerOfHanoi_secure_using_template(hanoi_up_to,'A','C','B');)
 	*/
 	
+	/*
 	int primes_up_to=100;
 	TEST_NORMAL_AND_SECURE_TIME(primes not very fast version,find_primes_up_to_a_number(primes_up_to);,
 								secure_find_primes_up_to_a_number(primes_up_to);)
+	*/
 	
 	//test_unsecure_heap_many_allocs_frees(1990);
 	//test_secure_heap_many_allocs_frees(1990);
