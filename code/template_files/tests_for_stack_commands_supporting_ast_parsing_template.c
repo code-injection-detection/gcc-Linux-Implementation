@@ -33,6 +33,7 @@ void mh_combine(double *min_heap,int index, int num_of_elements)
 	int left=2*index;
 	int right=2*index+1;
 	int ind_in_question=index;
+	double temp;
 
 	if ((left <= num_of_elements) && (min_heap[left] < min_heap[ind_in_question]))
 		ind_in_question = left;
@@ -40,7 +41,8 @@ void mh_combine(double *min_heap,int index, int num_of_elements)
 		ind_in_question = right;
 	if (ind_in_question != index) 
 	{
-		mh_swap(&min_heap[index],  &min_heap[ind_in_question]);
+		//swap
+		temp=min_heap[index]; min_heap[index]=min_heap[ind_in_question]; min_heap[ind_in_question]=temp;
 		mh_combine(min_heap,ind_in_question,num_of_elements); 
 	} 
 
@@ -49,13 +51,15 @@ void mh_combine(double *min_heap,int index, int num_of_elements)
 void mh_insert(double *min_heap,int* num_of_elements,double element)
 {
 	int i, p;
+	double temp;
 	(*num_of_elements)++;
 	min_heap[*num_of_elements]=element;
 	i=*num_of_elements;
 	p=i/2;
 	while ((i>1) && min_heap[p]>min_heap[i])
 	{
-		mh_swap(&min_heap[p],&min_heap[i]);
+		//swap
+		temp=min_heap[p]; min_heap[p]=min_heap[i]; min_heap[i]=temp;
 		i=p; p=i/2;
 	}
 }
@@ -124,16 +128,13 @@ void matrix_multiplication(int maxnum,int should_print)
 	int i,j,k,l,sum;
 	int a[10][10],b[10][10],matrix_res[10][10];
 	int size=3;
-	int randval;
 	
 	srand(42);
 	for (i=0;i<size;i++)
 		for (j=0;j<size;j++)
 		{
-			randval=rand()%maxnum;
-			a[i][j]=randval;
-			randval=rand()%maxnum;
-			b[i][j]=randval;
+			a[i][j]=rand()%maxnum;
+			b[i][j]=rand()%maxnum;
 		}
 		
 	for (i=0;i<size;i++)

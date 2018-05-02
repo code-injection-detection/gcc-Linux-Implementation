@@ -33,6 +33,7 @@
 #include <sys/mman.h>
 #include <openssl/aes.h>
 #include <assert.h>
+#include <sys/resource.h>
 
 
 #define mac_algorithm 3  //0->sha256,   //PROBLEM WITH code on-the-fly verification
