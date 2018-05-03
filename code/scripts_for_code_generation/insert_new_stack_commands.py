@@ -313,6 +313,7 @@ def add_code_for_function_calling_new_template(function_name,helping_args_for_fu
 	global sz_of_array_fun_params_ctr
 	global array_of_params_ctr
 	
+	fun_name=function_name
 	fun_dict=all_functions_dict[fun_name]
 	chunks_for_params=fun_dict['chunks_for_params']
 	chunks_for_local_vars=fun_dict['chunks_for_local_vars']
