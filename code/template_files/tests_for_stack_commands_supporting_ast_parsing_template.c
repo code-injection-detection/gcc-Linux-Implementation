@@ -1,6 +1,6 @@
-#if 0
+/*Here be global variables*/
+
 int a_global_array[10];
-#endif
 
 /*************** START OF MIN HEAP ***************/
 
@@ -216,6 +216,7 @@ void check_array_test()
 		arr[i]=i;
 	}
 
+    printf("a_global_array[3]=%d\n",a_global_array[3]);
     printf("\n");
 
     for (i=0;i<10;i++)
@@ -242,6 +243,7 @@ void check_array_test()
 
 void tests_that_use_pycparser_ast_main()
 {
+    a_global_array[3]=45;
 	check_array_test();
 	minheap_test();
 	matrix_multiplication(100,1);
