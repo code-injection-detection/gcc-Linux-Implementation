@@ -35,6 +35,7 @@ if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 1) && ( "$RUN_SECURE_EXEC" -
 fi
 
 
+
 #create benchmakrs dir
 mkdir -p ${ORIGINAL_DIR}/${NAME_OF_SECURE_FUNCTION}_${BENCHMARK_NAME}
 BENCH_RESULTS_DIR=${ORIGINAL_DIR}/${NAME_OF_SECURE_FUNCTION}_${BENCHMARK_NAME}/
@@ -189,52 +190,6 @@ do_benchmarks() {
 			done
 		done
 
-
-		#doing_everything
-		if [[ ( "$DO_CACHES_ONLY" -eq 0 ) ]]; then
-			NAME_OF_BENCHMARK="DOING_EVERYTHING_FIXED_SIZE_${FIXED_SIZE}"
-			echo ${NAME_OF_BENCHMARK}
-			NAME_OF_FILE=${BENCH_RESULTS_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}.txt
-			NAME_OF_EXEC=${SECURE_EXEC_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}_ksec
-			NAME_OF_ALL_KEYSHARES_FOR_VERIF=${SECURE_EXEC_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}_all_keyshares
-			NAME_OF_HEAP_KEYSHARES=${SECURE_EXEC_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}_heap_keyshares
-			NAME_OF_STACK_KEYSHARES=${SECURE_EXEC_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}_stack_keyshares
-            NAME_OF_ADDRESSES_OF_CPU_SPLIT_BLOCKS=${SECURE_EXEC_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}_addresses_of_cpu_split_blocks.txt
-			cd ${PATH_TO_AUTOMATE_SH}
-			cp ${ORIGINAL_DIR}/automate_template.sh ${PATH_TO_AUTOMATE_SH}/automate.sh
-			if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 1 ) ]]; then
-				    sed -i 's/COUNT_MAC_INVOCATIONS=0/COUNT_MAC_INVOCATIONS=1/' automate.sh
-			    fi
-                if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 0 ) ]]; then
-				    sed -i 's/COUNT_MAC_INVOCATIONS=1/COUNT_MAC_INVOCATIONS=0/' automate.sh
-			    fi
-			if [[ ( "$PRODUCE_SECURE_EXEC" -eq 1 ) ]]; then
-				./automate.sh 32 3 ${DATA_BLOCK_SIZE} ${SECURE_HEAP_SIZE} ${DATA_BLOCK_SIZE} ${SECURE_STACK_SIZE} ${DATA_BLOCK_SIZE} ${MAC_BYTES_PER_BLOCK} ${FIXED_SIZE} >/dev/null
-				cp ./main_program_ksec ${NAME_OF_EXEC}
-				cp heap_keyshares ${NAME_OF_HEAP_KEYSHARES}
-				cp stack_keyshares ${NAME_OF_STACK_KEYSHARES}
-				cp all_keyshares_for_verification ${NAME_OF_ALL_KEYSHARES_FOR_VERIF}
-                cp addresses_of_cpu_split_blocks.txt ${NAME_OF_ADDRESSES_OF_CPU_SPLIT_BLOCKS}
-			else
-				cp ${NAME_OF_EXEC} ./main_program_ksec
-				cp ${NAME_OF_HEAP_KEYSHARES} heap_keyshares
-				cp ${NAME_OF_STACK_KEYSHARES} stack_keyshares
-				cp ${NAME_OF_ALL_KEYSHARES_FOR_VERIF} all_keyshares_for_verification
-                cp ${NAME_OF_ADDRESSES_OF_CPU_SPLIT_BLOCKS} addresses_of_cpu_split_blocks.txt 
-			fi
-			if [[ ( "$RUN_SECURE_EXEC" -eq 1 ) ]]; then
-				if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 0 ) ]]; then
-					time ./main_program_ksec | tee ${NAME_OF_FILE}_whole_output.txt | grep "New Secure ${NAME_OF_SECURE_FUNCTION} time:" >  ${NAME_OF_FILE}
-				fi
-				if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 1 ) ]]; then
-					./calc_extra_total_mac_time.sh  ${NAME_OF_FILE}_whole_output.txt | grep "Total extra time for macs" > ${NAME_OF_FILE}
-				fi
-				echo -n ${NAME_OF_BENCHMARK} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
-				${ORIGINAL_DIR}/get_the_seconds.py ${NAME_OF_FILE} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
-			fi
-		fi
-
-
 	done
 }
 
@@ -250,6 +205,11 @@ CACHE_SIZES="20 40 60 80 100 150 200"
 CODE_AND_DATA_CACHE_ASSOCS="2"
 CODE_CACHE_TYPE=2
 DATA_CACHE_TYPE=2
+#if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 0 ) ]]; then
+#    DO_CACHES_ONLY=0
+#else
+#    DO_CACHES_ONLY=1
+#fi
 do_benchmarks "${FIXED_CODE_SIZE_NUMBERS}"  "${CACHE_SIZES}" "${CODE_AND_DATA_CACHE_ASSOCS}" 0 ${CODE_CACHE_TYPE} ${DATA_CACHE_TYPE}
 CACHE_SIZES="1 2 4 6 8 10"
 CODE_AND_DATA_CACHE_ASSOCS="DIRECT_MAPPED"
