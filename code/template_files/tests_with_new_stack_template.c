@@ -22,11 +22,12 @@ void great_function_that_wraps_the_tests()
 	
 	//BASH PLEASE PLACE THE HEAP MANAGER FUNCTIONS HERE
 
-
+	;
 
 	//BASH PLEASE PLACE THE TESTS_FOR_STACK_COMMANDS_SUPPORTING_AST_PARSING.c HERE
 	
 	
+	;
 	
 	/****************************test_custom_function_sum*****************************/
 	

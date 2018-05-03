@@ -1,3 +1,7 @@
+#if 0
+int a_global_array[10];
+#endif
+
 /*************** START OF MIN HEAP ***************/
 
 
