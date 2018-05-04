@@ -63,7 +63,7 @@ int main()
 	int i,j,k;
 	clock_t start,stop;
 	double tot_time;
-	int times_for_one_mac=10000000;
+	int times_for_one_mac=100000000;
 	int index_of_macs=0;
 	
 	srand(time(NULL));
@@ -105,7 +105,7 @@ int main()
 	}
 	else //if we are sure that the only possible macs would have a length of a muptiple of 16
 	{
-		for (k=1;k<30;k++) //from 16 to 30*16 (=480)
+		for (k=1;k<15;k++) //from 16 to 15*16 (=240)
 		{	
 			i=k*16;
 			start=clock();
