@@ -6,6 +6,15 @@ int mm_array_2[101][101];
 int times_called_stack_smashing_fun=0;
 unsigned long stack_canary_of_previous_fun;
 
+
+struct graph_neighbor_list_node{
+    double distance;
+    int node_index;
+    struct graph_neighbor_list_node *next;
+};
+
+struct graph_neighbor_list_node * neighbor_test_ptr;
+
 /*************** START OF MIN HEAP ***************/
 
 

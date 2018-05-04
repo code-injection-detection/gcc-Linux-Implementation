@@ -22,9 +22,22 @@ filehandler=open(file1,'w')
 #get the global declaration lines in a list
 in_global_decl=0
 global_decl_str='ATTENTION: GLOBAL VARIABLE FOLLOWING!'
+struct_decl_str='/*Struct declarations by pycparser*/'
+struct_decl_str_end='/*End of struct declarations by pycparser*/'
 global_decls=[]
+other_decls=[]
+in_other_decls=0
 
 for line in filelines_in:
+	if struct_decl_str in line:
+		in_other_decls=1
+	if struct_decl_str_end in line:
+		in_other_decls=0
+	if (in_other_decls) or struct_decl_str_end in line :
+		other_decls.append(line)
+		if (remove_original_lines==0):
+			filehandler.write(line)
+		continue
 	if global_decl_str in line:
 		in_global_decl=1
 		global_decls.append(line)
@@ -74,6 +87,10 @@ for line in filelines_in:
 	if skip_line_for_struct_start==1:
 		skip_line_for_struct_start=2
 	if str_that_starts_global_vars in line:
+		#add the other decls
+		for other_decl in other_decls:
+			filehandler.write(other_decl)
+		filehandler.write(';\n')
 		#skip 1 line because it is "{"
 		skip_line_for_struct_start=1
 	

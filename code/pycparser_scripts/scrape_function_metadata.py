@@ -66,9 +66,18 @@ def typetorepr(node, word_size=8,**kwargs):
 		types = []
 		size = 0
 
+		if node.decls==None and kwargs["in_struct_types"]==True and kwargs["name_of_struct_in_which_we_are"]==node.name: #probably we are in a pointer to the same struct type
+			size=kwargs["size_of_struct_so_far"]+kwargs["num_of_elements_of_struct_left"]*8 #assume everything at the end of the struct are pointers
+			types=[]
+
 		if node.decls!=None: #a struct that has already been declared and referenced again (with "struct a b;") does not have declarations
-			for decl in node.decls:
+			for i,decl in enumerate(node.decls):
+				kwargs["in_struct_types"]=True
+				kwargs["name_of_struct_in_which_we_are"]=node.name
+				kwargs["size_of_struct_so_far"]=size
+				kwargs["num_of_elements_of_struct_left"]=len(node.decls)-i
 				ty, sz = typetorepr(decl,**kwargs)
+				kwargs["in_struct_types"]=False
 				types.append((ty, sz))
 				size += sz
 		else:
@@ -82,7 +91,7 @@ def typetorepr(node, word_size=8,**kwargs):
 			retval= (['struct',
 					{"type":"struct", "name":node.name, "name_of_struct_variable":get_name_of_a_node(parent_node), "size":size, "init":ast_of_last_decl_init, "struct_elements":types ,"pycparser_ast":copy.deepcopy(node), "parent_node":parent_node, "ast_of_last_proper_Decl":ast_of_last_proper_Decl}], 
 					size)
-		if node.name not in all_structs_dict:
+		if (node.name not in all_structs_dict) and node.decls!=None: #node.decls!=None in order to not insert the pointer (inside the struct) to the struct of the same type into the dict
 			struct_dict=copy.deepcopy(retval)
 			struct_dict[0][1].pop("name_of_struct_variable", None) #delete "name_of_struct_variable" as it is not relevant to a struct description
 			all_structs_dict[node.name]=struct_dict #add it to the all structs dict if it is not there.
@@ -140,14 +149,16 @@ global_decl_names=[]
 
 for node in listify(ast):
 	kwargs["parent_node"]=node
+	kwargs["in_struct_types"]=False
 	if isinstance(node, pycparser.c_ast.Typedef):
 		name_of_typedef=node.name		
 		typedefs[name_of_typedef]=typetorepr(node.type,**kwargs)
 	if isinstance(node, pycparser.c_ast.Decl):
-		global_decls.append(typetorepr(node,**kwargs))
+		(ty,sz)=typetorepr(node,**kwargs)
+		global_decls.append((ty,sz))
 		global_decl_names.append(node.name)
 		print (node.name)
-		print ('\t', typetorepr(node,**kwargs))
+		print ('\t', (ty,sz))
 	if isinstance(node, pycparser.c_ast.FuncDef):
 		name_of_fun=node.decl.name
 		decls_to_gather=[]

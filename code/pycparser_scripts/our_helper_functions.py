@@ -361,10 +361,10 @@ def get_type_of_ast_dict(ast_dict):
 	type_list=[]
 	element_in_question=ast_dict
 	type_of_elem=element_in_question[0][0]
-	if type_of_elem=="struct":
-		print("Struct not supported yet for type of ast dict! 1")
-		print(ast_dict)
-		sys.exit(-1)
+	#if type_of_elem=="struct":
+	#	print("Struct not supported yet for type of ast dict! 1")
+	#	print(ast_dict)
+	#	sys.exit(-1)
 	end=0
 	while end==0:
 		if type_of_elem=="array":
@@ -376,9 +376,11 @@ def get_type_of_ast_dict(ast_dict):
 			element_in_question=element_in_question[0][1]["type_of_pointed_element"]
 			type_of_elem=element_in_question[0][0]
 		elif type_of_elem=="struct":
-			print("Struct not supported yet for type of ast dict! 2")
-			print(ast_dict)
-			sys.exit(-1)
+			#print("Struct not supported yet for type of ast dict! 2")
+			#print(ast_dict)
+			#sys.exit(-1)
+			type_list.append("struct "+element_in_question[0][1]['name']+' ')
+			end=1 #can't go any further
 		else:
 			#eg "int"
 			type_list.append(type_of_elem)
