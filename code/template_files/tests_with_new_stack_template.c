@@ -688,7 +688,9 @@ void great_function_that_wraps_the_tests()
 	//BASH PLEASE PLACE MORE_TESTS_THAT_USE_NEW_STACK.c HERE
 	#endif
 	
-	char operation[100]="tests_foo";
+	
+	/*Tests that use pycparser*/
+	char operation[100]="pycparser_tests";
 	CLEAR_CACHES; 
 	_securestart=clock(); 
 	count_mac_invocations_in_this_code_part=1;
