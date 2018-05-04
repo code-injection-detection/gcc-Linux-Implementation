@@ -7,6 +7,7 @@ EVP_CIPHER_CTX aes_ctx;
 EVP_CIPHER_CTX stack_canary_aes_ctx;
 //that's the aes key for AES-CBC. It is considered known to all
 unsigned char aes_key[] = {42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57};
+unsigned char stack_canary_aes_key[] = {58,59,60,61,43,44,45,46,47,48,49,50,51,52,53,54};
 AES_KEY aes_enc_key;
 unsigned char initialization_vector[]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
@@ -201,92 +202,23 @@ void squeeze_bytes_in_place(unsigned char * arr,int length_of_array)
 
 unsigned char stack_canary_result_opt[aes_block_length];
 //This function does the hardware part of the stack canary calculation
-//Encrypts what is given with the keyshares given,
-//And returns the result
+//I.E. Calculates the hash of k1
 //The MAC calculations that should be paid are paid in the unopt part
-unsigned char * produce_stack_canary_optimized_part(unsigned char* position_of_block_in_stack,unsigned char * global_accumulator_addr, char set_or_check_canary, char stack_canary_world)
+unsigned char * produce_stack_canary_optimized_part(unsigned char* position_of_block_in_stack)
 {
-	/*set_or_check_canary==0 -> set
-					     ==1 -> check
-	*/
-	
-	unsigned char * keyshares_start= position_of_block_in_stack+ stack_bytes_for_useful_data;
-	unsigned char k2[aes_block_length];
-	unsigned char k1[aes_block_length];
-	unsigned char new_k1[safe_length_for_buffer_storage];
-	unsigned char new_k1_concat_fixed_value[safe_length_for_buffer_storage];
-	unsigned char new_stack_canary[safe_length_for_buffer_storage];
-	int length_of_stack_canary_total_encryption;
-	int length_of_first_enc;
-	int stack_canary_tmplen;
-	int total_length_of_concat;
-	int i;
-	
-	//copy k2 to use as a key
-	memcpy(k2,keyshares_start+stack_bytes_used_for_keyshares-aes_block_length,aes_block_length);
-	//init the encryption with k2 as key
-	EVP_EncryptInit_ex(&stack_canary_aes_ctx, EVP_aes_128_cbc(), NULL, k2,initialization_vector);
-	EVP_CIPHER_CTX_set_padding(&stack_canary_aes_ctx, 0); //disable padding
-	
-	
-	if (set_or_check_canary==0 && stack_canary_world==3)
-	{
-		
-		//copy k1 to encrypt it
-		memcpy(k1,keyshares_start,aes_block_length);
-	
-		//encrypt k1 to produce the new k1. New_k1=Enc(k1,key=k2)
-		EVP_EncryptUpdate(&stack_canary_aes_ctx, new_k1, &length_of_stack_canary_total_encryption,k1, aes_block_length);
-		EVP_EncryptFinal_ex(&stack_canary_aes_ctx, new_k1 + length_of_stack_canary_total_encryption, &stack_canary_tmplen);
-		length_of_stack_canary_total_encryption+=stack_canary_tmplen;
-		length_of_first_enc=length_of_stack_canary_total_encryption;
-		
-		
-		assert(length_of_stack_canary_total_encryption==stack_bytes_used_for_keyshares/2) ; // if we don't have this, then problem
-	}
-	else //if ( (set_or_check_canary==1 && stack_canary_world==3) || stack_canary_world==2 )
-	{
-		//just copy k1 to new_k1
-		memcpy(new_k1,keyshares_start,aes_block_length);
-		length_of_stack_canary_total_encryption=aes_block_length;
-	}
 
-	
-	if (set_or_check_canary==0 && stack_canary_world==3)
-	{
-		//set the new k1 (will pay for the setting later, in the unoptimized part)
-		memcpy(keyshares_start,new_k1,length_of_stack_canary_total_encryption);
-	}
-	
-	
-	//Produce the new stack canary. Sc=Enc(new_k1||fixed_value,key=k2)
-	//Re-init the encryption
-	EVP_EncryptInit_ex(&stack_canary_aes_ctx, EVP_aes_128_cbc(), NULL, k2,initialization_vector);
+	unsigned char * keyshares_start= position_of_block_in_stack+ stack_bytes_for_useful_data;
+	int length_of_stack_canary_total_encryption;
+	int stack_canary_tmplen;
+
+	//init structure to calculate hash
+	EVP_EncryptInit_ex(&stack_canary_aes_ctx, EVP_aes_128_cbc(), NULL, stack_canary_aes_key,initialization_vector);
 	EVP_CIPHER_CTX_set_padding(&stack_canary_aes_ctx, 0); //disable padding
 	
-	//create what is to be encrypted
-	memcpy(new_k1_concat_fixed_value,new_k1,length_of_stack_canary_total_encryption);
-	memset(&new_k1_concat_fixed_value[length_of_stack_canary_total_encryption],0x10,stack_bytes_for_useful_data);
-	total_length_of_concat=length_of_stack_canary_total_encryption+stack_bytes_for_useful_data;
-	
-	assert(total_length_of_concat%aes_block_length==0);
-	
-	//encrypt to find the stack canary!
-	EVP_EncryptUpdate(&stack_canary_aes_ctx, new_stack_canary, &length_of_stack_canary_total_encryption,new_k1_concat_fixed_value, total_length_of_concat);
-	EVP_EncryptFinal_ex(&stack_canary_aes_ctx, new_k1_concat_fixed_value + length_of_stack_canary_total_encryption, &stack_canary_tmplen);
+	//calc the hash
+	EVP_EncryptUpdate(&stack_canary_aes_ctx, stack_canary_result_opt, &length_of_stack_canary_total_encryption,keyshares_start, aes_block_length);
+	EVP_EncryptFinal_ex(&stack_canary_aes_ctx, stack_canary_result_opt + length_of_stack_canary_total_encryption, &stack_canary_tmplen);
 	length_of_stack_canary_total_encryption+=stack_canary_tmplen;
-	
-	//set the new stack canary (the last block of the second encryption)
-	memcpy(stack_canary_result_opt,new_k1_concat_fixed_value+length_of_stack_canary_total_encryption-aes_block_length,aes_block_length);
-	
-	if (set_or_check_canary==0 && stack_canary_world==3)
-	{
-		//make the keys correct (and great!) again. Xor old and new k1 with them
-		for (i=0;i<stack_bytes_used_for_keyshares/2;i++)
-		{
-			global_accumulator_addr[bytes_for_useful_data+i]^=(new_k1[i]^k1[i]);
-		}
-	}
 	
 	return &stack_canary_result_opt[0];
 }

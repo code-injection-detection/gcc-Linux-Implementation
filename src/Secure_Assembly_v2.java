@@ -704,6 +704,7 @@ public class Secure_Assembly_v2 {
                                  "produce_stack_canary_unoptimized_part",
                                  "set_stack_canary_in_stack",
                                  "check_stack_canary_in_stack",
+                                 "produce_stack_canary_optimized_part",
 								 "secure_bytes_to_move_forward_for_unsecure_byte_offset"
 								};
 		

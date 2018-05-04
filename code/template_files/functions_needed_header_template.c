@@ -55,55 +55,18 @@ void init_stack_canary()
 }
 
 unsigned char stack_canary_result_unopt[aes_block_length];
-unsigned char * produce_stack_canary_unoptimized_part(unsigned char * position_of_block_in_stack,char set_or_check_canary,char stack_canary_world)
-{
-	//This function calculates the stack canary for a given position in the stack.
-	//Calls the hardware to do the job (since it is encryption with AES), but pays for 2 MAC accesses:
-	//One for the global stack canary, and one for the keyshares.
-	//Another should be paid when setting the stack canary in that position
-	
-	/*set_or_check_canary==0 -> set
-					     ==1 -> check
-	*/
-	
-	unsigned char what_should_be_encrypted[aes_block_length];
-
-
-	if (set_or_check_canary==0) //set
-	{
-		if (stack_canary_world==2)
-		{
-			get_stack_char(position_of_block_in_stack); //pay for the fetching of the keys
-		}
-		if (stack_canary_world==3)
-		{
-			get_stack_char(position_of_block_in_stack);
-			GET_GLOBAL_LONG(globals.place_for_keyshare_accumulator); //paying for the global get
-		}
-	}
-	else //check
-	{
-		if (stack_canary_world==2)
-		{
-			; //do not pay for the keys yet
-		}
-		if (stack_canary_world==3)
-		{
-			; //do not pay for the keys yet
-			GET_GLOBAL_LONG(globals.place_for_keyshare_accumulator); //paying for the global get
-		}
-	}		
-	memcpy(stack_canary_result_unopt,produce_stack_canary_optimized_part(position_of_block_in_stack,(unsigned char*)&(globals.place_for_keyshare_accumulator),set_or_check_canary,stack_canary_world),2*sizeof(long));
-
-	return (&stack_canary_result_unopt[0]);
-}
 
 void set_stack_canary_in_stack(unsigned char * position_of_block_in_stack)
 {
+	/*Canary algorithm: k1<-k1+1
+						sc<-H(k1)  //Hash=AES(key=fixed)
+						(offset global)
+	*/
 	long global_stack_canary;
 	unsigned char previous_keyshares[number_of_interleaved_keys];
 	unsigned char new_random_keyshares[number_of_interleaved_keys];
 	int i;
+	unsigned long * first_8_bytes_of_k1;
 	if (use_stack_canaries==1)
 	{
 		global_stack_canary=GET_GLOBAL_LONG(globals.stack_canary_value);
@@ -111,15 +74,26 @@ void set_stack_canary_in_stack(unsigned char * position_of_block_in_stack)
 	}
 	else if (use_stack_canaries==2)
 	{
-		produce_stack_canary_unoptimized_part(position_of_block_in_stack,0,(char)use_stack_canaries); //pay for key fetch, not global
-		insert_data_into_stack_mem(size_of_stack_canaries,stack_canary_result_unopt,position_of_block_in_stack);
+		//pay for key fetch
+		get_stack_char(position_of_block_in_stack);
+		produce_stack_canary_optimized_part(position_of_block_in_stack); //calculate the hash
+		insert_data_into_stack_mem(size_of_stack_canaries,produce_stack_canary_optimized_part(position_of_block_in_stack),position_of_block_in_stack);
 	}
 	else if (use_stack_canaries==3)
 	{
-		produce_stack_canary_unoptimized_part(position_of_block_in_stack,0,(char)use_stack_canaries); //pay for key + global fetch
+		//pay for key fetch
+		get_stack_char(position_of_block_in_stack);
+		//pay for global fetch
+		GET_GLOBAL_LONG(globals.place_for_keyshare_accumulator);
+		first_8_bytes_of_k1=(unsigned long*)(position_of_block_in_stack+stack_bytes_for_useful_data);
+		*(first_8_bytes_of_k1)=*(first_8_bytes_of_k1)+1; //k1<-k1+1
+		//offset the global keys
+		*((unsigned long*)((unsigned char*)(&globals.place_for_keyshare_accumulator) + number_of_global_useful_bytes))= *((unsigned long*)((unsigned char*)(&globals.place_for_keyshare_accumulator) + number_of_global_useful_bytes)) ^
+																									  *(first_8_bytes_of_k1) ^
+																									  (*(first_8_bytes_of_k1)-1);
 		//pay for the resetting of that global mac (the global keys have changed)
 		UPDATE_GLOBAL_VAR(globals.place_for_keyshare_accumulator,42);
-		insert_data_into_stack_mem(size_of_stack_canaries,stack_canary_result_unopt,position_of_block_in_stack);
+		insert_data_into_stack_mem(size_of_stack_canaries,produce_stack_canary_optimized_part(position_of_block_in_stack),position_of_block_in_stack);
 
 	}
 }
@@ -144,30 +118,28 @@ void check_stack_canary_in_stack(unsigned char * position_of_block_in_stack, int
 {
 	long global_stack_canary;
 	unsigned char stack_canary_in_secure_stack[size_of_stack_canaries];
-	unsigned char how_stack_canary_should_be[size_of_stack_canaries];
+	unsigned long * how_stack_canary_should_be; //normally sizeof(long)==size_of_stack_canaries
 	if (use_stack_canaries==1)
 	{
 		global_stack_canary=GET_GLOBAL_LONG(globals.stack_canary_value);
 		get_secure_stack_data(&stack_canary_in_secure_stack[0],size_of_stack_canaries,position_of_block_in_stack,0,0);
-		memcpy(how_stack_canary_should_be,&global_stack_canary,sizeof(long)); //normally sizeof(long)==size_of_stack_canaries
+		how_stack_canary_should_be=&global_stack_canary; 
 	}
 	else if (use_stack_canaries==2)
 	{
-		produce_stack_canary_unoptimized_part(position_of_block_in_stack,1,(char)use_stack_canaries);
-		memcpy(how_stack_canary_should_be,stack_canary_result_unopt,size_of_stack_canaries);
+		how_stack_canary_should_be=(unsigned long*)produce_stack_canary_optimized_part(position_of_block_in_stack);
 		get_secure_stack_data(&stack_canary_in_secure_stack[0],size_of_stack_canaries,position_of_block_in_stack,0,0); //we pay for the key fetch here
 	}
 	else if (use_stack_canaries==3)
 	{
 		//like type 2
-		produce_stack_canary_unoptimized_part(position_of_block_in_stack,1,(char)use_stack_canaries);
-		memcpy(how_stack_canary_should_be,stack_canary_result_unopt,size_of_stack_canaries);
+		how_stack_canary_should_be=(unsigned long*)produce_stack_canary_optimized_part(position_of_block_in_stack);
 		get_secure_stack_data(&stack_canary_in_secure_stack[0],size_of_stack_canaries,position_of_block_in_stack,0,0); //we pay for the key fetch here
 	} 
 
 	//print_two_stack_canaries(stack_canary_in_secure_stack,how_stack_canary_should_be);
 	//make the actual check
-	if (0!=memcmp(how_stack_canary_should_be,stack_canary_in_secure_stack,size_of_stack_canaries))
+	if (*how_stack_canary_should_be!= *((unsigned long*)stack_canary_in_secure_stack))
 	{
 		//print_two_stack_canaries(stack_canary_in_secure_stack,how_stack_canary_should_be);
 		fprintf(stderr,"ERROR in stack canary, line %d. STACK SMASHING ATTEMPT!\n",line); exit(-1);

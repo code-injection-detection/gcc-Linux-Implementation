@@ -59,7 +59,7 @@ void flush_data_cache_into_mem();
 extern char count_mac_invocations_in_this_code_part;
 
 
-unsigned char * produce_stack_canary_optimized_part(unsigned char* position_of_block_in_stack,unsigned char * global_accumulator_addr, char set_or_check_canary, char stack_canary_world);
+unsigned char * produce_stack_canary_optimized_part(unsigned char* position_of_block_in_stack);
 
 
 #endif
