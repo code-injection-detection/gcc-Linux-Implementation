@@ -1,6 +1,8 @@
 /*Here be global variables*/
 
 int a_global_array[10];
+int mm_array_1[101][101];
+int mm_array_2[101][101];
 int times_called_stack_smashing_fun=0;
 unsigned long stack_canary_of_previous_fun;
 
@@ -129,27 +131,34 @@ void minheap_test()
 
 /*************** START OF MATRIX MULTIPLICATION ***************/
 
-void matrix_multiplication(int maxnum,int should_print)
+void init_global_arrays(int size,int maxnum)
 {
-	int i,j,k,l,sum;
-	int a[10][10],b[10][10],matrix_res[10][10];
-	int size=3;
+	int i,j;
 	
 	srand(42);
 	for (i=0;i<size;i++)
 		for (j=0;j<size;j++)
 		{
-			a[i][j]=rand()%maxnum;
-			b[i][j]=rand()%maxnum;
+			mm_array_1[i][j]=rand()%maxnum;
+			mm_array_2[i][j]=rand()%maxnum;
 		}
-		
+	
+}
+
+
+void matrix_multiplication(int maxnum,int should_print)
+{
+	int i,j,k,l,sum;
+	int matrix_res[10][10];
+	int size=3;
+	
 	for (i=0;i<size;i++)
 		for (j=0;j<size;j++)
 		{
 			sum=0;
 			for (k=0;k<size;k++)
 				{
-					sum+=a[i][k]*b[k][j];
+					sum+=mm_array_1[i][k]*mm_array_2[k][j];
 				}
 			matrix_res[i][j]=sum;
 		}
@@ -162,7 +171,7 @@ void matrix_multiplication(int maxnum,int should_print)
 		{
 			for (j=0;j<size;j++)
 			{
-				printf("%d ",a[i][j]);
+				printf("%d ",mm_array_1[i][j]);
 			}
 			printf("\n");
 		}
@@ -172,7 +181,7 @@ void matrix_multiplication(int maxnum,int should_print)
 		{
 			for (j=0;j<size;j++)
 			{
-				printf("%d ",b[i][j]);
+				printf("%d ",mm_array_2[i][j]);
 			}
 			printf("\n");
 		}
@@ -273,6 +282,7 @@ void tests_that_use_pycparser_ast_main()
     */
 	check_array_test();
 	minheap_test();
+	init_global_arrays(100,100);
 	matrix_multiplication(100,1);
 
 }
