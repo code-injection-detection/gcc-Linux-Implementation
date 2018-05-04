@@ -207,14 +207,14 @@ float get_global_float(float * global_var);
 double get_global_double(double * global_var);
 void * get_global_ptr(void** global_var);
 
-#define UPDATE_GLOBAL_VAR(global_var,new_value) { \
+#define UPDATE_GLOBAL_VAR(global_var,new_value) ({ \
 							global_var=(new_value); \
 							if (!ignore_macs_even_if_there_are_mac_bytes) \
 							{ \
 							update_mac_when_setting_data((unsigned char *)&(global_var),number_of_global_useful_bytes+bytes_used_for_keyshares,number_of_global_useful_bytes,((unsigned char*) &(global_var))+(number_of_global_useful_bytes+bytes_used_for_keyshares)) ;\
-                            global_var; \
                             } \
-						}
+                            global_var; \
+						})
 						
 //use this when in for loops
 #define UPDATE_GLOBAL_VAR_FOR_LOOPS(global_var,new_value) global_var=(new_value), \

@@ -115,7 +115,8 @@ def RepresentsInt(s):
         
         	
 #returns the variable size, depending on the type. 
-def process_var_size(var_size): #This has to be improved in the future not to have these static values
+def process_var_size(var_size_full): #This has to be improved in the future not to have these static values
+	var_size=''.join(var_size_full.split("unsigned ",1)) #remove unsigned
 	if var_size=='int':
 		return 4
 	if var_size=='char':

@@ -1,6 +1,8 @@
 /*Here be global variables*/
 
 int a_global_array[10];
+int times_called_stack_smashing_fun=0;
+unsigned long stack_canary_of_previous_fun;
 
 /*************** START OF MIN HEAP ***************/
 
@@ -191,6 +193,26 @@ void matrix_multiplication(int maxnum,int should_print)
 
 /*************** END OF MATRIX MULTIPLICATION ***************/
 
+/*************** START OF STACK SMASHING TESTS ***************/
+
+void try_to_overwrite_canary()
+{
+	unsigned long * foo_ptr=&foo_ptr;
+	if (times_called_stack_smashing_fun==0)
+	{
+		//store stack canary ,works for useful_bytes=16
+		stack_canary_of_previous_fun=foo_ptr[2];
+	}
+	else
+	{
+		foo_ptr[2]=stack_canary_of_previous_fun;
+	}
+	
+	times_called_stack_smashing_fun++;
+	
+}
+
+/*************** END OF STACK SMASHING TESTS ***************/
 
 /*************** START OF SIMPLE TESTS ***************/
 
@@ -216,6 +238,7 @@ void check_array_test()
 		arr[i]=i;
 	}
 
+	//try_to_overwrite_canary();
     printf("a_global_array[3]=%d\n",a_global_array[3]);
     printf("\n");
 
@@ -244,6 +267,10 @@ void check_array_test()
 void tests_that_use_pycparser_ast_main()
 {
     a_global_array[3]=45;
+    /*
+    try_to_overwrite_canary();
+    try_to_overwrite_canary();
+    */
 	check_array_test();
 	minheap_test();
 	matrix_multiplication(100,1);

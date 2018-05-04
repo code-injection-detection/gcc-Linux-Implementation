@@ -63,9 +63,6 @@ void set_stack_canary_in_stack(unsigned char * position_of_block_in_stack)
 						(offset global)
 	*/
 	long global_stack_canary;
-	unsigned char previous_keyshares[number_of_interleaved_keys];
-	unsigned char new_random_keyshares[number_of_interleaved_keys];
-	int i;
 	unsigned long * first_8_bytes_of_k1;
 	if (use_stack_canaries==1)
 	{
