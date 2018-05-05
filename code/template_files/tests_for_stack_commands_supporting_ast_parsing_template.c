@@ -13,18 +13,19 @@ struct graph_neighbor_list_node{
     struct graph_neighbor_list_node *next;
 };
 
-struct graph_neighbor_list_node * array_of_lists_of_neighbors[10000];
+#define MAX_NUM_OF_NODES 10000
+struct graph_neighbor_list_node * array_of_lists_of_neighbors[MAX_NUM_OF_NODES];
 
 /*************** START OF MIN HEAP ***************/
 
 
-#define MAX_SZ_OF_HEAP 100000
+#define MAX_SZ_OF_HEAP MAX_NUM_OF_NODES
 #define SZ_OF_CURRENT_HEAP 10
 
 
 //taken from http://corelab.ntua.gr/courses/algorithms/old/2014-2015/slides/04_Heap.pdf
 
-void mh_swap(double *a, double *b)
+void mh_swap_double(double *a, double *b)
 {
 	double temp;
 	temp=*a;
@@ -34,23 +35,34 @@ void mh_swap(double *a, double *b)
 }
 
 
-void mh_print_heap(double *min_heap,int num_of_elements)
+void mh_print_heaps(double *min_heap,int *corresponding_indexes,int * fixed_indexes,int num_of_elements)
 {
 	int i;
 	for (i=1;i<=num_of_elements;i++)
 	{
 		printf("%lg ",min_heap[i]);
 	}
+    printf("\n");
+    for (i=1;i<=num_of_elements;i++)
+	{
+		printf("%d ",corresponding_indexes[i]);
+	}
+    printf("\n");
+    for (i=1;i<=num_of_elements;i++)
+	{
+		printf("%d ",fixed_indexes[i]);
+	}
 	printf("\n\n");
 }
 
 
-void mh_combine(double *min_heap,int index, int num_of_elements)
+void mh_combine(double *min_heap,int *corresponding_indexes,int * fixed_indexes,int index, int num_of_elements)
 {
 	int left=2*index;
 	int right=2*index+1;
 	int ind_in_question=index;
 	double temp;
+    int tmp_ind;
 
 	if ((left <= num_of_elements) && (min_heap[left] < min_heap[ind_in_question]))
 		ind_in_question = left;
@@ -58,36 +70,45 @@ void mh_combine(double *min_heap,int index, int num_of_elements)
 		ind_in_question = right;
 	if (ind_in_question != index) 
 	{
-		//swap
+		//swap positions in all arrays
 		temp=min_heap[index]; min_heap[index]=min_heap[ind_in_question]; min_heap[ind_in_question]=temp;
-		mh_combine(min_heap,ind_in_question,num_of_elements); 
+        tmp_ind=corresponding_indexes[index]; corresponding_indexes[index]=corresponding_indexes[ind_in_question];corresponding_indexes[ind_in_question]=tmp_ind;
+        fixed_indexes[corresponding_indexes[index]]=index; fixed_indexes[corresponding_indexes[ind_in_question]]=ind_in_question; 
+        
+		mh_combine(min_heap,corresponding_indexes,fixed_indexes,ind_in_question,num_of_elements); 
 	} 
 
 }
 
-void mh_insert(double *min_heap,int* num_of_elements,double element)
+void mh_insert(double *min_heap,int *corresponding_indexes,int * fixed_indexes,int* num_of_elements,double element,int index_to_insert)
 {
 	int i, p;
 	double temp;
+    int tmp_ind;
+
 	(*num_of_elements)++;
 	min_heap[*num_of_elements]=element;
+    corresponding_indexes[*num_of_elements]=index_to_insert;
+    fixed_indexes[index_to_insert]=*num_of_elements;
 	i=*num_of_elements;
 	p=i/2;
 	while ((i>1) && min_heap[p]>min_heap[i])
 	{
-		//swap
+		//swap positions in both arrays
 		temp=min_heap[p]; min_heap[p]=min_heap[i]; min_heap[i]=temp;
+        tmp_ind=corresponding_indexes[p]; corresponding_indexes[p]=corresponding_indexes[i];corresponding_indexes[i]=tmp_ind;
+        fixed_indexes[corresponding_indexes[p]]=p; fixed_indexes[corresponding_indexes[i]]=i; 
 		i=p; p=i/2;
 	}
 }
 
 
-void mh_constructheap(double *min_heap, int sz)
+void mh_constructheap(double *min_heap,int *corresponding_indexes,int * fixed_indexes, int sz)
 {
 	int i;
 	for (i=sz/2;i>0;i--)
 	{
-		mh_combine(min_heap,i,sz);
+		mh_combine(min_heap,corresponding_indexes,fixed_indexes,i,sz);
 	}
 }
 
@@ -96,7 +117,7 @@ double mh_fetch_min(double *min_heap, int num_of_elements)
 	return min_heap[1];
 }
 
-double mh_fetch_and_delete_min(double *min_heap, int* num_of_elements)
+double mh_fetch_and_delete_min(double *min_heap, int *corresponding_indexes,int * fixed_indexes,int* num_of_elements)
 {
 	double min;
 	if (*num_of_elements>0)
@@ -104,7 +125,7 @@ double mh_fetch_and_delete_min(double *min_heap, int* num_of_elements)
 		min=min_heap[1];
 		min_heap[1]=min_heap[*num_of_elements];
 		(*num_of_elements)--;
-		mh_combine(min_heap,1,*num_of_elements);
+		mh_combine(min_heap,corresponding_indexes,fixed_indexes,1,*num_of_elements);
 		return min;
 	}
 }
@@ -115,20 +136,26 @@ void minheap_test()
 {
 	int i;
 	double min_heap[MAX_SZ_OF_HEAP];
+    int min_heap_corresponding_indexes[MAX_SZ_OF_HEAP];
+    int fixed_indexes[MAX_SZ_OF_HEAP];
 	
 	for (i=1;i<=SZ_OF_CURRENT_HEAP;i++)
+    {
 		min_heap[i]=SZ_OF_CURRENT_HEAP-i; 
-
-	printf("Array in the beginning:\n");
-	mh_print_heap(&min_heap[0],SZ_OF_CURRENT_HEAP);
-	mh_constructheap(&min_heap[0], SZ_OF_CURRENT_HEAP);
-	printf("Array after being converted into a min heap:\n");
-	mh_print_heap(&min_heap[0],SZ_OF_CURRENT_HEAP);
+        min_heap_corresponding_indexes[i]=i;
+        fixed_indexes[i]=i;
+    }
+    
+	printf("Arrays in the beginning:\n");
+	mh_print_heaps(&min_heap[0],&min_heap_corresponding_indexes[0],&fixed_indexes[0],SZ_OF_CURRENT_HEAP);
+	mh_constructheap(&min_heap[0],&min_heap_corresponding_indexes[0],&fixed_indexes[0], SZ_OF_CURRENT_HEAP);
+	printf("Arrays after being converted into a min heap:\n");
+	mh_print_heaps(&min_heap[0],&min_heap_corresponding_indexes[0],&fixed_indexes[0],SZ_OF_CURRENT_HEAP);
 
 	int temp_sz=SZ_OF_CURRENT_HEAP;
-	printf("Array after fetching all the elements (i.e. sorted):\n");
+	printf("Arrays after fetching all the elements (i.e. sorted):\n");
 	for (i=1;i<=SZ_OF_CURRENT_HEAP;i++)
-		printf("%lg ",mh_fetch_and_delete_min(&min_heap[0],&temp_sz));
+		printf("%lg ",mh_fetch_and_delete_min(&min_heap[0],&min_heap_corresponding_indexes[0],&fixed_indexes[0],&temp_sz));
 	printf("\n\n");
 
 }
@@ -186,6 +213,22 @@ void print_graph_neighbors(int size_of_graph)
 
 
 /*************** END OF GRAPH INITIALIZATION ***************/
+
+
+void Dijkstra_find_min_path_from_index(int index, int size_of_graph)
+{
+    int i;
+    char visited_neighbors[MAX_NUM_OF_NODES];
+    
+    for (i=0;i<size_of_graph;i++)
+    {
+        visited_neighbors[i]=0;
+    }
+    visited_neighbors[index]=1;
+
+
+
+}
 
 /*************** START OF MATRIX MULTIPLICATION ***************/
 
