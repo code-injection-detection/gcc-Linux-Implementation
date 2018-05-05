@@ -65,7 +65,7 @@ if [[ ( "$#" -ne 9 ) ]]; then
     echo "g=number of grouped useful bytes between keyshares in global variables"
     echo "h=number of bytes for MACs"
 	echo "i=size in bytes of a fixed chunk in code"
-	echo "Example: $0 32 3 16 5000000 16 40000000 16 16 16"
+	echo "Example: $0 32 3 16 20000000 16 40000000 16 16 16"
     exit
 fi
 

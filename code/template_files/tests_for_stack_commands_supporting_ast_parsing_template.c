@@ -13,7 +13,7 @@ struct graph_neighbor_list_node{
     struct graph_neighbor_list_node *next;
 };
 
-struct graph_neighbor_list_node * neighbor_test_ptr;
+struct graph_neighbor_list_node * array_of_lists_of_neighbors[10000];
 
 /*************** START OF MIN HEAP ***************/
 
@@ -137,6 +137,55 @@ void minheap_test()
 
 /*************** END OF MIN HEAP ***************/
 
+/*************** START OF GRAPH INITIALIZATION ***************/
+
+void init_graph_neighbors(int size_of_graph)
+{
+    int i,j;
+    
+    struct graph_neighbor_list_node *head;
+    struct graph_neighbor_list_node *tmp;
+
+    srand(50);
+    for (i=0;i<size_of_graph;i++)
+    {
+        head=NULL;
+        for (j=0;j<size_of_graph;j++)
+        {
+            //random neighbors
+            if (rand()%(3)==0 && i!=j)
+            {
+                tmp=smalloc(sizeof(struct graph_neighbor_list_node));
+                tmp->distance =rand()%1000+5;
+                tmp->node_index=j;
+                tmp->next=head;
+                head=tmp;
+            }
+            array_of_lists_of_neighbors[i]=head;
+        }
+    }
+}
+
+
+void print_graph_neighbors(int size_of_graph)
+{
+    int i;
+    struct graph_neighbor_list_node *tmp;
+
+    for (i=0;i<size_of_graph;i++)
+    {
+        tmp=array_of_lists_of_neighbors[i];
+        printf("\nNode %d neighbors:\n",i);
+        while (tmp!=NULL)
+        {
+            printf("\tindex: %d , distance=%lg\n",tmp->node_index,tmp->distance);
+            tmp=tmp->next;
+        }
+    }
+}
+
+
+/*************** END OF GRAPH INITIALIZATION ***************/
 
 /*************** START OF MATRIX MULTIPLICATION ***************/
 
@@ -232,6 +281,7 @@ void try_to_overwrite_canary()
 
 /*************** END OF STACK SMASHING TESTS ***************/
 
+
 /*************** START OF SIMPLE TESTS ***************/
 
 void set_elem_to_42(int * p)
@@ -293,5 +343,7 @@ void tests_that_use_pycparser_ast_main()
 	minheap_test();
 	init_global_arrays(100,100);
 	matrix_multiplication(100,1);
+    init_graph_neighbors(10);
+    //print_graph_neighbors(10);
 
 }
