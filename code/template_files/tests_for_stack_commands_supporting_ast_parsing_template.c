@@ -212,7 +212,7 @@ void init_graph_neighbors(int size_of_graph)
     else if (size_of_graph<=1000)
         probability_of_being_neighbor=size_of_graph/20;
     else 
-        probability_of_being_neighbor=size_of_graph/50;    
+        probability_of_being_neighbor=size_of_graph/30;    
 
     struct graph_neighbor_list_node *head;
     struct graph_neighbor_list_node *tmp;
@@ -488,7 +488,7 @@ void tests_that_use_pycparser_ast_main()
 {
     a_global_array[3]=45;
     int i;
-    int num_of_graph_nodes=500;
+    int num_of_graph_nodes=400;
     /*
     try_to_overwrite_canary();
     try_to_overwrite_canary();
