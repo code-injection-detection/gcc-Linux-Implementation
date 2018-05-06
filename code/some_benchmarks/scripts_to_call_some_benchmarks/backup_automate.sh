@@ -65,7 +65,7 @@ if [[ ( "$#" -ne 9 ) ]]; then
     echo "g=number of grouped useful bytes between keyshares in global variables"
     echo "h=number of bytes for MACs"
 	echo "i=size in bytes of a fixed chunk in code"
-	echo "Example: $0 32 3 16 5000000 16 40000000 16 16 16"
+	echo "Example: $0 32 3 16 20000000 16 40000000 16 16 16"
     exit
 fi
 
@@ -269,6 +269,9 @@ echo "Inserting secure heap manager + more tests into the great function that co
 	STR_FOR_CALLING_TESTS_THAT_USE_AST="label_for_tests_that_use_pycparser_ast:; \n {{{HEY PYTHON CALL FUNCTION WITH NEWER TEMPLATE: tests_that_use_pycparser_ast_main | HELPING ARGS FOR FUN CALL: |PARAMETERS TO CALL WITH: }}}; \n goto label_for_return_from_tests_that_use_pycparser_ast;"
 	echo -e $STR_FOR_CALLING_TESTS_THAT_USE_AST >> ./1st_pass_of_C_reconstruction_of_tests.c
 	./insert_stack_manipulation_commands_given_ast_of_functions.py ${NUM_OF_INTERLEAVED_KEYS} ${NUM_OF_GROUPED_USEFUL_STACK_BYTES} ${NUM_OF_MAC_BYTES} ${USE_STACK_CANARIES}
+	cp 2nd_pass_of_C_reconstruction_of_tests.c 2nd_pass_of_C_reconstruction_of_tests_temp.c #take a backup of the 2nd_pass... because the global variables will be erased
+	#tranfer the global declarations to headers_needed.h
+	./transfer_c_reconstructor_globals.py 1 #erase the global declarations because the tests_with_new_stack will be filled with keysdestined for the struct that holds all the globals
 	sed -i -e '/BASH PLEASE PLACE THE TESTS_FOR_STACK_COMMANDS_SUPPORTING_AST_PARSING.c HERE/r./2nd_pass_of_C_reconstruction_of_tests.c' tests_with_new_stack.c 
 	STR_THAT_GOES_TO_TESTS_THAT_USE_AST_AND_BACK="\/\/goto the tests that use the pycarser ast and come back \ngoto label_for_tests_that_use_pycparser_ast; \n	label_for_return_from_tests_that_use_pycparser_ast: \n	;"
 	sed  -i "/\/\/BASH PLEASE PLACE THE JUMP TO THE TESTS THAT USE PYCPARSER HERE/a ${STR_THAT_GOES_TO_TESTS_THAT_USE_AST_AND_BACK}" tests_with_new_stack.c 
@@ -348,6 +351,9 @@ if [ "$SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS" != "0" ]; then
 	echo "Inserting keys among global variables and copying some templates...."
 	#first we recreate headers_needed.h from its template. We do that because if we try to find globals in "headers_needed.h" twice, the second time there are no annotations for the globals.
 	eval $SET_PROPER_DEFINES
+	#tranfer the global declarations to headers_needed.h, again
+	cp 2nd_pass_of_C_reconstruction_of_tests_temp.c 2nd_pass_of_C_reconstruction_of_tests.c #restore the backup that holds the global variables, since they have been erased
+	./transfer_c_reconstructor_globals.py 1 #transfer the globals, and remove the original declarations in 2nd_pass_of_C_reconstruction_of_tests.c for good
 	#this secures the data segment
 	DO_STUFF_FOR_HEADERS_NEEDED_ONLY=0
 	./insert_keys_and_macs_among_globals.py $NUM_OF_INTERLEAVED_KEYS $DECLARE_GLOBAL_KEYS_AS_AN_ARRAY $NUM_OF_GLOBAL_USEFUL_BYTES $NUM_OF_MAC_BYTES $SQEEZE_KEYS_WHEN_MACING $DO_STUFF_FOR_HEADERS_NEEDED_ONLY # 0 means: do

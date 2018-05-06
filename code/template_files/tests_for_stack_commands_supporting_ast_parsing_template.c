@@ -488,15 +488,15 @@ void tests_that_use_pycparser_ast_main()
 {
     a_global_array[3]=45;
     int i;
-    int num_of_graph_nodes=300;
+    int num_of_graph_nodes=500;
     /*
     try_to_overwrite_canary();
     try_to_overwrite_canary();
     */
-	check_array_test();
-	minheap_test();
-	init_global_arrays(100,100);
-	matrix_multiplication(100,1);
+	//check_array_test();
+	//minheap_test();
+	//init_global_arrays(100,100);
+	//matrix_multiplication(100,1);
     init_graph_neighbors(num_of_graph_nodes);
     //print_graph_neighbors(num_of_graph_nodes);
     for (i=1;i<=num_of_graph_nodes;i++)

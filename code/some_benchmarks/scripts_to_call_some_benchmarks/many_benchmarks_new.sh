@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-PATH_TO_AUTOMATE_SH=/home/kostas/virus_detection/gcc-Linux-Implementation/code/
+PATH_TO_AUTOMATE_SH=/home/menoobs/virus_detection/gcc-Linux-Implementation/code/
 ORIGINAL_DIR=`pwd`
-NAME_OF_SECURE_FUNCTION=Dijkstra
-BENCHMARK_NAME=Dijkstra_500
+NAME_OF_SECURE_FUNCTION="Dijkstra"
+BENCHMARK_NAME="Dijkstra_500_nodes_neighbor_probability_mod_25"
 
 CODE_CACHE_TYPE=2  #0 -> fully assosiative
 				   #1 -> direct mapped
@@ -13,7 +13,7 @@ DATA_CACHE_TYPE=2  #0 -> fully assosiative
 				   #2 -> set assosiative
 CODE_CACHE_ASSOC=2
 DATA_CACHE_ASSOC=2
-SECURE_HEAP_SIZE=5000000
+SECURE_HEAP_SIZE=10000000
 SECURE_STACK_SIZE=10000000
 USEFUL_BYTES_PER_BLOCK=16
 KEYSHARES_BYTES_PER_BLOCK=32
@@ -91,7 +91,7 @@ do_benchmarks() {
                 cp ${NAME_OF_ADDRESSES_OF_CPU_SPLIT_BLOCKS} addresses_of_cpu_split_blocks.txt 
 			fi	
 			if [[ ( "$RUN_SECURE_EXEC" -eq 1 ) ]]; then
-				time ./main_program_ksec | tee ${NAME_OF_FILE}_whole_output.txt | grep "New Secure ${NAME_OF_SECURE_FUNCTION} time:" >  ${NAME_OF_FILE}
+				time ./main_program_ksec | tee ${NAME_OF_FILE}_whole_output.txt | grep "Secure ${NAME_OF_SECURE_FUNCTION} time:" >  ${NAME_OF_FILE}
 				echo -n ${NAME_OF_BENCHMARK} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
 				${ORIGINAL_DIR}/get_the_seconds.py ${NAME_OF_FILE} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
 			fi
@@ -126,7 +126,7 @@ do_benchmarks() {
                 cp ${NAME_OF_ADDRESSES_OF_CPU_SPLIT_BLOCKS} addresses_of_cpu_split_blocks.txt 
 			fi	
 			if [[ ( "$RUN_SECURE_EXEC" -eq 1 ) ]]; then
-				time ./main_program_ksec | tee ${NAME_OF_FILE}_whole_output.txt | grep "New Secure ${NAME_OF_SECURE_FUNCTION} time:" >  ${NAME_OF_FILE}
+				time ./main_program_ksec | tee ${NAME_OF_FILE}_whole_output.txt | grep "Secure ${NAME_OF_SECURE_FUNCTION} time:" >  ${NAME_OF_FILE}
 				echo -n ${NAME_OF_BENCHMARK} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
 				${ORIGINAL_DIR}/get_the_seconds.py ${NAME_OF_FILE} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
 			fi
@@ -179,7 +179,7 @@ do_benchmarks() {
 				fi
 				if [[ ( "$RUN_SECURE_EXEC" -eq 1 ) ]]; then
 					if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 0 ) ]]; then
-						time ./main_program_ksec | tee ${NAME_OF_FILE}_whole_output.txt | grep "New Secure ${NAME_OF_SECURE_FUNCTION} time:" >  ${NAME_OF_FILE}
+						time ./main_program_ksec | tee ${NAME_OF_FILE}_whole_output.txt | grep "Secure ${NAME_OF_SECURE_FUNCTION} time:" >  ${NAME_OF_FILE}
 					fi
 					if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 1 ) ]]; then
 						./calc_extra_total_mac_time.sh  ${NAME_OF_FILE}_whole_output.txt | grep "Total extra time for macs" > ${NAME_OF_FILE}
