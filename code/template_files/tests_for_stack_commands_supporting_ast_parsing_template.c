@@ -20,7 +20,7 @@ struct graph_neighbor_list_node * array_of_lists_of_neighbors[MAX_NUM_OF_NODES];
 
 
 #define MAX_SZ_OF_HEAP MAX_NUM_OF_NODES
-#define SZ_OF_CURRENT_HEAP 10
+#define SZ_OF_CURRENT_HEAP 10     //old
 
 
 //taken from http://corelab.ntua.gr/courses/algorithms/old/2014-2015/slides/04_Heap.pdf
@@ -56,7 +56,7 @@ void mh_print_heaps(double *min_heap,int *corresponding_indexes,int * fixed_inde
 }
 
 
-void mh_combine(double *min_heap,int *corresponding_indexes,int * fixed_indexes,int index, int num_of_elements)
+int mh_combine(double *min_heap,int *corresponding_indexes,int * fixed_indexes,int index, int num_of_elements)
 {
 	int left=2*index;
 	int right=2*index+1;
@@ -76,9 +76,38 @@ void mh_combine(double *min_heap,int *corresponding_indexes,int * fixed_indexes,
         fixed_indexes[corresponding_indexes[index]]=index; fixed_indexes[corresponding_indexes[ind_in_question]]=ind_in_question; 
         
 		mh_combine(min_heap,corresponding_indexes,fixed_indexes,ind_in_question,num_of_elements); 
-	} 
+        return 1; //combination done
+	}
+    return 0; //no combination done
 
 }
+
+
+void mh_update_value(double *min_heap,int *corresponding_indexes,int * fixed_indexes,int num_of_elements,double element,int index_to_update)
+{
+    int we_had_comb;
+    int new_ind=100; //value >1
+
+    min_heap[index_to_update]=element;
+    
+    if (index_to_update>1)
+    {
+        we_had_comb=1;
+        new_ind=index_to_update/2;
+        while (new_ind>=1 && we_had_comb)
+        {   
+            //combine the father going up
+            we_had_comb=mh_combine(min_heap,corresponding_indexes,fixed_indexes,new_ind,num_of_elements);
+            if (we_had_comb)
+            {
+                new_ind=new_ind/2;
+            }
+        }
+
+    }
+
+}
+
 
 void mh_insert(double *min_heap,int *corresponding_indexes,int * fixed_indexes,int* num_of_elements,double element,int index_to_insert)
 {
@@ -124,6 +153,9 @@ double mh_fetch_and_delete_min(double *min_heap, int *corresponding_indexes,int 
 	{
 		min=min_heap[1];
 		min_heap[1]=min_heap[*num_of_elements];
+        fixed_indexes[corresponding_indexes[1]]=-42; //not in the heap
+        corresponding_indexes[1]=corresponding_indexes[*num_of_elements];
+        fixed_indexes[corresponding_indexes[1]]=1;
 		(*num_of_elements)--;
 		mh_combine(min_heap,corresponding_indexes,fixed_indexes,1,*num_of_elements);
 		return min;
@@ -169,18 +201,30 @@ void minheap_test()
 void init_graph_neighbors(int size_of_graph)
 {
     int i,j;
-    
+    int probability_of_being_neighbor;
+
+    if (size_of_graph==10)
+        probability_of_being_neighbor=3; //1/3
+    else if (size_of_graph<=50)
+        probability_of_being_neighbor=5;
+    else if (size_of_graph<=200)
+        probability_of_being_neighbor=15;
+    else if (size_of_graph<=1000)
+        probability_of_being_neighbor=size_of_graph/20;
+    else 
+        probability_of_being_neighbor=size_of_graph/50;    
+
     struct graph_neighbor_list_node *head;
     struct graph_neighbor_list_node *tmp;
 
     srand(50);
-    for (i=0;i<size_of_graph;i++)
+    for (i=1;i<=size_of_graph;i++)
     {
         head=NULL;
-        for (j=0;j<size_of_graph;j++)
+        for (j=1;j<=size_of_graph;j++)
         {
             //random neighbors
-            if (rand()%(3)==0 && i!=j)
+            if (rand()%(probability_of_being_neighbor)==0 && i!=j)
             {
                 tmp=smalloc(sizeof(struct graph_neighbor_list_node));
                 tmp->distance =rand()%1000+5;
@@ -199,7 +243,7 @@ void print_graph_neighbors(int size_of_graph)
     int i;
     struct graph_neighbor_list_node *tmp;
 
-    for (i=0;i<size_of_graph;i++)
+    for (i=1;i<=size_of_graph;i++)
     {
         tmp=array_of_lists_of_neighbors[i];
         printf("\nNode %d neighbors:\n",i);
@@ -215,19 +259,84 @@ void print_graph_neighbors(int size_of_graph)
 /*************** END OF GRAPH INITIALIZATION ***************/
 
 
-void Dijkstra_find_min_path_from_index(int index, int size_of_graph)
+void Dijkstra_find_min_path_from_index(int index, int size_of_graph,int should_print)
 {
     int i;
     char visited_neighbors[MAX_NUM_OF_NODES];
-    
-    for (i=0;i<size_of_graph;i++)
+    double min_heap[MAX_NUM_OF_NODES];
+    int corresponding_indexes[MAX_NUM_OF_NODES];
+    int fixed_indexes[MAX_NUM_OF_NODES];
+    int index_of_neighbor;
+    double dist_of_neighbor;
+    int temp_size_of_heap=size_of_graph;
+    double final_distances[MAX_NUM_OF_NODES];
+    int indexes_of_fathers[MAX_NUM_OF_NODES];
+    int index_of_min;
+    double dist_of_min;
+    int reached_node_with_inf_dist=0;
+
+    struct graph_neighbor_list_node *tmp;
+
+    for (i=1;i<=size_of_graph;i++)
     {
         visited_neighbors[i]=0;
+        min_heap[i]=100000000; //a very large number
+        final_distances[i]=100000000;
+        corresponding_indexes[i]=i;
+        fixed_indexes[i]=i;
+        indexes_of_fathers[i]=-1; //unreachable
     }
-    visited_neighbors[index]=1;
+    min_heap[index]=0;
+    indexes_of_fathers[index]=index;
+    mh_constructheap(&min_heap[0],&corresponding_indexes[0],&fixed_indexes[0], size_of_graph);
 
 
+    while (temp_size_of_heap>0 && reached_node_with_inf_dist==0)
+    {
+        //get the smallest one
+        index_of_min=corresponding_indexes[1];
+        dist_of_min=mh_fetch_and_delete_min(&min_heap[0],&corresponding_indexes[0],&fixed_indexes[0],&temp_size_of_heap);
+        final_distances[index_of_min]=dist_of_min;
 
+        if (temp_size_of_heap==0)
+            break;
+
+        if (dist_of_min==100000000)
+        {
+            reached_node_with_inf_dist=1;
+            continue;
+        }
+
+
+        tmp=array_of_lists_of_neighbors[index_of_min];
+        visited_neighbors[index_of_min]=1;
+
+        //process the neighbors
+        while (tmp!=NULL)
+        {
+            index_of_neighbor=tmp->node_index;
+            dist_of_neighbor=tmp->distance;
+            if (visited_neighbors[index_of_neighbor]==0 && min_heap[fixed_indexes[index_of_neighbor]]> dist_of_min+ dist_of_neighbor)
+            {
+                mh_update_value(&min_heap[0],&corresponding_indexes[0],&fixed_indexes[0],temp_size_of_heap,dist_of_min+ dist_of_neighbor,fixed_indexes[index_of_neighbor]);
+                indexes_of_fathers[index_of_neighbor]=index_of_min; 
+            }
+            tmp=tmp->next;
+        }        
+
+    }
+    if (should_print)
+    {
+        printf("\nStarting from index %d:\n",index);
+        printf("Final Distances:\n");
+        for (i=1;i<=size_of_graph;i++)
+		    printf("%lg ",final_distances[i]);
+        printf("\n");
+        printf("\nFathers:\n");
+        for (i=1;i<=size_of_graph;i++)
+		    printf("%d ",indexes_of_fathers[i]);
+        printf("\n");
+    }
 }
 
 /*************** START OF MATRIX MULTIPLICATION ***************/
@@ -378,6 +487,8 @@ void check_array_test()
 void tests_that_use_pycparser_ast_main()
 {
     a_global_array[3]=45;
+    int i;
+    int num_of_graph_nodes=300;
     /*
     try_to_overwrite_canary();
     try_to_overwrite_canary();
@@ -386,7 +497,9 @@ void tests_that_use_pycparser_ast_main()
 	minheap_test();
 	init_global_arrays(100,100);
 	matrix_multiplication(100,1);
-    init_graph_neighbors(10);
-    //print_graph_neighbors(10);
+    init_graph_neighbors(num_of_graph_nodes);
+    //print_graph_neighbors(num_of_graph_nodes);
+    for (i=1;i<=num_of_graph_nodes;i++)
+        Dijkstra_find_min_path_from_index(i,num_of_graph_nodes,0);
 
 }
