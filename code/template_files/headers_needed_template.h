@@ -229,7 +229,7 @@
 
 
 #ifndef check_for_secure_stack_allocation_overflow
-#define check_for_secure_stack_allocation_overflow 1
+#define check_for_secure_stack_allocation_overflow 0
 #endif				//checks if secure stack has enough size left to accommodate for a given secure stack allocation
 
 

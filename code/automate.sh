@@ -6,7 +6,7 @@
 SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS=1  #default 1
 DECLARE_GLOBAL_KEYS_AS_AN_ARRAY=0  #default 0
 INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS=1 #default 1
-CHECK_FOR_SECURE_STACK_ALLOCATION_OVERLOW=1 #default 1, checks if we don't have enough stack memory to accommodate for a given secure stack allocation
+CHECK_FOR_SECURE_STACK_ALLOCATION_OVERLOW=0 #default 0, checks if we don't have enough stack memory to accommodate for a given secure stack allocation
 
 USE_INLINE_CODE_FOR_DELAYS=0 #make it 1 when tou want to benchmark normal times (where extra code is added to the normal functions to simulate a fair (for the secure functions) delay. Default 0.
 CODE_CACHE_TYPE=2  #0 -> fully assosiative (default 2)
