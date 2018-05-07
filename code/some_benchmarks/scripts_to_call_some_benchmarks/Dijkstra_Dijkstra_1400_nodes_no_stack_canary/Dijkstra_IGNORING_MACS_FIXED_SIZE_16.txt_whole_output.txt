@@ -1,0 +1,58 @@
+Initializing crypto structures.
+Crypto structures initialized.
+Initializing heap memory
+bytes_to_allocate_on_start:20000000
+Init_mem, alloc+key insertion
+Great!. No need to allocate more than the defined amount.
+Great!. No need to allocate more than the defined amount.
+If successful, total bytes allocated:20000000
+Initializing stack memory
+Stack bytes_to_allocate_on_start:10000000
+Init_stack_mem, alloc+key insertion
+Stack: Great!. No need to allocate more than the defined amount.
+If successful, total bytes allocated:10000000
+My pid=14598
+a b c d e 
+x=3
+a b c n e 
+x=11
+base_pointer:0, entire_stack:140663097700368, last_unused_stack_memory=140663107700368
+
+Secure Dijkstra time:16.9091 cpu seconds
+
+Going to find keyshares.
+Total key groups found in code:7363
+
+key no0=0x19
+key no1=0xcc
+key no2=0x06
+key no3=0x5b
+key no4=0x45
+key no5=0x6a
+key no6=0x76
+key no7=0x29
+key no8=0xd6
+key no9=0x53
+key no10=0x7c
+key no11=0x0c
+key no12=0xcd
+key no13=0xc2
+key no14=0xf7
+key no15=0x4c
+key no16=0x26
+key no17=0xc3
+key no18=0x72
+key no19=0x39
+key no20=0xbb
+key no21=0x35
+key no22=0xd8
+key no23=0xc9
+key no24=0xdd
+key no25=0x27
+key no26=0x44
+key no27=0xc9
+key no28=0x7b
+key no29=0x71
+key no30=0xb6
+key no31=0x55
+
