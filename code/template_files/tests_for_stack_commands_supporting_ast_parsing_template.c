@@ -412,6 +412,62 @@ void matrix_multiplication(int maxnum,int should_print)
 
 /*************** END OF MATRIX MULTIPLICATION ***************/
 
+/*************** START OF PRIMES TEST ***************/
+
+void find_primes_up_to_a_number(int num, int should_print)
+{
+	
+	//local variables that we will use:
+	int primes_found_so_far[150000];
+	int i,j;
+	int num_of_primes;
+	char bool=0;
+	
+	if (should_print)
+		printf("Going to find primes up to %d\n",num);
+
+	
+	num_of_primes=1; //2 is a prime
+	primes_found_so_far[num_of_primes-1]=2;
+	
+
+	for (i=3;i<=num;i+=2)
+	{
+		bool=0;
+ 
+		for (j=2;j<=i/2+1;j++) //not using sqrt here
+		{
+			if (i%j==0)
+			{
+				bool=1;
+				break;
+			}			 
+		}
+
+		if (bool==0)
+		{
+			num_of_primes++;
+			primes_found_so_far[num_of_primes-1]=i;
+			
+		}	
+	}
+	
+	if (should_print)
+	{
+		printf("\nPrimes:\n");
+		//print all primes found
+		for (i=0;i<num_of_primes;i++)
+		{
+			printf("%d ",primes_found_so_far[i]);
+		}
+		printf("\n\n");
+		printf("Total number of primes:%d\n",num_of_primes);
+	}
+	
+}
+
+/*************** END OF PRIMES TEST ***************/
+
 /*************** START OF STACK SMASHING TESTS ***************/
 
 void try_to_overwrite_canary()
@@ -497,9 +553,12 @@ void tests_that_use_pycparser_ast_main()
 	//minheap_test();
 	//init_global_arrays(100,100);
 	//matrix_multiplication(100,1);
+    /*
     init_graph_neighbors(num_of_graph_nodes);
     //print_graph_neighbors(num_of_graph_nodes);
     for (i=1;i<=num_of_graph_nodes;i++)
         Dijkstra_find_min_path_from_index(i,num_of_graph_nodes,0);
-
+	*/
+	find_primes_up_to_a_number(150000,0);
+	
 }
