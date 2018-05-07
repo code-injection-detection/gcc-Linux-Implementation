@@ -318,10 +318,10 @@ echo "Compiling hash and encryption calculators, as well as the crypto initializ
 	 cp sha256_for_us.c ../sha256.c ; #the sha256 implementation
 	 cp sha256.h ../ ; 
 	 cd .. ; 
-	 gcc -O3 -c sha256.c #-mno-red-zone;
+	 gcc -O3 -c sha256.c -fno-stack-protector #-mno-red-zone;
 	 rm -f sha256.c sha256.h  #removing the sha stuff that we don't need.
-	 gcc -O3 -c crypto_functions.c -lcrypto -Wno-div-by-zero #-mno-red-zone
-	 gcc -O3 -c mac_verification_functions.c -lcrypto #-mno-red-zone
+	 gcc -O3 -c crypto_functions.c -lcrypto -Wno-div-by-zero -fno-stack-protector #-mno-red-zone
+	 gcc -O3 -c mac_verification_functions.c -lcrypto -fno-stack-protector #-mno-red-zone
 	 if [ "$ADD_CODE_ON_THE_FLY_VERIFICATION" -eq "1" ]; then
 		#find the number of subtractions we have to do to fetch the return address (which is in the stack) in the verifier
 		 FILE_TO_BE_CHANGED_O=crypto_functions.o #mac_verification_functions.o #todo: change it in the future
@@ -332,17 +332,17 @@ echo "Compiling hash and encryption calculators, as well as the crypto initializ
 		 #replace and put the proper offset
 		 sed -i "$STR_FOR_SED" $FILE_TO_BE_CHANGED_C
 		 #and compile again
-		 gcc -O3 -c $FILE_TO_BE_CHANGED_C -lcrypto -Wno-div-by-zero #-mno-red-zone
+		 gcc -O3 -c $FILE_TO_BE_CHANGED_C -lcrypto -Wno-div-by-zero -fno-stack-protector #-mno-red-zone
 	 fi
 	 #compile the extra stuff that would be implemented in hardware
-	 gcc -O3 -c secure_stack_manipulation_functions.c -lcrypto #-mno-red-zone
-	 gcc -O3 -c calc_mac_for_external_programs.c -lcrypto #-mno-red-zone #this one just calcs a mac
-	 gcc -O3 -c calc_mac_for_external_programs_faster.c -Wno-unused-result -lcrypto #-mno-red-zone #this one just calcs a mac
-	 gcc -O3 -c mac_time_calculator.c -lcrypto #-mno-red-zone  #this one calculates mac times, for all possible sizes
-	 gcc -O3 calc_mac_for_external_programs.o ./sha256.o ./crypto_functions.o -o calc_mac_for_external_programs -lcrypto #-mno-red-zone
-	 gcc -O3 calc_mac_for_external_programs_faster.o ./sha256.o ./crypto_functions.o -o calc_mac_for_external_programs_faster -lcrypto #-mno-red-zone
-	 gcc -O3 mac_time_calculator.o ./sha256.o ./crypto_functions.o -o mac_time_calculator -lcrypto #-mno-red-zone
-	 gcc -O3 initializer.c -c -mno-red-zone #this one runs 
+	 gcc -O3 -c secure_stack_manipulation_functions.c -lcrypto -fno-stack-protector #-mno-red-zone
+	 gcc -O3 -c calc_mac_for_external_programs.c -lcrypto -fno-stack-protector #-mno-red-zone #this one just calcs a mac
+	 gcc -O3 -c calc_mac_for_external_programs_faster.c -Wno-unused-result -lcrypto -fno-stack-protector #-mno-red-zone #this one just calcs a mac
+	 gcc -O3 -c mac_time_calculator.c -lcrypto -fno-stack-protector #-mno-red-zone  #this one calculates mac times, for all possible sizes
+	 gcc -O3 calc_mac_for_external_programs.o ./sha256.o ./crypto_functions.o -o calc_mac_for_external_programs -lcrypto -fno-stack-protector #-mno-red-zone
+	 gcc -O3 calc_mac_for_external_programs_faster.o ./sha256.o ./crypto_functions.o -o calc_mac_for_external_programs_faster -lcrypto -fno-stack-protector #-mno-red-zone
+	 gcc -O3 mac_time_calculator.o ./sha256.o ./crypto_functions.o -o mac_time_calculator -lcrypto -fno-stack-protector #-mno-red-zone
+	 gcc -O3 initializer.c -c -mno-red-zone -fno-stack-protector #this one runs 
 	 )
 echo "Compiled hash and encryption calculators, and the crypto initializer."
 
@@ -377,7 +377,7 @@ fi
 
 
 echo "Compiling secure getters and setters..."
-	gcc -O3 -c secure_getters_setters.c -lcrypto #-mno-red-zone #these getters and setters are normally implemented in hardware
+	gcc -O3 -c secure_getters_setters.c -lcrypto -fno-stack-protector #-mno-red-zone #these getters and setters are normally implemented in hardware
 	#gcc -O0 -c heap_manager_new_unsafe.c -lcrypto -mno-red-zone #no optimization!
 echo "Compiled secure getters and setters."
 

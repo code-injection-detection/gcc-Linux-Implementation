@@ -10,7 +10,7 @@ PG= #-pg
 FLAGS_to_assembly= -O0
 FLAGS_to_object= -O0
 FLAGS_to_secure_object = -O0
-FLAGS_in_the_end= -lm -pthread -lcrypto -mno-red-zone
+FLAGS_in_the_end= -lm -pthread -lcrypto -mno-red-zone -fno-stack-protector
 OBJECT_FILES_TO_BE_LINKED= ./sha256.o ./secure_getters_setters.o ./crypto_functions.o ./initializer.o ./secure_stack_manipulation_functions.o ./mac_verification_functions.o
 
 #if we want static linking
