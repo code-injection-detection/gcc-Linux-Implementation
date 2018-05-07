@@ -1,0 +1,1 @@
+Secure Primes time:11.2376 cpu seconds
