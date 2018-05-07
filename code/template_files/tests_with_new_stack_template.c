@@ -690,7 +690,7 @@ void great_function_that_wraps_the_tests()
 	
 	
 	/*Tests that use pycparser*/
-	char operation[100]="Primes";
+	char operation[100]="Hanoi";
 	CLEAR_CACHES; 
 	_securestart=clock(); 
 	count_mac_invocations_in_this_code_part=1;
