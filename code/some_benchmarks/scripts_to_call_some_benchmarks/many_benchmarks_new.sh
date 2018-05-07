@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-PATH_TO_AUTOMATE_SH=/home/menoobs/virus_detection/gcc-Linux-Implementation/code/
+PATH_TO_AUTOMATE_SH="/home/kostas/virus_detection/gcc-Linux-Implementation/code/"
 ORIGINAL_DIR=`pwd`
 NAME_OF_SECURE_FUNCTION="Dijkstra"
-BENCHMARK_NAME="Dijkstra_1400_nodes"
+BENCHMARK_NAME="Dijkstra_1400_nodes_no_stack_canary"
 
 CODE_CACHE_TYPE=2  #0 -> fully assosiative
 				   #1 -> direct mapped
@@ -22,6 +22,7 @@ CALC_TIME_WITH_SEPARATE_MAC_ADDITION=1
 PRODUCE_SECURE_EXEC=1
 RUN_SECURE_EXEC=1
 WORLD_IN_WHICH_WE_ARE=3
+STACK_CANARIES_WORLD=0
 
 #take a backup of automate.sh
 #cp ${PATH_TO_AUTOMATE_SH}/automate.sh ${ORIGINAL_DIR}/backup_automate.sh
@@ -76,6 +77,7 @@ do_benchmarks() {
 			cd ${PATH_TO_AUTOMATE_SH}
 			cp ${ORIGINAL_DIR}/automate_template.sh ${PATH_TO_AUTOMATE_SH}/automate.sh
 			sed -i 's/WORLD_IN_WHICH_WE_ARE=3/WORLD_IN_WHICH_WE_ARE=1/' automate.sh
+			sed -i 's/USE_STACK_CANARIES=3/USE_STACK_CANARIES=${STACK_CANARIES_WORLD}/' automate.sh
 			if [[ ( "$PRODUCE_SECURE_EXEC" -eq 1 ) ]]; then
 				./automate.sh 32 3 ${DATA_BLOCK_SIZE} ${SECURE_HEAP_SIZE} ${DATA_BLOCK_SIZE} ${SECURE_STACK_SIZE} ${DATA_BLOCK_SIZE} 0 ${FIXED_SIZE} >/dev/null
 				cp ./main_program_ksec ${NAME_OF_EXEC}
@@ -111,6 +113,7 @@ do_benchmarks() {
 			cd ${PATH_TO_AUTOMATE_SH}
 			cp ${ORIGINAL_DIR}/automate_template.sh ${PATH_TO_AUTOMATE_SH}/automate.sh
 			sed -i 's/WORLD_IN_WHICH_WE_ARE=3/WORLD_IN_WHICH_WE_ARE=2/' automate.sh
+			sed -i 's/USE_STACK_CANARIES=3/USE_STACK_CANARIES=${STACK_CANARIES_WORLD}/' automate.sh
 			if [[ ( "$PRODUCE_SECURE_EXEC" -eq 1 ) ]]; then
 				./automate.sh 32 3 ${DATA_BLOCK_SIZE} ${SECURE_HEAP_SIZE} ${DATA_BLOCK_SIZE} ${SECURE_STACK_SIZE} ${DATA_BLOCK_SIZE} ${MAC_BYTES_PER_BLOCK} ${FIXED_SIZE} >/dev/null
 				cp ./main_program_ksec ${NAME_OF_EXEC}
@@ -163,6 +166,7 @@ do_benchmarks() {
 			    sed -i "s/NUM_OF_CACHED_BLOCKS_OF_DATA=100/NUM_OF_CACHED_BLOCKS_OF_DATA=${DATA_CACHE_SIZE}/" automate.sh
 				sed -i "s/CODE_CACHE_SET_ASSOSIATIVE_SIZE=0/CODE_CACHE_SET_ASSOSIATIVE_SIZE=${CODE_CACHE_ASSOC}/" automate.sh
 				sed -i "s/DATA_CACHE_SET_ASSOSIATIVE_SIZE=0/DATA_CACHE_SET_ASSOSIATIVE_SIZE=${DATA_CACHE_ASSOC}/" automate.sh
+				sed -i 's/USE_STACK_CANARIES=3/USE_STACK_CANARIES=${STACK_CANARIES_WORLD}/' automate.sh
 				if [[ ( "$PRODUCE_SECURE_EXEC" -eq 1 ) ]]; then
 				    ./automate.sh 32 3 ${DATA_BLOCK_SIZE} ${SECURE_HEAP_SIZE} ${DATA_BLOCK_SIZE} ${SECURE_STACK_SIZE} ${DATA_BLOCK_SIZE} ${MAC_BYTES_PER_BLOCK} ${FIXED_SIZE} >/dev/null
 					cp ./main_program_ksec ${NAME_OF_EXEC}
@@ -194,7 +198,7 @@ do_benchmarks() {
 }
 
 FIXED_CODE_SIZE_NUMBERS="16 32 48 64 80"
-CACHE_SIZES="20 40 60 80 100 150 200"
+CACHE_SIZES="20 40 60 80 100 150 200 250 300"
 #CACHE_SIZES="1 2 4 6 8 10"
 #CODE_AND_DATA_CACHE_ASSOCS="DIRECT_MAPPED"
 CODE_AND_DATA_CACHE_ASSOCS="2"
