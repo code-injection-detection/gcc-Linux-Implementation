@@ -16,6 +16,9 @@ struct graph_neighbor_list_node{
 #define MAX_NUM_OF_NODES 10000
 struct graph_neighbor_list_node * array_of_lists_of_neighbors[MAX_NUM_OF_NODES];
 
+int int_for_delay_hanoi[1]; //adding these things to emulate the fact that the function should do something!
+char char_for_delay_hanoi[5];
+long long_for_delay_hanoi;
 
 /*************** START OF MIN HEAP ***************/
 
@@ -471,11 +474,8 @@ void find_primes_up_to_a_number(int num, int should_print)
 
 /*************** START OF HANOI TEST ***************/
 
-void towerOfHanoi(int n, char fromrod, char torod, char auxrod, char should_print, char emulate_delay)
+void towerOfHanoi_test(int n, char fromrod, char torod, char auxrod, char should_print, char emulate_delay)
 {
-	int int_for_delay[1]; //adding these things to emulate the fact that the function should do something!
-	char char_for_delay[3];
-	long long_for_delay;
 
     if (n == 1)
     {
@@ -483,27 +483,31 @@ void towerOfHanoi(int n, char fromrod, char torod, char auxrod, char should_prin
 			printf("\n Move disk 1 from rod %c to rod %c", fromrod, torod);
         return;
     }
-	if (emulate_delay)
+	if (emulate_delay) //adding these things to emulate the fact that the function should do something!
 	{
-		char_for_delay[0]=fromrod;
-		char_for_delay[1]=auxrod;
-		char_for_delay[2]=torod;
-		long_for_delay=42;
-		int_for_delay[0]=long_for_delay+char_for_delay[1];
+		char_for_delay_hanoi[0]=fromrod;
+		char_for_delay_hanoi[1]=auxrod;
+		char_for_delay_hanoi[2]=torod;
+		char_for_delay_hanoi[3]=should_print;
+		char_for_delay_hanoi[4]=emulate_delay;
+		long_for_delay_hanoi=42;
+		int_for_delay_hanoi[0]=long_for_delay_hanoi+char_for_delay_hanoi[1];
 	}
-    towerOfHanoi(n-1, fromrod, auxrod, torod,should_print,emulate_delay);
+    towerOfHanoi_test(n-1, fromrod, auxrod, torod,should_print,emulate_delay);
 	if (should_print)
 		printf("\n Move disk %d from rod %c to rod %c", n, fromrod, torod);
     
 	if (emulate_delay)
 	{
-		char_for_delay[0]=fromrod;
-		char_for_delay[1]=auxrod;
-		char_for_delay[2]=torod;
-		long_for_delay=42;
-		int_for_delay[0]=long_for_delay+char_for_delay[1];
+		char_for_delay_hanoi[0]=fromrod;
+		char_for_delay_hanoi[1]=auxrod;
+		char_for_delay_hanoi[2]=torod;
+		char_for_delay_hanoi[3]=should_print;
+		char_for_delay_hanoi[4]=emulate_delay;
+		long_for_delay_hanoi=42;
+		int_for_delay_hanoi[0]=long_for_delay_hanoi+char_for_delay_hanoi[1];
 	}
-    towerOfHanoi(n-1, auxrod, torod, fromrod,should_print,emulate_delay);
+    towerOfHanoi_test(n-1, auxrod, torod, fromrod,should_print,emulate_delay);
 }
 
 /*************** END OF HANOI TEST ***************/
@@ -600,6 +604,6 @@ void tests_that_use_pycparser_ast_main()
         Dijkstra_find_min_path_from_index(i,num_of_graph_nodes,0);
 	*/
 	//find_primes_up_to_a_number(150000,0);
-	towerOfHanoi(28,'a','c', 'b',0,0);
+	towerOfHanoi_test(28,'a','c', 'b',0,0);
 	
 }
