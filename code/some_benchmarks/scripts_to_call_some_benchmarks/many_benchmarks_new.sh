@@ -3,7 +3,7 @@
 PATH_TO_AUTOMATE_SH="/home/menoobs/virus_detection/gcc-Linux-Implementation/code/"
 ORIGINAL_DIR=`pwd`
 NAME_OF_SECURE_FUNCTION="Dijkstra"
-BENCHMARK_NAME="Dijkstra_1400_stack_canary_world_3"
+BENCHMARK_NAME="Dijkstra_1400_stack_canary_world_0"
 
 CODE_CACHE_TYPE=2  #0 -> fully assosiative
 				   #1 -> direct mapped
@@ -22,7 +22,7 @@ CALC_TIME_WITH_SEPARATE_MAC_ADDITION=1
 PRODUCE_SECURE_EXEC=1
 RUN_SECURE_EXEC=1
 WORLD_IN_WHICH_WE_ARE=3
-STACK_CANARIES_WORLD=3
+STACK_CANARIES_WORLD=0
 
 #take a backup of automate.sh
 #cp ${PATH_TO_AUTOMATE_SH}/automate.sh ${ORIGINAL_DIR}/backup_automate.sh

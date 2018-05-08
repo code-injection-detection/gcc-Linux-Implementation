@@ -598,14 +598,16 @@ void tests_that_use_pycparser_ast_main()
     */
 	//check_array_test();
 	//minheap_test();
+	/*
 	init_global_arrays(800,800);
 	matrix_multiplication(1000,0,800);
-    /*
+	*/
+    
     init_graph_neighbors(num_of_graph_nodes);
     //print_graph_neighbors(num_of_graph_nodes);
     for (i=1;i<=num_of_graph_nodes;i++)
         Dijkstra_find_min_path_from_index(i,num_of_graph_nodes,0);
-	*/
+	
 	//find_primes_up_to_a_number(150000,0);
 	//towerOfHanoi_test(22,'a','c', 'b',0,1);
 	
