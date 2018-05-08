@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <time.h>
 
-int mm_array_1[801][801];
-int mm_array_2[801][801];
+int mm_array_1[800][800];
+int mm_array_2[800][800];
 
 void init_global_arrays(int size,int maxnum)
 {
@@ -24,7 +24,7 @@ void matrix_multiplication(int maxnum,int should_print,int sz_of_benchmark)
 {
 	int i,j,k,l;
     long sum;
-	long matrix_res[801][801];
+	long matrix_res[800][800];
 	int size=sz_of_benchmark;
 	
 	for (i=0;i<size;i++)
