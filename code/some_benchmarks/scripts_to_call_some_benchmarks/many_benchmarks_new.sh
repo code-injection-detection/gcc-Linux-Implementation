@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
-PATH_TO_AUTOMATE_SH="/home/menoobs/virus_detection/gcc-Linux-Implementation/code/"
+
 ORIGINAL_DIR=`pwd`
+PATH_TO_AUTOMATE_SH=${ORIGINAL_DIR}"/../../"
 NAME_OF_SECURE_FUNCTION="Matrix_multiplication"
 BENCHMARK_NAME="Matrix_multiplication_800_sc_3"
 
