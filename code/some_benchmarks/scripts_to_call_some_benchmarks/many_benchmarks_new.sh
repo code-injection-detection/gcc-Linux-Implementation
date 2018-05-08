@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
-PATH_TO_AUTOMATE_SH="/home/menoobs/virus_detection/gcc-Linux-Implementation/code/"
+
 ORIGINAL_DIR=`pwd`
+PATH_TO_AUTOMATE_SH=${ORIGINAL_DIR}"/../../"
 NAME_OF_SECURE_FUNCTION="Matrix_multiplication"
 BENCHMARK_NAME="Matrix_multiplication_800_sc_3"
 
@@ -18,16 +19,24 @@ SECURE_STACK_SIZE=50000000
 USEFUL_BYTES_PER_BLOCK=16
 KEYSHARES_BYTES_PER_BLOCK=32
 MAC_BYTES_PER_BLOCK=16
-CALC_TIME_WITH_SEPARATE_MAC_ADDITION=1
+CALC_TIME_WITH_SEPARATE_MAC_ADDITION=1 #leave it as it is
 PRODUCE_SECURE_EXEC=1
 RUN_SECURE_EXEC=1
 WORLD_IN_WHICH_WE_ARE=3
 STACK_CANARIES_WORLD=3
+RUN_TIME_SENSITIVE_BENCHMARKS=1 #no macs, ignoring macs
+RUN_TIME_INSENSITIVE_BENCHMARKS=1 #caches with CALC_TIME_WITH_SEPARATE_MAC_ADDITION=1
+
+
+if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -ne 1 ) ]]; then
+	echo "We need CALC_TIME_WITH_SEPARATE_MAC_ADDITION==1."
+	exit
+fi
 
 #take a backup of automate.sh
 #cp ${PATH_TO_AUTOMATE_SH}/automate.sh ${ORIGINAL_DIR}/backup_automate.sh
 
-if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 1) && ( "$RUN_SECURE_EXEC" -eq 1 ) ]]; then #calculate proper mac times
+if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 1) && ( "$RUN_SECURE_EXEC" -eq 1 ) && ( "$RUN_TIME_SENSITIVE_BENCHMARKS" -eq 1 ) ]]; then #calculate proper mac times
 	cd ${PATH_TO_AUTOMATE_SH}
 	echo "Calculating proper mac times..."
 	./automate.sh 32 3 16 5000000 16 40000000 16 16 16 >/dev/null
@@ -64,7 +73,7 @@ do_benchmarks() {
 
         DATA_BLOCK_SIZE=$FIXED_SIZE
 		#no macs
-		if [[ ( "$DO_CACHES_ONLY" -eq 0 ) ]]; then
+		if [[ ( "$DO_CACHES_ONLY" -eq 0 )  && ( "$RUN_TIME_SENSITIVE_BENCHMARKS" -eq 1 ) ]]; then
 			NAME_OF_BENCHMARK="NO_MACS_FIXED_SIZE_${FIXED_SIZE}"
 			echo ${NAME_OF_BENCHMARK}
 			NAME_OF_FILE=${BENCH_RESULTS_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}.txt
@@ -101,7 +110,7 @@ do_benchmarks() {
 
 
 		#ignoring macs
-		if [[ ( "$DO_CACHES_ONLY" -eq 0 ) ]]; then
+		if [[ ( "$DO_CACHES_ONLY" -eq 0 )  && ( "$RUN_TIME_SENSITIVE_BENCHMARKS" -eq 1 ) ]]; then
 			NAME_OF_BENCHMARK="IGNORING_MACS_FIXED_SIZE_${FIXED_SIZE}"
 			echo ${NAME_OF_BENCHMARK}
 			NAME_OF_FILE=${BENCH_RESULTS_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}.txt
@@ -137,62 +146,64 @@ do_benchmarks() {
 
 
 		#using cache
-		for cache_size in ${CACHE_SIZES}; do
-			for cache_assoc in ${CODE_AND_DATA_CACHE_ASSOCS}; do
-				DATA_CACHE_SIZE=$cache_size
-				DATA_CACHE_ASSOC=$cache_assoc
-				CODE_CACHE_SIZE=$cache_size
-				CODE_CACHE_ASSOC=$cache_assoc
-				NAME_OF_BENCHMARK="USING_CACHE_CODE_CACHE=${CODE_CACHE_SIZE}_DATA_CACHE=${DATA_CACHE_SIZE}_ASSOC_${CODE_CACHE_ASSOC}_FIXED_SIZE_${FIXED_SIZE}"
-				echo ${NAME_OF_BENCHMARK}
-				NAME_OF_FILE=${BENCH_RESULTS_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}.txt
-				NAME_OF_EXEC=${SECURE_EXEC_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}_ksec
-				NAME_OF_ALL_KEYSHARES_FOR_VERIF=${SECURE_EXEC_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}_all_keyshares
-				NAME_OF_HEAP_KEYSHARES=${SECURE_EXEC_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}_heap_keyshares
-				NAME_OF_STACK_KEYSHARES=${SECURE_EXEC_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}_stack_keyshares
-				NAME_OF_UNSPLIT_CODE_BLOCK_ADDRESSES=${SECURE_EXEC_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}_unsplit_code_block_addresses
-                NAME_OF_ADDRESSES_OF_CPU_SPLIT_BLOCKS=${SECURE_EXEC_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}_addresses_of_cpu_split_blocks.txt
-				cd ${PATH_TO_AUTOMATE_SH}
-				cp ${ORIGINAL_DIR}/automate_template.sh ${PATH_TO_AUTOMATE_SH}/automate.sh
-                if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 1 ) ]]; then
-				    sed -i 's/COUNT_MAC_INVOCATIONS=0/COUNT_MAC_INVOCATIONS=1/' automate.sh
-			    fi
-                if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 0 ) ]]; then
-				    sed -i 's/COUNT_MAC_INVOCATIONS=1/COUNT_MAC_INVOCATIONS=0/' automate.sh
-			    fi
-				sed -i "s/CODE_CACHE_TYPE=2/CODE_CACHE_TYPE=${CODE_CACHE_TYPE}/" automate.sh
-				sed -i "s/DATA_CACHE_TYPE=2/DATA_CACHE_TYPE=${DATA_CACHE_TYPE}/" automate.sh
-                sed -i "s/NUM_OF_CACHED_BLOCKS_OF_CODE=100/NUM_OF_CACHED_BLOCKS_OF_CODE=${CODE_CACHE_SIZE}/" automate.sh
-			    sed -i "s/NUM_OF_CACHED_BLOCKS_OF_DATA=100/NUM_OF_CACHED_BLOCKS_OF_DATA=${DATA_CACHE_SIZE}/" automate.sh
-				sed -i "s/CODE_CACHE_SET_ASSOSIATIVE_SIZE=0/CODE_CACHE_SET_ASSOSIATIVE_SIZE=${CODE_CACHE_ASSOC}/" automate.sh
-				sed -i "s/DATA_CACHE_SET_ASSOSIATIVE_SIZE=0/DATA_CACHE_SET_ASSOSIATIVE_SIZE=${DATA_CACHE_ASSOC}/" automate.sh
-				sed -i "s/USE_STACK_CANARIES=3/USE_STACK_CANARIES=${STACK_CANARIES_WORLD}/" automate.sh
-				if [[ ( "$PRODUCE_SECURE_EXEC" -eq 1 ) ]]; then
-				    ./automate.sh 32 3 ${DATA_BLOCK_SIZE} ${SECURE_HEAP_SIZE} ${DATA_BLOCK_SIZE} ${SECURE_STACK_SIZE} ${DATA_BLOCK_SIZE} ${MAC_BYTES_PER_BLOCK} ${FIXED_SIZE} >/dev/null
-					cp ./main_program_ksec ${NAME_OF_EXEC}
-					cp heap_keyshares ${NAME_OF_HEAP_KEYSHARES}
-					cp stack_keyshares ${NAME_OF_STACK_KEYSHARES}
-					cp all_keyshares_for_verification ${NAME_OF_ALL_KEYSHARES_FOR_VERIF}
-					cp addresses_of_cpu_split_blocks.txt ${NAME_OF_ADDRESSES_OF_CPU_SPLIT_BLOCKS}
-				else
-					cp ${NAME_OF_EXEC} ./main_program_ksec
-					cp ${NAME_OF_HEAP_KEYSHARES} heap_keyshares
-					cp ${NAME_OF_STACK_KEYSHARES} stack_keyshares
-					cp ${NAME_OF_ALL_KEYSHARES_FOR_VERIF} all_keyshares_for_verification
-					cp ${NAME_OF_ADDRESSES_OF_CPU_SPLIT_BLOCKS} addresses_of_cpu_split_blocks.txt 
-				fi
-				if [[ ( "$RUN_SECURE_EXEC" -eq 1 ) ]]; then
-					if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 0 ) ]]; then
-						time ./main_program_ksec | tee ${NAME_OF_FILE}_whole_output.txt | grep "Secure ${NAME_OF_SECURE_FUNCTION} time:" >  ${NAME_OF_FILE}
-					fi
+		if [[ ( "$RUN_TIME_INSENSITIVE_BENCHMARKS" -eq 1 ) ]]; then
+			for cache_size in ${CACHE_SIZES}; do
+				for cache_assoc in ${CODE_AND_DATA_CACHE_ASSOCS}; do
+					DATA_CACHE_SIZE=$cache_size
+					DATA_CACHE_ASSOC=$cache_assoc
+					CODE_CACHE_SIZE=$cache_size
+					CODE_CACHE_ASSOC=$cache_assoc
+					NAME_OF_BENCHMARK="USING_CACHE_CODE_CACHE=${CODE_CACHE_SIZE}_DATA_CACHE=${DATA_CACHE_SIZE}_ASSOC_${CODE_CACHE_ASSOC}_FIXED_SIZE_${FIXED_SIZE}"
+					echo ${NAME_OF_BENCHMARK}
+					NAME_OF_FILE=${BENCH_RESULTS_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}.txt
+					NAME_OF_EXEC=${SECURE_EXEC_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}_ksec
+					NAME_OF_ALL_KEYSHARES_FOR_VERIF=${SECURE_EXEC_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}_all_keyshares
+					NAME_OF_HEAP_KEYSHARES=${SECURE_EXEC_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}_heap_keyshares
+					NAME_OF_STACK_KEYSHARES=${SECURE_EXEC_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}_stack_keyshares
+					NAME_OF_UNSPLIT_CODE_BLOCK_ADDRESSES=${SECURE_EXEC_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}_unsplit_code_block_addresses
+					NAME_OF_ADDRESSES_OF_CPU_SPLIT_BLOCKS=${SECURE_EXEC_DIR}/${NAME_OF_SECURE_FUNCTION}_${NAME_OF_BENCHMARK}_addresses_of_cpu_split_blocks.txt
+					cd ${PATH_TO_AUTOMATE_SH}
+					cp ${ORIGINAL_DIR}/automate_template.sh ${PATH_TO_AUTOMATE_SH}/automate.sh
 					if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 1 ) ]]; then
-						./calc_extra_total_mac_time.sh  ${NAME_OF_FILE}_whole_output.txt | grep "Total extra time for macs" > ${NAME_OF_FILE}
+						sed -i 's/COUNT_MAC_INVOCATIONS=0/COUNT_MAC_INVOCATIONS=1/' automate.sh
 					fi
-					echo -n ${NAME_OF_BENCHMARK} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
-					${ORIGINAL_DIR}/get_the_seconds.py ${NAME_OF_FILE} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
-				fi
+					if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 0 ) ]]; then
+						sed -i 's/COUNT_MAC_INVOCATIONS=1/COUNT_MAC_INVOCATIONS=0/' automate.sh
+					fi
+					sed -i "s/CODE_CACHE_TYPE=2/CODE_CACHE_TYPE=${CODE_CACHE_TYPE}/" automate.sh
+					sed -i "s/DATA_CACHE_TYPE=2/DATA_CACHE_TYPE=${DATA_CACHE_TYPE}/" automate.sh
+					sed -i "s/NUM_OF_CACHED_BLOCKS_OF_CODE=100/NUM_OF_CACHED_BLOCKS_OF_CODE=${CODE_CACHE_SIZE}/" automate.sh
+					sed -i "s/NUM_OF_CACHED_BLOCKS_OF_DATA=100/NUM_OF_CACHED_BLOCKS_OF_DATA=${DATA_CACHE_SIZE}/" automate.sh
+					sed -i "s/CODE_CACHE_SET_ASSOSIATIVE_SIZE=0/CODE_CACHE_SET_ASSOSIATIVE_SIZE=${CODE_CACHE_ASSOC}/" automate.sh
+					sed -i "s/DATA_CACHE_SET_ASSOSIATIVE_SIZE=0/DATA_CACHE_SET_ASSOSIATIVE_SIZE=${DATA_CACHE_ASSOC}/" automate.sh
+					sed -i "s/USE_STACK_CANARIES=3/USE_STACK_CANARIES=${STACK_CANARIES_WORLD}/" automate.sh
+					if [[ ( "$PRODUCE_SECURE_EXEC" -eq 1 ) ]]; then
+						./automate.sh 32 3 ${DATA_BLOCK_SIZE} ${SECURE_HEAP_SIZE} ${DATA_BLOCK_SIZE} ${SECURE_STACK_SIZE} ${DATA_BLOCK_SIZE} ${MAC_BYTES_PER_BLOCK} ${FIXED_SIZE} >/dev/null
+						cp ./main_program_ksec ${NAME_OF_EXEC}
+						cp heap_keyshares ${NAME_OF_HEAP_KEYSHARES}
+						cp stack_keyshares ${NAME_OF_STACK_KEYSHARES}
+						cp all_keyshares_for_verification ${NAME_OF_ALL_KEYSHARES_FOR_VERIF}
+						cp addresses_of_cpu_split_blocks.txt ${NAME_OF_ADDRESSES_OF_CPU_SPLIT_BLOCKS}
+					else
+						cp ${NAME_OF_EXEC} ./main_program_ksec
+						cp ${NAME_OF_HEAP_KEYSHARES} heap_keyshares
+						cp ${NAME_OF_STACK_KEYSHARES} stack_keyshares
+						cp ${NAME_OF_ALL_KEYSHARES_FOR_VERIF} all_keyshares_for_verification
+						cp ${NAME_OF_ADDRESSES_OF_CPU_SPLIT_BLOCKS} addresses_of_cpu_split_blocks.txt 
+					fi
+					if [[ ( "$RUN_SECURE_EXEC" -eq 1 ) ]]; then
+						if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 0 ) ]]; then
+							time ./main_program_ksec | tee ${NAME_OF_FILE}_whole_output.txt | grep "Secure ${NAME_OF_SECURE_FUNCTION} time:" >  ${NAME_OF_FILE}
+						fi
+						if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 1 ) ]]; then
+							./calc_extra_total_mac_time.sh  ${NAME_OF_FILE}_whole_output.txt | grep "Total extra time for macs" > ${NAME_OF_FILE}
+						fi
+						echo -n ${NAME_OF_BENCHMARK} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
+						${ORIGINAL_DIR}/get_the_seconds.py ${NAME_OF_FILE} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
+					fi
+				done
 			done
-		done
+		fi
 
 	done
 }

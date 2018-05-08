@@ -3,28 +3,23 @@
 import sys
 
 #gives a line of benchmarks  can be put into a spreadsheet easily
-name_of_file="./Dijkstra_Dijkstra_1400_nodes_stack_canary_3/aggregated_results.txt"
+name_of_file="./Matrix_multiplication_Matrix_multiplication_800_sc_3/aggregated_results.txt"
 
 file_src=open(name_of_file,'r')
 src_lines= file_src.readlines()
 
 #fixed_size_sizes=[20,55,71,75]
-fixed_size_sizes=[16,32,48,64,80] #for code block =data block
+fixed_size_sizes=[16,32,48,64] #for code block =data block
 
 types_of_bench=["NO_MACS","IGNORING_MACS",
-				"CODE_CACHE=1_DATA_CACHE=1_ASSOC_DIRECT_MAPPED",
-				"CODE_CACHE=2_DATA_CACHE=2_ASSOC_DIRECT_MAPPED",
-				"CODE_CACHE=4_DATA_CACHE=4_ASSOC_DIRECT_MAPPED",
-				"CODE_CACHE=6_DATA_CACHE=6_ASSOC_DIRECT_MAPPED",
-				"CODE_CACHE=8_DATA_CACHE=8_ASSOC_DIRECT_MAPPED",
-				"CODE_CACHE=10_DATA_CACHE=10_ASSOC_DIRECT_MAPPED",
-				"CODE_CACHE=20_DATA_CACHE=20_ASSOC_2",
-				"CODE_CACHE=40_DATA_CACHE=40_ASSOC_2",
-				"CODE_CACHE=60_DATA_CACHE=60_ASSOC_2",
-				"CODE_CACHE=80_DATA_CACHE=80_ASSOC_2",
+				"CODE_CACHE=50_DATA_CACHE=50_ASSOC_2",
 				"CODE_CACHE=100_DATA_CACHE=100_ASSOC_2",
 				"CODE_CACHE=150_DATA_CACHE=150_ASSOC_2",
-				"CODE_CACHE=200_DATA_CACHE=200_ASSOC_2"				
+				"CODE_CACHE=200_DATA_CACHE=200_ASSOC_2",
+				"CODE_CACHE=250_DATA_CACHE=250_ASSOC_2",
+				"CODE_CACHE=300_DATA_CACHE=300_ASSOC_2",
+				"CODE_CACHE=350_DATA_CACHE=350_ASSOC_2",
+				"CODE_CACHE=400_DATA_CACHE=400_ASSOC_2"			
 				]
 
 strs_not_present=[]

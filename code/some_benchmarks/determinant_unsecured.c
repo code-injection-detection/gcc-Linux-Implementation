@@ -77,8 +77,8 @@ int main()
 {
     int initial_det_matrix[25][25];
     long determinant;
-    init_matrix_for_determinant_calc(&initial_det_matrix[0][0],8,1);
-    determinant=calc_determinant(&initial_det_matrix[0][0],8);
+    init_matrix_for_determinant_calc(&initial_det_matrix[0][0],11,0);
+    determinant=calc_determinant(&initial_det_matrix[0][0],11);
     printf("det=%ld\n",determinant);
     
 
