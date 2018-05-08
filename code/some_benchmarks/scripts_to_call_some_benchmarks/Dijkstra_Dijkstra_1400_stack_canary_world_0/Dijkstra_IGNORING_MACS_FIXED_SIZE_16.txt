@@ -1,0 +1,1 @@
+Secure Dijkstra time:16.775 cpu seconds
