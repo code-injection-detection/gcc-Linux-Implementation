@@ -474,39 +474,41 @@ void find_primes_up_to_a_number(int num, int should_print)
 
 /*************** START OF HANOI TEST ***************/
 
+void hanoi_do_something(int n)
+{
+    //find sum 1...n by adding
+    int i;
+    int sum;
+    for (i=1;i<=n;i++)
+        sum+=i;
+
+}
+
+
 void towerOfHanoi_test(int n, char fromrod, char torod, char auxrod, char should_print, char emulate_delay)
 {
 
     if (n == 1)
     {
 		if (should_print)
+        {
 			printf("\n Move disk 1 from rod %c to rod %c", fromrod, torod);
+        }
+        if (emulate_delay)
+        {
+            hanoi_do_something(100);
+        }
         return;
     }
-	if (emulate_delay) //adding these things to emulate the fact that the function should do something!
-	{
-		char_for_delay_hanoi[0]=fromrod;
-		char_for_delay_hanoi[1]=auxrod;
-		char_for_delay_hanoi[2]=torod;
-		char_for_delay_hanoi[3]=should_print;
-		char_for_delay_hanoi[4]=emulate_delay;
-		long_for_delay_hanoi=42;
-		int_for_delay_hanoi[0]=long_for_delay_hanoi+char_for_delay_hanoi[1];
-	}
     towerOfHanoi_test(n-1, fromrod, auxrod, torod,should_print,emulate_delay);
 	if (should_print)
 		printf("\n Move disk %d from rod %c to rod %c", n, fromrod, torod);
-    
-	if (emulate_delay)
+
+    if (emulate_delay) //adding these things to emulate the fact that the function should do something (instead of printing)!
 	{
-		char_for_delay_hanoi[0]=fromrod;
-		char_for_delay_hanoi[1]=auxrod;
-		char_for_delay_hanoi[2]=torod;
-		char_for_delay_hanoi[3]=should_print;
-		char_for_delay_hanoi[4]=emulate_delay;
-		long_for_delay_hanoi=42;
-		int_for_delay_hanoi[0]=long_for_delay_hanoi+char_for_delay_hanoi[1];
+        hanoi_do_something(100);
 	}
+    
     towerOfHanoi_test(n-1, auxrod, torod, fromrod,should_print,emulate_delay);
 }
 
@@ -604,6 +606,6 @@ void tests_that_use_pycparser_ast_main()
         Dijkstra_find_min_path_from_index(i,num_of_graph_nodes,0);
 	
 	//find_primes_up_to_a_number(150000,0);
-	//towerOfHanoi_test(28,'a','c', 'b',0,0);
+	//towerOfHanoi_test(22,'a','c', 'b',0,1);
 	
 }
