@@ -2,8 +2,8 @@
 
 PATH_TO_AUTOMATE_SH="/home/menoobs/virus_detection/gcc-Linux-Implementation/code/"
 ORIGINAL_DIR=`pwd`
-NAME_OF_SECURE_FUNCTION="Hanoi"
-BENCHMARK_NAME="Hanoi_28_stack_canary_world_3_no_delay_emulation"
+NAME_OF_SECURE_FUNCTION="Dijkstra"
+BENCHMARK_NAME="Dijkstra_1400_stack_canary_world_3"
 
 CODE_CACHE_TYPE=2  #0 -> fully assosiative
 				   #1 -> direct mapped

@@ -1,3 +1,9 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+//compile with  gcc Dijkstra_unsecured.c -mno-red-zone -fno-stack-protector
+
+
 /*Here be global variables*/
 
 int a_global_array[10];
@@ -230,7 +236,7 @@ void init_graph_neighbors(int size_of_graph)
             //random neighbors
             if (rand()%(probability_of_being_neighbor)==0 && i!=j)
             {
-                tmp=smalloc(sizeof(struct graph_neighbor_list_node));
+                tmp=malloc(sizeof(struct graph_neighbor_list_node));
                 tmp->distance =rand()%1000+5;
                 tmp->node_index=j;
                 tmp->next=head;
@@ -584,7 +590,7 @@ void check_array_test()
 /*************** END OF SIMPLE TESTS ***************/
 
 
-void tests_that_use_pycparser_ast_main()
+void main()
 {
     a_global_array[3]=45;
     int i;
@@ -607,3 +613,4 @@ void tests_that_use_pycparser_ast_main()
 	//towerOfHanoi_test(28,'a','c', 'b',0,0);
 	
 }
+
