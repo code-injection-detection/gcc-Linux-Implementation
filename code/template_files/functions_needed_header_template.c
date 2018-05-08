@@ -71,17 +71,23 @@ void set_stack_canary_in_stack(unsigned char * position_of_block_in_stack)
 	}
 	else if (use_stack_canaries==2)
 	{
-		//pay for key fetch
-		get_stack_char(position_of_block_in_stack);
+		if (world_in_which_we_are==3)
+		{
+			//pay mac calculation for key fetch
+			get_stack_char(position_of_block_in_stack);
+		}
 		produce_stack_canary_optimized_part(position_of_block_in_stack); //calculate the hash
 		insert_data_into_stack_mem(size_of_stack_canaries,produce_stack_canary_optimized_part(position_of_block_in_stack),position_of_block_in_stack);
 	}
 	else if (use_stack_canaries==3)
 	{
-		//pay for key fetch
-		get_stack_char(position_of_block_in_stack);
-		//pay for global fetch
-		GET_GLOBAL_LONG(globals.place_for_keyshare_accumulator);
+		if (world_in_which_we_are==3)
+		{
+			//pay mac calculation for key fetch
+			get_stack_char(position_of_block_in_stack);
+			//pay mac calculation for global fetch
+			GET_GLOBAL_LONG(globals.place_for_keyshare_accumulator);
+		}
 		first_8_bytes_of_k1=(unsigned long*)(position_of_block_in_stack+stack_bytes_for_useful_data);
 		*(first_8_bytes_of_k1)=*(first_8_bytes_of_k1)+1; //k1<-k1+1
 		//offset the global keys
