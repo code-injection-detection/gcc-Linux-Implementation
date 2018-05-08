@@ -1,0 +1,1 @@
+Secure Hanoi time:100.882 cpu seconds
