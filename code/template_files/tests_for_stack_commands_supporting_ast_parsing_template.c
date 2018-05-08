@@ -1,8 +1,8 @@
 /*Here be global variables*/
 
 int a_global_array[10];
-int mm_array_1[801][801];
-int mm_array_2[801][801];
+int mm_array_1[800][800];
+int mm_array_2[800][800];
 int times_called_stack_smashing_fun=0;
 unsigned long stack_canary_of_previous_fun;
 
@@ -364,7 +364,7 @@ void matrix_multiplication(int maxnum,int should_print,int sz_of_benchmark)
 {
 	int i,j,k,l;
 	long sum;
-	long matrix_res[801][801];
+	long matrix_res[800][800];
 	int size=sz_of_benchmark;
 	
 	for (i=0;i<size;i++)
@@ -598,16 +598,16 @@ void tests_that_use_pycparser_ast_main()
     */
 	//check_array_test();
 	//minheap_test();
-	/*
+	
 	init_global_arrays(800,800);
 	matrix_multiplication(1000,0,800);
-	*/
-    
+	
+    /*
     init_graph_neighbors(num_of_graph_nodes);
     //print_graph_neighbors(num_of_graph_nodes);
     for (i=1;i<=num_of_graph_nodes;i++)
         Dijkstra_find_min_path_from_index(i,num_of_graph_nodes,0);
-	
+	*/
 	//find_primes_up_to_a_number(150000,0);
 	//towerOfHanoi_test(22,'a','c', 'b',0,1);
 	
