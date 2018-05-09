@@ -56,6 +56,9 @@ void init_stack_canary()
 
 unsigned char stack_canary_result_unopt[aes_block_length];
 
+//enable optimizations, we would like good assembly in this part
+#pragma GCC push_options
+#pragma GCC optimize ("O2")
 void set_stack_canary_in_stack(unsigned char * position_of_block_in_stack)
 {
 	/*Canary algorithm: k1<-k1+1
@@ -148,6 +151,7 @@ void check_stack_canary_in_stack(unsigned char * position_of_block_in_stack, int
 		fprintf(stderr,"ERROR in stack canary, line %d. STACK SMASHING ATTEMPT!\n",line); exit(-1);
 	}
 }
+#pragma GCC pop_options //disable optimizations again
 
 /******************************************************************************/
 /*************************  STACK CANARY STUFF ABOVE  *************************/
