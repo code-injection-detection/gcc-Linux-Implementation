@@ -1,0 +1,1 @@
+Secure Determinant time:27.7892 cpu seconds
