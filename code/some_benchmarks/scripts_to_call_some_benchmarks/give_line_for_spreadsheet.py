@@ -3,7 +3,7 @@
 import sys
 
 #gives a line of benchmarks  can be put into a spreadsheet easily
-name_of_file="./Matrix_multiplication_Matrix_multiplication_800_sc_3/aggregated_results.txt"
+name_of_file="./Hanoi_Hanoi_24_no_sc_print_for_delay/aggregated_results.txt"
 
 file_src=open(name_of_file,'r')
 src_lines= file_src.readlines()
