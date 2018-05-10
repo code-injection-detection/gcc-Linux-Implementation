@@ -1,1 +1,0 @@
-New Secure matrix_multiplication_sec time:2764.36 cpu seconds

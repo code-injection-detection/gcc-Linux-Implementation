@@ -1,1 +1,0 @@
-New Secure towers_of_hanoi time:29.6813 cpu seconds
