@@ -27,6 +27,8 @@ STACK_CANARIES_WORLD=3
 RUN_TIME_SENSITIVE_BENCHMARKS=1 #no macs, ignoring macs
 RUN_TIME_INSENSITIVE_BENCHMARKS=1 #caches with CALC_TIME_WITH_SEPARATE_MAC_ADDITION=1
 
+BENCHMARK_IS_HANOI_WITH_OUTPUT=0 #if that's the case, the output will be huge (hundreds of MBs). We must not save it to disk
+
 
 if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -ne 1 ) ]]; then
 	echo "We need CALC_TIME_WITH_SEPARATE_MAC_ADDITION==1."
@@ -102,7 +104,12 @@ do_benchmarks() {
                 cp ${NAME_OF_ADDRESSES_OF_CPU_SPLIT_BLOCKS} addresses_of_cpu_split_blocks.txt 
 			fi	
 			if [[ ( "$RUN_SECURE_EXEC" -eq 1 ) ]]; then
-				time ./main_program_ksec | tee ${NAME_OF_FILE}_whole_output.txt | grep "Secure ${NAME_OF_SECURE_FUNCTION} time:" >  ${NAME_OF_FILE}
+				WHOLE_OUTPUT_FILENAME=${NAME_OF_FILE}_whole_output.txt
+				if [[ ( "$BENCHMARK_IS_HANOI_WITH_OUTPUT" -eq 1 ) ]]; then
+					#don't access the disk
+					WHOLE_OUTPUT_FILENAME=""
+				fi 
+				time ./main_program_ksec | tee ${WHOLE_OUTPUT_FILENAME} | grep "Secure ${NAME_OF_SECURE_FUNCTION} time:" >  ${NAME_OF_FILE}
 				echo -n ${NAME_OF_BENCHMARK} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
 				${ORIGINAL_DIR}/get_the_seconds.py ${NAME_OF_FILE} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
 			fi
@@ -138,7 +145,12 @@ do_benchmarks() {
                 cp ${NAME_OF_ADDRESSES_OF_CPU_SPLIT_BLOCKS} addresses_of_cpu_split_blocks.txt 
 			fi	
 			if [[ ( "$RUN_SECURE_EXEC" -eq 1 ) ]]; then
-				time ./main_program_ksec | tee ${NAME_OF_FILE}_whole_output.txt | grep "Secure ${NAME_OF_SECURE_FUNCTION} time:" >  ${NAME_OF_FILE}
+				WHOLE_OUTPUT_FILENAME=${NAME_OF_FILE}_whole_output.txt
+				if [[ ( "$BENCHMARK_IS_HANOI_WITH_OUTPUT" -eq 1 ) ]]; then
+					#don't access the disk
+					WHOLE_OUTPUT_FILENAME=""
+				fi 
+				time ./main_program_ksec | tee ${WHOLE_OUTPUT_FILENAME} | grep "Secure ${NAME_OF_SECURE_FUNCTION} time:" >  ${NAME_OF_FILE}
 				echo -n ${NAME_OF_BENCHMARK} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
 				${ORIGINAL_DIR}/get_the_seconds.py ${NAME_OF_FILE} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
 			fi
@@ -192,11 +204,17 @@ do_benchmarks() {
 						cp ${NAME_OF_ADDRESSES_OF_CPU_SPLIT_BLOCKS} addresses_of_cpu_split_blocks.txt 
 					fi
 					if [[ ( "$RUN_SECURE_EXEC" -eq 1 ) ]]; then
+						WHOLE_OUTPUT_FILENAME=${NAME_OF_FILE}_whole_output.txt
+						if [[ ( "$BENCHMARK_IS_HANOI_WITH_OUTPUT" -eq 1 ) ]]; then
+							#don't access the disk
+							WHOLE_OUTPUT_FILENAME=""
+						fi 
+					
 						if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 0 ) ]]; then
-							time ./main_program_ksec | tee ${NAME_OF_FILE}_whole_output.txt | grep "Secure ${NAME_OF_SECURE_FUNCTION} time:" >  ${NAME_OF_FILE}
+							time ./main_program_ksec | tee ${WHOLE_OUTPUT_FILENAME} | grep "Secure ${NAME_OF_SECURE_FUNCTION} time:" >  ${NAME_OF_FILE}
 						fi
 						if [[ ( "$CALC_TIME_WITH_SEPARATE_MAC_ADDITION" -eq 1 ) ]]; then
-							./calc_extra_total_mac_time.sh  ${NAME_OF_FILE}_whole_output.txt | grep "Total extra time for macs" > ${NAME_OF_FILE}
+							./calc_extra_total_mac_time.sh  ${WHOLE_OUTPUT_FILENAME} | grep "Total extra time for macs" > ${NAME_OF_FILE}
 						fi
 						echo -n ${NAME_OF_BENCHMARK} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
 						${ORIGINAL_DIR}/get_the_seconds.py ${NAME_OF_FILE} >> ${BENCH_RESULTS_DIR}/aggregated_results.txt
