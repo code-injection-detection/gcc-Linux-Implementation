@@ -6,7 +6,7 @@ import copy
 
 '''
 This script sets the proper defines in the headers_needed.h file, given the user configurations.
-The first part is the important one, the second implements an old (wrong) version of the stack.
+The first part is the important one, the second implements an old (wrong) version of the stack - (we keep it in order to keep some of the old code from breaking, if we want to run it).
 '''
 
 #get the template
