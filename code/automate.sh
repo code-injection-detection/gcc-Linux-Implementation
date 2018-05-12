@@ -27,7 +27,7 @@ BYTES_FOR_INSTR_LEN=2 #the number of bytes after the canaries that hold the size
 BYTES_FOR_NUM_OF_PADDED_NOPS_LEN=2 # the number of bytes after the canaries+bytes_for_instructions  that hold the number of padded nops
 OVERHEAD_OF_VERIFICATION=7 #7 for fixed size, 14 for variable size (obsolete)
 USE_NEW_SECURE_HEAP=2 # use the new secure heap implementation. 1-> use it, but do not use the secured global variables for its position/size etc. 2-> use it, with the secured global variables
-STACK_SHOULD_GROW_TO_DECREASING_NUMBERS=1 #IMPORTANT: 1 ONLY WORKS WHEN INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS=1. Search for bug in "return_addr_after_allocating", both in old and new templates. if 1, the "push" command in the stack should make the stack pointer decrease in number (as stack normally behaves)
+STACK_SHOULD_GROW_TO_DECREASING_NUMBERS=1 #IMPORTANT: 1 ONLY WORKS WHEN INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS=1. Currently the default, the stack canaries won't work without it.
 USE_STACK_CANARIES=3 # IMPORTANT: ONLY WORKS WHEN STACK_SHOULD_GROW_TO_DECREASING_NUMBERS=1. Inserts a stack canary on top of the local variables of a function, in order to protect from buffer overflows. 1->use constant static stack canaries, 2-> use stack canaries different for every block in the secure stack , 3->use cryptographically distinct stack canaries
 SIZE_OF_STACK_CANARIES=8
 WORLD_IN_WHICH_WE_ARE=3 # 1->No MACs no verification. 2-> Put MACs but ignore them (no verification), 3-> everything calculated world .  NOPs are padded in ALL worlds.
