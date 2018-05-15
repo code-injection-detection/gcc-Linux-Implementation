@@ -3,7 +3,6 @@
 #this script creates the actual secure program
 #do "make clean" if after the execution you want to clear the files
 
-SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS=1  #default 1
 DECLARE_GLOBAL_KEYS_AS_AN_ARRAY=0  #default 0
 INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS=1 #default 1
 CHECK_FOR_SECURE_STACK_ALLOCATION_OVERLOW=0 #default 0, checks if we don't have enough stack memory to accommodate for a given secure stack allocation
@@ -51,6 +50,7 @@ WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL=1 #Does not calculate 
 SPLIT_THE_BLOCKS_WHEN_THE_SECURE_CPU_WOULD=1 #It changes the values of WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL and USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS to hold its value. Splits blocks when encountering call or label, but calculates the mac on the unsplit block. ALWAYS TRUE.
 USING_LARGE_JMPS_AND_CODE_BLOCKS_WITH_3_WORLDS=1 #using the new implementation which restricts the variables that we have. The worlds are: no macs, ignoring macs, splitting and caching like secure cpu would. ALWAYS TRUE.
 VERIFY_EVERYTHING=1 #the third world
+SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS=1  #default 1
 
 
 
@@ -108,8 +108,6 @@ echo -n "NUM_OF_GROUPED_USEFUL_STACK_BYTES: "
 echo $NUM_OF_GROUPED_USEFUL_STACK_BYTES
 echo -n "NUM_OF_TOTAL_STACK_BYTES_ALLOC: "
 echo $NUM_OF_TOTAL_STACK_BYTES_ALLOC
-echo -n "SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS: "
-echo $SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS
 echo -n "NUM_OF_GLOBAL_USEFUL_BYTES: "
 echo $NUM_OF_GLOBAL_USEFUL_BYTES
 echo -n "NUM_OF_MAC_BYTES: "
@@ -347,32 +345,17 @@ echo "Compiling hash and encryption calculators, as well as the crypto initializ
 echo "Compiled hash and encryption calculators, and the crypto initializer."
 
 
-if [ "$SECURE_GLOBAL_VARIABLES_WITH_SEPARATE_KEYS" != "0" ]; then
-	echo "Inserting keys among global variables and copying some templates...."
-	#first we recreate headers_needed.h from its template. We do that because if we try to find globals in "headers_needed.h" twice, the second time there are no annotations for the globals.
-	eval $SET_PROPER_DEFINES
-	#tranfer the global declarations to headers_needed.h, again
-	cp 2nd_pass_of_C_reconstruction_of_tests_temp.c 2nd_pass_of_C_reconstruction_of_tests.c #restore the backup that holds the global variables, since they have been erased
-	./transfer_c_reconstructor_globals.py 1 #transfer the globals, and remove the original declarations in 2nd_pass_of_C_reconstruction_of_tests.c for good
-	#this secures the data segment
-	DO_STUFF_FOR_HEADERS_NEEDED_ONLY=0
-	./insert_keys_and_macs_among_globals.py $NUM_OF_INTERLEAVED_KEYS $DECLARE_GLOBAL_KEYS_AS_AN_ARRAY $NUM_OF_GLOBAL_USEFUL_BYTES $NUM_OF_MAC_BYTES $SQEEZE_KEYS_WHEN_MACING $DO_STUFF_FOR_HEADERS_NEEDED_ONLY # 0 means: do
-	echo "Inserted keys among global variables and copied some templates."
-else
-	echo "Copying templates to target files"
-	#copying the rest of the templates
-	#headers_needed and general_tests are missing, they are taken care of the insert_keys_and_macs_among_globals.py
-	cp ./template_files/memory_manager_template.c memory_manager.c
-	cp ./template_files/verification_procedure_template.c verification_procedure.c
-	cp ./template_files/stack_manager_template.c stack_manager.c
-	cp ./template_files/functions_needed_header_template.c functions_needed_header.c
-	cp ./template_files/functions_needed_footer_template.c functions_needed_footer.c
-	cp ./template_files/main_program_template.c main_program.c
-	cp ./template_files/memory_manager_test_suite_template.c memory_manager_test_suite.c
-	cp ./template_files/stack_manager_test_suite_template.c stack_manager_test_suite.c
-	cp ./template_files/final_mac_checking_functions_template.c final_mac_checking_functions.c
-	echo "Copied templates"
-fi
+echo "Inserting keys among global variables and copying some templates...."
+#first we recreate headers_needed.h from its template. We do that because if we try to find globals in "headers_needed.h" twice, the second time there are no annotations for the globals.
+eval $SET_PROPER_DEFINES
+#tranfer the global declarations to headers_needed.h, again
+cp 2nd_pass_of_C_reconstruction_of_tests_temp.c 2nd_pass_of_C_reconstruction_of_tests.c #restore the backup that holds the global variables, since they have been erased
+./transfer_c_reconstructor_globals.py 1 #transfer the globals, and remove the original declarations in 2nd_pass_of_C_reconstruction_of_tests.c for good
+#this secures the data segment
+DO_STUFF_FOR_HEADERS_NEEDED_ONLY=0
+./insert_keys_and_macs_among_globals.py $NUM_OF_INTERLEAVED_KEYS $DECLARE_GLOBAL_KEYS_AS_AN_ARRAY $NUM_OF_GLOBAL_USEFUL_BYTES $NUM_OF_MAC_BYTES $SQEEZE_KEYS_WHEN_MACING $DO_STUFF_FOR_HEADERS_NEEDED_ONLY # 0 means: do
+echo "Inserted keys among global variables and copied some templates."
+
 
 
 
