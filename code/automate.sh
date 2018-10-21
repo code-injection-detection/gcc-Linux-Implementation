@@ -31,6 +31,9 @@ USE_STACK_CANARIES=3 # IMPORTANT: ONLY WORKS WHEN STACK_SHOULD_GROW_TO_DECREASIN
 SIZE_OF_STACK_CANARIES=8
 WORLD_IN_WHICH_WE_ARE=3 # 1->No MACs no verification. 2-> Put MACs but ignore them (no verification), 3-> everything calculated world .  NOPs are padded in ALL worlds.
 ALL_GETTER_SETTER_ARGUMENTS_POINT_AT_START_OF_BLOCKS=0 #Default 0. A pointer to the secure memory given to a getter or a setter may not be at the start of a block 
+PUT_USEFUL_BYTES_OF_EACH_BLOCK_IN_DIFFERENT_PLACE_THAN_THE_KEYS_AND_MACS=0 #Experimental. 0->Put the blocks to be <useful_bytes>||<keys>||<macs> . 1->Do it for the data segment only. 2-> Data segment+heap. 3-> Data segment,heap+stack. 4-> Do it for every memory position. We still make sure that non-array normal variables do not span into two blocks, BUT for >0 and globals, we put variables into the same block as much as possible (without splitting).
+GROUP_AS_MANY_GLOBAL_VARS_AS_POSSIBLE_IN_EACH_BLOCK=0 #Default 0. Every block of globals has as many variables as it can fit. If 0, every variable will have its own block. IMPORTANT: Currently !=0 supported if keys and macs are in separate places.
+
 
 #SEMI_OBSOLETE FLAG BELOW
 COUNT_MAC_INVOCATIONS=0 #Ignores mac correctness and reports mac invocations. Default 1. That is the third world. This is the only flag that we would like to change once in a while for correctnes check
@@ -176,6 +179,12 @@ if [[ ( "$NUM_OF_CACHED_BLOCKS_OF_DATA" -ne 0 ) && ( "$NUM_OF_GROUPED_USEFUL_STA
 	exit
 fi
 
+if [[ ( "$PUT_USEFUL_BYTES_OF_EACH_BLOCK_IN_DIFFERENT_PLACE_THAN_THE_KEYS_AND_MACS" -eq 0 ) && ( "$GROUP_AS_MANY_GLOBAL_VARS_AS_POSSIBLE_IN_EACH_BLOCK" -ne 0 ) ]]; then
+	echo "Error. Currently we cannot have the global blocks to have keys+macs in the same place as the useful bytes AND many variables to be in the same block."  #Fix me, add support
+	exit
+fi
+
+
 if [[ "$SIZE_OF_STACK_CANARIES" -ne 8  ]]; then
 	echo "Size of stack canaries is not supported to be different than 8."
 	exit
@@ -248,7 +257,7 @@ cp ${SCRIPTS_FOR_CODEGEN_DIR}/* ./
 
 echo "Changing defines according to input..."
 #this script changes the defines according to user input, so that se secure program knows the constants as headers.
-SET_PROPER_DEFINES='python3 set_correct_defines.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC_IN_HEAP $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_TOTAL_STACK_BYTES_ALLOC $NUM_OF_GLOBAL_USEFUL_BYTES $NUM_OF_MAC_BYTES $INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS $USE_FIXED_SIZE_CHUNKS_OF_CODE $NUM_OF_REQUESTED_USEFUL_BYTES_IN_CODE_CHUNK $DO_NOT_MAC_WHAT_WHE_ADD_IN_CODE $ADD_CODE_ON_THE_FLY_VERIFICATION $USE_INLINE_CODE_FOR_DELAYS $NUM_OF_CACHED_BLOCKS_OF_CODE $NUM_OF_CACHED_BLOCKS_OF_DATA $IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES $CODE_CACHE_TYPE $DATA_CACHE_TYPE $CODE_CACHE_SET_ASSOSIATIVE_SIZE $DATA_CACHE_SET_ASSOSIATIVE_SIZE $IGNORE_MACS_LAST_MOMENT_EVEN_IF_THERE_ARE_MAC_BYTES $TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES $SQEEZE_KEYS_WHEN_MACING $COUNT_MAC_INVOCATIONS $ADD_THE_PADDED_NOPS_IN_THE_MAC_IN_FIXED_SIZE $FORCE_CODE_BLOCK_SPLIT_ON_LABELS_AND_CALLS $USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS $SET_AS_GIVEN_THAT_EVERYTHING_MACED_WILL_BE_FIXED_AND_MULTIPLE_OF_16 $WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL $SIZE_OF_JMP_COMMAND $OVERHEAD_OF_VERIFICATION $USING_LARGE_JMPS_AND_CODE_BLOCKS_WITH_3_WORLDS $BYTES_FOR_INSTR_LEN $VERIFY_EVERYTHING $USE_NEW_SECURE_HEAP $CHECK_FOR_SECURE_STACK_ALLOCATION_OVERLOW $STACK_SHOULD_GROW_TO_DECREASING_NUMBERS $USE_STACK_CANARIES $WORLD_IN_WHICH_WE_ARE $BYTES_FOR_NUM_OF_PADDED_NOPS_LEN $SIZE_OF_STACK_CANARIES $ALL_GETTER_SETTER_ARGUMENTS_POINT_AT_START_OF_BLOCKS'
+SET_PROPER_DEFINES='python3 set_correct_defines.py $NUM_OF_INTERLEAVED_KEYS $NUM_OF_CANARIES $NUM_OF_GROUPED_USEFUL_BYTES $NUM_OF_TOTAL_BYTES_ALLOC_IN_HEAP $NUM_OF_GROUPED_USEFUL_STACK_BYTES $NUM_OF_TOTAL_STACK_BYTES_ALLOC $NUM_OF_GLOBAL_USEFUL_BYTES $NUM_OF_MAC_BYTES $INSERT_PARAMERERS_INTO_NEW_SECURE_STACK_AS_ARRAYS $USE_FIXED_SIZE_CHUNKS_OF_CODE $NUM_OF_REQUESTED_USEFUL_BYTES_IN_CODE_CHUNK $DO_NOT_MAC_WHAT_WHE_ADD_IN_CODE $ADD_CODE_ON_THE_FLY_VERIFICATION $USE_INLINE_CODE_FOR_DELAYS $NUM_OF_CACHED_BLOCKS_OF_CODE $NUM_OF_CACHED_BLOCKS_OF_DATA $IGNORE_MACS_EVEN_IF_THERE_ARE_MAC_BYTES $CODE_CACHE_TYPE $DATA_CACHE_TYPE $CODE_CACHE_SET_ASSOSIATIVE_SIZE $DATA_CACHE_SET_ASSOSIATIVE_SIZE $IGNORE_MACS_LAST_MOMENT_EVEN_IF_THERE_ARE_MAC_BYTES $TREAT_LOOP_COUNTERS_AS_UNSECURED_VARIABLES $SQEEZE_KEYS_WHEN_MACING $COUNT_MAC_INVOCATIONS $ADD_THE_PADDED_NOPS_IN_THE_MAC_IN_FIXED_SIZE $FORCE_CODE_BLOCK_SPLIT_ON_LABELS_AND_CALLS $USE_CODE_CACHE_WITH_UNSPLIT_BLOCKS $SET_AS_GIVEN_THAT_EVERYTHING_MACED_WILL_BE_FIXED_AND_MULTIPLE_OF_16 $WHEN_SPLITTING_BLOCKS_DO_NOT_INVOKE_VERIF_UNLESS_ON_LABEL $SIZE_OF_JMP_COMMAND $OVERHEAD_OF_VERIFICATION $USING_LARGE_JMPS_AND_CODE_BLOCKS_WITH_3_WORLDS $BYTES_FOR_INSTR_LEN $VERIFY_EVERYTHING $USE_NEW_SECURE_HEAP $CHECK_FOR_SECURE_STACK_ALLOCATION_OVERLOW $STACK_SHOULD_GROW_TO_DECREASING_NUMBERS $USE_STACK_CANARIES $WORLD_IN_WHICH_WE_ARE $BYTES_FOR_NUM_OF_PADDED_NOPS_LEN $SIZE_OF_STACK_CANARIES $ALL_GETTER_SETTER_ARGUMENTS_POINT_AT_START_OF_BLOCKS $PUT_USEFUL_BYTES_OF_EACH_BLOCK_IN_DIFFERENT_PLACE_THAN_THE_KEYS_AND_MACS $GROUP_AS_MANY_GLOBAL_VARS_AS_POSSIBLE_IN_EACH_BLOCK'
 eval $SET_PROPER_DEFINES
 
 echo "Inserting secure heap manager + more tests into the great function that contains the secure functions..."
@@ -269,7 +278,7 @@ echo "Inserting secure heap manager + more tests into the great function that co
 	./insert_stack_manipulation_commands_given_ast_of_functions.py ${NUM_OF_INTERLEAVED_KEYS} ${NUM_OF_GROUPED_USEFUL_STACK_BYTES} ${NUM_OF_MAC_BYTES} ${USE_STACK_CANARIES}
 	cp 2nd_pass_of_C_reconstruction_of_tests.c 2nd_pass_of_C_reconstruction_of_tests_temp.c #take a backup of the 2nd_pass... because the global variables will be erased
 	#tranfer the global declarations to headers_needed.h
-	./transfer_c_reconstructor_globals.py 1 #erase the global declarations because the tests_with_new_stack will be filled with keysdestined for the struct that holds all the globals
+	./transfer_c_reconstructor_globals.py 1 $PUT_USEFUL_BYTES_OF_EACH_BLOCK_IN_DIFFERENT_PLACE_THAN_THE_KEYS_AND_MACS #erase the global declarations because the tests_with_new_stack will be filled with keys destined for the struct that holds all the globals
 	sed -i -e '/BASH PLEASE PLACE THE TESTS_FOR_STACK_COMMANDS_SUPPORTING_AST_PARSING.c HERE/r./2nd_pass_of_C_reconstruction_of_tests.c' tests_with_new_stack.c 
 	STR_THAT_GOES_TO_TESTS_THAT_USE_AST_AND_BACK="\/\/goto the tests that use the pycarser ast and come back \ngoto label_for_tests_that_use_pycparser_ast; \n	label_for_return_from_tests_that_use_pycparser_ast: \n	;"
 	sed  -i "/\/\/BASH PLEASE PLACE THE JUMP TO THE TESTS THAT USE PYCPARSER HERE/a ${STR_THAT_GOES_TO_TESTS_THAT_USE_AST_AND_BACK}" tests_with_new_stack.c 
@@ -307,7 +316,7 @@ echo "Copied these files."
 
 echo "Creating headers.h in which there are the global constants... "
 	DO_STUFF_FOR_HEADERS_NEEDED_ONLY=1
-	./insert_keys_and_macs_among_globals.py $NUM_OF_INTERLEAVED_KEYS $DECLARE_GLOBAL_KEYS_AS_AN_ARRAY $NUM_OF_GLOBAL_USEFUL_BYTES $NUM_OF_MAC_BYTES $SQEEZE_KEYS_WHEN_MACING $DO_STUFF_FOR_HEADERS_NEEDED_ONLY #use only for headers_needed.h
+	./insert_keys_and_macs_among_globals.py $NUM_OF_INTERLEAVED_KEYS $DECLARE_GLOBAL_KEYS_AS_AN_ARRAY $NUM_OF_GLOBAL_USEFUL_BYTES $NUM_OF_MAC_BYTES $SQEEZE_KEYS_WHEN_MACING $DO_STUFF_FOR_HEADERS_NEEDED_ONLY $PUT_USEFUL_BYTES_OF_EACH_BLOCK_IN_DIFFERENT_PLACE_THAN_THE_KEYS_AND_MACS $GROUP_AS_MANY_GLOBAL_VARS_AS_POSSIBLE_IN_EACH_BLOCK #DO_STUFF_FOR_HEADERS_NEEDED_ONLY=use only for headers_needed.h 
 echo "Created headers.h in which there are the global constants."
 
 
@@ -350,10 +359,10 @@ echo "Inserting keys among global variables and copying some templates...."
 eval $SET_PROPER_DEFINES
 #tranfer the global declarations to headers_needed.h, again
 cp 2nd_pass_of_C_reconstruction_of_tests_temp.c 2nd_pass_of_C_reconstruction_of_tests.c #restore the backup that holds the global variables, since they have been erased
-./transfer_c_reconstructor_globals.py 1 #transfer the globals, and remove the original declarations in 2nd_pass_of_C_reconstruction_of_tests.c for good
+./transfer_c_reconstructor_globals.py 1 $PUT_USEFUL_BYTES_OF_EACH_BLOCK_IN_DIFFERENT_PLACE_THAN_THE_KEYS_AND_MACS #transfer the globals, and remove the original declarations in 2nd_pass_of_C_reconstruction_of_tests.c for good
 #this secures the data segment
 DO_STUFF_FOR_HEADERS_NEEDED_ONLY=0
-./insert_keys_and_macs_among_globals.py $NUM_OF_INTERLEAVED_KEYS $DECLARE_GLOBAL_KEYS_AS_AN_ARRAY $NUM_OF_GLOBAL_USEFUL_BYTES $NUM_OF_MAC_BYTES $SQEEZE_KEYS_WHEN_MACING $DO_STUFF_FOR_HEADERS_NEEDED_ONLY # 0 means: do
+./insert_keys_and_macs_among_globals.py $NUM_OF_INTERLEAVED_KEYS $DECLARE_GLOBAL_KEYS_AS_AN_ARRAY $NUM_OF_GLOBAL_USEFUL_BYTES $NUM_OF_MAC_BYTES $SQEEZE_KEYS_WHEN_MACING $DO_STUFF_FOR_HEADERS_NEEDED_ONLY $PUT_USEFUL_BYTES_OF_EACH_BLOCK_IN_DIFFERENT_PLACE_THAN_THE_KEYS_AND_MACS $GROUP_AS_MANY_GLOBAL_VARS_AS_POSSIBLE_IN_EACH_BLOCK
 echo "Inserted keys among global variables and copied some templates."
 
 

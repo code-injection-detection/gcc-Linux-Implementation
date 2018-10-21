@@ -7,6 +7,9 @@ import os
 Transfers the global declarations that the C reconstructor produces to headers_needed.h
 '''
 remove_original_lines=int(sys.argv[1])
+put_useful_bytes_of_each_block_in_different_place_than_the_keys_and_macs=int(sys.argv[2])
+
+put_ub_separate_km=put_useful_bytes_of_each_block_in_different_place_than_the_keys_and_macs
 
 file1='2nd_pass_of_C_reconstruction_of_tests.c'
 file2='headers_needed.h'
@@ -15,7 +18,7 @@ filehandler=open(file1,'r')
 filelines_in = filehandler.readlines()
 filehandler.close()
 
-#re-open the file1 to write the same things but without the global declarations
+#re-open the file1 (the 2nd_pass_of_C_reconstruction_of_tests.c) to write the same things but without the global declarations
 filelines_out=[]
 filehandler=open(file1,'w')
 
@@ -57,14 +60,18 @@ filehandler.close()
 		
 stripped_global_decls=[x.strip() for x in global_decls]		
 		
-#now we have the global decls to transfer!
+#now we have the global decls to transfer! The transfer will be to headers_needed.h
 filehandler=open(file2,'r')
 filelines_in = filehandler.readlines()
 filehandler.close()
 
 filehandler=open(file2,'w')
-str_that_starts_global_vars='typedef struct global_variables_struct'
-str_that_stops_global_vars='}global_vars;'
+if put_ub_separate_km==0: #be careful which struct to use. The one that all (useful bytes+keys+macs) are together or the ones that are separate.
+	str_that_starts_global_vars='typedef struct global_variables_struct'
+	str_that_stops_global_vars='}global_vars;'
+else:
+	str_that_starts_global_vars='typedef struct global_variables_ub_struct'
+	str_that_stops_global_vars='}global_vars_ub;'
 globals_in_headers=[]
 skip_line_for_struct_start=0
 skip_line_for_global_redecl=0

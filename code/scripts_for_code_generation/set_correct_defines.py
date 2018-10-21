@@ -114,6 +114,10 @@ for line in src_lines:
 		newline='#define size_of_stack_canaries '+sys.argv[42]+'\n'
 	if '#define all_getter_setter_arguments_point_at_start_of_blocks' in line:
 		newline='#define all_getter_setter_arguments_point_at_start_of_blocks '+sys.argv[43]+'\n'
+	if '#define put_useful_bytes_of_each_block_in_different_place_than_the_keys_and_macs' in line:
+		newline='#define put_useful_bytes_of_each_block_in_different_place_than_the_keys_and_macs '+sys.argv[44]+'\n'
+	if '#define group_as_many_global_vars_as_possible_in_each_block' in line:
+		newline='#define group_as_many_global_vars_as_possible_in_each_block '+sys.argv[45]+'\n'
 	headers_dst.write(newline)
 
 

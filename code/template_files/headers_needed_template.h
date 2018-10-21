@@ -267,6 +267,15 @@
 #endif				//Default 0. A pointer to the secure memory given to a getter or a setter may not be at the start of a block 
 
 
+#ifndef put_useful_bytes_of_each_block_in_different_place_than_the_keys_and_macs
+#define put_useful_bytes_of_each_block_in_different_place_than_the_keys_and_macs 0
+#endif				//Default 0. 0->Put the blocks to be <useful_bytes>||<keys>||<macs> . 1->Do it for the data segment only. 2-> Data segment+heap. 3-> Data segment,heap+stack. 4-> Do it for every memory position
+
+
+#ifndef group_as_many_global_vars_as_possible_in_each_block
+#define group_as_many_global_vars_as_possible_in_each_block 0
+#endif				//Default 0. Every block of globals has as many variables as it can fit. If 0, every variable will have its own block.
+
 
 #include "crypto_and_mac_verify_functions.h"
 #include "secure_getters_setters.h"
@@ -385,7 +394,52 @@ long stack_canary_value;
 long place_for_keyshare_accumulator;
 }global_vars;
 
-extern global_vars globals;
+
+
+//Declaration of globals if the keys and the macs are in different places.
+typedef struct global_variables_ub_struct
+{
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:double
+double global_double_variable_for_testing;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:int
+int test_global;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:int 
+int secured_i;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:long
+long secured_sum;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:pointer
+void * entire_stack_memory_chunk;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:pointer
+unsigned char * secure_heap;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:pointer
+sheap_metadata * sfree_chunks_list;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:pointer
+sheap_metadata * salloc_chunks_list;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:long
+long sfree_chunks_num;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:long
+long salloc_chunks_num;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:int
+int size_of_sheap_metadata_in_chunks;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:int || EXTRA_STUFF::: full_type=int
+int testinttest;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:long
+long stack_canary_value;
+//ATTENTION: GLOBAL VARIABLE FOLLOWING! | SIZE:long
+long place_for_keyshare_accumulator;
+}global_vars_ub;
+
+typedef struct global_variables_km_struct
+{
+	
+}global_vars_km;
+
+#if put_useful_bytes_of_each_block_in_different_place_than_the_keys_and_macs == 0
+	extern global_vars globals;
+#else
+	extern global_vars_ub globals_useful_bytes;
+	extern global_vars_km globals_keys_macs;
+#endif
 
 /**************************SECURE GLOBAL DECLARATION END *************************/
 
