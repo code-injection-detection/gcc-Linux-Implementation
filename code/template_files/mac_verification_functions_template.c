@@ -3,7 +3,7 @@
 //TODO: move the functions that are for mac verification from crypto_functions_template.c to here
 //Right now they are in crypto_functions_template.c (and they work), but they should be moved here for clarification, as they are not exactly "crypto functions".
 
-//However we can add the new crypto functions that work with the new memory map, i.e. useful ytes separate from keyshares+macs.
+//However we can add the new crypto functions that work with the new memory map, i.e. useful bytes separate from keyshares+macs.
 
 extern char count_mac_invocations_in_this_code_part;
 extern unsigned char mac_to_be_verified[number_of_mac_bytes];
@@ -89,4 +89,25 @@ int check_mac_for_error_ub_separate_km(unsigned char * input_in_ub,unsigned char
 		}
 	}
 	return error;
+}
+
+
+int check_mac_for_error_ub_separate_km_given_ub_in_globals(unsigned char * input_in_ub)
+{
+	unsigned long offset_of_position_in_ub_globals=(input_in_ub-(unsigned char *)&globals_useful_bytes);
+	long blocks_from_start_of_globals=offset_of_position_in_ub_globals/number_of_global_useful_bytes;
+	long offset_in_block_in_globals=offset_of_position_in_ub_globals%number_of_global_useful_bytes;
+	unsigned char * position_of_block_in_keys_macs=(unsigned char*)&globals_keys_macs+blocks_from_start_of_globals*(number_of_interleaved_keys+number_of_mac_bytes);
+	
+	return check_mac_for_error_ub_separate_km(input_in_ub-offset_in_block_in_globals,  position_of_block_in_keys_macs, number_of_global_useful_bytes+number_of_interleaved_keys, number_of_global_useful_bytes);
+}
+
+int check_mac_for_error_ub_separate_km_given_mac_in_globals(unsigned char * input_in_km)
+{
+	unsigned long offset_of_position_in_km_globals=(input_in_km-(unsigned char *)&globals_keys_macs);
+	long blocks_from_start_of_globals=offset_of_position_in_km_globals/(number_of_interleaved_keys+number_of_mac_bytes);
+	long offset_in_block_in_globals=offset_of_position_in_km_globals%(number_of_interleaved_keys+number_of_mac_bytes);
+	unsigned char * position_of_block_in_useful_bytes=(unsigned char*)&globals_useful_bytes+blocks_from_start_of_globals*(number_of_global_useful_bytes);
+	
+	return check_mac_for_error_ub_separate_km(position_of_block_in_useful_bytes,input_in_km-offset_in_block_in_globals, number_of_global_useful_bytes+number_of_interleaved_keys, number_of_global_useful_bytes);
 }

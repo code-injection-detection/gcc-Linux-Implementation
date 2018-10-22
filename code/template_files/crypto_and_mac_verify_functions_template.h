@@ -62,4 +62,10 @@ extern char count_mac_invocations_in_this_code_part;
 unsigned char * produce_stack_canary_optimized_part(unsigned char* position_of_block_in_stack);
 
 
+void calc_and_set_mac_of_data_ub_separate_km(unsigned char *input_in_ub,unsigned char *input_in_km,int length_all,int length_useful,unsigned char *output);
+int check_mac_for_error_ub_separate_km(unsigned char * input_in_ub,unsigned char * input_in_km, int total_mac_bytes, int useful_mac_bytes);
+int check_mac_for_error_ub_separate_km_given_ub_in_globals(unsigned char * input_in_ub);
+int check_mac_for_error_ub_separate_km_given_mac_in_globals(unsigned char * input_in_km);
+
+
 #endif

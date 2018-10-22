@@ -434,12 +434,12 @@ typedef struct global_variables_km_struct
 	
 }global_vars_km;
 
-#if put_useful_bytes_of_each_block_in_different_place_than_the_keys_and_macs == 0
-	extern global_vars globals;
-#else
-	extern global_vars_ub globals_useful_bytes;
-	extern global_vars_km globals_keys_macs;
-#endif
+// if put_useful_bytes_of_each_block_in_different_place_than_the_keys_and_macs == 0
+extern global_vars globals;
+// if put_useful_bytes_of_each_block_in_different_place_than_the_keys_and_macs == 1
+extern global_vars_ub globals_useful_bytes;
+extern global_vars_km globals_keys_macs;
+
 
 /**************************SECURE GLOBAL DECLARATION END *************************/
 

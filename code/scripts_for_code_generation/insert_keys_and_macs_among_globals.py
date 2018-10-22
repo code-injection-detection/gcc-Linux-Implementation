@@ -108,6 +108,11 @@ else:
 	group_as_many_global_vars_as_possible_in_each_block=int(sys.argv[8])
 	group_global_vars_in_blocks=group_as_many_global_vars_as_possible_in_each_block
 	
+	
+#for test only
+#put_ub_separate_km=1
+#group_global_vars_in_blocks=1
+
 #functionality for some var types. For example const. Use with caution, not guaranteed to work.
 def process_var_type(var_type):
 	if var_type=='normal':
@@ -313,12 +318,11 @@ def add_mac_verification():
 			s+='}\n'
 	else:
 		for i in range(1,maccnt_major+1):
-			s+='if (!ignore_macs_even_if_there_are_mac_bytes && check_mac_for_error_ub_separate_km((unsigned char *)&(globals.mac_'+str(i)+'_1)-(number_of_global_useful_bytes+bytes_used_for_keyshares),number_of_global_useful_bytes+bytes_used_for_keyshares,number_of_global_useful_bytes))\n'
+			s+='if (!ignore_macs_even_if_there_are_mac_bytes && check_mac_for_error_ub_separate_km_given_mac_in_globals((unsigned char *)&(globals_keys_macs.mac_'+str(i)+'_1)))\n'
 			s+='{\n'	
 			s+='	fprintf(stderr,"Error in global macs, mac no %d\\n",'+str(i)+');\n'
 			s+='	error=1;\n'
 			s+='}\n'
-		pass #!!!!!!!! FIX ME
 		
 	if (maccnt_major>0):
 		s+='if (error==0)\n'
@@ -335,12 +339,20 @@ def add_mac_verification_one_line():
 	global number_of_keys
 	
 	s='int error=0;\n \n'
-	for i in range(1,maccnt_major+1):
-		s+='if(check_mac_for_error((unsigned char *)&(globals.mac_'+str(i)+')-(number_of_global_useful_bytes+bytes_used_for_keyshares),number_of_global_useful_bytes+bytes_used_for_keyshares,number_of_global_useful_bytes))\n'
-		s+='{\n'	
-		s+='	fprintf(stderr,"Error in global macs, mac no %d\\n",'+str(i)+');\n'
-		s+='	error=1;\n'
-		s+='}\n'
+	if (put_ub_separate_km==0):
+		for i in range(1,maccnt_major+1):
+			s+='if( !ignore_macs_even_if_there_are_mac_bytes && check_mac_for_error((unsigned char *)&(globals.mac_'+str(i)+')-(number_of_global_useful_bytes+bytes_used_for_keyshares),number_of_global_useful_bytes+bytes_used_for_keyshares,number_of_global_useful_bytes))\n'
+			s+='{\n'	
+			s+='	fprintf(stderr,"Error in global macs, mac no %d\\n",'+str(i)+');\n'
+			s+='	error=1;\n'
+			s+='}\n'
+	else:
+		for i in range(1,maccnt_major+1):
+			s+='if(!ignore_macs_even_if_there_are_mac_bytes && check_mac_for_error_ub_separate_km_given_mac_in_globals((unsigned char *)&(globals_keys_macs.mac_'+str(i)+')))\n'
+			s+='{\n'	
+			s+='	fprintf(stderr,"Error in global macs, mac no %d\\n",'+str(i)+');\n'
+			s+='	error=1;\n'
+			s+='}\n'
 		
 	if (maccnt_major>0):
 		s+='if (error==0)\n'
@@ -402,9 +414,6 @@ we_are_in_proper_position_to_grab_globals=0 #denotes if we are in the position t
 bytes_to_be_maced_all_together_in_case_of_separate_ub_km=[]
 length_of_global_variable_values_before_keys_macs_addition=0 #only relevant if useful bytes are put separately to keys and macs
 
-#test
-#put_ub_separate_km=1
-#group_global_vars_in_blocks=1
 
 #insert keys among the global variables in the code, by searching for canary strings
 for fileindex,filein in enumerate(inputfiles):

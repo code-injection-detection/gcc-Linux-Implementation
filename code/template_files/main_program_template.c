@@ -5,19 +5,20 @@
 
 //global type declaration in headers_needed_template.h
 
-#if put_useful_bytes_of_each_block_in_different_place_than_the_keys_and_macs == 0
-	global_vars globals = {
-	//PLEASE PYTHON INITIALISE THE GLOBAL VARS
-	};
-#else
-	global_vars_ub globals_useful_bytes = {
-	//PLEASE PYTHON INITIALISE THE GLOBAL USEFUL BYTES
-	};
-	
-	global_vars_km globals_keys_macs = {
-	//PLEASE PYTHON INITIALISE THE GLOBAL KEYS AND MACS
-	};
-#endif
+//if put_useful_bytes_of_each_block_in_different_place_than_the_keys_and_macs == 0
+global_vars globals = {
+//PLEASE PYTHON INITIALISE THE GLOBAL VARS
+};
+
+//if put_useful_bytes_of_each_block_in_different_place_than_the_keys_and_macs == 1
+global_vars_ub globals_useful_bytes = {
+//PLEASE PYTHON INITIALISE THE GLOBAL USEFUL BYTES
+};
+
+global_vars_km globals_keys_macs = {
+//PLEASE PYTHON INITIALISE THE GLOBAL KEYS AND MACS
+};
+
 
 #include "functions_needed_header.c" //Including the C file because all the functions must be in the same file in order to be secured
 
