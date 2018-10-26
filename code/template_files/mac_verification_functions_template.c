@@ -111,3 +111,76 @@ int check_mac_for_error_ub_separate_km_given_mac_in_globals(unsigned char * inpu
 	
 	return check_mac_for_error_ub_separate_km(position_of_block_in_useful_bytes,input_in_km-offset_in_block_in_globals, number_of_global_useful_bytes+number_of_interleaved_keys, number_of_global_useful_bytes);
 }
+
+
+
+unsigned char* when_ub_separate_km_return_start_of_block_in_ub(unsigned char * pointer_in_ub)
+{
+	unsigned long ptr=(unsigned long) pointer_in_ub;
+	
+#if all_getter_setter_arguments_point_at_start_of_blocks==1 && group_as_many_global_vars_as_possible_in_each_block==0 
+	return ptr;
+#else
+	/* FIX ME
+	//Here since it's a function that is implemented in hardware, We do not get the secure heap/stack start woth a secure global fetch
+	//We assume that the CPU has their limits somewhere
+	if ((unsigned long)secure_heap_ub<=ptr && (unsigned long)(secure_heap+total_sheap_useful_bytes_allocated)>ptr)
+	{
+		//in secure heap
+		return (unsigned char*)(ptr - (ptr-(unsigned long)secure_heap_ub) % (bytes_for_useful_data));
+	}
+	else if ((unsigned long)entire_stack_memory_chunk_ub<=ptr && (unsigned long)(entire_stack_memory_chunk_ub+total_stack_useful_bytes_allocated)>ptr)
+	{
+		//in secure_stack
+		return (unsigned char*)(ptr - (ptr-(unsigned long)entire_stack_memory_chunk) % (stack_bytes_for_useful_data));
+	}*/
+	if (((unsigned long)&globals_useful_bytes)<=ptr && (unsigned long)(((unsigned char*)&globals_useful_bytes)+sizeof(globals_useful_bytes))>ptr)
+	{
+		//in globals
+		return (unsigned char*)(ptr - (ptr-(unsigned long)&globals_useful_bytes) % (bytes_for_useful_data ));
+	}
+
+	return pointer_in_ub; //leave that as default for backwards compatibility, although it should never reach that point
+#endif
+}
+
+unsigned char* when_ub_separate_km_return_start_of_block_in_km(unsigned char * pointer_in_ub)
+{
+	unsigned long ptr=(unsigned long) pointer_in_ub;
+	
+
+
+	
+#if all_getter_setter_arguments_point_at_start_of_blocks==1 && group_as_many_global_vars_as_possible_in_each_block==0 
+	return ptr;
+#else
+	/*
+	 * 	//!!!!!!!!!!!!!!!!!!!!! FIX ME 
+	//Here since it's a function that is implemented in hardware, We do not get the secure heap/stack start woth a secure global fetch
+	//We assume that the CPU has their limits somewhere
+	if ((unsigned long)secure_heap_ub<=ptr && (unsigned long)(secure_heap+total_sheap_useful_bytes_allocated)>ptr)
+	{
+		//in secure heap
+		return (unsigned char*)(ptr - (ptr-(unsigned long)secure_heap_ub) % (bytes_for_useful_data));
+	}
+	else if ((unsigned long)entire_stack_memory_chunk_ub<=ptr && (unsigned long)(entire_stack_memory_chunk_ub+total_stack_useful_bytes_allocated)>ptr)
+	{
+		//in secure_stack
+		return (unsigned char*)(ptr - (ptr-(unsigned long)entire_stack_memory_chunk) % (stack_bytes_for_useful_data));
+	}
+	*/
+	if (((unsigned long)&globals_useful_bytes)<=ptr && (unsigned long)(((unsigned char*)&globals_useful_bytes)+sizeof(globals_useful_bytes))>ptr)
+	{
+		//in globals
+		unsigned long offset_of_position_in_ub_globals=(ptr-(unsigned long)&globals_useful_bytes);
+		long blocks_from_start_of_globals=offset_of_position_in_ub_globals/number_of_global_useful_bytes;
+		long offset_in_block_in_globals=offset_of_position_in_ub_globals%number_of_global_useful_bytes;
+		unsigned char * position_of_block_in_keys_macs=(unsigned char*)&globals_keys_macs+blocks_from_start_of_globals*(number_of_interleaved_keys+number_of_mac_bytes);
+			
+		return position_of_block_in_keys_macs;
+	}
+
+	return pointer_in_ub; //leave that as default for backwards compatibility, although it should never reach that point
+#endif
+}
+
