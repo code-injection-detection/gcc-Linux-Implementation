@@ -1,6 +1,7 @@
 /bin/
 .vscode/
 __pycache__/
+pin-3.7-97619-g0d0c92f4f-gcc-linux/
 /code/*
 !/code/crypto_algorithms
 !/code/foo_explanations
