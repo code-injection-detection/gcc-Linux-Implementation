@@ -13,6 +13,7 @@ __pycache__/
 !/code/some_benchmarks
 !/code/pycparser_scripts
 *.o
+*.so
 aes
 sha256
 *sec
@@ -64,3 +65,4 @@ stack_canaries
 comm_file1
 comm_file2
 calc_mac_for_external_programs_faster
+*trace.out

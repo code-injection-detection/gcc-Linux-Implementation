@@ -1,0 +1,7 @@
+compile:
+cd source/tools/ManualExamples
+make all
+
+
+run:
+../../../pin -t obj-intel64/itrace.so -- /bin/ls

@@ -1,0 +1,3 @@
+Pin: pin-3.7-97619-0d0c92f4f
+Copyright (c) 2003-2018, Intel Corporation. All rights reserved.
+A:  Source/pin/pin/image.cpp: INS_Size: 2302: Only use INS_Size on original instructions
