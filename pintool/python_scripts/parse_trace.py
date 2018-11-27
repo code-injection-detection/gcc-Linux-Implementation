@@ -5,6 +5,7 @@ import os
 import string
 import gc
 import copy
+import timeit
 
 if len(sys.argv)!=4:
 	sys.stderr.write("Usage: %s <file_to_be_parsed> <type_of_cache> <cache_replacement_policy>\n" % sys.argv[0])
@@ -116,6 +117,8 @@ used_timestamp=0
 total_cache_misses=0
 total_mac_calcs=0
 
+starttime = timeit.default_timer()
+
 with open(sys.argv[1]) as f:
 	for input_line in f:
 		line=input_line.strip()
@@ -139,6 +142,9 @@ with open(sys.argv[1]) as f:
 		used_timestamp+=1
 		if used_timestamp%1000000==0:
 			gc.collect()
+			print("Timestamp:"+str(used_timestamp)+ ", cache misses so far:"+str(total_cache_misses)+", mac calcs so far:"+str(total_mac_calcs))
+			stoptime = timeit.default_timer()
+			print('Time so far: ', stoptime - starttime)
 		if input_type_of_cache=="icache":
 			#we will iterate over all the bytes that are accessed.
 			for offset in range(int(dict_for_line["I_SZ"])):
@@ -235,7 +241,11 @@ with open(sys.argv[1]) as f:
 							cache[set_in_cache_for_line][0][index_to_replace_in_set]=(line_start_addr,{"dirty":1,"bit_plru":1,"used_timestamp":used_timestamp})
 						else:
 							cache[set_in_cache_for_line][0][index_to_replace_in_set]=(line_start_addr,{"dirty":0,"bit_plru":1,"used_timestamp":used_timestamp})
-					
-print(total_cache_misses,total_mac_calcs)
+		
+		
+stoptime = timeit.default_timer()
+print("Total cache misses:"+str(total_cache_misses))
+print("Total mac calcs:"+str(total_mac_calcs))
+print("Total time:"+str(stoptime-starttime))			
 
 
