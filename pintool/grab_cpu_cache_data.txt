@@ -1,2 +1,5 @@
 grep . /sys/devices/system/cpu/cpu0/cache/index*/*
 
+see index0,index1 (data + intsruction  L1 caches)
+
+coherency_line_size->cache line size

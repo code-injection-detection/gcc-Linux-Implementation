@@ -6,11 +6,12 @@ import string
 import gc
 import copy
 import timeit
+import random
 
 if len(sys.argv)!=4:
 	sys.stderr.write("Usage: %s <file_to_be_parsed> <type_of_cache> <cache_replacement_policy>\n" % sys.argv[0])
 	sys.stderr.write("Where type_of_cache: icache|dcache\n")
-	sys.stderr.write("cache_replacement_policy: fifo|bit_plru|lru \n")
+	sys.stderr.write("cache_replacement_policy: fifo|bit_plru|lru|random \n")
 	sys.exit(-1)
 
 #bit_plru=https://www.youtube.com/watch?v=8CjifA2yw7s
@@ -108,7 +109,7 @@ else:
 	sys.exit(-1)
 
 cache_replacement_policy=sys.argv[3]
-if cache_replacement_policy not in ["fifo","bit_plru","lru"]:
+if cache_replacement_policy not in ["fifo","bit_plru","lru","random"]:
 	sys.stderr.write("Please give a supported cache replacement policy.\n")
 	sys.exit(-1)
 	
@@ -141,9 +142,9 @@ with open(sys.argv[1]) as f:
 		#for every memory access
 		used_timestamp+=1
 		if used_timestamp%1000000==0:
-			gc.collect()
 			print("Timestamp:"+str(used_timestamp)+ ", cache misses so far:"+str(total_cache_misses)+", mac calcs so far:"+str(total_mac_calcs))
 			stoptime = timeit.default_timer()
+			gc.collect()
 			print('Time so far: ', stoptime - starttime)
 		if input_type_of_cache=="icache":
 			#we will iterate over all the bytes that are accessed.
@@ -182,6 +183,9 @@ with open(sys.argv[1]) as f:
 						check_if_bit_plru_bits_are_all_one_and_replace(cache[set_in_cache_for_line][0],index_to_replace_in_set)
 					if cache_replacement_policy=="lru":
 						index_to_replace_in_set=find_lru_index(cache[set_in_cache_for_line][0])
+						cache[set_in_cache_for_line][0][index_to_replace_in_set]=(line_start_addr,{"dirty":0,"bit_plru":1,"used_timestamp":used_timestamp})
+					if cache_replacement_policy=="random":
+						index_to_replace_in_set=random.randint(0,cache_assoc-1)
 						cache[set_in_cache_for_line][0][index_to_replace_in_set]=(line_start_addr,{"dirty":0,"bit_plru":1,"used_timestamp":used_timestamp})
 						
 		if input_type_of_cache=="dcache":
@@ -235,6 +239,14 @@ with open(sys.argv[1]) as f:
 						check_if_bit_plru_bits_are_all_one_and_replace(cache[set_in_cache_for_line][0],index_to_replace_in_set)
 					if cache_replacement_policy=="lru":
 						index_to_replace_in_set=find_lru_index(cache[set_in_cache_for_line][0])
+						if cache[set_in_cache_for_line][0][index_to_replace_in_set][1]["dirty"]==1:
+							total_mac_calcs+=1 #we need to write it back, that is calculate its mac.
+						if operation=="W":
+							cache[set_in_cache_for_line][0][index_to_replace_in_set]=(line_start_addr,{"dirty":1,"bit_plru":1,"used_timestamp":used_timestamp})
+						else:
+							cache[set_in_cache_for_line][0][index_to_replace_in_set]=(line_start_addr,{"dirty":0,"bit_plru":1,"used_timestamp":used_timestamp})
+					if cache_replacement_policy=="random":
+						index_to_replace_in_set=random.randint(0,cache_assoc-1)
 						if cache[set_in_cache_for_line][0][index_to_replace_in_set][1]["dirty"]==1:
 							total_mac_calcs+=1 #we need to write it back, that is calculate its mac.
 						if operation=="W":
