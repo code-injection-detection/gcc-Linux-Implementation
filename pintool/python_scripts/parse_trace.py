@@ -147,8 +147,18 @@ with open(sys.argv[1]) as f:
 			gc.collect()
 			print('Time so far: ', stoptime - starttime)
 		if input_type_of_cache=="icache":
-			#we will iterate over all the bytes that are accessed.
-			for offset in range(int(dict_for_line["I_SZ"])):
+			max_offset=int(dict_for_line["I_SZ"])
+			ins_addr=int(dict_for_line["INS_ADDR"])
+			max_ins_addr=ins_addr+max_offset
+			#are they in the same cache line?
+			line_start_addr=ins_addr-(ins_addr%cache_line_size)
+			line_start_max_addr=max_ins_addr-(max_ins_addr%cache_line_size)
+			if line_start_addr==line_start_max_addr:
+				max_offset_for_loop=1 #if yes, just one iteration
+			else:
+				max_offset_for_loop=int(dict_for_line["I_SZ"]) #if no, iterate over all the bytes
+			#we will iterate over all the bytes that are accessed. But if the range is in the same cache line, we will do one iteration only
+			for offset in range(max_offset_for_loop):
 				ins_addr=int(dict_for_line["INS_ADDR"])+offset
 				line_start_addr=ins_addr-(ins_addr%cache_line_size)
 				set_in_cache_for_line=(line_start_addr >> cache_line_size_power_of_two)%cache_sets
@@ -189,8 +199,18 @@ with open(sys.argv[1]) as f:
 						cache[set_in_cache_for_line][0][index_to_replace_in_set]=(line_start_addr,{"dirty":0,"bit_plru":1,"used_timestamp":used_timestamp})
 						
 		if input_type_of_cache=="dcache":
-			#we will iterate over all the bytes that are accessed.
-			for offset in range(int(dict_for_line["sz"])):
+			max_offset=int(dict_for_line["sz"])
+			mem_addr=hex_str_to_decimal(dict_for_line["memaddr"])
+			max_mem_addr=mem_addr+max_offset
+			#are they in the same cache line?
+			line_start_addr=mem_addr-(mem_addr%cache_line_size)
+			line_start_max_addr=max_mem_addr-(max_mem_addr%cache_line_size)
+			if line_start_addr==line_start_max_addr:
+				max_offset_for_loop=1 #if yes, just one iteration
+			else:
+				max_offset_for_loop=int(dict_for_line["sz"]) #if no, iterate over all the bytes
+			#we will iterate over all the bytes that are accessed.  But if the range is in the same cache line, we will do one iteration only
+			for offset in range(max_offset_for_loop):
 				operation=dict_for_line["op"]
 				mem_addr=hex_str_to_decimal(dict_for_line["memaddr"])+offset
 				line_start_addr=mem_addr-(mem_addr%cache_line_size)
@@ -258,6 +278,12 @@ with open(sys.argv[1]) as f:
 stoptime = timeit.default_timer()
 print("Total cache misses:"+str(total_cache_misses))
 print("Total mac calcs:"+str(total_mac_calcs))
-print("Total time:"+str(stoptime-starttime))			
+print("Total time:"+str(stoptime-starttime))	
+print("Type of cache:"+input_type_of_cache)
+print("Cache replacement policy:"+cache_replacement_policy)
+print("Cache sets:"+cache_sets)
+print("Cache size:"+cache_size)
+print("Cache line size:"+cache_line_size)
+print("Cache associativity:"+cache_assoc)
 
 
