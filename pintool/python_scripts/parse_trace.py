@@ -41,8 +41,9 @@ def check_if_bit_plru_bits_are_all_one_and_replace(set_lst,index_of_mru=-1):
 		dirty_for_line=x[1]["dirty"]
 		bit_plru_for_line=x[1]["bit_plru"]
 		used_timestamp_for_line=x[1]["used_timestamp"]
-		if used_timestamp_for_line==0:
+		if bit_plru_for_line==0 and index_of_mru!=ind: #we want a 0 except the index that has just been touched (which should normally be 1)
 			found_0=True
+			#print(x,ind,set_lst)
 			return ind
 	#everything is 1, set them all to 0 (except the index that was mru'ed)
 	for ind,x in enumerate(set_lst):
@@ -124,19 +125,20 @@ with open(sys.argv[1]) as f:
 		dict_for_line={}
 		for part in parts:
 			if "=" in part.strip():
-				#"IP=%p | INS_ADDR=%ld | I_SZ=%ld | DISAS=%s\n"
+				#icache: "IP=%p | INS_ADDR=%ld | I_SZ=%ld | DISAS=%s\n"
+				#dcache: "IP=%p | op=W | memaddr=%p | sz=%d | DISAS=%s\n"
 				attr_v=part.split("=")
 				attr=attr_v[0].strip()
 				v=attr_v[1].strip()
 				dict_for_line[attr]=v
-		if "INS_ADDR" not in dict_for_line or "I_SZ" not in dict_for_line:
-			print(line,dict_for_line)
 		if input_type_of_cache=="icache" and int(dict_for_line["I_SZ"])>=13:
 			print("OMG!")
 			print(dict_for_line)
 			sys.exit(-1)
 		#for every memory access
 		used_timestamp+=1
+		if used_timestamp%1000000==0:
+			gc.collect()
 		if input_type_of_cache=="icache":
 			#we will iterate over all the bytes that are accessed.
 			for offset in range(int(dict_for_line["I_SZ"])):
@@ -175,6 +177,64 @@ with open(sys.argv[1]) as f:
 					if cache_replacement_policy=="lru":
 						index_to_replace_in_set=find_lru_index(cache[set_in_cache_for_line][0])
 						cache[set_in_cache_for_line][0][index_to_replace_in_set]=(line_start_addr,{"dirty":0,"bit_plru":1,"used_timestamp":used_timestamp})
+						
+		if input_type_of_cache=="dcache":
+			#we will iterate over all the bytes that are accessed.
+			for offset in range(int(dict_for_line["sz"])):
+				operation=dict_for_line["op"]
+				mem_addr=hex_str_to_decimal(dict_for_line["memaddr"])+offset
+				line_start_addr=mem_addr-(mem_addr%cache_line_size)
+				set_in_cache_for_line=(line_start_addr >> cache_line_size_power_of_two)%cache_sets
+				ind_of_addr_in_set=find_if_addr_in_set(cache[set_in_cache_for_line][0],line_start_addr)
+				#print(mem_addr,line_start_addr,set_in_cache_for_line,ind_of_addr_in_set)
+				if ind_of_addr_in_set > -1: #found
+					tuple_for_line=cache[set_in_cache_for_line][0][ind_of_addr_in_set]
+					dirty_for_line=tuple_for_line[1]["dirty"]
+					bit_plru_for_line=tuple_for_line[1]["bit_plru"]
+					used_timestamp_for_line=tuple_for_line[1]["used_timestamp"]
+					if operation=="W":
+						cache[set_in_cache_for_line][0][ind_of_addr_in_set]=(line_start_addr,{"dirty":1,"bit_plru":1,"used_timestamp":used_timestamp}) #valid for all replacement policies
+					else:
+						cache[set_in_cache_for_line][0][ind_of_addr_in_set]=(line_start_addr,{"dirty":dirty_for_line,"bit_plru":1,"used_timestamp":used_timestamp}) #valid for all replacement policies
+					if cache_replacement_policy=="bit_plru":
+						check_if_bit_plru_bits_are_all_one_and_replace(cache[set_in_cache_for_line][0],ind_of_addr_in_set)
+				else: #not found, evict something else and put it there
+					total_cache_misses+=1
+					total_mac_calcs+=1
+					lst_for_set=cache[set_in_cache_for_line][0]
+					ind_for_next_placement_for_fifo_in_set=cache[set_in_cache_for_line][1]["ind_for_next_placement_for_fifo"]
+					#print(cache[set_in_cache_for_line])
+					if cache_replacement_policy=="fifo":
+						if lst_for_set[ind_for_next_placement_for_fifo_in_set][1]["dirty"]==1:
+							total_mac_calcs+=1 #we need to write it back, that is calculate its mac.
+						if operation=="W":
+							lst_for_set[ind_for_next_placement_for_fifo_in_set]=(line_start_addr,{"dirty":1,"bit_plru":1,"used_timestamp":used_timestamp})
+						else:
+							lst_for_set[ind_for_next_placement_for_fifo_in_set]=(line_start_addr,{"dirty":0,"bit_plru":1,"used_timestamp":used_timestamp})
+						#advance index for next placement in set (in case of fifo replacement policy)
+						cache[set_in_cache_for_line]=(lst_for_set,{"ind_for_next_placement_for_fifo":(ind_for_next_placement_for_fifo_in_set+1)%cache_assoc})
+					if cache_replacement_policy=="bit_plru":
+						index_to_replace_in_set=check_if_bit_plru_bits_are_all_one_and_replace(cache[set_in_cache_for_line][0])
+						if cache[set_in_cache_for_line][0][index_to_replace_in_set][1]["dirty"]==1:
+							total_mac_calcs+=1 #we need to write it back, that is calculate its mac.
+						tuple_for_line=cache[set_in_cache_for_line][0][index_to_replace_in_set]
+						dirty_for_line=tuple_for_line[1]["dirty"]
+						bit_plru_for_line=tuple_for_line[1]["bit_plru"]
+						used_timestamp_for_line=tuple_for_line[1]["used_timestamp"]
+						if operation=="W":
+							cache[set_in_cache_for_line][0][index_to_replace_in_set]=(line_start_addr,{"dirty":1,"bit_plru":1,"used_timestamp":used_timestamp})
+						else:
+							cache[set_in_cache_for_line][0][index_to_replace_in_set]=(line_start_addr,{"dirty":0,"bit_plru":1,"used_timestamp":used_timestamp})
+						#and see if all have bit_plru 1 now
+						check_if_bit_plru_bits_are_all_one_and_replace(cache[set_in_cache_for_line][0],index_to_replace_in_set)
+					if cache_replacement_policy=="lru":
+						index_to_replace_in_set=find_lru_index(cache[set_in_cache_for_line][0])
+						if cache[set_in_cache_for_line][0][index_to_replace_in_set][1]["dirty"]==1:
+							total_mac_calcs+=1 #we need to write it back, that is calculate its mac.
+						if operation=="W":
+							cache[set_in_cache_for_line][0][index_to_replace_in_set]=(line_start_addr,{"dirty":1,"bit_plru":1,"used_timestamp":used_timestamp})
+						else:
+							cache[set_in_cache_for_line][0][index_to_replace_in_set]=(line_start_addr,{"dirty":0,"bit_plru":1,"used_timestamp":used_timestamp})
 					
 print(total_cache_misses,total_mac_calcs)
 
