@@ -5,3 +5,6 @@ make all
 
 run:
 ../../../pin -t obj-intel64/itrace.so -- /bin/ls
+
+
+and from root repo dir: ./pin-3.7-97619-g0d0c92f4f-gcc-linux/pin -t ./pin-3.7-97619-g0d0c92f4f-gcc-linux/source/tools/ManualExamples/obj-intel64/itrace.so -- /bin/ls
