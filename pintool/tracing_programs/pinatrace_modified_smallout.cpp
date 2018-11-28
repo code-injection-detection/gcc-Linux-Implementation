@@ -50,7 +50,7 @@ VOID RecordMemRead(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched,std::string i
 */
 VOID RecordMemRead(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched)
 {
-    fprintf(trace,"R|%p|%d\n", addr,sz_of_mem_touched);
+    fprintf(trace,"op=R|memaddr=%p|sz=%d\n", addr,sz_of_mem_touched);
     fflush(trace);
 }
 
@@ -64,7 +64,7 @@ VOID RecordMemWrite(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched,std::string 
 */
 VOID RecordMemWrite(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched)
 {
-    fprintf(trace,"W|%p|%d\n", addr,sz_of_mem_touched);
+    fprintf(trace,"op=W|memaddr=%p|sz=%d\n", addr,sz_of_mem_touched);
     fflush(trace);
 }
 

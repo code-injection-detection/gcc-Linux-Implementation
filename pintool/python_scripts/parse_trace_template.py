@@ -8,10 +8,11 @@ import copy
 import timeit
 import random
 
-if len(sys.argv)!=4:
-	sys.stderr.write("Usage: %s <file_to_be_parsed> <type_of_cache> <cache_replacement_policy>\n" % sys.argv[0])
+if len(sys.argv)!=5:
+	sys.stderr.write("Usage: %s <file_to_be_parsed> <type_of_cache> <cache_replacement_policy> <size_of_trace>\n" % sys.argv[0])
 	sys.stderr.write("Where type_of_cache: icache|dcache\n")
 	sys.stderr.write("cache_replacement_policy: fifo|bit_plru|lru|random \n")
+	sys.stderr.write("size_of_trace: tiny|small|large \n")
 	sys.exit(-1)
 
 #bit_plru=https://www.youtube.com/watch?v=8CjifA2yw7s
@@ -112,7 +113,12 @@ cache_replacement_policy=sys.argv[3]
 if cache_replacement_policy not in ["fifo","bit_plru","lru","random"]:
 	sys.stderr.write("Please give a supported cache replacement policy.\n")
 	sys.exit(-1)
-	
+
+size_of_trace=sys.argv[4]
+if size_of_trace not in ["tiny","small","large"]:
+	sys.stderr.write("Please give a supported size_of_trace.\n")
+	sys.exit(-1)
+
 cache_line_size_power_of_two=find_power_of_two_to_reach_a_number(cache_line_size)	
 used_timestamp=0
 total_cache_misses=0
@@ -135,8 +141,15 @@ with open(sys.argv[1]) as f:
 				attr=attr_v[0].strip()
 				v=attr_v[1].strip()
 				dict_for_line[attr]=v
-		if input_type_of_cache=="icache" and int(dict_for_line["I_SZ"])>=13:
-			print("OMG!")
+		if size_of_trace=="tiny" and input_type_of_cache=="icache": #no "=" here
+			dict_for_line["I_SZ"]=parts[1].strip()
+			dict_for_line["INS_ADDR"]=parts[0].strip()
+		if size_of_trace=="tiny" and input_type_of_cache=="dcache": #no "=" here
+			dict_for_line["op"]=parts[0].strip()
+			dict_for_line["memaddr"]=parts[1].strip()
+			dict_for_line["sz"]=parts[2].strip()
+		if input_type_of_cache=="icache" and int(dict_for_line["I_SZ"])>=15:
+			print("Too large of an instruction!!")
 			print(dict_for_line)
 			sys.exit(-1)
 		#for every memory access
@@ -279,11 +292,12 @@ stoptime = timeit.default_timer()
 print("Total cache misses:"+str(total_cache_misses))
 print("Total mac calcs:"+str(total_mac_calcs))
 print("Total time:"+str(stoptime-starttime))	
-print("Type of cache:"+input_type_of_cache)
-print("Cache replacement policy:"+cache_replacement_policy)
-print("Cache sets:"+cache_sets)
-print("Cache size:"+cache_size)
-print("Cache line size:"+cache_line_size)
-print("Cache associativity:"+cache_assoc)
+print("Type of cache:"+str(input_type_of_cache))
+print("Cache replacement policy:"+str(cache_replacement_policy))
+print("Cache sets:"+str(cache_sets))
+print("Cache size:"+str(cache_size))
+print("Cache line size:"+str(cache_line_size))
+print("Cache associativity:"+str(cache_assoc))
+print("Size of trace:"+ str(size_of_trace))
 
 

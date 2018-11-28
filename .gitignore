@@ -67,3 +67,9 @@ comm_file1
 comm_file2
 calc_mac_for_external_programs_faster
 *trace.out
+nohup.out
+*traceparse.out
+*trace.out.zip
+itrace_modified.cpp
+pinatrace_modified.cpp
+parse_trace.py

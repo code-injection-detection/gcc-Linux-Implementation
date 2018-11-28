@@ -41,32 +41,22 @@ END_LEGAL */
 FILE * trace;
 
 // Print a memory read record
-/*
+
 VOID RecordMemRead(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched,std::string insDis)
 {
     fprintf(trace,"IP=%p | op=R | memaddr=%p | sz=%d | DISAS=%s\n", ip, addr,sz_of_mem_touched,insDis.c_str());
     fflush(trace);
 }
-*/
-VOID RecordMemRead(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched)
-{
-    fprintf(trace,"R|%p|%d\n", addr,sz_of_mem_touched);
-    fflush(trace);
-}
+
 
 // Print a memory write record
-/*
+
 VOID RecordMemWrite(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched,std::string insDis)
 {
     fprintf(trace,"IP=%p | op=W | memaddr=%p | sz=%d | DISAS=%s\n", ip, addr,sz_of_mem_touched,insDis.c_str());
     fflush(trace);
 }
-*/
-VOID RecordMemWrite(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched)
-{
-    fprintf(trace,"W|%p|%d\n", addr,sz_of_mem_touched);
-    fflush(trace);
-}
+
 
 // Is called for every instruction and instruments reads and writes
 VOID Instruction(INS ins, VOID *v)
@@ -96,7 +86,7 @@ VOID Instruction(INS ins, VOID *v)
                 IARG_INST_PTR,
                 IARG_MEMORYOP_EA, memOp,
                 IARG_MEMORYREAD_SIZE,
-                //IARG_PTR, new string(INS_Disassemble(ins)),
+                IARG_PTR, new string(INS_Disassemble(ins)),
                 IARG_END);
         }
         // Note that in some architectures a single memory operand can be 
@@ -109,7 +99,7 @@ VOID Instruction(INS ins, VOID *v)
                 IARG_INST_PTR,
                 IARG_MEMORYOP_EA, memOp,
                 IARG_MEMORYWRITE_SIZE,
-                //IARG_PTR, new string(INS_Disassemble(ins)),
+                IARG_PTR, new string(INS_Disassemble(ins)),
                 IARG_END);
         }
     }

@@ -41,19 +41,13 @@ static unsigned long our_ins_addr;
 
 // This function is called before every instruction is executed
 // and prints the IP
-/*
+
 VOID printip(VOID *ip, UINT64 insAddr,UINT64 insSize,std::string insDis) {
     fprintf(trace, "IP=%p | INS_ADDR=%ld | I_SZ=%ld | DISAS=%s\n", ip,insAddr,insSize,insDis.c_str()); 
     //fprintf(trace, "Instr_addr=%ld, Instr_size=%ld, Disassebled_str=%s\n",insAddr,insSize,insDis.c_str()); 
     fflush(trace);
 }
-*/
-VOID printip(VOID *ip, UINT64 insAddr,UINT64 insSize) {
-    //fprintf(trace, "IP=%p | INS_ADDR=%ld | I_SZ=%ld | DISAS=%s\n", ip,insAddr,insSize,insDis.c_str()); 
-    //fprintf(trace, "Instr_addr=%ld, Instr_size=%ld, Disassebled_str=%s\n",insAddr,insSize,insDis.c_str()); 
-    fprintf(trace, "%ld|%ld\n",insAddr,insSize); 
-    fflush(trace);
-}
+
 
 // Pin calls this function every time a new instruction is encountered
 VOID Instruction(INS ins, VOID *v)
@@ -62,8 +56,8 @@ VOID Instruction(INS ins, VOID *v)
     our_ins_size=INS_Size(ins);
     our_ins_addr=INS_Address(ins);*/
     // Insert a call to printip before every instruction, and pass it the IP
-    //INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)printip, IARG_INST_PTR, IARG_ADDRINT,INS_Address(ins),IARG_UINT64,INS_Size(ins), IARG_PTR, new string(INS_Disassemble(ins)), IARG_END);
-    INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)printip, IARG_INST_PTR, IARG_ADDRINT,INS_Address(ins),IARG_UINT64,INS_Size(ins),IARG_END);
+    INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)printip, IARG_INST_PTR, IARG_ADDRINT,INS_Address(ins),IARG_UINT64,INS_Size(ins), IARG_PTR, new string(INS_Disassemble(ins)), IARG_END);
+    //INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)printip, IARG_INST_PTR, IARG_ADDRINT,INS_Address(ins),IARG_UINT64,INS_Size(ins),IARG_END);
 }
 
 // This function is called when the application exits
