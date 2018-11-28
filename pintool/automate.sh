@@ -84,22 +84,46 @@ if [[ ( "$WE_SHOULD_EXECUTE_TRACE" -eq 1 ) ]]; then
 fi
 
 if [[ ( "$WE_SHOULD_PARSE_TRACE" -eq 1 ) ]]; then
-	#do the parsing
+	#do the parsing, for all algorithms
 	echo "Parsing trace..."
 	START_TIME_OF_PARSING_TRACE=$(date +%s.%N)	
-	${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/itrace.out icache $CACHE_REPLACEMENT_POLICY $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${TRACE_OUTPUT_SZ}_itraceparse.out &
-	pid_itrace=$!
-	${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/pinatrace.out dcache $CACHE_REPLACEMENT_POLICY $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${TRACE_OUTPUT_SZ}_dtraceparse.out &
-	pid_dtrace=$!
-	wait $pid_itrace
-	wait $pid_dtrace
+	${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/itrace.out icache fifo $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${TRACE_OUTPUT_SZ}_fifo_itraceparse.out &
+	pid_itrace_fifo=$!
+	${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/pinatrace.out dcache fifo $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${TRACE_OUTPUT_SZ}_fifo_dtraceparse.out &
+	pid_dtrace_fifo=$!
+	${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/itrace.out icache lru $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${TRACE_OUTPUT_SZ}_lru_itraceparse.out &
+	pid_itrace_lru=$!
+	${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/pinatrace.out dcache lru $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${TRACE_OUTPUT_SZ}_lru_dtraceparse.out &
+	pid_dtrace_lru=$!
+	${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/itrace.out icache bit_plru $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${TRACE_OUTPUT_SZ}_bit_plru_itraceparse.out &
+	pid_itrace_bit_plru=$!
+	${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/pinatrace.out dcache bit_plru $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${TRACE_OUTPUT_SZ}_bit_plru_dtraceparse.out &
+	pid_dtrace_bit_plru=$!
+	${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/itrace.out icache random $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${TRACE_OUTPUT_SZ}_random_itraceparse.out &
+	pid_itrace_random=$!
+	${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/pinatrace.out dcache random $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${TRACE_OUTPUT_SZ}_random_dtraceparse.out &
+	pid_dtrace_random=$!
+	wait $pid_itrace_fifo
+	wait $pid_dtrace_fifo
+	wait $pid_itrace_lru
+	wait $pid_dtrace_lru
+	wait $pid_itrace_bit_plru
+	wait $pid_dtrace_bit_plru
+	wait $pid_itrace_random
+	wait $pid_dtrace_random
 	END_TIME_OF_PARSING_TRACE=$(date +%s.%N)
 
+	
 	echo "Parse time:  $(echo "scale=3; ($END_TIME_OF_PARSING_TRACE - $START_TIME_OF_PARSING_TRACE)*1000/1000" | bc) seconds"
-	echo -n "Mac calcs for itrace:"
-	cat ${WORKING_DIR}/${TRACE_OUTPUT_SZ}_itraceparse.out | grep "mac calcs"
-	echo -n "Mac calcs for dtrace:"
-	cat ${WORKING_DIR}/${TRACE_OUTPUT_SZ}_dtraceparse.out | grep "mac calcs"
+	declare -a arr_of_cache_rep_policies=("fifo" "lru" "bit_plru" "random")
+	for i in "${arr_of_cache_rep_policies[@]}"
+	do
+		echo -n "Mac calcs for itrace (replacement policy=${i}):"
+		cat ${WORKING_DIR}/${TRACE_OUTPUT_SZ}_${i}_itraceparse.out | grep "mac calcs"
+		echo -n "Mac calcs for dtrace (replacement policy=${i}):"
+		cat ${WORKING_DIR}/${TRACE_OUTPUT_SZ}_${i}_dtraceparse.out | grep "mac calcs"
+	   # or do whatever with individual element of the array
+	done
 fi
 
 
