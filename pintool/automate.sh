@@ -74,10 +74,12 @@ if [[ ( "$WE_SHOULD_EXECUTE_TRACE" -eq 1 ) ]]; then
 	${WORKING_DIR}/pin-3.7-97619-g0d0c92f4f-gcc-linux/pin -t ./pin-3.7-97619-g0d0c92f4f-gcc-linux/source/tools/ManualExamples/obj-intel64/pinatrace.so -- ${EXEC_PATH} &
 	pid_dtrace=$!
 	wait $pid_dtrace
-	if [ $? -eq 0 ]; then
+	retval=$?	
+	if [ $retval -eq 0 ]; then
 		: #all ok
 	else
 		echo "Error. Could not trace memory acceses properly."
+		echo $retval
 		kill -9 $pid_itrace
 		exit
 	fi

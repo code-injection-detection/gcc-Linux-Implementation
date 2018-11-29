@@ -590,7 +590,7 @@ void check_array_test()
 /*************** END OF SIMPLE TESTS ***************/
 
 
-void main()
+int main()
 {
     a_global_array[3]=45;
     int i;
@@ -611,6 +611,6 @@ void main()
 	
 	//find_primes_up_to_a_number(150000,0);
 	//towerOfHanoi_test(28,'a','c', 'b',0,0);
-	
+	return 0;
 }
 
