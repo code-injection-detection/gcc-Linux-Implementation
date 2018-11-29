@@ -119,9 +119,9 @@ if [[ ( "$WE_SHOULD_PARSE_TRACE" -eq 1 ) ]]; then
 	for i in "${arr_of_cache_rep_policies[@]}"
 	do
 		echo -n "Mac calcs for itrace (replacement policy=${i}):"
-		cat ${WORKING_DIR}/${TRACE_OUTPUT_SZ}_${i}_itraceparse.out | grep "mac calcs"
+		cat ${WORKING_DIR}/${TRACE_OUTPUT_SZ}_${i}_itraceparse.out | grep "Total mac calcs"
 		echo -n "Mac calcs for dtrace (replacement policy=${i}):"
-		cat ${WORKING_DIR}/${TRACE_OUTPUT_SZ}_${i}_dtraceparse.out | grep "mac calcs"
+		cat ${WORKING_DIR}/${TRACE_OUTPUT_SZ}_${i}_dtraceparse.out | grep "Total mac calcs"
 	   # or do whatever with individual element of the array
 	done
 fi
