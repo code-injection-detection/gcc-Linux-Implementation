@@ -40,12 +40,12 @@ echo $EXEC_PATH
 
 echo ""
 
-if [[ ( "$TRACE_OUTPUT_SZ" -ne "tiny" ) || ( "$TRACE_OUTPUT_SZ" -ne "small" ) || ( "$TRACE_OUTPUT_SZ" -ne "large" ) ]]; then
+if [[ ( "$TRACE_OUTPUT_SZ" != "tiny" ) && ( "$TRACE_OUTPUT_SZ" != "small" ) && ( "$TRACE_OUTPUT_SZ" != "large" ) ]]; then
 	echo "Wrong TRACE_OUTPUT_SZ."
 	exit
 fi
 
-if [[ ( "$CACHE_REPLACEMENT_POLICY" -ne "lru" ) || ( "$CACHE_REPLACEMENT_POLICY" -ne "fifo" ) || ( "$CACHE_REPLACEMENT_POLICY" -ne "bit_plru" ) || ( "$CACHE_REPLACEMENT_POLICY" -ne "random" ) ]]; then
+if [[ ( "$CACHE_REPLACEMENT_POLICY" != "lru" ) && ( "$CACHE_REPLACEMENT_POLICY" != "fifo" ) && ( "$CACHE_REPLACEMENT_POLICY" != "bit_plru" ) && ( "$CACHE_REPLACEMENT_POLICY" != "random" ) ]]; then
 	echo "Wrong CACHE_REPLACEMENT_POLICY."
 	exit
 fi
