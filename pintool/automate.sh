@@ -63,24 +63,30 @@ ${WORKING_DIR}/deploy_pin_libs_only.sh >/dev/null
 
 
 if [[ ( "$WE_SHOULD_EXECUTE_TRACE" -eq 1 ) ]]; then
-	echo "Executing itrace..."
+	echo "Executing traces..."
 	START_TIME_OF_ITRACE=$(date +%s.%N)
-	${WORKING_DIR}/pin-3.7-97619-g0d0c92f4f-gcc-linux/pin -t ./pin-3.7-97619-g0d0c92f4f-gcc-linux/source/tools/ManualExamples/obj-intel64/itrace.so -- ${EXEC_PATH}
-	END_TIME_OF_ITRACE=$(date +%s.%N)
-	echo "Itrace time:  $(echo "scale=3; ($END_TIME_OF_ITRACE - $START_TIME_OF_ITRACE)*1000/1000" | bc) seconds"
-	echo "Executing dtrace..."
+	${WORKING_DIR}/pin-3.7-97619-g0d0c92f4f-gcc-linux/pin -t ./pin-3.7-97619-g0d0c92f4f-gcc-linux/source/tools/ManualExamples/obj-intel64/itrace.so -- ${EXEC_PATH} &
+	pid_itrace=$!
+	#END_TIME_OF_ITRACE=$(date +%s.%N)
+	#echo "Itrace time:  $(echo "scale=3; ($END_TIME_OF_ITRACE - $START_TIME_OF_ITRACE)*1000/1000" | bc) seconds"
+	#echo "Executing dtrace..."
 	START_TIME_OF_DTRACE=$(date +%s.%N)
-	${WORKING_DIR}/pin-3.7-97619-g0d0c92f4f-gcc-linux/pin -t ./pin-3.7-97619-g0d0c92f4f-gcc-linux/source/tools/ManualExamples/obj-intel64/pinatrace.so -- ${EXEC_PATH}
+	${WORKING_DIR}/pin-3.7-97619-g0d0c92f4f-gcc-linux/pin -t ./pin-3.7-97619-g0d0c92f4f-gcc-linux/source/tools/ManualExamples/obj-intel64/pinatrace.so -- ${EXEC_PATH} &
+	pid_dtrace=$!
+	wait $pid_dtrace
 	if [ $? -eq 0 ]; then
 		: #all ok
 	else
 		echo "Error. Could not trace memory acceses properly."
+		kill -9 $pid_itrace
 		exit
 	fi
 	END_TIME_OF_DTRACE=$(date +%s.%N)
+	wait $pid_itrace
 	
-	echo "Itrace time:  $(echo "scale=3; ($END_TIME_OF_ITRACE - $START_TIME_OF_ITRACE)*1000/1000" | bc) seconds"
-	echo "Dtrace time:  $(echo "scale=3; ($END_TIME_OF_DTRACE - $START_TIME_OF_DTRACE)*1000/1000" | bc) seconds"
+	#echo "Itrace time:  $(echo "scale=3; ($END_TIME_OF_ITRACE - $START_TIME_OF_ITRACE)*1000/1000" | bc) seconds"
+	#echo "Dtrace time:  $(echo "scale=3; ($END_TIME_OF_DTRACE - $START_TIME_OF_DTRACE)*1000/1000" | bc) seconds"
+	echo "Trace time:  $(echo "scale=3; ($END_TIME_OF_DTRACE - $START_TIME_OF_ITRACE)*1000/1000" | bc) seconds"
 fi
 
 if [[ ( "$WE_SHOULD_PARSE_TRACE" -eq 1 ) ]]; then
@@ -129,8 +135,9 @@ fi
 
 END_TIME=$(date +%s.%N)
 
-echo "Itrace time:  $(echo "scale=3; ($END_TIME_OF_ITRACE - $START_TIME_OF_ITRACE)*1000/1000" | bc) seconds"
-echo "Dtrace time:  $(echo "scale=3; ($END_TIME_OF_DTRACE - $START_TIME_OF_DTRACE)*1000/1000" | bc) seconds"
+#echo "Itrace time:  $(echo "scale=3; ($END_TIME_OF_ITRACE - $START_TIME_OF_ITRACE)*1000/1000" | bc) seconds"
+#echo "Dtrace time:  $(echo "scale=3; ($END_TIME_OF_DTRACE - $START_TIME_OF_DTRACE)*1000/1000" | bc) seconds"
+echo "Trace time:  $(echo "scale=3; ($END_TIME_OF_DTRACE - $START_TIME_OF_ITRACE)*1000/1000" | bc) seconds"
 echo "Parse time:  $(echo "scale=3; ($END_TIME_OF_PARSING_TRACE - $START_TIME_OF_PARSING_TRACE)*1000/1000" | bc) seconds"
 echo "Total time:  $(echo "scale=3; ($END_TIME - $START_TIME)*1000/1000" | bc) seconds"
 
