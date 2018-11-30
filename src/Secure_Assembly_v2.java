@@ -1,7 +1,6 @@
 import java.util.*;
 import java.util.regex.Pattern;
 import java.io.*;
-import javax.xml.bind.DatatypeConverter;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.security.*;
@@ -747,7 +746,15 @@ public class Secure_Assembly_v2 {
 		for(int j=0;j<bytes_for_instr_len;j++)
 		{
 			byte[] current_byte=new byte[1]; current_byte[0]=bytes_of_actual_bytes[j];
-			list_of_lines.add(".byte 0x"+DatatypeConverter.printHexBinary(current_byte));
+			String current_byte_hex=Integer.toHexString(bytes_of_actual_bytes[j] & 0xff);
+			if (current_byte_hex.length()==2)
+			{
+				list_of_lines.add(".byte 0x"+current_byte_hex);
+			}
+			else
+			{
+				list_of_lines.add(".byte 0x0"+current_byte_hex);	
+			}
 		}
 
 		
@@ -762,7 +769,15 @@ public class Secure_Assembly_v2 {
 		for(int j=0;j<bytes_for_num_of_padded_nops_len;j++)
 		{
 			byte[] current_byte=new byte[1]; current_byte[0]=bytes_for_num_of_padded_nops[j];
-			list_of_lines.add(".byte 0x"+DatatypeConverter.printHexBinary(current_byte));
+			String current_byte_hex=Integer.toHexString(bytes_for_num_of_padded_nops[j] & 0xff);
+			if (current_byte_hex.length()==2)
+			{
+				list_of_lines.add(".byte 0x"+current_byte_hex);
+			}
+			else
+			{
+				list_of_lines.add(".byte 0x0"+current_byte_hex);	
+			}
 		}
 
 
