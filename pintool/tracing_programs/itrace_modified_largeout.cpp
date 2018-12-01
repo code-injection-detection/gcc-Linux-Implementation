@@ -43,7 +43,7 @@ static unsigned long our_ins_addr;
 // and prints the IP
 
 VOID printip(VOID *ip, UINT64 insAddr,UINT64 insSize,std::string insDis) {
-    fprintf(trace, "IP=%p | INS_ADDR=%lu | I_SZ=%ld | DISAS=%s\n", ip,insAddr,insSize,insDis.c_str()); 
+    fprintf(trace, "IP=%p | INS_ADDR=%p | I_SZ=%ld | DISAS=%s\n", ip,(void *)insAddr,insSize,insDis.c_str()); 
     //fprintf(trace, "Instr_addr=%ld, Instr_size=%ld, Disassebled_str=%s\n",insAddr,insSize,insDis.c_str()); 
     fflush(trace);
 }

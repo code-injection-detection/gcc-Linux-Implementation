@@ -135,7 +135,7 @@ with open(sys.argv[1]) as f:
 		dict_for_line={}
 		for part in parts:
 			if "=" in part.strip():
-				#icache: "IP=%p | INS_ADDR=%ld | I_SZ=%ld | DISAS=%s\n"
+				#icache: "IP=%p | INS_ADDR=%p | I_SZ=%ld | DISAS=%s\n"
 				#dcache: "IP=%p | op=W | memaddr=%p | sz=%d | DISAS=%s\n"
 				attr_v=part.split("=")
 				attr=attr_v[0].strip()
@@ -161,7 +161,7 @@ with open(sys.argv[1]) as f:
 			print('Time so far: ', stoptime - starttime,flush=True)
 		if input_type_of_cache=="icache":
 			max_offset=int(dict_for_line["I_SZ"])
-			ins_addr=int(dict_for_line["INS_ADDR"])
+			ins_addr=hex_str_to_decimal(dict_for_line["INS_ADDR"])
 			max_ins_addr=ins_addr+max_offset
 			#are they in the same cache line?
 			line_start_addr=ins_addr-(ins_addr%cache_line_size)
@@ -172,7 +172,7 @@ with open(sys.argv[1]) as f:
 				max_offset_for_loop=int(dict_for_line["I_SZ"]) #if no, iterate over all the bytes
 			#we will iterate over all the bytes that are accessed. But if the range is in the same cache line, we will do one iteration only
 			for offset in range(max_offset_for_loop):
-				ins_addr=int(dict_for_line["INS_ADDR"])+offset
+				ins_addr=hex_str_to_decimal(dict_for_line["INS_ADDR"])+offset
 				line_start_addr=ins_addr-(ins_addr%cache_line_size)
 				set_in_cache_for_line=(line_start_addr >> cache_line_size_power_of_two)%cache_sets
 				ind_of_addr_in_set=find_if_addr_in_set(cache[set_in_cache_for_line][0],line_start_addr)

@@ -7,24 +7,26 @@ TRACE_OUTPUT_SZ="small"
 
 
 #usage
-if [[ ( "$#" -ne 5 ) ]]; then
+if [[ ( "$#" -ne 6 ) ]]; then
     echo "Please execute as following:"
-    echo -e "\n$0 <a> <b> <c> <d> <e>"
+    echo -e "\n$0 <a> <b> <c> <d> <e> <f>"
     echo "Where: a=size_of_trace_output (tiny|small|large)"
     echo "b=if_we_should_execute_a_trace"
     echo "c=if_we_should_parse_a_trace"
     echo "d=cache_replacement_policy (lru|fifo|bit_plru|random)"
 	echo "e=path_to_executable"
-	echo "Example: $0 small 0 1 fifo /bin/ls"
+	echo "f=name_of_benchmark"
+	echo "Example: $0 small 0 1 fifo /bin/ls lsbenchmark"
     exit
 fi
 
-if [ "$#" -eq 5 ]; then
+if [ "$#" -eq 6 ]; then
 	TRACE_OUTPUT_SZ=$1
 	WE_SHOULD_EXECUTE_TRACE=$2
 	WE_SHOULD_PARSE_TRACE=$3
 	CACHE_REPLACEMENT_POLICY=$4
 	EXEC_PATH=$5
+	NAME_OF_BENCHMARK=$6
 fi
 
 echo -n "TRACE_OUTPUT_SZ: "
@@ -37,6 +39,8 @@ echo -n "CACHE_REPLACEMENT_POLICY: "
 echo $CACHE_REPLACEMENT_POLICY
 echo -n "EXEC_PATH: "
 echo $EXEC_PATH
+echo -n "NAME_OF_BENCHMARK: "
+echo $NAME_OF_BENCHMARK
 
 echo ""
 
@@ -86,6 +90,9 @@ if [[ ( "$WE_SHOULD_EXECUTE_TRACE" -eq 1 ) ]]; then
 	END_TIME_OF_DTRACE=$(date +%s.%N)
 	wait $pid_itrace
 	
+	mv itrace.out ${NAME_OF_BENCHMARK}_itrace.out
+	mv pinatrace.out ${NAME_OF_BENCHMARK}_pinatrace.out
+
 	#echo "Itrace time:  $(echo "scale=3; ($END_TIME_OF_ITRACE - $START_TIME_OF_ITRACE)*1000/1000" | bc) seconds"
 	#echo "Dtrace time:  $(echo "scale=3; ($END_TIME_OF_DTRACE - $START_TIME_OF_DTRACE)*1000/1000" | bc) seconds"
 	echo "Trace time:  $(echo "scale=3; ($END_TIME_OF_DTRACE - $START_TIME_OF_ITRACE)*1000/1000" | bc) seconds"
@@ -95,21 +102,21 @@ if [[ ( "$WE_SHOULD_PARSE_TRACE" -eq 1 ) ]]; then
 	#do the parsing, for all algorithms
 	echo "Parsing trace..."
 	START_TIME_OF_PARSING_TRACE=$(date +%s.%N)	
-	${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/itrace.out icache fifo $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${TRACE_OUTPUT_SZ}_fifo_itraceparse.out &
+	${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/${NAME_OF_BENCHMARK}_itrace.out icache fifo $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_fifo_itraceparse.out &
 	pid_itrace_fifo=$!
-	${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/pinatrace.out dcache fifo $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${TRACE_OUTPUT_SZ}_fifo_dtraceparse.out &
+	${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/${NAME_OF_BENCHMARK}_pinatrace.out dcache fifo $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_fifo_dtraceparse.out &
 	pid_dtrace_fifo=$!
-	${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/itrace.out icache lru $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${TRACE_OUTPUT_SZ}_lru_itraceparse.out &
+	${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/${NAME_OF_BENCHMARK}_itrace.out icache lru $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_lru_itraceparse.out &
 	pid_itrace_lru=$!
-	${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/pinatrace.out dcache lru $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${TRACE_OUTPUT_SZ}_lru_dtraceparse.out &
+	${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/${NAME_OF_BENCHMARK}_pinatrace.out dcache lru $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_lru_dtraceparse.out &
 	pid_dtrace_lru=$!
-	${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/itrace.out icache bit_plru $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${TRACE_OUTPUT_SZ}_bit_plru_itraceparse.out &
+	${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/${NAME_OF_BENCHMARK}_itrace.out icache bit_plru $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_bit_plru_itraceparse.out &
 	pid_itrace_bit_plru=$!
-	${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/pinatrace.out dcache bit_plru $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${TRACE_OUTPUT_SZ}_bit_plru_dtraceparse.out &
+	${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/${NAME_OF_BENCHMARK}_pinatrace.out dcache bit_plru $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_bit_plru_dtraceparse.out &
 	pid_dtrace_bit_plru=$!
-	${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/itrace.out icache random $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${TRACE_OUTPUT_SZ}_random_itraceparse.out &
+	${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/${NAME_OF_BENCHMARK}_itrace.out icache random $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_random_itraceparse.out &
 	pid_itrace_random=$!
-	${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/pinatrace.out dcache random $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${TRACE_OUTPUT_SZ}_random_dtraceparse.out &
+	${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/${NAME_OF_BENCHMARK}_pinatrace.out dcache random $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_random_dtraceparse.out &
 	pid_dtrace_random=$!
 	wait $pid_itrace_fifo
 	wait $pid_dtrace_fifo
@@ -127,9 +134,9 @@ if [[ ( "$WE_SHOULD_PARSE_TRACE" -eq 1 ) ]]; then
 	for i in "${arr_of_cache_rep_policies[@]}"
 	do
 		echo -n "Mac calcs for itrace (replacement policy=${i}):"
-		cat ${WORKING_DIR}/${TRACE_OUTPUT_SZ}_${i}_itraceparse.out | grep "Total mac calcs"
+		cat ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_${i}_itraceparse.out | grep "Total mac calcs"
 		echo -n "Mac calcs for dtrace (replacement policy=${i}):"
-		cat ${WORKING_DIR}/${TRACE_OUTPUT_SZ}_${i}_dtraceparse.out | grep "Total mac calcs"
+		cat ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_${i}_dtraceparse.out | grep "Total mac calcs"
 	   # or do whatever with individual element of the array
 	done
 fi
