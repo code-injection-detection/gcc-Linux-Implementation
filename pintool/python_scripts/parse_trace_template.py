@@ -174,7 +174,7 @@ with open(sys.argv[1]) as f:
 			for offset in range(max_offset_for_loop):
 				ins_addr=hex_str_to_decimal(dict_for_line["INS_ADDR"])+offset
 				line_start_addr=ins_addr-(ins_addr%cache_line_size)
-				set_in_cache_for_line=(line_start_addr >> cache_line_size_power_of_two)%cache_sets
+				set_in_cache_for_line=(line_start_addr // cache_line_size)%cache_sets
 				ind_of_addr_in_set=find_if_addr_in_set(cache[set_in_cache_for_line][0],line_start_addr)
 				#print(ins_addr,line_start_addr,set_in_cache_for_line,ind_of_addr_in_set)
 				if ind_of_addr_in_set > -1: #found
@@ -227,7 +227,7 @@ with open(sys.argv[1]) as f:
 				operation=dict_for_line["op"]
 				mem_addr=hex_str_to_decimal(dict_for_line["memaddr"])+offset
 				line_start_addr=mem_addr-(mem_addr%cache_line_size)
-				set_in_cache_for_line=(line_start_addr >> cache_line_size_power_of_two)%cache_sets
+				set_in_cache_for_line=(line_start_addr // cache_line_size )%cache_sets
 				ind_of_addr_in_set=find_if_addr_in_set(cache[set_in_cache_for_line][0],line_start_addr)
 				#print(mem_addr,line_start_addr,set_in_cache_for_line,ind_of_addr_in_set)
 				if ind_of_addr_in_set > -1: #found
