@@ -32,6 +32,7 @@ END_LEGAL */
 #include "pin.H"
 
 FILE * trace;
+unsigned long total_lines=0;
 
 /*
 static INS our_ins;
@@ -43,6 +44,7 @@ static unsigned long our_ins_addr;
 // and prints the IP
 
 VOID printip(VOID *ip, UINT64 insAddr,UINT64 insSize,std::string insDis) {
+	total_lines++;
     fprintf(trace, "IP=%p | INS_ADDR=%p | I_SZ=%ld | DISAS=%s\n", ip,(void *)insAddr,insSize,insDis.c_str()); 
     //fprintf(trace, "Instr_addr=%ld, Instr_size=%ld, Disassebled_str=%s\n",insAddr,insSize,insDis.c_str()); 
     fflush(trace);
@@ -63,7 +65,7 @@ VOID Instruction(INS ins, VOID *v)
 // This function is called when the application exits
 VOID Fini(INT32 code, VOID *v)
 {
-    fprintf(trace, "#eof\n");
+    fprintf(trace, "#eof , total_lines=%lu\n",total_lines);
     fclose(trace);
 }
 

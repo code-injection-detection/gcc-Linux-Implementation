@@ -39,7 +39,7 @@ END_LEGAL */
 
 
 FILE * trace;
-
+unsigned long total_lines=0;
 // Print a memory read record
 /*
 VOID RecordMemRead(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched,std::string insDis)
@@ -50,6 +50,7 @@ VOID RecordMemRead(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched,std::string i
 */
 VOID RecordMemRead(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched)
 {
+	total_lines++;
     fprintf(trace,"R|%p|%d\n", addr,sz_of_mem_touched);
     fflush(trace);
 }
@@ -64,6 +65,7 @@ VOID RecordMemWrite(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched,std::string 
 */
 VOID RecordMemWrite(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched)
 {
+	total_lines++;
     fprintf(trace,"W|%p|%d\n", addr,sz_of_mem_touched);
     fflush(trace);
 }
@@ -117,7 +119,7 @@ VOID Instruction(INS ins, VOID *v)
 
 VOID Fini(INT32 code, VOID *v)
 {
-    fprintf(trace, "#eof\n");
+    fprintf(trace, "#eof , total_lines=%lu\n",total_lines);
     fclose(trace);
 }
 

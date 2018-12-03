@@ -129,7 +129,7 @@ starttime = timeit.default_timer()
 with open(sys.argv[1]) as f:
 	for input_line in f:
 		line=input_line.strip()
-		if line=="" or line=="#eof":
+		if line=="" or line=="#eof" or "#eof" in line:
 			continue
 		parts=line.split("|")
 		dict_for_line={}
