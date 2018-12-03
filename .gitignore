@@ -70,6 +70,7 @@ calc_mac_for_external_programs_faster
 nohup.out
 *traceparse.out
 *trace.out.zip
+*trace.out.gz
 itrace_modified.cpp
 pinatrace_modified.cpp
 parse_trace.py
