@@ -45,7 +45,7 @@ static unsigned long our_ins_addr;
 
 VOID printip(VOID *ip, UINT64 insAddr,UINT64 insSize,std::string insDis) {
 	total_lines++;
-    fprintf(trace, "IP=%p | INS_ADDR=%p | I_SZ=%ld | DISAS=%s\n", ip,(void *)insAddr,insSize,insDis.c_str()); 
+    fprintf(trace, "linenum=%lu | IP=%p | INS_ADDR=%p | I_SZ=%ld | DISAS=%s\n", total_lines,ip,(void *)insAddr,insSize,insDis.c_str()); 
     //fprintf(trace, "Instr_addr=%ld, Instr_size=%ld, Disassebled_str=%s\n",insAddr,insSize,insDis.c_str()); 
     fflush(trace);
 }

@@ -45,7 +45,7 @@ unsigned long total_lines=0;
 VOID RecordMemRead(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched,std::string insDis)
 {
 	total_lines++;
-    fprintf(trace,"IP=%p | op=R | memaddr=%p | sz=%d | DISAS=%s\n", ip, addr,sz_of_mem_touched,insDis.c_str());
+    fprintf(trace,"linenum=%lu | IP=%p | op=R | memaddr=%p | sz=%d | DISAS=%s\n", total_lines,ip, addr,sz_of_mem_touched,insDis.c_str());
     fflush(trace);
 }
 
@@ -55,7 +55,7 @@ VOID RecordMemRead(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched,std::string i
 VOID RecordMemWrite(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched,std::string insDis)
 {
 	total_lines++;
-    fprintf(trace,"IP=%p | op=W | memaddr=%p | sz=%d | DISAS=%s\n", ip, addr,sz_of_mem_touched,insDis.c_str());
+    fprintf(trace,"linenum=%lu | IP=%p | op=W | memaddr=%p | sz=%d | DISAS=%s\n", total_lines, ip, addr,sz_of_mem_touched,insDis.c_str());
     fflush(trace);
 }
 
