@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+from __future__ import print_function
 import sys
 import os
 import string
@@ -155,10 +155,12 @@ with open(sys.argv[1]) as f:
 		#for every memory access
 		used_timestamp+=1
 		if used_timestamp%1000000==0:
-			print("Timestamp:"+str(used_timestamp)+ ", cache misses so far:"+str(total_cache_misses)+", mac calcs so far:"+str(total_mac_calcs),flush=True)
+			print("Timestamp:"+str(used_timestamp)+ ", cache misses so far:"+str(total_cache_misses)+", mac calcs so far:"+str(total_mac_calcs))
+			sys.stdout.flush()
 			stoptime = timeit.default_timer()
 			gc.collect()
-			print('Time so far: ', stoptime - starttime,flush=True)
+			print('Time so far: ', stoptime - starttime)
+			sys.stdout.flush()
 		if input_type_of_cache=="icache":
 			max_offset=int(dict_for_line["I_SZ"])
 			ins_addr=hex_str_to_decimal(dict_for_line["INS_ADDR"])

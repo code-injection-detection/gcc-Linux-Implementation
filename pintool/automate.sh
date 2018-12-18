@@ -99,24 +99,34 @@ if [[ ( "$WE_SHOULD_EXECUTE_TRACE" -eq 1 ) ]]; then
 fi
 
 if [[ ( "$WE_SHOULD_PARSE_TRACE" -eq 1 ) ]]; then
+
+	#check if pypy exists, which is fast
+	PYPY_OK=$(dpkg-query -W --showformat='${Status}\n' pypy|grep "install ok installed")	
+	if [ "" == "$PYPY_OK" ]; then
+  		#pypy not installed
+		EXECUTABLE_FOR_TRACE=""
+	else
+		EXECUTABLE_FOR_TRACE="pypy"
+	fi	
+
 	#do the parsing, for all algorithms
 	echo "Parsing trace..."
 	START_TIME_OF_PARSING_TRACE=$(date +%s.%N)	
-	${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/${NAME_OF_BENCHMARK}_itrace.out icache fifo $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_fifo_itraceparse.out &
+	${EXECUTABLE_FOR_TRACE} ${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/${NAME_OF_BENCHMARK}_itrace.out icache fifo $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_fifo_itraceparse.out &
 	pid_itrace_fifo=$!
-	${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/${NAME_OF_BENCHMARK}_pinatrace.out dcache fifo $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_fifo_dtraceparse.out &
+	${EXECUTABLE_FOR_TRACE} ${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/${NAME_OF_BENCHMARK}_pinatrace.out dcache fifo $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_fifo_dtraceparse.out &
 	pid_dtrace_fifo=$!
-	${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/${NAME_OF_BENCHMARK}_itrace.out icache lru $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_lru_itraceparse.out &
+	${EXECUTABLE_FOR_TRACE} ${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/${NAME_OF_BENCHMARK}_itrace.out icache lru $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_lru_itraceparse.out &
 	pid_itrace_lru=$!
-	${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/${NAME_OF_BENCHMARK}_pinatrace.out dcache lru $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_lru_dtraceparse.out &
+	${EXECUTABLE_FOR_TRACE} ${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/${NAME_OF_BENCHMARK}_pinatrace.out dcache lru $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_lru_dtraceparse.out &
 	pid_dtrace_lru=$!
-	${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/${NAME_OF_BENCHMARK}_itrace.out icache bit_plru $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_bit_plru_itraceparse.out &
+	${EXECUTABLE_FOR_TRACE} ${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/${NAME_OF_BENCHMARK}_itrace.out icache bit_plru $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_bit_plru_itraceparse.out &
 	pid_itrace_bit_plru=$!
-	${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/${NAME_OF_BENCHMARK}_pinatrace.out dcache bit_plru $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_bit_plru_dtraceparse.out &
+	${EXECUTABLE_FOR_TRACE} ${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/${NAME_OF_BENCHMARK}_pinatrace.out dcache bit_plru $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_bit_plru_dtraceparse.out &
 	pid_dtrace_bit_plru=$!
-	${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/${NAME_OF_BENCHMARK}_itrace.out icache random $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_random_itraceparse.out &
+	${EXECUTABLE_FOR_TRACE} ${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/${NAME_OF_BENCHMARK}_itrace.out icache random $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_random_itraceparse.out &
 	pid_itrace_random=$!
-	${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/${NAME_OF_BENCHMARK}_pinatrace.out dcache random $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_random_dtraceparse.out &
+	${EXECUTABLE_FOR_TRACE} ${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/${NAME_OF_BENCHMARK}_pinatrace.out dcache random $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_random_dtraceparse.out &
 	pid_dtrace_random=$!
 	wait $pid_itrace_fifo
 	wait $pid_dtrace_fifo
