@@ -38,36 +38,35 @@ END_LEGAL */
 #include "pin.H"
 
 
-FILE * trace;
 unsigned long total_lines=0;
 // Print a memory read record
 /*
 VOID RecordMemRead(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched,std::string insDis)
 {
-    fprintf(trace,"IP=%p | op=R | memaddr=%p | sz=%d | DISAS=%s\n", ip, addr,sz_of_mem_touched,insDis.c_str());
-    fflush(trace);
+    fprintf(stdout,"IP=%p | op=R | memaddr=%p | sz=%d | DISAS=%s\n", ip, addr,sz_of_mem_touched,insDis.c_str());
+    fflush(stdout);
 }
 */
 VOID RecordMemRead(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched)
 {
 	total_lines++;
-    fprintf(trace,"op=R|memaddr=%p|sz=%d\n", addr,sz_of_mem_touched);
-    fflush(trace);
+    fprintf(stdout,"op=R|memaddr=%p|sz=%d\n", addr,sz_of_mem_touched);
+    fflush(stdout);
 }
 
 // Print a memory write record
 /*
 VOID RecordMemWrite(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched,std::string insDis)
 {
-    fprintf(trace,"IP=%p | op=W | memaddr=%p | sz=%d | DISAS=%s\n", ip, addr,sz_of_mem_touched,insDis.c_str());
-    fflush(trace);
+    fprintf(stdout,"IP=%p | op=W | memaddr=%p | sz=%d | DISAS=%s\n", ip, addr,sz_of_mem_touched,insDis.c_str());
+    fflush(stdout);
 }
 */
 VOID RecordMemWrite(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched)
 {
 	total_lines++;
-    fprintf(trace,"op=W|memaddr=%p|sz=%d\n", addr,sz_of_mem_touched);
-    fflush(trace);
+    fprintf(stdout,"op=W|memaddr=%p|sz=%d\n", addr,sz_of_mem_touched);
+    fflush(stdout);
 }
 
 // Is called for every instruction and instruments reads and writes
@@ -119,8 +118,8 @@ VOID Instruction(INS ins, VOID *v)
 
 VOID Fini(INT32 code, VOID *v)
 {
-    fprintf(trace, "#eof , total_lines=%lu\n",total_lines);
-    fclose(trace);
+    fprintf(stdout, "#eof , total_lines=%lu\n",total_lines);
+    fclose(stdout);
 }
 
 /* ===================================================================== */
@@ -142,7 +141,6 @@ int main(int argc, char *argv[])
 {
     if (PIN_Init(argc, argv)) return Usage();
 
-    trace = fopen("pinatrace.out", "w");
 
     INS_AddInstrumentFunction(Instruction, 0);
     PIN_AddFiniFunction(Fini, 0);

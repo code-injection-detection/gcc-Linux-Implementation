@@ -31,7 +31,6 @@ END_LEGAL */
 #include <stdio.h>
 #include "pin.H"
 
-FILE * trace;
 unsigned long total_lines=0;
 /*
 static INS our_ins;
@@ -43,17 +42,17 @@ static unsigned long our_ins_addr;
 // and prints the IP
 /*
 VOID printip(VOID *ip, UINT64 insAddr,UINT64 insSize,std::string insDis) {
-    fprintf(trace, "IP=%p | INS_ADDR=%ld | I_SZ=%ld | DISAS=%s\n", ip,insAddr,insSize,insDis.c_str()); 
-    //fprintf(trace, "Instr_addr=%ld, Instr_size=%ld, Disassebled_str=%s\n",insAddr,insSize,insDis.c_str()); 
-    fflush(trace);
+    fprintf(stdout, "IP=%p | INS_ADDR=%ld | I_SZ=%ld | DISAS=%s\n", ip,insAddr,insSize,insDis.c_str()); 
+    //fprintf(stdout, "Instr_addr=%ld, Instr_size=%ld, Disassebled_str=%s\n",insAddr,insSize,insDis.c_str()); 
+    fflush(stdout);
 }
 */
 VOID printip(VOID *ip, UINT64 insAddr,UINT64 insSize) {
 	total_lines++;
-    //fprintf(trace, "IP=%p | INS_ADDR=%ld | I_SZ=%ld | DISAS=%s\n", ip,insAddr,insSize,insDis.c_str()); 
-    //fprintf(trace, "Instr_addr=%ld, Instr_size=%ld, Disassebled_str=%s\n",insAddr,insSize,insDis.c_str()); 
-    fprintf(trace, "INS_ADDR=%p|I_SZ=%ld\n",(void *)insAddr,insSize); 
-    fflush(trace);
+    //fprintf(stdout, "IP=%p | INS_ADDR=%ld | I_SZ=%ld | DISAS=%s\n", ip,insAddr,insSize,insDis.c_str()); 
+    //fprintf(stdout, "Instr_addr=%ld, Instr_size=%ld, Disassebled_str=%s\n",insAddr,insSize,insDis.c_str()); 
+    fprintf(stdout, "INS_ADDR=%p|I_SZ=%ld\n",(void *)insAddr,insSize); 
+    fflush(stdout);
 }
 
 // Pin calls this function every time a new instruction is encountered
@@ -70,8 +69,8 @@ VOID Instruction(INS ins, VOID *v)
 // This function is called when the application exits
 VOID Fini(INT32 code, VOID *v)
 {
-    fprintf(trace, "#eof , total_lines=%lu\n",total_lines);
-    fclose(trace);
+    fprintf(stdout, "#eof , total_lines=%lu\n",total_lines);
+    fclose(stdout);
 }
 
 /* ===================================================================== */
@@ -91,7 +90,6 @@ INT32 Usage()
 
 int main(int argc, char * argv[])
 {
-    trace = fopen("itrace.out", "w");
     
     // Initialize pin
     if (PIN_Init(argc, argv)) return Usage();
