@@ -31,6 +31,8 @@ END_LEGAL */
 #include <stdio.h>
 #include "pin.H"
 
+
+char const trace_str[] = "Line_for_trace->";
 unsigned long total_lines=0;
 /*
 static INS our_ins;
@@ -42,17 +44,17 @@ static unsigned long our_ins_addr;
 // and prints the IP
 /*
 VOID printip(VOID *ip, UINT64 insAddr,UINT64 insSize,std::string insDis) {
-    fprintf(stdout, "IP=%p | INS_ADDR=%lu | I_SZ=%ld | DISAS=%s\n", ip,insAddr,insSize,insDis.c_str()); 
-    //fprintf(stdout, "Instr_addr=%lu, Instr_size=%ld, Disassebled_str=%s\n",insAddr,insSize,insDis.c_str()); 
-    fflush(stdout);
+    fprintf(stderr, "IP=%p | INS_ADDR=%lu | I_SZ=%ld | DISAS=%s\n", ip,insAddr,insSize,insDis.c_str()); 
+    //fprintf(stderr, "Instr_addr=%lu, Instr_size=%ld, Disassebled_str=%s\n",insAddr,insSize,insDis.c_str()); 
+    fflush(stderr);
 }
 */
 VOID printip(VOID *ip, UINT64 insAddr,UINT64 insSize) {
 	total_lines++;
-    //fprintf(stdout, "IP=%p | INS_ADDR=%lu | I_SZ=%ld | DISAS=%s\n", ip,insAddr,insSize,insDis.c_str()); 
-    //fprintf(stdout, "Instr_addr=%lu, Instr_size=%ld, Disassebled_str=%s\n",insAddr,insSize,insDis.c_str()); 
-    fprintf(stdout, "%p|%ld\n",(void*)insAddr,insSize); 
-    fflush(stdout);
+    //fprintf(stderr, "IP=%p | INS_ADDR=%lu | I_SZ=%ld | DISAS=%s\n", ip,insAddr,insSize,insDis.c_str()); 
+    //fprintf(stderr, "Instr_addr=%lu, Instr_size=%ld, Disassebled_str=%s\n",insAddr,insSize,insDis.c_str()); 
+    fprintf(stderr, "%s%p|%ld\n",trace_str,(void*)insAddr,insSize); 
+    fflush(stderr);
 }
 
 // Pin calls this function every time a new instruction is encountered
@@ -69,8 +71,7 @@ VOID Instruction(INS ins, VOID *v)
 // This function is called when the application exits
 VOID Fini(INT32 code, VOID *v)
 {
-    fprintf(stdout, "#eof , total_lines=%lu\n",total_lines);
-    fclose(stdout);
+    fprintf(stderr, "%s#eof , total_lines=%lu\n",trace_str,total_lines);
 }
 
 /* ===================================================================== */

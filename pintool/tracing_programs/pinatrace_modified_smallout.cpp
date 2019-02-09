@@ -37,36 +37,37 @@ END_LEGAL */
 #include <stdlib.h>
 #include "pin.H"
 
+char const trace_str[] = "Line_for_trace->";
 
 unsigned long total_lines=0;
 // Print a memory read record
 /*
 VOID RecordMemRead(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched,std::string insDis)
 {
-    fprintf(stdout,"IP=%p | op=R | memaddr=%p | sz=%d | DISAS=%s\n", ip, addr,sz_of_mem_touched,insDis.c_str());
-    fflush(stdout);
+    fprintf(stderr,"IP=%p | op=R | memaddr=%p | sz=%d | DISAS=%s\n", ip, addr,sz_of_mem_touched,insDis.c_str());
+    fflush(stderr);
 }
 */
 VOID RecordMemRead(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched)
 {
 	total_lines++;
-    fprintf(stdout,"op=R|memaddr=%p|sz=%d\n", addr,sz_of_mem_touched);
-    fflush(stdout);
+    fprintf(stderr,"%sop=R|memaddr=%p|sz=%d\n", trace_str,addr,sz_of_mem_touched);
+    fflush(stderr);
 }
 
 // Print a memory write record
 /*
 VOID RecordMemWrite(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched,std::string insDis)
 {
-    fprintf(stdout,"IP=%p | op=W | memaddr=%p | sz=%d | DISAS=%s\n", ip, addr,sz_of_mem_touched,insDis.c_str());
-    fflush(stdout);
+    fprintf(stderr,"IP=%p | op=W | memaddr=%p | sz=%d | DISAS=%s\n", ip, addr,sz_of_mem_touched,insDis.c_str());
+    fflush(stderr);
 }
 */
 VOID RecordMemWrite(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched)
 {
 	total_lines++;
-    fprintf(stdout,"op=W|memaddr=%p|sz=%d\n", addr,sz_of_mem_touched);
-    fflush(stdout);
+    fprintf(stderr,"%sop=W|memaddr=%p|sz=%d\n", trace_str,addr,sz_of_mem_touched);
+    fflush(stderr);
 }
 
 // Is called for every instruction and instruments reads and writes
@@ -118,8 +119,7 @@ VOID Instruction(INS ins, VOID *v)
 
 VOID Fini(INT32 code, VOID *v)
 {
-    fprintf(stdout, "#eof , total_lines=%lu\n",total_lines);
-    fclose(stdout);
+    fprintf(stderr, "%s#eof , total_lines=%lu\n",trace_str,total_lines);
 }
 
 /* ===================================================================== */
