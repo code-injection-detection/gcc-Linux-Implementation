@@ -37,16 +37,16 @@ END_LEGAL */
 #include <stdlib.h>
 #include "pin.H"
 
-
 char const trace_str[] = "Line_for_trace->";
+FILE * trace;
 unsigned long total_lines=0;
 // Print a memory read record
 
 VOID RecordMemRead(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched,std::string insDis)
 {
 	total_lines++;
-    fprintf(stderr,"%slinenum=%lu | IP=%p | op=R | memaddr=%p | sz=%d | DISAS=%s\n", trace_str,total_lines,ip, addr,sz_of_mem_touched,insDis.c_str());
-    fflush(stderr);
+    fprintf(trace,"%slinenum=%lu | IP=%p | op=R | memaddr=%p | sz=%d | DISAS=%s\n", trace_str,total_lines,ip, addr,sz_of_mem_touched,insDis.c_str());
+    fflush(trace);
 }
 
 
@@ -55,8 +55,8 @@ VOID RecordMemRead(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched,std::string i
 VOID RecordMemWrite(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched,std::string insDis)
 {
 	total_lines++;
-    fprintf(stderr,"%slinenum=%lu | IP=%p | op=W | memaddr=%p | sz=%d | DISAS=%s\n", trace_str,total_lines, ip, addr,sz_of_mem_touched,insDis.c_str());
-    fflush(stderr);
+    fprintf(trace,"%slinenum=%lu | IP=%p | op=W | memaddr=%p | sz=%d | DISAS=%s\n", trace_str,total_lines, ip, addr,sz_of_mem_touched,insDis.c_str());
+    fflush(trace);
 }
 
 
@@ -109,7 +109,8 @@ VOID Instruction(INS ins, VOID *v)
 
 VOID Fini(INT32 code, VOID *v)
 {
-    fprintf(stderr, "%s#eof , total_lines=%lu\n",trace_str,total_lines);
+    fprintf(trace, "%s#eof , total_lines=%lu\n",trace_str,total_lines);
+    fclose(trace);
 }
 
 /* ===================================================================== */
@@ -131,6 +132,7 @@ int main(int argc, char *argv[])
 {
     if (PIN_Init(argc, argv)) return Usage();
 
+    trace = fopen("/tmp/progout_fifo_dtrace", "a");
 
     INS_AddInstrumentFunction(Instruction, 0);
     PIN_AddFiniFunction(Fini, 0);

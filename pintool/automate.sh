@@ -55,12 +55,13 @@ if [[ ( "$CACHE_REPLACEMENT_POLICY" != "lru" ) && ( "$CACHE_REPLACEMENT_POLICY" 
 fi
 
 START_TIME=$(date +%s.%N)
-echo "Copying templates..."
+echo "Copying templates and creating fifos..."
 #copy the templates
 cp ${WORKING_DIR}/tracing_programs/itrace_modified_${TRACE_OUTPUT_SZ}out.cpp ${WORKING_DIR}/itrace_modified.cpp
 cp ${WORKING_DIR}/tracing_programs/pinatrace_modified_${TRACE_OUTPUT_SZ}out.cpp ${WORKING_DIR}/pinatrace_modified.cpp
 cp ${WORKING_DIR}/python_scripts/parse_trace_template.py ${WORKING_DIR}/parse_trace.py
-
+rm -f /tmp/progout_fifo_itrace; mkfifo /tmp/progout_fifo_itrace;
+rm -f /tmp/progout_fifo_dtrace; mkfifo /tmp/progout_fifo_dtrace;
 
 echo "Compiling templates (stdout to /dev/null)..."
 ${WORKING_DIR}/deploy_pin_libs_only.sh >/dev/null
@@ -70,14 +71,16 @@ gcc -O2 ${WORKING_DIR}/tracing_programs/output_stdin_and_on_signal.c -o ${WORKIN
 if [[ ( "$WE_SHOULD_EXECUTE_TRACE" -eq 1 ) ]]; then
 	echo "Executing traces..."
 	START_TIME_OF_ITRACE=$(date +%s.%N)
-	${WORKING_DIR}/pin-3.7-97619-g0d0c92f4f-gcc-linux/pin -t ./pin-3.7-97619-g0d0c92f4f-gcc-linux/source/tools/ManualExamples/obj-intel64/itrace.so -- ${EXEC_PATH} 2>&1| ${WORKING_DIR}/output_stdin_and_on_signal ${NAME_OF_BENCHMARK}_itrace | gzip > itrace.out.gz &
+	${WORKING_DIR}/pin-3.7-97619-g0d0c92f4f-gcc-linux/pin -t ./pin-3.7-97619-g0d0c92f4f-gcc-linux/source/tools/ManualExamples/obj-intel64/itrace.so -- ${EXEC_PATH} & 
 	pid_itrace=$!
+	${WORKING_DIR}/output_stdin_and_on_signal ${NAME_OF_BENCHMARK}_itrace "/tmp/progout_fifo_itrace" | gzip > itrace.out.gz &
 	#END_TIME_OF_ITRACE=$(date +%s.%N)
 	#echo "Itrace time:  $(echo "scale=3; ($END_TIME_OF_ITRACE - $START_TIME_OF_ITRACE)*1000/1000" | bc) seconds"
 	#echo "Executing dtrace..."
 	START_TIME_OF_DTRACE=$(date +%s.%N)
-	${WORKING_DIR}/pin-3.7-97619-g0d0c92f4f-gcc-linux/pin -t ./pin-3.7-97619-g0d0c92f4f-gcc-linux/source/tools/ManualExamples/obj-intel64/pinatrace.so -- ${EXEC_PATH} 2>&1| ${WORKING_DIR}/output_stdin_and_on_signal ${NAME_OF_BENCHMARK}_dtrace | gzip > dtrace.out.gz &
+	${WORKING_DIR}/pin-3.7-97619-g0d0c92f4f-gcc-linux/pin -t ./pin-3.7-97619-g0d0c92f4f-gcc-linux/source/tools/ManualExamples/obj-intel64/pinatrace.so -- ${EXEC_PATH} &
 	pid_dtrace=$!
+	${WORKING_DIR}/output_stdin_and_on_signal ${NAME_OF_BENCHMARK}_dtrace "/tmp/progout_fifo_dtrace" | gzip > dtrace.out.gz &
 	wait $pid_dtrace
 	retval=$?	
 	if [ $retval -eq 0 ]; then
@@ -86,6 +89,7 @@ if [[ ( "$WE_SHOULD_EXECUTE_TRACE" -eq 1 ) ]]; then
 		echo "Error. Could not trace memory acceses properly."
 		echo $retval
 		kill -9 $pid_itrace
+		killall output_stdin_and_on_signal
 		exit
 	fi
 	END_TIME_OF_DTRACE=$(date +%s.%N)

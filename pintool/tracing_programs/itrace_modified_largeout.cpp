@@ -32,6 +32,7 @@ END_LEGAL */
 #include "pin.H"
 
 char const trace_str[] = "Line_for_trace->";
+FILE * trace;
 unsigned long total_lines=0;
 
 /*
@@ -45,9 +46,9 @@ static unsigned long our_ins_addr;
 
 VOID printip(VOID *ip, UINT64 insAddr,UINT64 insSize,std::string insDis) {
 	total_lines++;
-    fprintf(stderr, "%slinenum=%lu | IP=%p | INS_ADDR=%p | I_SZ=%ld | DISAS=%s\n",trace_str, total_lines,ip,(void *)insAddr,insSize,insDis.c_str()); 
-    //fprintf(stderr, "Instr_addr=%ld, Instr_size=%ld, Disassebled_str=%s\n",insAddr,insSize,insDis.c_str()); 
-    fflush(stderr);
+    fprintf(trace, "%slinenum=%lu | IP=%p | INS_ADDR=%p | I_SZ=%ld | DISAS=%s\n", trace_str,total_lines,ip,(void *)insAddr,insSize,insDis.c_str()); 
+    //fprintf(trace, "Instr_addr=%ld, Instr_size=%ld, Disassebled_str=%s\n",insAddr,insSize,insDis.c_str()); 
+    fflush(trace);
 }
 
 
@@ -65,7 +66,8 @@ VOID Instruction(INS ins, VOID *v)
 // This function is called when the application exits
 VOID Fini(INT32 code, VOID *v)
 {
-    fprintf(stderr, "%s#eof , total_lines=%lu\n",trace_str,total_lines);
+    fprintf(trace, "%s#eof , total_lines=%lu\n",trace_str,total_lines);
+    fclose(trace);
 }
 
 /* ===================================================================== */
@@ -85,6 +87,7 @@ INT32 Usage()
 
 int main(int argc, char * argv[])
 {
+    trace = fopen("/tmp/progout_fifo_itrace", "a");
     
     // Initialize pin
     if (PIN_Init(argc, argv)) return Usage();
