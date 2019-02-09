@@ -88,7 +88,7 @@ INT32 Usage()
 
 int main(int argc, char * argv[])
 {
-    trace = fopen("/tmp/progout_fifo_itrace", "a");
+    trace = fopen("/tmp/pintool_tracefiles/progout_fifo_itrace", "a");
     
     // Initialize pin
     if (PIN_Init(argc, argv)) return Usage();

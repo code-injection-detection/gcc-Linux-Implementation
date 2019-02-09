@@ -60,8 +60,14 @@ echo "Copying templates and creating fifos..."
 cp ${WORKING_DIR}/tracing_programs/itrace_modified_${TRACE_OUTPUT_SZ}out.cpp ${WORKING_DIR}/itrace_modified.cpp
 cp ${WORKING_DIR}/tracing_programs/pinatrace_modified_${TRACE_OUTPUT_SZ}out.cpp ${WORKING_DIR}/pinatrace_modified.cpp
 cp ${WORKING_DIR}/python_scripts/parse_trace_template.py ${WORKING_DIR}/parse_trace.py
-rm -f /tmp/progout_fifo_itrace; mkfifo /tmp/progout_fifo_itrace;
-rm -f /tmp/progout_fifo_dtrace; mkfifo /tmp/progout_fifo_dtrace;
+rm -rf /tmp/pintool_tracefiles
+mkdir /tmp/pintool_tracefiles
+mkfifo /tmp/pintool_tracefiles/progout_fifo_itrace;
+mkfifo /tmp/pintool_tracefiles/progout_fifo_dtrace;
+mkfifo /tmp/pintool_tracefiles/itrace_fifo_policy /tmp/pintool_tracefiles/dtrace_fifo_policy /tmp/pintool_tracefiles/itrace_lru_policy /tmp/pintool_tracefiles/dtrace_lru_policy
+mkfifo /tmp/pintool_tracefiles/itrace_bit_plru_policy /tmp/pintool_tracefiles/dtrace_bit_plru_policy /tmp/pintool_tracefiles/itrace_random_policy /tmp/pintool_tracefiles/dtrace_random_policy
+
+
 
 echo "Compiling templates (stdout to /dev/null)..."
 ${WORKING_DIR}/deploy_pin_libs_only.sh >/dev/null
@@ -73,14 +79,14 @@ if [[ ( "$WE_SHOULD_EXECUTE_TRACE" -eq 1 ) ]]; then
 	START_TIME_OF_ITRACE=$(date +%s.%N)
 	${WORKING_DIR}/pin-3.7-97619-g0d0c92f4f-gcc-linux/pin -t ./pin-3.7-97619-g0d0c92f4f-gcc-linux/source/tools/ManualExamples/obj-intel64/itrace.so -- ${EXEC_PATH} & 
 	pid_itrace=$!
-	${WORKING_DIR}/output_stdin_and_on_signal ${NAME_OF_BENCHMARK}_itrace "/tmp/progout_fifo_itrace" | gzip > itrace.out.gz &
+	${WORKING_DIR}/output_stdin_and_on_signal ${NAME_OF_BENCHMARK}_itrace "/tmp/pintool_tracefiles/progout_fifo_itrace" | gzip > itrace.out.gz &
 	#END_TIME_OF_ITRACE=$(date +%s.%N)
 	#echo "Itrace time:  $(echo "scale=3; ($END_TIME_OF_ITRACE - $START_TIME_OF_ITRACE)*1000/1000" | bc) seconds"
 	#echo "Executing dtrace..."
 	START_TIME_OF_DTRACE=$(date +%s.%N)
 	${WORKING_DIR}/pin-3.7-97619-g0d0c92f4f-gcc-linux/pin -t ./pin-3.7-97619-g0d0c92f4f-gcc-linux/source/tools/ManualExamples/obj-intel64/pinatrace.so -- ${EXEC_PATH} &
 	pid_dtrace=$!
-	${WORKING_DIR}/output_stdin_and_on_signal ${NAME_OF_BENCHMARK}_dtrace "/tmp/progout_fifo_dtrace" | gzip > dtrace.out.gz &
+	${WORKING_DIR}/output_stdin_and_on_signal ${NAME_OF_BENCHMARK}_dtrace "/tmp/pintool_tracefiles/progout_fifo_dtrace" | gzip > dtrace.out.gz &
 	wait $pid_dtrace
 	retval=$?	
 	if [ $retval -eq 0 ]; then
@@ -95,8 +101,8 @@ if [[ ( "$WE_SHOULD_EXECUTE_TRACE" -eq 1 ) ]]; then
 	END_TIME_OF_DTRACE=$(date +%s.%N)
 	wait $pid_itrace
 	
-	mv itrace.out ${NAME_OF_BENCHMARK}_itrace.out
-	mv pinatrace.out ${NAME_OF_BENCHMARK}_pinatrace.out
+	mv itrace.out.gz ${NAME_OF_BENCHMARK}_itrace.out.gz
+	mv dtrace.out.gz ${NAME_OF_BENCHMARK}_dtrace.out.gz
 
 	#echo "Itrace time:  $(echo "scale=3; ($END_TIME_OF_ITRACE - $START_TIME_OF_ITRACE)*1000/1000" | bc) seconds"
 	#echo "Dtrace time:  $(echo "scale=3; ($END_TIME_OF_DTRACE - $START_TIME_OF_DTRACE)*1000/1000" | bc) seconds"
@@ -116,22 +122,24 @@ if [[ ( "$WE_SHOULD_PARSE_TRACE" -eq 1 ) ]]; then
 
 	#do the parsing, for all algorithms
 	echo "Parsing trace..."
+	cat ${NAME_OF_BENCHMARK}_itrace.out.gz | zcat | tee -a "/tmp/pintool_tracefiles/itrace_fifo_policy" "/tmp/pintool_tracefiles/itrace_lru_policy" "/tmp/pintool_tracefiles/itrace_bit_plru_policy" "/tmp/pintool_tracefiles/itrace_random_policy" >/dev/null &
+	cat ${NAME_OF_BENCHMARK}_dtrace.out.gz | zcat | tee -a "/tmp/pintool_tracefiles/dtrace_fifo_policy" "/tmp/pintool_tracefiles/dtrace_lru_policy" "/tmp/pintool_tracefiles/dtrace_bit_plru_policy" "/tmp/pintool_tracefiles/dtrace_random_policy" >/dev/null &
 	START_TIME_OF_PARSING_TRACE=$(date +%s.%N)	
-	${EXECUTABLE_FOR_TRACE} ${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/${NAME_OF_BENCHMARK}_itrace.out icache fifo $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_fifo_itraceparse.out &
+	${EXECUTABLE_FOR_TRACE} ${WORKING_DIR}/parse_trace.py "/tmp/pintool_tracefiles/itrace_fifo_policy" icache fifo $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_fifo_itraceparse.out &
 	pid_itrace_fifo=$!
-	${EXECUTABLE_FOR_TRACE} ${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/${NAME_OF_BENCHMARK}_pinatrace.out dcache fifo $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_fifo_dtraceparse.out &
+	${EXECUTABLE_FOR_TRACE} ${WORKING_DIR}/parse_trace.py "/tmp/pintool_tracefiles/dtrace_fifo_policy" dcache fifo $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_fifo_dtraceparse.out &
 	pid_dtrace_fifo=$!
-	${EXECUTABLE_FOR_TRACE} ${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/${NAME_OF_BENCHMARK}_itrace.out icache lru $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_lru_itraceparse.out &
+	${EXECUTABLE_FOR_TRACE} ${WORKING_DIR}/parse_trace.py "/tmp/pintool_tracefiles/itrace_lru_policy" icache lru $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_lru_itraceparse.out &
 	pid_itrace_lru=$!
-	${EXECUTABLE_FOR_TRACE} ${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/${NAME_OF_BENCHMARK}_pinatrace.out dcache lru $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_lru_dtraceparse.out &
+	${EXECUTABLE_FOR_TRACE} ${WORKING_DIR}/parse_trace.py "/tmp/pintool_tracefiles/dtrace_lru_policy" dcache lru $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_lru_dtraceparse.out &
 	pid_dtrace_lru=$!
-	${EXECUTABLE_FOR_TRACE} ${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/${NAME_OF_BENCHMARK}_itrace.out icache bit_plru $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_bit_plru_itraceparse.out &
+	${EXECUTABLE_FOR_TRACE} ${WORKING_DIR}/parse_trace.py "/tmp/pintool_tracefiles/itrace_bit_plru_policy" icache bit_plru $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_bit_plru_itraceparse.out &
 	pid_itrace_bit_plru=$!
-	${EXECUTABLE_FOR_TRACE} ${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/${NAME_OF_BENCHMARK}_pinatrace.out dcache bit_plru $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_bit_plru_dtraceparse.out &
+	${EXECUTABLE_FOR_TRACE} ${WORKING_DIR}/parse_trace.py "/tmp/pintool_tracefiles/dtrace_bit_plru_policy" dcache bit_plru $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_bit_plru_dtraceparse.out &
 	pid_dtrace_bit_plru=$!
-	${EXECUTABLE_FOR_TRACE} ${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/${NAME_OF_BENCHMARK}_itrace.out icache random $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_random_itraceparse.out &
+	${EXECUTABLE_FOR_TRACE} ${WORKING_DIR}/parse_trace.py "/tmp/pintool_tracefiles/itrace_random_policy" icache random $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_random_itraceparse.out &
 	pid_itrace_random=$!
-	${EXECUTABLE_FOR_TRACE} ${WORKING_DIR}/parse_trace.py ${WORKING_DIR}/${NAME_OF_BENCHMARK}_pinatrace.out dcache random $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_random_dtraceparse.out &
+	${EXECUTABLE_FOR_TRACE} ${WORKING_DIR}/parse_trace.py "/tmp/pintool_tracefiles/dtrace_random_policy" dcache random $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_random_dtraceparse.out &
 	pid_dtrace_random=$!
 	wait $pid_itrace_fifo
 	wait $pid_dtrace_fifo

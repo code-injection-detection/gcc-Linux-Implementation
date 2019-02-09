@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
 {
     if (PIN_Init(argc, argv)) return Usage();
 
-    trace = fopen("/tmp/progout_fifo_dtrace", "a");
+    trace = fopen("/tmp/pintool_tracefiles/progout_fifo_dtrace", "a");
 
     INS_AddInstrumentFunction(Instruction, 0);
     PIN_AddFiniFunction(Fini, 0);
