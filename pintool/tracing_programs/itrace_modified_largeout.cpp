@@ -48,7 +48,8 @@ VOID printip(VOID *ip, UINT64 insAddr,UINT64 insSize,std::string insDis) {
 	total_lines++;
     fprintf(trace, "%slinenum=%lu | IP=%p | INS_ADDR=%p | I_SZ=%ld | DISAS=%s\n", trace_str,total_lines,ip,(void *)insAddr,insSize,insDis.c_str()); 
     //fprintf(trace, "Instr_addr=%ld, Instr_size=%ld, Disassebled_str=%s\n",insAddr,insSize,insDis.c_str()); 
-    fflush(trace);
+	if (rand()%10==1)	
+		fflush(trace);
 }
 
 

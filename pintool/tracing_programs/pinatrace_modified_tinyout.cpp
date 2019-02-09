@@ -52,7 +52,8 @@ VOID RecordMemRead(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched)
 {
 	total_lines++;
     fprintf(trace,"%sR|%p|%d\n", trace_str,addr,sz_of_mem_touched);
-    fflush(trace);
+    if (rand()%10==1)
+		fflush(trace);
 }
 
 // Print a memory write record
@@ -67,7 +68,8 @@ VOID RecordMemWrite(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched)
 {
 	total_lines++;
     fprintf(trace,"%sW|%p|%d\n", trace_str,addr,sz_of_mem_touched);
-    fflush(trace);
+    if (rand()%10==1)
+		fflush(trace);
 }
 
 // Is called for every instruction and instruments reads and writes

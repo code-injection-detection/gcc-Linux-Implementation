@@ -75,4 +75,6 @@ itrace_modified.cpp
 pinatrace_modified.cpp
 parse_trace.py
 output_stdin_and_on_signal
+progout_fifo_itrace
+progout_fifo_dtrace
 
