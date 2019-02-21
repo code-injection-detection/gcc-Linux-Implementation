@@ -41,7 +41,11 @@ void first_function_in_secure_program()
 /*************************  STACK CANARY STUFF BELOW  *************************/
 /******************************************************************************/
 
-extern EVP_CIPHER_CTX stack_canary_aes_ctx;
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+	extern EVP_CIPHER_CTX stack_canary_aes_ctx;
+#else
+	extern EVP_CIPHER_CTX *stack_canary_aes_ctx;
+#endif
 void init_stack_canary()
 {
 	if (use_stack_canaries>0)
@@ -50,7 +54,12 @@ void init_stack_canary()
 	}
 	if (use_stack_canaries>1)
 	{
-		EVP_CIPHER_CTX_init(&stack_canary_aes_ctx);
+		#if OPENSSL_VERSION_NUMBER < 0x10100000L
+			EVP_CIPHER_CTX_init(&stack_canary_aes_ctx);
+		#else
+			EVP_CIPHER_CTX_new();
+			EVP_CIPHER_CTX_init(stack_canary_aes_ctx);
+		#endif
 	}
 }
 

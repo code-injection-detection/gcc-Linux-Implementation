@@ -80,16 +80,18 @@ void init_crypto_stuctures(int print, int find_addr_of_first_code_block)
 {
 	if (print)
 		printf("Initializing crypto structures.\n");
-	EVP_CIPHER_CTX_init(&aes_ctx);
+	aes_ctx=EVP_CIPHER_CTX_new();
+	EVP_CIPHER_CTX_init(aes_ctx);
 	#if mac_algorithm==1
-		EVP_EncryptInit_ex(&aes_ctx, EVP_aes_128_ecb(), NULL, aes_key, NULL);
-		EVP_CIPHER_CTX_set_padding(&aes_ctx, 0); //disable padding
-		BN_init(&bn_a);
-		BN_init(&bn_b);
-		BN_init(&bn_temp);
-		BN_init(&bn_useful_data);
-		BN_init(&bn_mac);
-		BN_dec2bn(&bn_2power128,str_2power128);	
+		EVP_EncryptInit_ex(aes_ctx, EVP_aes_128_ecb(), NULL, aes_key, NULL);
+		EVP_CIPHER_CTX_set_padding(aes_ctx, 0); //disable padding
+		bn_a=BN_new();
+		bn_b=BN_new();
+		bn_temp=BN_new();
+		bn_useful_data=BN_new();
+		bn_mac=BN_new();
+		bn_2power128=BN_new();
+		BN_dec2bn(bn_2power128,str_2power128);	
 		bn_ctx=BN_CTX_new();
 	#endif
 	AES_set_encrypt_key(aes_key, 128, &aes_enc_key);
@@ -98,9 +100,9 @@ void init_crypto_stuctures(int print, int find_addr_of_first_code_block)
 		CMAC_Init(cmac_ctx, aes_key, 16, EVP_aes_128_cbc(), NULL);
 	#endif
 	#if mac_algorithm==3 || mac_algorithm==4
-		EVP_EncryptInit_ex(&aes_ctx, EVP_aes_128_cbc(), NULL, aes_key,initialization_vector);
+		EVP_EncryptInit_ex(aes_ctx, EVP_aes_128_cbc(), NULL, aes_key,initialization_vector);
 		#if mac_algorithm==4 ||  set_as_given_that_everything_maced_will_be_fixed_and_multiple_of_16==1
-			EVP_CIPHER_CTX_set_padding(&aes_ctx, 0); //disable padding
+			EVP_CIPHER_CTX_set_padding(aes_ctx, 0); //disable padding
 		#endif
 	#endif
 	memset(mac_in_bytes,0,safe_length_for_buffer_storage);
@@ -212,12 +214,12 @@ unsigned char * produce_stack_canary_optimized_part(unsigned char* position_of_b
 	int stack_canary_tmplen;
 
 	//init structure to calculate hash
-	EVP_EncryptInit_ex(&stack_canary_aes_ctx, EVP_aes_128_cbc(), NULL, stack_canary_aes_key,initialization_vector);
-	EVP_CIPHER_CTX_set_padding(&stack_canary_aes_ctx, 0); //disable padding
+	EVP_EncryptInit_ex(stack_canary_aes_ctx, EVP_aes_128_cbc(), NULL, stack_canary_aes_key,initialization_vector);
+	EVP_CIPHER_CTX_set_padding(stack_canary_aes_ctx, 0); //disable padding
 	
 	//calc the hash
-	EVP_EncryptUpdate(&stack_canary_aes_ctx, stack_canary_result_opt, &length_of_stack_canary_total_encryption,keyshares_start, aes_block_length);
-	EVP_EncryptFinal_ex(&stack_canary_aes_ctx, stack_canary_result_opt + length_of_stack_canary_total_encryption, &stack_canary_tmplen);
+	EVP_EncryptUpdate(stack_canary_aes_ctx, stack_canary_result_opt, &length_of_stack_canary_total_encryption,keyshares_start, aes_block_length);
+	EVP_EncryptFinal_ex(stack_canary_aes_ctx, stack_canary_result_opt + length_of_stack_canary_total_encryption, &stack_canary_tmplen);
 	length_of_stack_canary_total_encryption+=stack_canary_tmplen;
 	
 	return &stack_canary_result_opt[0];
@@ -389,10 +391,10 @@ void calc_mac_aes_ecb(unsigned char *useful_data, int length_in_bytes_useful)
 	if (number_of_mac_bytes>0 && world==3 && !ignore_macs_last_moment_even_if_there_are_mac_bytes)
 	{
 		BN_bin2bn(encrypted_data,(length_of_encrypted_data/2),&bn_a);
-		BN_bin2bn(((unsigned char*)encrypted_data)+(length_of_encrypted_data/2),(length_of_encrypted_data/2),&bn_b);
-		BN_bin2bn(useful_data,length_in_bytes_useful,&bn_useful_data);
-		BN_mod_mul(&bn_temp,&bn_useful_data,&bn_a,bn_2power128,bn_ctx);
-		BN_mod_add(&bn_mac,&bn_temp,&bn_b,bn_2power128,bn_ctx);		
+		BN_bin2bn(((unsigned char*)encrypted_data)+(length_of_encrypted_data/2),(length_of_encrypted_data/2),bn_b);
+		BN_bin2bn(useful_data,length_in_bytes_useful,bn_useful_data);
+		BN_mod_mul(bn_temp,bn_useful_data,bn_a,bn_2power128,bn_ctx);
+		BN_mod_add(bn_mac,bn_temp,bn_b,bn_2power128,bn_ctx);		
 	}
 }
 
@@ -402,12 +404,12 @@ void set_mac_aes_ecb(unsigned char * output)
 
 	if (number_of_mac_bytes>0 &&  world==3 && !ignore_macs_last_moment_even_if_there_are_mac_bytes)
 	{
-		length_of_mac=BN_num_bytes(&bn_mac);
+		length_of_mac=BN_num_bytes(bn_mac);
 		if(length_of_mac<len_2power128-1)
 		{
 			memset(mac_in_bytes,0,(len_2power128-1-length_of_mac));
 		}
-		BN_bn2bin(&bn_mac,((unsigned char*)mac_in_bytes)+(len_2power128-1-length_of_mac));
+		BN_bn2bin(bn_mac,((unsigned char*)mac_in_bytes)+(len_2power128-1-length_of_mac));
 		length_of_mac=len_2power128-1; //new length
 		if(length_of_mac>=number_of_mac_bytes)
 		{
@@ -425,12 +427,12 @@ void encrypt_aes_ecb(unsigned char *buf_to_be_encrypted,int len_of_buf)
 {
 	if (number_of_mac_bytes>0 &&  world==3 && !ignore_macs_last_moment_even_if_there_are_mac_bytes)
 	{
-		//EVP_EncryptInit_ex(&aes_ctx, NULL, NULL, NULL, NULL);
-		if(!EVP_EncryptUpdate(&aes_ctx, encrypted_data, &length_of_encrypted_data,buf_to_be_encrypted, len_of_buf)) 
+		//EVP_EncryptInit_ex(aes_ctx, NULL, NULL, NULL, NULL);
+		if(!EVP_EncryptUpdate(aes_ctx, encrypted_data, &length_of_encrypted_data,buf_to_be_encrypted, len_of_buf)) 
 		{
 			fprintf(stderr,"Error in EncryptUpdate\n");
 		}
-		if(!EVP_EncryptFinal_ex(&aes_ctx, encrypted_data + length_of_encrypted_data, &tmplen))
+		if(!EVP_EncryptFinal_ex(aes_ctx, encrypted_data + length_of_encrypted_data, &tmplen))
 		{
 			fprintf(stderr,"Error in EncryptFinal!!!!!!\n");
 		}
@@ -520,9 +522,9 @@ void encrypt_aes_cbc(unsigned char *buf_to_be_encrypted,int len_of_buf)
 	if (number_of_mac_bytes>0 && world==3 &&  !ignore_macs_last_moment_even_if_there_are_mac_bytes)
 	{
 		
-		EVP_EncryptInit_ex(&aes_ctx, NULL, NULL, NULL, NULL);
-		EVP_EncryptUpdate(&aes_ctx, encrypted_data, &length_of_encrypted_data,buf_to_be_encrypted, len_of_buf);
-		EVP_EncryptFinal_ex(&aes_ctx, encrypted_data + length_of_encrypted_data, &tmplen);
+		EVP_EncryptInit_ex(aes_ctx, NULL, NULL, NULL, NULL);
+		EVP_EncryptUpdate(aes_ctx, encrypted_data, &length_of_encrypted_data,buf_to_be_encrypted, len_of_buf);
+		EVP_EncryptFinal_ex(aes_ctx, encrypted_data + length_of_encrypted_data, &tmplen);
 		length_of_encrypted_data+=tmplen;
 		/*
 		 if ((len_of_buf%16==0 || len_of_buf%16==1) && rand()%1000000==0)  //just printing some times
@@ -625,16 +627,16 @@ void calc_and_set_mac_of_data_aes_cbc(char * input, int length_of_all, char * ou
 
 void clear_crypto_structures()
 {
-	EVP_CIPHER_CTX_cleanup(&aes_ctx);
-	EVP_CIPHER_CTX_cleanup(&stack_canary_aes_ctx);
+	EVP_CIPHER_CTX_free(aes_ctx);
+	EVP_CIPHER_CTX_free(stack_canary_aes_ctx);
 	#if mac_algorithm==1
 		//are these safe?
 		/*
-		BN_free(&bn_a);
-		BN_free(&bn_b);
-		BN_free(&bn_temp);
-		BN_free(&bn_useful_data);
-		BN_free(&bn_mac);
+		BN_free(bn_a);
+		BN_free(bn_b);
+		BN_free(bn_temp);
+		BN_free(bn_useful_data);
+		BN_free(bn_mac);
 		*/
 		BN_free(bn_2power128);
 		BN_CTX_free(bn_ctx);
