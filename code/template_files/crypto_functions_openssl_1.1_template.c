@@ -390,7 +390,7 @@ void calc_mac_aes_ecb(unsigned char *useful_data, int length_in_bytes_useful)
 {
 	if (number_of_mac_bytes>0 && world==3 && !ignore_macs_last_moment_even_if_there_are_mac_bytes)
 	{
-		BN_bin2bn(encrypted_data,(length_of_encrypted_data/2),&bn_a);
+		BN_bin2bn(encrypted_data,(length_of_encrypted_data/2),bn_a);
 		BN_bin2bn(((unsigned char*)encrypted_data)+(length_of_encrypted_data/2),(length_of_encrypted_data/2),bn_b);
 		BN_bin2bn(useful_data,length_in_bytes_useful,bn_useful_data);
 		BN_mod_mul(bn_temp,bn_useful_data,bn_a,bn_2power128,bn_ctx);
