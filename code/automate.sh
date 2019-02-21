@@ -291,18 +291,26 @@ else
 fi
 echo "Changed defines."
 
+#function for comparing openssl versions
+function version_gt() { test "$(printf '%s\n' "$@" | sort -V | head -n 1)" != "$1"; }
 
 echo "Copying header files, secure getters/setters, crypto functions and initializer..."
 	#copying some template files (that do not have to be changed).
 	cp ./template_files/crypto_and_mac_verify_functions_template.h crypto_and_mac_verify_functions.h
 	cp ./template_files/secure_getters_setters_template.h secure_getters_setters.h
 	cp ./template_files/secure_getters_setters_template.c secure_getters_setters.c
-	cp ./template_files/crypto_functions_template.c crypto_functions.c
 	cp ./template_files/initializer_template.c initializer.c
 	cp ./template_files/secure_stack_manipulation_functions_template.c secure_stack_manipulation_functions.c
 	cp ./template_files/heap_manager_new_unsafe_template.c heap_manager_new_unsafe.c
 	cp ./template_files/heap_manager_new_secure_template.c heap_manager_new_secure.c
 	cp ./template_files/mac_verification_functions_template.c mac_verification_functions.c
+	OPENSSL_VERSION=`openssl version | cut -f2 -d" "`
+	OPENSSL_VERSION_API_CHANGE="1.1.0"
+	if version_gt $OPENSSL_VERSION_API_CHANGE $OPENSSL_VERSION; then
+		cp ./template_files/crypto_functions_template.c crypto_functions.c
+	else
+		cp ./template_files/crypto_functions_openssl_1.1_template.c crypto_functions.c
+	fi
 echo "Copied these files."
 
 echo "Creating headers.h in which there are the global constants... "
