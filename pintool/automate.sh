@@ -16,7 +16,7 @@ if [[ ( "$#" -ne 6 ) ]]; then
     echo "d=cache_replacement_policy (lru|fifo|bit_plru|random)"
 	echo "e=path_to_executable"
 	echo "f=name_of_benchmark"
-	echo "Example: $0 small 0 1 fifo /bin/ls lsbenchmark"
+	echo "Example: $0 small 1 1 fifo /bin/ls lsbenchmark"
     exit
 fi
 
@@ -25,7 +25,7 @@ if [ "$#" -eq 6 ]; then
 	WE_SHOULD_EXECUTE_TRACE=$2
 	WE_SHOULD_PARSE_TRACE=$3
 	CACHE_REPLACEMENT_POLICY=$4
-	EXEC_PATH=$5
+	EXEC_PATH="$5"
 	NAME_OF_BENCHMARK=$6
 fi
 
