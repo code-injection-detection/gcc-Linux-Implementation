@@ -526,6 +526,16 @@ void encrypt_aes_cbc(unsigned char *buf_to_be_encrypted,int len_of_buf)
 		EVP_EncryptUpdate(aes_ctx, encrypted_data, &length_of_encrypted_data,buf_to_be_encrypted, len_of_buf);
 		EVP_EncryptFinal_ex(aes_ctx, encrypted_data + length_of_encrypted_data, &tmplen);
 		length_of_encrypted_data+=tmplen;
+		/*for (i=1;i<len_of_buf;i++)
+		{
+			printf("%d ",buf_to_be_encrypted[i]);
+		}
+		printf("\n");
+		for (i=1;i<length_of_encrypted_data;i++)
+		{
+			printf("%d ",encrypted_data[i]);
+		}
+		printf("\n");*/
 		/*
 		 if ((len_of_buf%16==0 || len_of_buf%16==1) && rand()%1000000==0)  //just printing some times
 			fprintf(stderr,"length_of_encrypted_data:%d\n",length_of_encrypted_data);

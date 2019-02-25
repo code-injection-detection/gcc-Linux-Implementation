@@ -57,7 +57,7 @@ void init_stack_canary()
 		#if OPENSSL_VERSION_NUMBER < 0x10100000L
 			EVP_CIPHER_CTX_init(&stack_canary_aes_ctx);
 		#else
-			EVP_CIPHER_CTX_new();
+			stack_canary_aes_ctx=EVP_CIPHER_CTX_new();
 			EVP_CIPHER_CTX_init(stack_canary_aes_ctx);
 		#endif
 	}
