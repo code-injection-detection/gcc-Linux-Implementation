@@ -77,4 +77,5 @@ parse_trace.py
 output_stdin_and_on_signal
 progout_fifo_itrace
 progout_fifo_dtrace
+*summed_up_results.txt
 

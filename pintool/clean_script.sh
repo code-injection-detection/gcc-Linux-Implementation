@@ -10,3 +10,4 @@ rm -rf ${WORKING_DIR}/nohup.out
 rm -rf ${WORKING_DIR}/parse_trace.py
 rm -rf ${WORKING_DIR}/output_stdin_and_on_signal
 rm -rf ${WORKING_DIR}/progout_fifo*
+rm -rf ${WORKING_DIR}/*summed_up_results.txt

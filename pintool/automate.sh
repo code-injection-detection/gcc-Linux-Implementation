@@ -100,13 +100,14 @@ if [[ ( "$WE_SHOULD_EXECUTE_TRACE" -eq 1 ) ]]; then
 	fi
 	END_TIME_OF_DTRACE=$(date +%s.%N)
 	wait $pid_itrace
-	
+	END_TIME_OF_ITRACE=$(date +%s.%N)
+
 	mv itrace.out.gz ${NAME_OF_BENCHMARK}_itrace.out.gz
 	mv dtrace.out.gz ${NAME_OF_BENCHMARK}_dtrace.out.gz
 
 	#echo "Itrace time:  $(echo "scale=3; ($END_TIME_OF_ITRACE - $START_TIME_OF_ITRACE)*1000/1000" | bc) seconds"
 	#echo "Dtrace time:  $(echo "scale=3; ($END_TIME_OF_DTRACE - $START_TIME_OF_DTRACE)*1000/1000" | bc) seconds"
-	echo "Trace time:  $(echo "scale=3; ($END_TIME_OF_DTRACE - $START_TIME_OF_ITRACE)*1000/1000" | bc) seconds"
+	echo "Trace time:  $(echo "scale=3; ($END_TIME_OF_ITRACE - $START_TIME_OF_ITRACE)*1000/1000" | bc) seconds"
 fi
 
 if [[ ( "$WE_SHOULD_PARSE_TRACE" -eq 1 ) ]]; then
@@ -156,12 +157,13 @@ if [[ ( "$WE_SHOULD_PARSE_TRACE" -eq 1 ) ]]; then
 	declare -a arr_of_cache_rep_policies=("fifo" "lru" "bit_plru" "random")
 	for i in "${arr_of_cache_rep_policies[@]}"
 	do
-		echo -n "Mac calcs for itrace (replacement policy=${i}):"
-		cat ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_${i}_itraceparse.out | grep "Total mac calcs"
-		echo -n "Mac calcs for dtrace (replacement policy=${i}):"
-		cat ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_${i}_dtraceparse.out | grep "Total mac calcs"
+		echo -n "Mac calcs for itrace (replacement policy=${i}):" >>  ${WORKING_DIR}/${NAME_OF_BENCHMARK}_summed_up_results.txt
+		cat ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_${i}_itraceparse.out | grep "Total mac calcs" >>  ${WORKING_DIR}/${NAME_OF_BENCHMARK}_summed_up_results.txt
+		echo -n "Mac calcs for dtrace (replacement policy=${i}):" >>  ${WORKING_DIR}/${NAME_OF_BENCHMARK}_summed_up_results.txt
+		cat ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_${i}_dtraceparse.out | grep "Total mac calcs" >>  ${WORKING_DIR}/${NAME_OF_BENCHMARK}_summed_up_results.txt
 	   # or do whatever with individual element of the array
 	done
+	cat ${WORKING_DIR}/${NAME_OF_BENCHMARK}_summed_up_results.txt
 fi
 
 
