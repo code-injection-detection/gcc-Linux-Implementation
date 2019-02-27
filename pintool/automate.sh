@@ -60,6 +60,7 @@ echo "Copying templates and creating fifos..."
 cp ${WORKING_DIR}/tracing_programs/itrace_modified_${TRACE_OUTPUT_SZ}out.cpp ${WORKING_DIR}/itrace_modified.cpp
 cp ${WORKING_DIR}/tracing_programs/pinatrace_modified_${TRACE_OUTPUT_SZ}out.cpp ${WORKING_DIR}/pinatrace_modified.cpp
 cp ${WORKING_DIR}/python_scripts/parse_trace_template.py ${WORKING_DIR}/parse_trace.py
+cp ${WORKING_DIR}/python_scripts/extract_total_time_for_macs_template.py ${WORKING_DIR}/extract_total_time_for_macs.py
 rm -rf /tmp/pintool_tracefiles
 mkdir /tmp/pintool_tracefiles
 mkfifo /tmp/pintool_tracefiles/progout_fifo_itrace;
@@ -155,12 +156,20 @@ if [[ ( "$WE_SHOULD_PARSE_TRACE" -eq 1 ) ]]; then
 	
 	echo "Parse time:  $(echo "scale=3; ($END_TIME_OF_PARSING_TRACE - $START_TIME_OF_PARSING_TRACE)*1000/1000" | bc) seconds"
 	declare -a arr_of_cache_rep_policies=("fifo" "lru" "bit_plru" "random")
-	for i in "${arr_of_cache_rep_policies[@]}"
+	for i in "${arr_of_cache_rep_policies[@]}"	
 	do
-		echo -n "Mac calcs for itrace (replacement policy=${i}):" >>  ${WORKING_DIR}/${NAME_OF_BENCHMARK}_summed_up_results.txt
-		cat ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_${i}_itraceparse.out | grep "Total mac calcs" >>  ${WORKING_DIR}/${NAME_OF_BENCHMARK}_summed_up_results.txt
-		echo -n "Mac calcs for dtrace (replacement policy=${i}):" >>  ${WORKING_DIR}/${NAME_OF_BENCHMARK}_summed_up_results.txt
-		cat ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_${i}_dtraceparse.out | grep "Total mac calcs" >>  ${WORKING_DIR}/${NAME_OF_BENCHMARK}_summed_up_results.txt
+		num_of_macs_itrace=`cat ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_${i}_itraceparse.out | grep "Total mac calcs" | cut -f2 -d":"`
+		num_of_macs_dtrace=`cat ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_${i}_dtraceparse.out | grep "Total mac calcs" | cut -f2 -d":"`
+		mac_time_itrace=`python3 extract_total_time_for_macs.py $num_of_macs_itrace`
+		mac_time_dtrace=`python3 extract_total_time_for_macs.py $num_of_macs_dtrace`
+		echo -n "Macs for itrace ( replacement policy=${i} ) -> " >>  ${WORKING_DIR}/${NAME_OF_BENCHMARK}_summed_up_results.txt
+		echo -n "Number of macs = ${num_of_macs_itrace} " >>  ${WORKING_DIR}/${NAME_OF_BENCHMARK}_summed_up_results.txt
+		echo ", Total extra time = ${mac_time_itrace}" >>  ${WORKING_DIR}/${NAME_OF_BENCHMARK}_summed_up_results.txt
+		
+		echo -n "Macs for dtrace ( replacement policy=${i} ) -> " >>  ${WORKING_DIR}/${NAME_OF_BENCHMARK}_summed_up_results.txt
+		echo -n "Number of macs = ${num_of_macs_dtrace} " >>  ${WORKING_DIR}/${NAME_OF_BENCHMARK}_summed_up_results.txt
+		echo ", Total extra time = ${mac_time_dtrace}" >>  ${WORKING_DIR}/${NAME_OF_BENCHMARK}_summed_up_results.txt
+		
 	   # or do whatever with individual element of the array
 	done
 	cat ${WORKING_DIR}/${NAME_OF_BENCHMARK}_summed_up_results.txt
