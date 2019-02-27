@@ -34,6 +34,7 @@ END_LEGAL */
 char const trace_str[] = "Line_for_trace->";
 FILE * trace;
 unsigned long total_lines=0;
+int lines_till_flush=0;
 /*
 static INS our_ins;
 static unsigned long our_ins_size;
@@ -51,11 +52,15 @@ VOID printip(VOID *ip, UINT64 insAddr,UINT64 insSize,std::string insDis) {
 */
 VOID printip(VOID *ip, UINT64 insAddr,UINT64 insSize) {
 	total_lines++;
+	lines_till_flush++;
     //fprintf(trace, "IP=%p | INS_ADDR=%lu | I_SZ=%ld | DISAS=%s\n", ip,insAddr,insSize,insDis.c_str()); 
     //fprintf(trace, "Instr_addr=%lu, Instr_size=%ld, Disassebled_str=%s\n",insAddr,insSize,insDis.c_str()); 
     fprintf(trace, "%s%p|%ld\n",trace_str,(void*)insAddr,insSize); 
-    if (rand()%10==1)
+    if (lines_till_flush==5000)
+    {
+		lines_till_flush=0;
 		fflush(trace);
+	}
 }
 
 // Pin calls this function every time a new instruction is encountered

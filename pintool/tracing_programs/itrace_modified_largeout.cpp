@@ -34,6 +34,7 @@ END_LEGAL */
 char const trace_str[] = "Line_for_trace->";
 FILE * trace;
 unsigned long total_lines=0;
+int lines_till_flush=0;
 
 /*
 static INS our_ins;
@@ -46,10 +47,14 @@ static unsigned long our_ins_addr;
 
 VOID printip(VOID *ip, UINT64 insAddr,UINT64 insSize,std::string insDis) {
 	total_lines++;
+	lines_till_flush++;
     fprintf(trace, "%slinenum=%lu | IP=%p | INS_ADDR=%p | I_SZ=%ld | DISAS=%s\n", trace_str,total_lines,ip,(void *)insAddr,insSize,insDis.c_str()); 
     //fprintf(trace, "Instr_addr=%ld, Instr_size=%ld, Disassebled_str=%s\n",insAddr,insSize,insDis.c_str()); 
-	if (rand()%10==1)	
+    if (lines_till_flush==5000)
+    {
+		lines_till_flush=0;
 		fflush(trace);
+	}
 }
 
 

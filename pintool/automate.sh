@@ -180,7 +180,7 @@ END_TIME=$(date +%s.%N)
 
 #echo "Itrace time:  $(echo "scale=3; ($END_TIME_OF_ITRACE - $START_TIME_OF_ITRACE)*1000/1000" | bc) seconds"
 #echo "Dtrace time:  $(echo "scale=3; ($END_TIME_OF_DTRACE - $START_TIME_OF_DTRACE)*1000/1000" | bc) seconds"
-echo "Trace time:  $(echo "scale=3; ($END_TIME_OF_DTRACE - $START_TIME_OF_ITRACE)*1000/1000" | bc) seconds"
+echo "Trace time:  $(echo "scale=3; ($END_TIME_OF_ITRACE - $START_TIME_OF_ITRACE)*1000/1000" | bc) seconds"
 echo "Parse time:  $(echo "scale=3; ($END_TIME_OF_PARSING_TRACE - $START_TIME_OF_PARSING_TRACE)*1000/1000" | bc) seconds"
 echo "Total time:  $(echo "scale=3; ($END_TIME - $START_TIME)*1000/1000" | bc) seconds"
 

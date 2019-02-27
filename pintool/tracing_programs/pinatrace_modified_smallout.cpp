@@ -40,6 +40,7 @@ END_LEGAL */
 char const trace_str[] = "Line_for_trace->";
 FILE * trace;
 unsigned long total_lines=0;
+int lines_till_flush=0;
 // Print a memory read record
 /*
 VOID RecordMemRead(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched,std::string insDis)
@@ -51,9 +52,13 @@ VOID RecordMemRead(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched,std::string i
 VOID RecordMemRead(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched)
 {
 	total_lines++;
+	lines_till_flush++;
     fprintf(trace,"%sop=R|memaddr=%p|sz=%d\n", trace_str,addr,sz_of_mem_touched);
-    if (rand()%10==1)
+    if (lines_till_flush==5000)
+    {
+		lines_till_flush=0;
 		fflush(trace);
+	}
 }
 
 // Print a memory write record
@@ -67,9 +72,13 @@ VOID RecordMemWrite(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched,std::string 
 VOID RecordMemWrite(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched)
 {
 	total_lines++;
+	lines_till_flush++;
     fprintf(trace,"%sop=W|memaddr=%p|sz=%d\n", trace_str,addr,sz_of_mem_touched);
-    if (rand()%10==1)
+    if (lines_till_flush==5000)
+    {
+		lines_till_flush=0;
 		fflush(trace);
+	}
 }
 
 // Is called for every instruction and instruments reads and writes

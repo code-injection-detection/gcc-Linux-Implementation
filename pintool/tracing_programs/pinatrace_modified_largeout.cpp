@@ -40,14 +40,19 @@ END_LEGAL */
 char const trace_str[] = "Line_for_trace->";
 FILE * trace;
 unsigned long total_lines=0;
+int lines_till_flush=0;
 // Print a memory read record
 
 VOID RecordMemRead(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched,std::string insDis)
 {
 	total_lines++;
+	lines_till_flush++;
     fprintf(trace,"%slinenum=%lu | IP=%p | op=R | memaddr=%p | sz=%d | DISAS=%s\n", trace_str,total_lines,ip, addr,sz_of_mem_touched,insDis.c_str());
-    if (rand()%10==1)
+    if (lines_till_flush==5000)
+    {
+		lines_till_flush=0;
 		fflush(trace);
+	}
 }
 
 
@@ -56,9 +61,13 @@ VOID RecordMemRead(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched,std::string i
 VOID RecordMemWrite(VOID * ip, VOID * addr,UINT32 sz_of_mem_touched,std::string insDis)
 {
 	total_lines++;
+	lines_till_flush++;
     fprintf(trace,"%slinenum=%lu | IP=%p | op=W | memaddr=%p | sz=%d | DISAS=%s\n", trace_str,total_lines, ip, addr,sz_of_mem_touched,insDis.c_str());
-    if (rand()%10==1)
+    if (lines_till_flush==5000)
+    {
+		lines_till_flush=0;
 		fflush(trace);
+	}
 }
 
 
