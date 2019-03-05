@@ -21,6 +21,11 @@ BIGNUM *bn_mac;
 BIGNUM *bn_2power128=NULL;
 char str_2power128[]="340282366920938463463374607431768211456"; //2^128
 BN_CTX *bn_ctx;
+__uint128_t uint128_useful_bytes;
+__uint128_t uint128_k1;
+__uint128_t uint128_k2;
+__uint128_t uint128_mac_bytes;
+__uint128_t uint128_temp;
 unsigned char mac_in_bytes[safe_length_for_buffer_storage];
 unsigned char encrypted_data[safe_length_for_buffer_storage];
 unsigned char mac_to_be_verified[number_of_mac_bytes];
@@ -341,7 +346,7 @@ void calc_and_set_mac_of_data(unsigned char *input,int length_all,int length_use
 		calc_and_set_mac_of_data_sha256((input),(length_all)-number_of_interleaved_keys/2,(output));
 	#endif
 	#if mac_algorithm==1
-		calc_and_set_mac_of_data_aes_ecb((input),(length_all)-number_of_interleaved_keys/2,(length_useful),(output));
+		calc_and_set_mac_of_data_aes_ecb((input),(length_all),(length_all)-number_of_interleaved_keys,(output)); //use full length
 	#endif
 	#if mac_algorithm==2
 		calc_and_set_mac_of_data_aes_cmac((input),(length_all)-number_of_interleaved_keys/2,(output));
@@ -351,6 +356,9 @@ void calc_and_set_mac_of_data(unsigned char *input,int length_all,int length_use
 	#endif
 	#if mac_algorithm==4
 		calc_and_set_mac_of_data_aes_cbc((input),(length_all)-number_of_interleaved_keys/2,(output));
+	#endif
+	#if mac_algorithm==5
+		calc_and_set_mac_of_data_mac_wk1_plus_k2((input),(length_all),(length_all)-number_of_interleaved_keys,(output)); //use full length
 	#endif
 		//restore the keys
 		memcpy((unsigned char*)(input)+(int)((length_all)-number_of_interleaved_keys),keys_temp_space,number_of_interleaved_keys);
@@ -366,7 +374,7 @@ void calc_and_set_mac_of_data(unsigned char *input,int length_all,int length_use
 		calc_and_set_mac_of_data_sha256((input),(length_all),(output));
 	#endif
 	#if mac_algorithm==1
-		calc_and_set_mac_of_data_aes_ecb((input),(length_all),(length_useful),(output));
+		calc_and_set_mac_of_data_aes_ecb((input),(length_all),(length_all)-number_of_interleaved_keys,(output));
 	#endif
 	#if mac_algorithm==2
 		calc_and_set_mac_of_data_aes_cmac((input),(length_all),(output));
@@ -377,7 +385,9 @@ void calc_and_set_mac_of_data(unsigned char *input,int length_all,int length_use
 	#if mac_algorithm==4
 		calc_and_set_mac_of_data_aes_cbc((input),(length_all),(output));
 	#endif
-
+	#if mac_algorithm==5
+		calc_and_set_mac_of_data_mac_wk1_plus_k2((input),(length_all),(length_all)-number_of_interleaved_keys,(output));
+	#endif
 #endif
 }
 
@@ -427,7 +437,7 @@ void encrypt_aes_ecb(unsigned char *buf_to_be_encrypted,int len_of_buf)
 {
 	if (number_of_mac_bytes>0 &&  world==3 && !ignore_macs_last_moment_even_if_there_are_mac_bytes)
 	{
-		//EVP_EncryptInit_ex(aes_ctx, NULL, NULL, NULL, NULL);
+		EVP_EncryptInit_ex(aes_ctx, NULL, NULL, NULL, NULL);
 		if(!EVP_EncryptUpdate(aes_ctx, encrypted_data, &length_of_encrypted_data,buf_to_be_encrypted, len_of_buf)) 
 		{
 			fprintf(stderr,"Error in EncryptUpdate\n");
@@ -631,6 +641,40 @@ void calc_and_set_mac_of_data_aes_cbc(char * input, int length_of_all, char * ou
 #endif
 	}
 }
+
+
+/*********************************************************************************/
+/************************* INSECURE MAC=x*K1+K2 **********************************/
+/*********************************************************************************/
+
+//https://stackoverflow.com/questions/40795501/how-can-i-multiply-two-hex-128-bit-numbers-in-assembly
+__uint128_t mul128(__uint128_t a, __uint128_t b) { return a*b; }
+
+void calc_and_set_mac_of_data_mac_wk1_plus_k2(char * input, int length_of_all,int length_of_useful, char * output)
+{
+	if (number_of_mac_bytes>0 &&  world==3 && !ignore_macs_last_moment_even_if_there_are_mac_bytes)
+	{
+#if count_mac_invocations==1
+		memset(output,0,number_of_mac_bytes); //ignore proper mac calculation, just make them 0
+#else
+		#if set_as_given_that_everything_maced_will_be_fixed_and_multiple_of_16==0
+			fprintf(stderr,"Sorry, this MAC scheme needs everything to be a multiple of 16\n");
+			exit(-1);
+		#endif
+		if (length_of_all<48 || length_of_useful<16)
+		{
+			fprintf(stderr,"Sorry, this MAC scheme needs length_of_all>=48 and length_of_useful>=16\n");
+			exit(-1);
+		}
+		uint128_useful_bytes=*((__uint128_t *)((unsigned char*)(input)+length_of_useful-16)); //grabbing the 16 bytes only is not secure
+		uint128_k1=*((__uint128_t *)((unsigned char*)(input)+length_of_useful));
+		uint128_k2=*((__uint128_t *)((unsigned char*)(input)+length_of_useful+(length_of_all-length_of_useful)/2));
+		uint128_temp=mul128(uint128_useful_bytes,uint128_k1)+uint128_k2;
+		memcpy(output,&uint128_temp,number_of_mac_bytes);
+#endif
+	}
+}
+
 
 
 

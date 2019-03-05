@@ -48,6 +48,9 @@ void calc_mac(unsigned char *input,int length_all,int length_useful, unsigned ch
 #if mac_algorithm==4
 	calc_and_set_mac_of_data_aes_cbc((input),(length_all),(output));
 #endif
+#if mac_algorithm==5
+	calc_and_set_mac_of_data_mac_wk1_plus_k2((input),(length_all),(length_useful),(output));
+#endif
 }
 
 #define number_of_different_macs 1
@@ -105,14 +108,14 @@ int main()
 	}
 	else //if we are sure that the only possible macs would have a length of a muptiple of 16
 	{
-		for (k=1;k<15;k++) //from 16 to 15*16 (=240)
+		for (k=(mac_algorithm==5?3:1);k<15;k++) //from 16 to 15*16 (=240)
 		{	
 			i=k*16;
 			start=clock();
 			for (j=0;j<times_for_one_mac;j++) //calc the mac
 			{
 				//printf("i=%d,j=%d\n",i,j);
-				#if squeeze_keys_when_macing==0
+				#if squeeze_keys_when_macing==0 || mac_algorithm==5
 					calc_mac(stuff_for_mac[index_of_macs],i,i>32?i-32:i,mac_output);
 				#else
 					calc_mac(stuff_for_mac[index_of_macs],i,i>16?i-16:i,mac_output);

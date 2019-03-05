@@ -37,10 +37,11 @@
 
 
 #define mac_algorithm 3  //0->sha256,   //PROBLEM WITH code on-the-fly verification
-						 //1-> AES_ECB with MAC=x*A+B, 
+						 //1-> AES_ECB with MAC=x*A+B. Use without key squeezing (typically taken care automatically).
 						 //2->CMAC with AES , 
 						 //3->AES_CBC with length prepending, 
 						 //4->AES_CBC with length prepending and padding after length to reach full block
+						 //5->(insecure,for benchmarking) MAC=x*K1+K2, x=last 16 bytes of the useful bytes. Multiplication is done for 128 bit numbers. Use without key squeezing (typically taken care automatically).
 
 #ifndef code_cache_type 
 #define code_cache_type 1 
