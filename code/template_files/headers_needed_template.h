@@ -42,6 +42,7 @@
 						 //3->AES_CBC with length prepending, 
 						 //4->AES_CBC with length prepending and padding after length to reach full block
 						 //5->(insecure,for benchmarking) MAC=x*K1+K2, x=last 16 bytes of the useful bytes. Multiplication is done for 128 bit numbers. Use without key squeezing (typically taken care automatically).
+						 //6-> get_16_bytes(ECHO_HASH(x))*AES_ECB(K1)+AES_ECB(K2) (not implemented yet)
 
 #ifndef code_cache_type 
 #define code_cache_type 1 

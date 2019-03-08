@@ -685,7 +685,7 @@ void tests_that_use_pycparser_ast_main()
         Dijkstra_find_min_path_from_index(i,num_of_graph_nodes,0);
 	*/
 	//find_primes_up_to_a_number(150000,0);
-	//towerOfHanoi_test(22,'a','c', 'b',0,1);
+	//towerOfHanoi_test(20,'a','c', 'b',0,1); //22 for benchmarks
 	
 	init_matrix_for_determinant_calc(&initial_det_matrix[0][0],8,1);
     determinant=calc_determinant(&initial_det_matrix[0][0],8);

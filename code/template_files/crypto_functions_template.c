@@ -206,6 +206,7 @@ void squeeze_bytes_in_place(unsigned char * arr,int length_of_array)
 
 
 unsigned char stack_canary_result_opt[aes_block_length];
+char stack_canary_aes_struct_has_been_initialized=0;
 //This function does the hardware part of the stack canary calculation
 //I.E. Calculates the hash of k1
 //The MAC calculations that should be paid are paid in the unopt part
@@ -219,6 +220,17 @@ unsigned char * produce_stack_canary_optimized_part(unsigned char* position_of_b
 	//init structure to calculate hash
 	EVP_EncryptInit_ex(&stack_canary_aes_ctx, EVP_aes_128_cbc(), NULL, stack_canary_aes_key,initialization_vector);
 	EVP_CIPHER_CTX_set_padding(&stack_canary_aes_ctx, 0); //disable padding
+	
+	if (stack_canary_aes_struct_has_been_initialized==0)
+	{
+		//init structure to calculate hash
+		EVP_EncryptInit_ex(&stack_canary_aes_ctx, EVP_aes_128_cbc(), NULL, stack_canary_aes_key,initialization_vector);
+		EVP_CIPHER_CTX_set_padding(&stack_canary_aes_ctx, 0); //disable padding
+	}
+	else
+	{
+		EVP_EncryptInit_ex(&stack_canary_aes_ctx,NULL,NULL,NULL,NULL);
+	}
 	
 	//calc the hash
 	EVP_EncryptUpdate(&stack_canary_aes_ctx, stack_canary_result_opt, &length_of_stack_canary_total_encryption,keyshares_start, aes_block_length);
