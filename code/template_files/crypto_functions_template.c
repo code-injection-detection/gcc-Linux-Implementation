@@ -370,6 +370,9 @@ void calc_and_set_mac_of_data(unsigned char *input,int length_all,int length_use
 	#if mac_algorithm==5
 		calc_and_set_mac_of_data_mac_wk1_plus_k2((input),(length_all),(length_all)-number_of_interleaved_keys,(output)); //use full length
 	#endif
+	#if mac_algorithm==7
+		calc_and_set_mac_of_data_echo_hash_256_of_all((input),(length_all)-number_of_interleaved_keys/2,(output));
+	#endif
 		//restore the keys
 		memcpy((unsigned char*)(input)+(int)((length_all)-number_of_interleaved_keys),keys_temp_space,number_of_interleaved_keys);
 #else
@@ -397,6 +400,9 @@ void calc_and_set_mac_of_data(unsigned char *input,int length_all,int length_use
 	#endif
 	#if mac_algorithm==5
 		calc_and_set_mac_of_data_mac_wk1_plus_k2((input),(length_all),(length_all)-number_of_interleaved_keys,(output));
+	#endif
+	#if mac_algorithm==7
+		calc_and_set_mac_of_data_echo_hash_256_of_all((input),(length_all),(output));
 	#endif
 
 #endif
@@ -675,6 +681,15 @@ void calc_and_set_mac_of_data_mac_wk1_plus_k2(char * input, int length_of_all,in
 	}
 }
 
+/*********************************************************************************/
+/********************** ECHO_HASH256(x||keyshares) *******************************/
+/*********************************************************************************/
+char output_of_echo_hash[32];
+void calc_and_set_mac_of_data_echo_hash_256_of_all(char * input, int length_of_all, char * output)
+{
+	ECHO_HASH_256(input,length_of_all*8,output_of_echo_hash);
+	memcpy(output,output_of_echo_hash,number_of_mac_bytes);
+}
 
 
 

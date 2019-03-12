@@ -51,6 +51,9 @@ void calc_mac(unsigned char *input,int length_all,int length_useful, unsigned ch
 #if mac_algorithm==5
 	calc_and_set_mac_of_data_mac_wk1_plus_k2((input),(length_all),(length_useful),(output));
 #endif
+#if mac_algorithm==7
+	calc_and_set_mac_of_data_echo_hash_256_of_all((input),(length_all),(output));
+#endif
 }
 
 #define number_of_different_macs 1

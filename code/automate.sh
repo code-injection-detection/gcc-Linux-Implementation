@@ -349,9 +349,9 @@ echo "Compiling hash and encryption calculators, as well as the crypto initializ
 	 gcc -O3 -c calc_mac_for_external_programs.c -lcrypto -fno-stack-protector #-mno-red-zone #this one just calcs a mac
 	 gcc -O3 -c calc_mac_for_external_programs_faster.c -Wno-unused-result -lcrypto -fno-stack-protector #-mno-red-zone #this one just calcs a mac
 	 gcc -O3 -c mac_time_calculator.c -lcrypto -fno-stack-protector #-mno-red-zone  #this one calculates mac times, for all possible sizes
-	 gcc -O3 calc_mac_for_external_programs.o ./sha256.o ./crypto_functions.o -o calc_mac_for_external_programs -lcrypto -fno-stack-protector #-mno-red-zone
-	 gcc -O3 calc_mac_for_external_programs_faster.o ./sha256.o ./crypto_functions.o -o calc_mac_for_external_programs_faster -lcrypto -fno-stack-protector #-mno-red-zone
-	 gcc -O3 mac_time_calculator.o ./sha256.o ./crypto_functions.o -o mac_time_calculator -lcrypto -fno-stack-protector #-mno-red-zone
+	 gcc -O3 calc_mac_for_external_programs.o ./sha256.o ./crypto_functions.o ./echo64.o -o calc_mac_for_external_programs -lcrypto -fno-stack-protector -no-pie #-mno-red-zone
+	 gcc -O3 calc_mac_for_external_programs_faster.o ./sha256.o ./crypto_functions.o ./echo64.o -o calc_mac_for_external_programs_faster -lcrypto -fno-stack-protector -no-pie #-mno-red-zone
+	 gcc -O3 mac_time_calculator.o ./sha256.o ./crypto_functions.o ./echo64.o -o mac_time_calculator -lcrypto -fno-stack-protector -no-pie  #-mno-red-zone
 	 gcc -O3 initializer.c -c -mno-red-zone -fno-stack-protector #this one runs 
 	 )
 echo "Compiled hash and encryption calculators, and the crypto initializer."
