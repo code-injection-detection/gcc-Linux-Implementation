@@ -297,6 +297,8 @@ function version_gt() { test "$(printf '%s\n' "$@" | sort -V | head -n 1)" != "$
 echo "Copying header files, secure getters/setters, crypto functions and initializer..."
 	#copying some template files (that do not have to be changed).
 	cp ./template_files/crypto_and_mac_verify_functions_template.h crypto_and_mac_verify_functions.h
+	cp ./template_files/echo_hash_template.h echo_hash.h
+	cp ./template_files/echo_hash_api_template.h echo_hash_api.h
 	cp ./template_files/secure_getters_setters_template.h secure_getters_setters.h
 	cp ./template_files/secure_getters_setters_template.c secure_getters_setters.c
 	cp ./template_files/initializer_template.c initializer.c
@@ -304,6 +306,7 @@ echo "Copying header files, secure getters/setters, crypto functions and initial
 	cp ./template_files/heap_manager_new_unsafe_template.c heap_manager_new_unsafe.c
 	cp ./template_files/heap_manager_new_secure_template.c heap_manager_new_secure.c
 	cp ./template_files/mac_verification_functions_template.c mac_verification_functions.c
+	cp ./crypto_algorithms/some_hash_functions/echo_hash_assembly/echo64_template.x64_assembly echo64.s
 	OPENSSL_VERSION=`openssl version | cut -f2 -d" "`
 	OPENSSL_VERSION_API_CHANGE="1.1.0"
 	if version_gt $OPENSSL_VERSION_API_CHANGE $OPENSSL_VERSION; then
@@ -326,6 +329,7 @@ echo "Compiling hash and encryption calculators, as well as the crypto initializ
 	 cd .. ; 
 	 gcc -O3 -c sha256.c -fno-stack-protector #-mno-red-zone;
 	 rm -f sha256.c sha256.h  #removing the sha stuff that we don't need.
+	 gcc -O3 -c -o echo64.o echo64.s
 	 gcc -O3 -c crypto_functions.c -lcrypto -Wno-div-by-zero -fno-stack-protector #-mno-red-zone
 	 gcc -O3 -c mac_verification_functions.c -lcrypto -fno-stack-protector #-mno-red-zone
 	 if [ "$ADD_CODE_ON_THE_FLY_VERIFICATION" -eq "1" ]; then

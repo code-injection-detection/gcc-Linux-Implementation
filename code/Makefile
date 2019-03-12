@@ -10,7 +10,7 @@ PG= #-pg
 FLAGS_to_assembly= -O0
 FLAGS_to_object= -O0
 FLAGS_to_secure_object = -O0
-FLAGS_in_the_end= -lm -pthread -lcrypto -mno-red-zone -fno-stack-protector
+FLAGS_in_the_end=-lm -pthread -lcrypto -mno-red-zone -fno-stack-protector 
 OBJECT_FILES_TO_BE_LINKED= ./sha256.o ./secure_getters_setters.o ./crypto_functions.o ./initializer.o ./secure_stack_manipulation_functions.o ./mac_verification_functions.o
 
 #if we want static linking
@@ -50,3 +50,4 @@ clean:
 	rm -f more_tests_that_use_new_stack.c calc_mac_for_external_programs_faster addresses_of_cpu_split_blocks.txt
 	rm -f assembly_fixed_size_verifier.py assembly_parser_and_size_finder.py calc_extra_total_mac_time.sh calc_mac_for_external_programs.c calc_mac_for_external_programs_faster.c calculate_mac_time.py finder_of_stack_pointer_reduction.py how_to_import_in_eclipse.png insert_keys_and_macs_among_globals.py insert_new_stack_commands_groups_of_vars_as_arrays.py insert_new_stack_commands.py mac_time_calculator.c nop_padder_for_fixed_size_code_blocks.py one_assembly_cmd_size_finder.py set_correct_defines.py
 	rm -f final_mac_checking_functions.c crypto_and_mac_verify_functions.h mac_verification_functions.c tests_for_stack_commands_supporting_ast_parsing.c insert_stack_manipulation_commands_given_ast_of_functions.py semantic_data  1st_pass_of_C_reconstruction_of_tests.c 2nd_pass_of_C_reconstruction_of_tests.c 2nd_pass_of_C_reconstruction_of_tests_temp.c transfer_c_reconstructor_globals.py
+	rm -f echo_hash_api.h echo_hash.h echo64.s echo64_sp.s

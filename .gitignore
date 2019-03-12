@@ -15,10 +15,10 @@ pin-3.7-97619-g0d0c92f4f-gcc-linux/
 !/code/pycparser_scripts
 *.o
 *.so
+*.s
 aes
 sha256
 *sec
-*.s
 addresses_of_unsplit_blocks.txt
 addresses_of_cpu_split_blocks.txt
 assembly_sizes.txt
@@ -79,3 +79,8 @@ progout_fifo_itrace
 progout_fifo_dtrace
 *summed_up_results.txt
 extract_total_time_for_macs.py
+echo64.s
+echo64_sp.s
+echo_hash.h
+echo_hash_api.h
+

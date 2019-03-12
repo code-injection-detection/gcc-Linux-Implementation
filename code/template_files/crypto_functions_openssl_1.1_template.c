@@ -684,6 +684,16 @@ void calc_and_set_mac_of_data_mac_wk1_plus_k2(char * input, int length_of_all,in
 }
 
 
+/*********************************************************************************/
+/********************** ECHO_HASH256(x||keyshares) *******************************/
+/*********************************************************************************/
+char output_of_echo_hash[32];
+void calc_and_set_mac_of_data_echo_hash_256_of_all(char * input, int length_of_all, char * output)
+{
+	//ECHO_HASH_256(input,length_of_all*8,output_of_echo_hash);  //!!!FIXME . Undefined reference to "Hash"
+	memcpy(output,output_of_echo_hash,number_of_mac_bytes);
+}
+
 
 
 

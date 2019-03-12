@@ -1,6 +1,8 @@
 #ifndef CRYPTO_AND_MAC_VERIFY_FUNCTIONS_H
 #define CRYPTO_AND_MAC_VERIFY_FUNCTIONS_H
 
+#include "echo_hash.h"
+
 typedef struct info_for_a_block {
 	
 	long address_of_block_start;
@@ -35,6 +37,7 @@ void set_mac_aes_cbc(unsigned char * output);
 int prepend_length_aes_cbc(char * input,int length);
 void calc_and_set_mac_of_data_aes_cbc(char * input, int length_of_all, char * output);
 void calc_and_set_mac_of_data_mac_wk1_plus_k2(char * input, int length_of_all,int length_of_useful, char * output);
+void calc_and_set_mac_of_data_echo_hash_256_of_all(char * input, int length_of_all, char * output);
 
 void verify_mac_onthefly(unsigned char * input, int total_mac_bytes, int useful_mac_bytes,const char * fun_name,int line);
 
