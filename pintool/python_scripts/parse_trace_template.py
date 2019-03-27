@@ -7,6 +7,7 @@ import gc
 import copy
 import timeit
 import random
+import math
 
 if len(sys.argv)!=5:
 	sys.stderr.write("Usage: %s <file_to_be_parsed> <type_of_cache> <cache_replacement_policy> <size_of_trace>\n" % sys.argv[0])
@@ -75,6 +76,32 @@ def find_lru_index(set_lst):
 			min_ts=used_timestamp_for_line
 			min_index=ind
 	return min_index
+	
+	
+def find_tree_plru_next_ind(tree_plru_indexes):
+	#the tre is organized as follows: 0th element is not used, 1st element is the root, and the children of node i are i*2, i*2+1
+	num_of_indexes=len(tree_plru_indexes)
+	ind=1 # the first index ( 0 ) is not used
+	prev_ind=1
+	prev_val=0
+	while ind<num_of_indexes:
+		choice=tree_plru_indexes[ind]
+		if choice==0:
+			tree_plru_indexes[ind]=1
+			prev_val=0
+			prev_ind=ind
+			ind=2*ind
+		if choice==1:
+			tree_plru_indexes[ind]=0
+			prev_val=1
+			prev_ind=ind
+			ind=2*ind+1
+	if prev_val==0:
+		return (prev_ind-num_of_indexes//2)*2  #4 points to 0, 5 to 2, 6 to 4, 7 to 6
+	else: #prev_val==1
+		return (prev_ind-num_of_indexes//2)*2+1  #4 points to 1, 5 to 3, 6 to 5, 7 to 7
+	
+	
 
 icache_sets=64
 icache_size=32768
@@ -86,7 +113,7 @@ dcache_line_size=64
 dcache_assosiativity=8
 icache= [ ([],{"ind_for_next_placement_for_fifo":0}) for i in range(icache_sets) ] #list of lines, index for next placement
 for ind,seti in enumerate(icache):
-	icache[ind]= ([ (None,{"dirty":0,"bit_plru":0,"used_timestamp":0}) for i in range(icache_assosiativity) ],{"ind_for_next_placement_for_fifo":0}) #base address of cache line, dirty,bit_plru
+	icache[ind]= ([ (None,{"dirty":0,"bit_plru":0,"used_timestamp":0}) for i in range(icache_assosiativity) ],{"ind_for_next_placement_for_fifo":0,"tree_plru_indexes":[0]*(icache_assosiativity)}) #base address of cache line, dirty,bit_plru, used timestamp
 dcache=copy.deepcopy(icache)
 #print(icache)
 
@@ -110,7 +137,7 @@ else:
 	sys.exit(-1)
 
 cache_replacement_policy=sys.argv[3]
-if cache_replacement_policy not in ["fifo","bit_plru","lru","random"]:
+if cache_replacement_policy not in ["fifo","bit_plru","lru","random","tree_plru"]:
 	sys.stderr.write("Please give a supported cache replacement policy.\n")
 	sys.exit(-1)
 
@@ -211,6 +238,9 @@ with open(sys.argv[1]) as f:
 						cache[set_in_cache_for_line][0][index_to_replace_in_set]=(line_start_addr,{"dirty":0,"bit_plru":1,"used_timestamp":used_timestamp})
 					if cache_replacement_policy=="random":
 						index_to_replace_in_set=random.randint(0,cache_assoc-1)
+						cache[set_in_cache_for_line][0][index_to_replace_in_set]=(line_start_addr,{"dirty":0,"bit_plru":1,"used_timestamp":used_timestamp})
+					if cache_replacement_policy=="tree_plru":	
+						index_to_replace_in_set=find_tree_plru_next_ind(cache[set_in_cache_for_line][1]["tree_plru_indexes"])
 						cache[set_in_cache_for_line][0][index_to_replace_in_set]=(line_start_addr,{"dirty":0,"bit_plru":1,"used_timestamp":used_timestamp})
 						
 		if input_type_of_cache=="dcache":
