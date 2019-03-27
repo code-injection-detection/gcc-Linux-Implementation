@@ -61,7 +61,7 @@ int main()
 
 	gsl_linalg_LU_solve (&m.matrix, p, &b.vector, x);
 
-	if (print_res)
+	if (PRINT_RES)
 	{
 		printf ("x = \n");
 		gsl_vector_fprintf (stdout, x, "%g");

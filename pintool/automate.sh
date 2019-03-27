@@ -54,6 +54,11 @@ if [[ ( "$CACHE_REPLACEMENT_POLICY" != "lru" ) && ( "$CACHE_REPLACEMENT_POLICY" 
 	exit
 fi
 
+#replace "RRR" with ${RANDOM}, since we might want a different parameter (eg output file) for the traces
+EXEC_PATH_1="${EXEC_PATH//'RRR'/${RANDOM}}"
+EXEC_PATH_2="${EXEC_PATH//'RRR'/${RANDOM}}"
+
+
 START_TIME=$(date +%s.%N)
 echo "Copying templates and creating fifos..."
 #copy the templates
@@ -78,14 +83,14 @@ gcc -O2 ${WORKING_DIR}/tracing_programs/output_stdin_and_on_signal.c -o ${WORKIN
 if [[ ( "$WE_SHOULD_EXECUTE_TRACE" -eq 1 ) ]]; then
 	echo "Executing traces..."
 	START_TIME_OF_ITRACE=$(date +%s.%N)
-	${WORKING_DIR}/pin-3.7-97619-g0d0c92f4f-gcc-linux/pin -t ./pin-3.7-97619-g0d0c92f4f-gcc-linux/source/tools/ManualExamples/obj-intel64/itrace.so -- ${EXEC_PATH} & 
+	${WORKING_DIR}/pin-3.7-97619-g0d0c92f4f-gcc-linux/pin -t ./pin-3.7-97619-g0d0c92f4f-gcc-linux/source/tools/ManualExamples/obj-intel64/itrace.so -- ${EXEC_PATH_1} & 
 	pid_itrace=$!
 	${WORKING_DIR}/output_stdin_and_on_signal ${NAME_OF_BENCHMARK}_itrace "/tmp/pintool_tracefiles/progout_fifo_itrace" | gzip > itrace.out.gz &
 	#END_TIME_OF_ITRACE=$(date +%s.%N)
 	#echo "Itrace time:  $(echo "scale=3; ($END_TIME_OF_ITRACE - $START_TIME_OF_ITRACE)*1000/1000" | bc) seconds"
 	#echo "Executing dtrace..."
 	START_TIME_OF_DTRACE=$(date +%s.%N)
-	${WORKING_DIR}/pin-3.7-97619-g0d0c92f4f-gcc-linux/pin -t ./pin-3.7-97619-g0d0c92f4f-gcc-linux/source/tools/ManualExamples/obj-intel64/pinatrace.so -- ${EXEC_PATH} &
+	${WORKING_DIR}/pin-3.7-97619-g0d0c92f4f-gcc-linux/pin -t ./pin-3.7-97619-g0d0c92f4f-gcc-linux/source/tools/ManualExamples/obj-intel64/pinatrace.so -- ${EXEC_PATH_2} &
 	pid_dtrace=$!
 	${WORKING_DIR}/output_stdin_and_on_signal ${NAME_OF_BENCHMARK}_dtrace "/tmp/pintool_tracefiles/progout_fifo_dtrace" | gzip > dtrace.out.gz &
 	wait $pid_dtrace
