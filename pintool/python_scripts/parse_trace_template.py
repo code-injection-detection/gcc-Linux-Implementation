@@ -77,8 +77,13 @@ def find_lru_index(set_lst):
 			min_index=ind
 	return min_index
 	
+def reverse_value_bit_in_tree_plru(tree_plru_indexes,ind):
+	if tree_plru_indexes[ind]==1:
+		tree_plru_indexes[ind]=0
+	else:
+		tree_plru_indexes[ind]=1
 	
-def find_tree_plru_next_ind(tree_plru_indexes):
+def find_tree_plru_next_ind_in_miss(tree_plru_indexes):
 	#the tre is organized as follows: 0th element is not used, 1st element is the root, and the children of node i are i*2, i*2+1
 	num_of_indexes=len(tree_plru_indexes)
 	ind=1 # the first index ( 0 ) is not used
@@ -101,7 +106,33 @@ def find_tree_plru_next_ind(tree_plru_indexes):
 	else: #prev_val==1
 		return (prev_ind-num_of_indexes//2)*2+1  #4 points to 1, 5 to 3, 6 to 5, 7 to 7
 	
-	
+def update_tree_plru_in_hit(ind_of_element,tree_plru_indexes):
+	num_of_indexes=len(tree_plru_indexes)
+	came_from_0=False
+	if ind_of_element%2==0:
+		ind_in_tree=ind_of_element//2+num_of_indexes//2
+		came_from_0=True
+	else:
+		ind_in_tree=(ind_of_element-1)//2+num_of_indexes//2
+		came_from_0=False
+	while ind_in_tree>=1:
+		#1 represents
+		#The left side has been referenced more recently than the right side
+		#"Go right to find a pseudo-LRU element."
+		#0 vice-versa
+		#https://stackoverflow.com/questions/24409288/pseudo-least-recently-used-binary-tree
+		#http://courses.cse.tamu.edu/ejkim/614/CSCE614-2011c-HW4-tutorial.pptx
+		if came_from_0:
+			tree_plru_indexes[ind_in_tree]=1
+		else:
+			tree_plru_indexes[ind_in_tree]=0
+		if ind_in_tree%2==0:
+			came_from_0=True
+		else:
+			came_from_0=False
+		ind_in_tree=ind_in_tree//2
+		
+
 
 icache_sets=64
 icache_size=32768
@@ -214,6 +245,8 @@ with open(sys.argv[1]) as f:
 					cache[set_in_cache_for_line][0][ind_of_addr_in_set]=(line_start_addr,{"dirty":dirty_for_line,"bit_plru":1,"used_timestamp":used_timestamp}) #valid for all replacement policies
 					if cache_replacement_policy=="bit_plru":
 						check_if_bit_plru_bits_are_all_one_and_replace(cache[set_in_cache_for_line][0],ind_of_addr_in_set)
+					if cache_replacement_policy=="tree_plru":
+						update_tree_plru_in_hit(ind_of_addr_in_set,cache[set_in_cache_for_line][1]["tree_plru_indexes"])
 				else: #not found, evict something else and put it there
 					total_cache_misses+=1
 					total_mac_calcs+=1
@@ -273,6 +306,8 @@ with open(sys.argv[1]) as f:
 						cache[set_in_cache_for_line][0][ind_of_addr_in_set]=(line_start_addr,{"dirty":dirty_for_line,"bit_plru":1,"used_timestamp":used_timestamp}) #valid for all replacement policies
 					if cache_replacement_policy=="bit_plru":
 						check_if_bit_plru_bits_are_all_one_and_replace(cache[set_in_cache_for_line][0],ind_of_addr_in_set)
+					if cache_replacement_policy=="tree_plru":
+						update_tree_plru_in_hit(ind_of_addr_in_set,cache[set_in_cache_for_line][1]["tree_plru_indexes"])
 				else: #not found, evict something else and put it there
 					total_cache_misses+=1
 					total_mac_calcs+=1
@@ -318,6 +353,15 @@ with open(sys.argv[1]) as f:
 							cache[set_in_cache_for_line][0][index_to_replace_in_set]=(line_start_addr,{"dirty":1,"bit_plru":1,"used_timestamp":used_timestamp})
 						else:
 							cache[set_in_cache_for_line][0][index_to_replace_in_set]=(line_start_addr,{"dirty":0,"bit_plru":1,"used_timestamp":used_timestamp})
+					if cache_replacement_policy=="tree_plru":
+						index_to_replace_in_set=find_tree_plru_next_ind(cache[set_in_cache_for_line][1]["tree_plru_indexes"])
+						if cache[set_in_cache_for_line][0][index_to_replace_in_set][1]["dirty"]==1:
+							total_mac_calcs+=1 #we need to write it back, that is calculate its mac.
+						if operation=="W":
+							cache[set_in_cache_for_line][0][index_to_replace_in_set]=(line_start_addr,{"dirty":1,"bit_plru":1,"used_timestamp":used_timestamp})
+						else:
+							cache[set_in_cache_for_line][0][index_to_replace_in_set]=(line_start_addr,{"dirty":0,"bit_plru":1,"used_timestamp":used_timestamp})			
+		
 		
 		
 stoptime = timeit.default_timer()
