@@ -66,7 +66,7 @@ mkdir /tmp/pintool_tracefiles
 mkfifo /tmp/pintool_tracefiles/progout_fifo_itrace;
 mkfifo /tmp/pintool_tracefiles/progout_fifo_dtrace;
 mkfifo /tmp/pintool_tracefiles/itrace_fifo_policy /tmp/pintool_tracefiles/dtrace_fifo_policy /tmp/pintool_tracefiles/itrace_lru_policy /tmp/pintool_tracefiles/dtrace_lru_policy
-mkfifo /tmp/pintool_tracefiles/itrace_bit_plru_policy /tmp/pintool_tracefiles/dtrace_bit_plru_policy /tmp/pintool_tracefiles/itrace_random_policy /tmp/pintool_tracefiles/dtrace_random_policy
+mkfifo /tmp/pintool_tracefiles/itrace_bit_plru_policy /tmp/pintool_tracefiles/dtrace_bit_plru_policy /tmp/pintool_tracefiles/itrace_tree_plru_policy /tmp/pintool_tracefiles/dtrace_tree_plru_policy /tmp/pintool_tracefiles/itrace_random_policy /tmp/pintool_tracefiles/dtrace_random_policy
 
 
 
@@ -124,8 +124,8 @@ if [[ ( "$WE_SHOULD_PARSE_TRACE" -eq 1 ) ]]; then
 
 	#do the parsing, for all algorithms
 	echo "Parsing trace..."
-	cat ${NAME_OF_BENCHMARK}_itrace.out.gz | zcat | tee -a "/tmp/pintool_tracefiles/itrace_fifo_policy" "/tmp/pintool_tracefiles/itrace_lru_policy" "/tmp/pintool_tracefiles/itrace_bit_plru_policy" "/tmp/pintool_tracefiles/itrace_random_policy" >/dev/null &
-	cat ${NAME_OF_BENCHMARK}_dtrace.out.gz | zcat | tee -a "/tmp/pintool_tracefiles/dtrace_fifo_policy" "/tmp/pintool_tracefiles/dtrace_lru_policy" "/tmp/pintool_tracefiles/dtrace_bit_plru_policy" "/tmp/pintool_tracefiles/dtrace_random_policy" >/dev/null &
+	cat ${NAME_OF_BENCHMARK}_itrace.out.gz | zcat | tee -a "/tmp/pintool_tracefiles/itrace_fifo_policy" "/tmp/pintool_tracefiles/itrace_lru_policy" "/tmp/pintool_tracefiles/itrace_bit_plru_policy" "/tmp/pintool_tracefiles/itrace_tree_plru_policy" "/tmp/pintool_tracefiles/itrace_random_policy" >/dev/null &
+	cat ${NAME_OF_BENCHMARK}_dtrace.out.gz | zcat | tee -a "/tmp/pintool_tracefiles/dtrace_fifo_policy" "/tmp/pintool_tracefiles/dtrace_lru_policy" "/tmp/pintool_tracefiles/dtrace_bit_plru_policy" "/tmp/pintool_tracefiles/dtrace_tree_plru_policy" "/tmp/pintool_tracefiles/dtrace_random_policy" >/dev/null &
 	START_TIME_OF_PARSING_TRACE=$(date +%s.%N)	
 	${EXECUTABLE_FOR_TRACE} ${WORKING_DIR}/parse_trace.py "/tmp/pintool_tracefiles/itrace_fifo_policy" icache fifo $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_fifo_itraceparse.out &
 	pid_itrace_fifo=$!
@@ -139,23 +139,20 @@ if [[ ( "$WE_SHOULD_PARSE_TRACE" -eq 1 ) ]]; then
 	pid_itrace_bit_plru=$!
 	${EXECUTABLE_FOR_TRACE} ${WORKING_DIR}/parse_trace.py "/tmp/pintool_tracefiles/dtrace_bit_plru_policy" dcache bit_plru $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_bit_plru_dtraceparse.out &
 	pid_dtrace_bit_plru=$!
+	${EXECUTABLE_FOR_TRACE} ${WORKING_DIR}/parse_trace.py "/tmp/pintool_tracefiles/itrace_tree_plru_policy" icache tree_plru $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_tree_plru_itraceparse.out &
+	pid_itrace_tree_plru=$!
+	${EXECUTABLE_FOR_TRACE} ${WORKING_DIR}/parse_trace.py "/tmp/pintool_tracefiles/dtrace_tree_plru_policy" dcache tree_plru $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_tree_plru_dtraceparse.out &
+	pid_dtrace_tree_plru=$!
 	${EXECUTABLE_FOR_TRACE} ${WORKING_DIR}/parse_trace.py "/tmp/pintool_tracefiles/itrace_random_policy" icache random $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_random_itraceparse.out &
 	pid_itrace_random=$!
 	${EXECUTABLE_FOR_TRACE} ${WORKING_DIR}/parse_trace.py "/tmp/pintool_tracefiles/dtrace_random_policy" dcache random $TRACE_OUTPUT_SZ > ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_random_dtraceparse.out &
 	pid_dtrace_random=$!
-	wait $pid_itrace_fifo
-	wait $pid_dtrace_fifo
-	wait $pid_itrace_lru
-	wait $pid_dtrace_lru
-	wait $pid_itrace_bit_plru
-	wait $pid_dtrace_bit_plru
-	wait $pid_itrace_random
-	wait $pid_dtrace_random
+	wait
 	END_TIME_OF_PARSING_TRACE=$(date +%s.%N)
 
 	
 	echo "Parse time:  $(echo "scale=3; ($END_TIME_OF_PARSING_TRACE - $START_TIME_OF_PARSING_TRACE)*1000/1000" | bc) seconds"
-	declare -a arr_of_cache_rep_policies=("fifo" "lru" "bit_plru" "random")
+	declare -a arr_of_cache_rep_policies=("fifo" "lru" "bit_plru" "tree_plru" "random")
 	for i in "${arr_of_cache_rep_policies[@]}"	
 	do
 		num_of_macs_itrace=`cat ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_${i}_itraceparse.out | grep "Total mac calcs" | cut -f2 -d":"`

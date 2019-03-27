@@ -12,7 +12,7 @@ import math
 if len(sys.argv)!=5:
 	sys.stderr.write("Usage: %s <file_to_be_parsed> <type_of_cache> <cache_replacement_policy> <size_of_trace>\n" % sys.argv[0])
 	sys.stderr.write("Where type_of_cache: icache|dcache\n")
-	sys.stderr.write("cache_replacement_policy: fifo|bit_plru|lru|random \n")
+	sys.stderr.write("cache_replacement_policy: fifo|bit_plru|tree_plru|lru|random \n")
 	sys.stderr.write("size_of_trace: tiny|small|large \n")
 	sys.exit(-1)
 
@@ -273,7 +273,7 @@ with open(sys.argv[1]) as f:
 						index_to_replace_in_set=random.randint(0,cache_assoc-1)
 						cache[set_in_cache_for_line][0][index_to_replace_in_set]=(line_start_addr,{"dirty":0,"bit_plru":1,"used_timestamp":used_timestamp})
 					if cache_replacement_policy=="tree_plru":	
-						index_to_replace_in_set=find_tree_plru_next_ind(cache[set_in_cache_for_line][1]["tree_plru_indexes"])
+						index_to_replace_in_set=find_tree_plru_next_ind_in_miss(cache[set_in_cache_for_line][1]["tree_plru_indexes"])
 						cache[set_in_cache_for_line][0][index_to_replace_in_set]=(line_start_addr,{"dirty":0,"bit_plru":1,"used_timestamp":used_timestamp})
 						
 		if input_type_of_cache=="dcache":
@@ -354,7 +354,7 @@ with open(sys.argv[1]) as f:
 						else:
 							cache[set_in_cache_for_line][0][index_to_replace_in_set]=(line_start_addr,{"dirty":0,"bit_plru":1,"used_timestamp":used_timestamp})
 					if cache_replacement_policy=="tree_plru":
-						index_to_replace_in_set=find_tree_plru_next_ind(cache[set_in_cache_for_line][1]["tree_plru_indexes"])
+						index_to_replace_in_set=find_tree_plru_next_ind_in_miss(cache[set_in_cache_for_line][1]["tree_plru_indexes"])
 						if cache[set_in_cache_for_line][0][index_to_replace_in_set][1]["dirty"]==1:
 							total_mac_calcs+=1 #we need to write it back, that is calculate its mac.
 						if operation=="W":
