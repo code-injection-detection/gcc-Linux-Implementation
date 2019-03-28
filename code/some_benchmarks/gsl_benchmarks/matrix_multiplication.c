@@ -8,7 +8,6 @@ gcc matrix_multiplication.c  -lgsl -lgslcblas
 */
 
 
-//solution for a*x=b
 #define dimension 1000
 #define PRINT_RES 0
 
@@ -18,20 +17,19 @@ int main()
 
 	int i,j;
 
-	srand(42);
-
     gsl_matrix *a;   
     gsl_matrix *b;  
 
     a = gsl_matrix_alloc(dimension, dimension); /* Data matrix */
     b = gsl_matrix_alloc(dimension, dimension); /* Data matrix */
 
+    srand(42);
 	for (i=0;i<dimension;i++)
 	{
 		for (j=0;j<dimension;j++)
 		{
-			gsl_matrix_set(a, i, j, (rand()%15)/25.0); 
-            gsl_matrix_set(b, i, j, (rand()%15)/25.0);
+			gsl_matrix_set(a, i, j, (rand()%100)/100.0); 
+            gsl_matrix_set(b, i, j, (rand()%100)/100.0);
 		}
 		//printf("\n");
 	}  

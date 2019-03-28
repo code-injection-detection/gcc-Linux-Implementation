@@ -13,7 +13,7 @@ if [[ ( "$#" -ne 6 ) ]]; then
     echo "Where: a=size_of_trace_output (tiny|small|large)"
     echo "b=if_we_should_execute_a_trace"
     echo "c=if_we_should_parse_a_trace"
-    echo "d=cache_replacement_policy (lru|fifo|bit_plru|random)"
+    echo "d=cache_replacement_policy (lru|fifo|bit_plru|tree_plru|random)"
 	echo "e=path_to_executable"
 	echo "f=name_of_benchmark"
 	echo "Example: $0 small 1 1 fifo /bin/ls lsbenchmark"

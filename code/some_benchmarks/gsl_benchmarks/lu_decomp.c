@@ -8,7 +8,7 @@ gcc lu_decomp.c  -lgsl -lgslcblas
 */
 
 //solution for a*x=b
-#define dimension 2000
+#define dimension 1500
 #define PRINT_RES 1
 
 /*
@@ -32,7 +32,7 @@ int main()
 	{
 		for (j=0;j<dimension;j++)
 		{
-			a_data[i*dimension+j]=(rand()%15)/25.0;
+			a_data[i*dimension+j]=(rand()%100)/100.0;
 			/*
 			if ((rand()%2))
 				a_data[i*dimension+j]+=0.2;
