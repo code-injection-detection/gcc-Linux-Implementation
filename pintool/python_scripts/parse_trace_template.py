@@ -59,7 +59,7 @@ def check_if_bit_plru_bits_are_all_one_and_replace(set_lst,index_of_mru=-1):
 			set_lst[ind]=(addr_for_line,{"dirty":dirty_for_line,"bit_plru":1,"used_timestamp":used_timestamp_for_line})
 		else:
 			set_lst[ind]=(addr_for_line,{"dirty":dirty_for_line,"bit_plru":0,"used_timestamp":used_timestamp_for_line})
-	if index_of_mru==0:
+	if index_of_mru==0: #return the first index available
 		return 1
 	else:
 		return 0
