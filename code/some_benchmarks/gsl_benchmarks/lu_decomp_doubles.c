@@ -4,7 +4,7 @@
 #include <time.h>
 
 /*
-gcc lu_decomp.c  -lgsl -lgslcblas
+gcc lu_decomp_doubles.c  -lgsl -lgslcblas
 */
 
 //solution for a*x=b

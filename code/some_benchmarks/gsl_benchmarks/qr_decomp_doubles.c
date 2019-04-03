@@ -4,7 +4,7 @@
 #include <time.h>
 
 /*
-gcc qr_decomp.c  -lgsl -lgslcblas
+gcc qr_decomp_doubles.c  -lgsl -lgslcblas
 */
 
 //solution for a*x=b
