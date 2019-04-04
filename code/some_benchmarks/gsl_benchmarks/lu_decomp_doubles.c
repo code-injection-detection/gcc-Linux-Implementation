@@ -9,7 +9,7 @@ gcc lu_decomp_doubles.c  -lgsl -lgslcblas
 
 //solution for a*x=b
 #define dimension 1500
-#define PRINT_RES 1
+#define PRINT_RES 0
 
 /*
 double a_data[] = { 0.18, 0.60, 0.57, 0.96,
