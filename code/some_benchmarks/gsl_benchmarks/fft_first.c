@@ -7,7 +7,7 @@
 gcc fft_first.c  -lgsl -lgslcblas -lm
 */
 
-#define PULSE_SAMPLE_LEN 4194304  //power of 2
+#define PULSE_SAMPLE_LEN 1048576  //power of 2
 #define PULSE_ACTUAL_LEN 100000
 #define PRINT_RES 0
 

@@ -3,11 +3,11 @@
 #include <gsl/gsl_eigen.h>
 
 /*
-gcc eigenvalues_vectors.c  -lgsl -lgslcblas
+gcc eigenvalues_eigenvectors_4th_order_hilbert_matrix_doubles.c  -lgsl -lgslcblas
 */
 
 
-#define dimension 500
+#define dimension 400
 #define PRINT_RES 0
 
 double data[dimension*dimension]; 

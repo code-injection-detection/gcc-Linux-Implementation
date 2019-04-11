@@ -8,7 +8,7 @@ gcc lu_decomp_doubles.c  -lgsl -lgslcblas
 */
 
 //solution for a*x=b
-#define dimension 1500
+#define dimension 900
 #define PRINT_RES 0
 
 /*

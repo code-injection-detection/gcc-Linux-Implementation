@@ -8,7 +8,7 @@ gcc matrix_multiplication_floats.c  -lgsl -lgslcblas
 */
 
 
-#define dimension 1000
+#define dimension 650
 #define PRINT_RES 0
 
 

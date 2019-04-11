@@ -5,7 +5,7 @@
 gcc quasi_rng_sobol.c  -lgsl -lgslcblas -lm
 */
 
-#define num_of_results 15000000
+#define num_of_results 20000000
 #define PRINT_RES 0
 
 int main (void)

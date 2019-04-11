@@ -4,11 +4,11 @@
 #include <time.h>
 
 /*
-gcc matrix_multiplication.c  -lgsl -lgslcblas
+gcc matrix_multiplication_doubles.c  -lgsl -lgslcblas
 */
 
 
-#define dimension 1000
+#define dimension 600
 #define PRINT_RES 0
 
 

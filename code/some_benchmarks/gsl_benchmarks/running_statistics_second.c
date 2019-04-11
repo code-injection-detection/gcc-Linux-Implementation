@@ -10,7 +10,7 @@
 gcc running_statistics_second.c  -lgsl -lgslcblas -lm
 */
 
-#define len_of_array 1000000
+#define len_of_array 700000
 #define PRINT_RES 0
 
 

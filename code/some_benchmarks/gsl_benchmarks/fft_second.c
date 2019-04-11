@@ -7,8 +7,8 @@
 gcc fft_second.c  -lgsl -lgslcblas -lm
 */
 
-#define PULSE_SAMPLE_LEN 9669660 //7⋅11⋅5⋅2⋅6⋅7⋅13⋅23, small factors
-#define PULSE_ACTUAL_LEN 100000
+#define PULSE_SAMPLE_LEN 1381380 //11⋅5⋅2⋅6⋅7⋅13⋅23, small factors
+#define PULSE_ACTUAL_LEN 30000
 #define PRINT_RES 0
 
 #define REAL(z,i) ((z)[2*(i)])

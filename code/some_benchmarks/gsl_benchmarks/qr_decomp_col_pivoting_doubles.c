@@ -8,8 +8,8 @@ gcc qr_decomp_col_pivoting_doubles.c  -lgsl -lgslcblas
 */
 
 //solution for a*x=b
-#define dimension 650
-#define PRINT_RES 1
+#define dimension 600
+#define PRINT_RES 0
 
 int main()
 {

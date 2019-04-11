@@ -5,7 +5,7 @@
 gcc rng_default.c  -lgsl -lgslcblas
 */
 
-#define num_of_results 150000000
+#define num_of_results 20000000
 #define PRINT_RES 0
 
 int main (void)
