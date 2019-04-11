@@ -1,6 +1,13 @@
 #!/bin/bash
 
 
+#categories not working:
+#moving statistics, digital filtering
+
+
+#not worth probably:
+#n tuples, numerical integration
+
 
 DIR_WITH_GSL_BENCHMARKS=`pwd`
 DIR_WITH_PINTOOL_AUTOMATE_SCRIPT="${DIR_WITH_GSL_BENCHMARKS}/../../../pintool/"
