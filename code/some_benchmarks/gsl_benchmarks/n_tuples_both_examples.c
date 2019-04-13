@@ -62,7 +62,7 @@ main (void)
   int i;
 
   gsl_ntuple *ntuple
-    = gsl_ntuple_create ("/dev/shm/test.dat", &ntuple_row,  //ramdisk, we shoud not be blocked by disk write speed
+    = gsl_ntuple_create ("/dev/shm/test.dat", &ntuple_row,  //ramdisk, we should pay as little time as possible for the disk write
                          sizeof (ntuple_row));
 
   gsl_rng_env_setup ();

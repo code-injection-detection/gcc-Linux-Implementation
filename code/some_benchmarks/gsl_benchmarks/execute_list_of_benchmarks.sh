@@ -6,7 +6,7 @@
 
 
 #not worth probably:
-#n tuples, numerical integration
+# numerical integration
 
 
 DIR_WITH_GSL_BENCHMARKS=`pwd`
