@@ -37,7 +37,7 @@ gcc simulated_annealing_second.c -lgsl -lgslcblas -lm
 /* set up parameters for this simulated annealing run */
 
 #define N_TRIES 200             /* how many points do we try before stepping */
-#define ITERS_FIXED_T 400      /* how many iterations for each T? */ //default: 2000
+#define ITERS_FIXED_T 2000      /* how many iterations for each T? */
 #define STEP_SIZE 1.0           /* max step size in random walk */
 #define K 1.0                   /* Boltzmann constant */
 #define T_INITIAL 5000.0        /* initial temperature */

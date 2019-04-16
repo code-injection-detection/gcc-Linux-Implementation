@@ -6,7 +6,7 @@
 
 
 #not worth probably:
-# numerical integration
+# numerical integration, ordinary differential equations?
 
 
 DIR_WITH_GSL_BENCHMARKS=`pwd`
