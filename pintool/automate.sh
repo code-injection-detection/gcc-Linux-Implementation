@@ -164,11 +164,11 @@ if [[ ( "$WE_SHOULD_PARSE_TRACE" -eq 1 ) ]]; then
 		num_of_macs_dtrace=`cat ${WORKING_DIR}/${NAME_OF_BENCHMARK}_${TRACE_OUTPUT_SZ}_${i}_dtraceparse.out | grep "Total mac calcs" | cut -f2 -d":"`
 		mac_time_itrace=`python3 extract_total_time_for_macs.py $num_of_macs_itrace`
 		mac_time_dtrace=`python3 extract_total_time_for_macs.py $num_of_macs_dtrace`
-		echo -n "Macs for itrace ( replacement policy=${i} ) -> " >>  ${WORKING_DIR}/${NAME_OF_BENCHMARK}_summed_up_results.txt
+		echo -n "Macs for itrace ${NAME_OF_BENCHMARK} ( replacement policy=${i} ) -> " >>  ${WORKING_DIR}/${NAME_OF_BENCHMARK}_summed_up_results.txt
 		echo -n "Number of macs = ${num_of_macs_itrace} " >>  ${WORKING_DIR}/${NAME_OF_BENCHMARK}_summed_up_results.txt
 		echo ", Total extra time = ${mac_time_itrace}" >>  ${WORKING_DIR}/${NAME_OF_BENCHMARK}_summed_up_results.txt
 		
-		echo -n "Macs for dtrace ( replacement policy=${i} ) -> " >>  ${WORKING_DIR}/${NAME_OF_BENCHMARK}_summed_up_results.txt
+		echo -n "Macs for dtrace ${NAME_OF_BENCHMARK} ( replacement policy=${i} ) -> " >>  ${WORKING_DIR}/${NAME_OF_BENCHMARK}_summed_up_results.txt
 		echo -n "Number of macs = ${num_of_macs_dtrace} " >>  ${WORKING_DIR}/${NAME_OF_BENCHMARK}_summed_up_results.txt
 		echo ", Total extra time = ${mac_time_dtrace}" >>  ${WORKING_DIR}/${NAME_OF_BENCHMARK}_summed_up_results.txt
 		
