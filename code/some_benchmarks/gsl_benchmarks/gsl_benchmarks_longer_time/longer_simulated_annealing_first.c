@@ -7,7 +7,7 @@
 gcc simulated_annealing_first.c -lgsl -lgslcblas -lm
  */
 
-#define PRINT_RES 1
+#define PRINT_RES 0
 
 /* set up parameters for this simulated annealing run */
 
