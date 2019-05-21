@@ -6,7 +6,7 @@
 
 
 #not worth probably:
-# numerical integration, ordinary differential equations?
+# numerical integration, ordinary differential equations? , numerical differentiation, series_acceleration, wavelet transforms (need dataset), onedim root find + minimization (too fast)
 
 
 DIR_WITH_GSL_BENCHMARKS=`pwd`
