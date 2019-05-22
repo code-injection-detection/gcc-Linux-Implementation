@@ -4,10 +4,10 @@
 #include <gsl/gsl_multifit.h>
 
 /*
-gcc linear_least_squares_second.c  -lgsl -lgslcblas -lm
+gcc longer_linear_least_squares_second.c  -lgsl -lgslcblas -lm
 */
 
-#define NUM_OF_POINTS 900000
+#define NUM_OF_POINTS 4500000
 #define PRINT_RES 0
 
 
