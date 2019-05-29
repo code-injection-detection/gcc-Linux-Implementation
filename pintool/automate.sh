@@ -85,14 +85,14 @@ if [[ ( "$WE_SHOULD_EXECUTE_TRACE" -eq 1 ) ]]; then
 	START_TIME_OF_ITRACE=$(date +%s.%N)
 	${WORKING_DIR}/pin-3.7-97619-g0d0c92f4f-gcc-linux/pin -t ./pin-3.7-97619-g0d0c92f4f-gcc-linux/source/tools/ManualExamples/obj-intel64/itrace.so -- ${EXEC_PATH_1} & 
 	pid_itrace=$!
-	${WORKING_DIR}/output_stdin_and_on_signal ${NAME_OF_BENCHMARK}_itrace "/tmp/pintool_tracefiles/progout_fifo_itrace" | gzip > itrace.out.gz &
+	${WORKING_DIR}/output_stdin_and_on_signal ${NAME_OF_BENCHMARK}_itrace "/tmp/pintool_tracefiles/progout_fifo_itrace" | gzip --best > itrace.out.gz &
 	#END_TIME_OF_ITRACE=$(date +%s.%N)
 	#echo "Itrace time:  $(echo "scale=3; ($END_TIME_OF_ITRACE - $START_TIME_OF_ITRACE)*1000/1000" | bc) seconds"
 	#echo "Executing dtrace..."
 	START_TIME_OF_DTRACE=$(date +%s.%N)
 	${WORKING_DIR}/pin-3.7-97619-g0d0c92f4f-gcc-linux/pin -t ./pin-3.7-97619-g0d0c92f4f-gcc-linux/source/tools/ManualExamples/obj-intel64/pinatrace.so -- ${EXEC_PATH_2} &
 	pid_dtrace=$!
-	${WORKING_DIR}/output_stdin_and_on_signal ${NAME_OF_BENCHMARK}_dtrace "/tmp/pintool_tracefiles/progout_fifo_dtrace" | gzip > dtrace.out.gz &
+	${WORKING_DIR}/output_stdin_and_on_signal ${NAME_OF_BENCHMARK}_dtrace "/tmp/pintool_tracefiles/progout_fifo_dtrace" | gzip --best > dtrace.out.gz &
 	wait $pid_dtrace
 	retval=$?	
 	if [ $retval -eq 0 ]; then
