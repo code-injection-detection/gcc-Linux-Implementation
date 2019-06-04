@@ -13,7 +13,7 @@
 gcc linear_least_squares_sixth.c -lgsl -lgslcblas -lm
 */
 
-#define NUM_OF_POINTS 110000 //orig:50000
+#define NUM_OF_POINTS 140000 //orig:50000
 #define PRINT_RES 0
 
 

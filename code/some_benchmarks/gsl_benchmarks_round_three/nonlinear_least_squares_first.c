@@ -13,7 +13,7 @@ gcc nonlinear_least_squares_first.c -lgsl -lgslcblas -lm
 */
 
 
-#define N      2500    /* number of data points to fit */
+#define N      2700    /* number of data points to fit */
 #define TMAX   (50.0) /* time variable in [0,TMAX] */
 #define MAX_ITER 150 //default:100
 #define PRINT_RES 0

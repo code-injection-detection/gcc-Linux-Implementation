@@ -10,7 +10,7 @@
 gcc linear_least_squares_fifth.c -lgsl -lgslcblas -lm
 */
 
-#define NUM_OF_POINTS 100000 //orig:200
+#define NUM_OF_POINTS 120000 //orig:200
 #define PRINT_RES 0
 
 
