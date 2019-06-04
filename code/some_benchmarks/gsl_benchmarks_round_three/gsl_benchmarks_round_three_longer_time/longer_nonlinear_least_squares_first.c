@@ -13,7 +13,7 @@ gcc longer_nonlinear_least_squares_first.c -lgsl -lgslcblas -lm
 */
 
 
-#define N      7000    /* number of data points to fit */
+#define N      7500    /* number of data points to fit */
 #define TMAX   (80.0) /* time variable in [0,TMAX] */
 #define MAX_ITER 300 //default:100
 #define PRINT_RES 0

@@ -8,7 +8,7 @@
 gcc longer_linear_least_squares_fourth.c -lgsl -lgslcblas -lm
 */
 
-#define NUM_OF_POINTS 900000 //orig:200
+#define NUM_OF_POINTS 950000 //orig:200
 #define PRINT_RES 0
 
 static int

@@ -17,7 +17,7 @@ gcc longer_nonlinear_least_squares_third.c -lgsl -lgslcblas -lm
 #define x_tol 1.0e-9 //orig:1.0e-8
 #define g_tol 1.0e-9 //orig:1.0e-8
 #define f_tol 1.0e-9 //orig:1.0e-8
-#define DATA_POINTS 320000 //orig:300
+#define DATA_POINTS 380000 //orig:300
 
 
 struct data

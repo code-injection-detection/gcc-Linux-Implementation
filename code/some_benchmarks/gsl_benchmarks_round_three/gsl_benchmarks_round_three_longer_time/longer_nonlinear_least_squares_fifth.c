@@ -17,7 +17,7 @@ gcc longer_nonlinear_least_squares_fifth.c -lgsl -lgslcblas -lm
 #define x_tol 1.0e-8 //orig:1.0e-8
 #define g_tol 1.0e-8 //orig:1.0e-8
 #define f_tol 1.0e-8 //orig:1.0e-8
-#define NUM_OF_PARAMS 360 //orig:2000
+#define NUM_OF_PARAMS 370 //orig:2000
 
 
 /* parameters for functions */
