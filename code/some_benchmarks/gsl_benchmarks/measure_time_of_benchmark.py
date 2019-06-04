@@ -4,6 +4,10 @@ import sys
 import time
 import os
 
+
+#for x in `ls *.c`;do  echo $x &&  gcc $x -lgsl -lgslcblas -lm && ./measure_time_of_benchmark.py ./a.out 100; done
+
+
 if len(sys.argv)!=3:
     print("Usage:"+sys.argv[0]+" <exec_path> <num_of_times_to_run>")
     sys.exit(-1)
