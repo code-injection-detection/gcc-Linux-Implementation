@@ -222,7 +222,7 @@ with open(sys.argv[1]) as f:
 		if input_type_of_cache=="icache":
 			max_offset=int(dict_for_line["I_SZ"])
 			ins_addr=hex_str_to_decimal(dict_for_line["INS_ADDR"])
-			max_ins_addr=ins_addr+max_offset
+			max_ins_addr=ins_addr+max_offset-1
 			#are they in the same cache line?
 			line_start_addr=ins_addr-(ins_addr%cache_line_size)
 			line_start_max_addr=max_ins_addr-(max_ins_addr%cache_line_size)
@@ -279,7 +279,7 @@ with open(sys.argv[1]) as f:
 		if input_type_of_cache=="dcache":
 			max_offset=int(dict_for_line["sz"])
 			mem_addr=hex_str_to_decimal(dict_for_line["memaddr"])
-			max_mem_addr=mem_addr+max_offset
+			max_mem_addr=mem_addr+max_offset-1
 			#are they in the same cache line?
 			line_start_addr=mem_addr-(mem_addr%cache_line_size)
 			line_start_max_addr=max_mem_addr-(max_mem_addr%cache_line_size)
