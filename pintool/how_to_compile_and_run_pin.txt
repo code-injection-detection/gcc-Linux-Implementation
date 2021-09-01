@@ -1,0 +1,12 @@
+compile:
+cd source/tools/ManualExamples
+make all
+
+
+run:
+../../../pin -t obj-intel64/itrace.so -- /bin/ls
+
+
+and from root repo dir: ./pin-3.7-97619-g0d0c92f4f-gcc-linux/pin -t ./pin-3.7-97619-g0d0c92f4f-gcc-linux/source/tools/ManualExamples/obj-intel64/itrace.so -- /bin/ls
+
+example trace run: time python python_scripts/parse_trace.py ./pinatrace.out dcache bit_plru

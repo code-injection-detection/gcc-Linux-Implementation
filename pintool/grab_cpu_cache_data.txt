@@ -1,0 +1,8 @@
+grep . /sys/devices/system/cpu/cpu0/cache/index*/*
+
+see index0,index1 (data + intsruction  L1 caches)
+
+coherency_line_size->cache line size
+
+
+https://superuser.com/questions/405355/meaning-of-files-in-cpu-folder-of-linux
